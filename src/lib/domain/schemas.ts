@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const faixaSchema = z.object({
-  min: z.number().int().min(0),
+  min: z.number().int().min(0, 'O valor inicial não pode ser negativo.'),
   max: z.number().int().positive().nullable(),
   percentual: z.number().positive({ message: 'O percentual deve ser maior que zero.' }),
   parcelas: z.number().int().positive({ message: 'O número de parcelas deve ser maior que zero.' }),
@@ -10,8 +10,8 @@ export const faixaSchema = z.object({
 export const configFinanceiraSchema = z.object({
   nomePolitica: z.string().min(1, 'Dê um nome à política.'),
   faixas: z.array(faixaSchema).min(1, 'Cadastre pelo menos uma faixa.'),
-  diaFechamento: z.number().int().min(1).max(31),
-  diaPrimeiroPagamento: z.number().int().min(1).max(31),
+  diaFechamento: z.number().int().min(1, 'O dia deve ser entre 1 e 31.').max(31, 'O dia deve ser entre 1 e 31.'),
+  diaPrimeiroPagamento: z.number().int().min(1, 'O dia deve ser entre 1 e 31.').max(31, 'O dia deve ser entre 1 e 31.'),
   regrasEstorno: z.string().optional().default(''),
 }).superRefine((cfg, ctx) => {
   const faixas = [...cfg.faixas].sort((a, b) => a.min - b.min)
