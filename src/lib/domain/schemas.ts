@@ -1,0 +1,53 @@
+import { z } from 'zod'
+
+export const faixaSchema = z.object({
+  min: z.number().int().min(0),
+  max: z.number().int().positive().nullable(),
+  percentual: z.number().positive({ message: 'O percentual deve ser maior que zero.' }),
+  parcelas: z.number().int().positive({ message: 'O número de parcelas deve ser maior que zero.' }),
+})
+
+export const configFinanceiraSchema = z.object({
+  nomePolitica: z.string().min(1, 'Dê um nome à política.'),
+  faixas: z.array(faixaSchema).min(1, 'Cadastre pelo menos uma faixa.'),
+  diaFechamento: z.number().int().min(1).max(31),
+  diaPrimeiroPagamento: z.number().int().min(1).max(31),
+  regrasEstorno: z.string().optional().default(''),
+}).superRefine((cfg, ctx) => {
+  const faixas = [...cfg.faixas].sort((a, b) => a.min - b.min)
+  if (faixas.length > 0 && faixas[0].min !== 0)
+    ctx.addIssue({ code: 'custom', path: ['faixas'], message: 'A primeira faixa deve começar em R$ 0.' })
+  for (let i = 0; i < faixas.length; i++) {
+    const f = faixas[i]
+    if (f.max !== null && f.max <= f.min)
+      ctx.addIssue({ code: 'custom', path: ['faixas'], message: 'O valor final da faixa deve ser maior que o inicial.' })
+    if (f.max === null && i !== faixas.length - 1)
+      ctx.addIssue({ code: 'custom', path: ['faixas'], message: 'Apenas a última faixa pode ficar sem valor máximo.' })
+    if (i > 0) {
+      const ant = faixas[i - 1]
+      if (ant.max === null || f.min !== ant.max + 1)
+        ctx.addIssue({ code: 'custom', path: ['faixas'], message: 'As faixas não podem se sobrepor nem deixar intervalos vazios.' })
+    }
+  }
+})
+
+export const clienteFormSchema = z.object({
+  nome: z.string().min(1, 'Informe o nome do cliente.'),
+  telefone: z.string().optional().default(''),
+  documento: z.string().optional().default(''),
+  observacoes: z.string().optional().default(''),
+})
+
+export const vendaFormSchema = z.object({
+  clienteId: z.string().uuid('Selecione um cliente.'),
+  valorCartaCentavos: z.number().int().positive('Informe o valor da carta.'),
+  administradora: z.string().min(1, 'Informe a administradora.'),
+  grupo: z.string().min(1, 'Informe o grupo.'),
+  cota: z.string().min(1, 'Informe a cota.'),
+  dataVenda: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida.'),
+  observacoes: z.string().optional().default(''),
+})
+
+export type ConfigFinanceiraForm = z.infer<typeof configFinanceiraSchema>
+export type VendaForm = z.infer<typeof vendaFormSchema>
+export type ClienteForm = z.infer<typeof clienteFormSchema>
