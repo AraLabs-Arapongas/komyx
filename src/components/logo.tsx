@@ -5,9 +5,10 @@ import { cn } from '@/lib/utils'
  * tile navy. O verde nunca aparece aqui — na interface ele significa
  * dinheiro, e só.
  *
- * Mesmo desenho dos ícones PWA em public/ e do icon.svg — se mudar aqui,
- * regenerar os três juntos (o menu de dev não cobre isso; ver commit que os
- * gerou).
+ * Versão vetorial simplificada da marca. A arte final (K com volume) vive em
+ * public/k-logo.png e é a fonte dos ícones: favicon e apple-icon em src/app/
+ * e os PNGs do PWA em public/, todos gerados pelo compositor Swift
+ * (scratchpad da sessão de rebrand — K sobre tile navy #0B132B).
  */
 export function LogoSimbolo({ className }: { className?: string }) {
   return (
