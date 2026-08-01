@@ -3,7 +3,13 @@ import { Select as SelectPrimitive } from 'radix-ui'
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export type Opcao<T extends string> = { valor: T; rotulo: string }
+export type Opcao<T extends string> = {
+  valor: T
+  rotulo: string
+  /** Texto da pílula quando essa opção está ativa. A lista tem espaço para
+   *  explicar ("Data mais próxima"); a pílula, não ("Mais próxima"). */
+  rotuloCurto?: string
+}
 
 /**
  * Filtro em pílula: o menu nativo do browser é feio e destoa do resto, mas
@@ -20,6 +26,7 @@ export function Seletor<T extends string>({ valor, opcoes, onMuda, padrao, class
   className?: string
 }) {
   const ativo = padrao !== undefined && valor !== padrao
+  const atual = opcoes.find(o => o.valor === valor)
 
   return (
     <SelectPrimitive.Root value={valor} onValueChange={v => onMuda(v as T)}>
@@ -33,7 +40,9 @@ export function Seletor<T extends string>({ valor, opcoes, onMuda, padrao, class
           className,
         )}
       >
-        <SelectPrimitive.Value />
+        <SelectPrimitive.Value>
+          {atual ? atual.rotuloCurto ?? atual.rotulo : null}
+        </SelectPrimitive.Value>
         <SelectPrimitive.Icon asChild>
           <ChevronDown size={14} className={cn('shrink-0', ativo ? 'opacity-70' : 'text-muted-foreground')} />
         </SelectPrimitive.Icon>
@@ -43,7 +52,8 @@ export function Seletor<T extends string>({ valor, opcoes, onMuda, padrao, class
         <SelectPrimitive.Content
           position="popper"
           sideOffset={6}
-          className="z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-2xl
+          className="z-50 max-h-(--radix-select-content-available-height)
+                     min-w-[var(--radix-select-trigger-width)] overflow-y-auto rounded-2xl
                      bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-foreground/10
                      data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95
                      data-closed:animate-out data-closed:fade-out-0"

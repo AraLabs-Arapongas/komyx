@@ -7,7 +7,7 @@ import { formatData, formatMesAno } from '@/lib/format'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
-import { Seletor } from '@/components/seletor'
+import { Seletor, type Opcao } from '@/components/seletor'
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
@@ -25,17 +25,38 @@ function jaCaiu(r: RecebimentoLinha, hoje: string): boolean {
 type Filtro = 'tudo' | 'a_receber' | 'recebidos'
 type Ordenacao = 'proxima' | 'distante' | 'maior_valor'
 
-const FILTROS: { valor: Filtro; rotulo: string }[] = [
+const FILTROS: Opcao<Filtro>[] = [
   { valor: 'tudo', rotulo: 'Tudo' },
   { valor: 'a_receber', rotulo: 'A receber' },
   { valor: 'recebidos', rotulo: 'Recebidos' },
 ]
 
-const ORDENACOES: { valor: Ordenacao; rotulo: string }[] = [
-  { valor: 'proxima', rotulo: 'Data mais próxima' },
-  { valor: 'distante', rotulo: 'Data mais distante' },
+const ORDENACOES: Opcao<Ordenacao>[] = [
+  { valor: 'proxima', rotulo: 'Data mais próxima', rotuloCurto: 'Mais próxima' },
+  { valor: 'distante', rotulo: 'Data mais distante', rotuloCurto: 'Mais distante' },
   { valor: 'maior_valor', rotulo: 'Maior valor' },
 ]
+
+const MES_ABREV = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+
+const TODOS_OS_MESES = 'todos'
+
+/** Só os meses que têm parcela: oferecer um calendário inteiro seria escolher no vazio. */
+function mesesDisponiveis(recs: RecebimentoLinha[]): Opcao<string>[] {
+  const chaves = [...new Set(recs.map(r => r.data_prevista.slice(0, 7)))].sort()
+  return [
+    { valor: TODOS_OS_MESES, rotulo: 'Todos os meses', rotuloCurto: 'Mês' },
+    ...chaves.map(k => {
+      const ano = Number(k.slice(0, 4)), mes = Number(k.slice(5, 7))
+      return {
+        valor: k,
+        rotulo: formatMesAno(ano, mes),
+        rotuloCurto: `${MES_ABREV[mes - 1]}/${ano}`,
+      }
+    }),
+  ]
+}
 
 export default function RecebimentosPage() {
   const { data: recs, isLoading } = useRecebimentos()
@@ -44,10 +65,17 @@ export default function RecebimentosPage() {
   const [filtro, setFiltro] = useState<Filtro>('tudo')
   const [busca, setBusca] = useState('')
   const [ordenacao, setOrdenacao] = useState<Ordenacao>('proxima')
+  const [mes, setMes] = useState<string>(TODOS_OS_MESES)
+
+  const MESES_OPCOES = mesesDisponiveis(recs ?? [])
+  // um mês que sumiu da lista (a busca estreitou o conjunto) deixaria a tela
+  // vazia sem explicação: nesse caso o filtro de mês não se aplica
+  const mesValido = MESES_OPCOES.some(o => o.valor === mes) ? mes : TODOS_OS_MESES
 
   const buscaNorm = busca.trim().toLowerCase()
   const filtrados = (recs ?? []).filter(r => {
     if (buscaNorm && !(r.comissoes.vendas.clientes?.nome ?? '').toLowerCase().includes(buscaNorm)) return false
+    if (mesValido !== TODOS_OS_MESES && r.data_prevista.slice(0, 7) !== mesValido) return false
     const caiu = jaCaiu(r, hoje)
     if (filtro === 'a_receber') return !caiu && r.status === 'previsto'
     if (filtro === 'recebidos') return caiu
@@ -110,7 +138,8 @@ export default function RecebimentosPage() {
           <Input placeholder="Buscar por cliente…" value={busca}
             onChange={e => setBusca(e.target.value)} />
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Seletor valor={mesValido} opcoes={MESES_OPCOES} onMuda={setMes} padrao={TODOS_OS_MESES} />
             <Seletor valor={filtro} opcoes={FILTROS} onMuda={setFiltro} padrao="tudo" />
             <Seletor valor={ordenacao} opcoes={ORDENACOES} onMuda={setOrdenacao} padrao="proxima" />
           </div>
