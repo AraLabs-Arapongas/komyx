@@ -1,7 +1,7 @@
-# ConsorPro MVP — Design Técnico
+# Komyx MVP — Design Técnico
 
 Data: 2026-07-31
-Fonte de produto: PRD v0.1 (`~/Desktop/consorpro-prd/`)
+Fonte de produto: PRD v0.1 (`~/Desktop/komyx-prd/`)
 Status: aprovado (seções 1-2 explícitas; demais decisões delegadas)
 
 ## 1. Resumo
