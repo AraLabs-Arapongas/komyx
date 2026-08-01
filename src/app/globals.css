@@ -177,16 +177,14 @@
     radial-gradient(45% 45% at 88% 78%, rgba(0, 200, 255, 0.28), transparent 72%);
 }
 
-/* Revelação no scroll (landing): o estado escondido só existe com JavaScript
-   ligado — sem JS a página fica inteira visível, nunca em branco. */
-@media (scripting: enabled) {
-  [data-revela] {
-    transition: opacity 600ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  [data-revela='0'] {
-    opacity: 0;
-    transform: translateY(18px);
-  }
+/* Revelação no scroll (landing). O atributo só existe depois que o JavaScript
+   rodou: sem ele nada é escondido, e a página nunca fica em branco. */
+[data-revela] {
+  transition: opacity 600ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-revela='0'] {
+  opacity: 0;
+  transform: translateY(18px);
 }
 
 /* O celular do hero flutua de leve: profundidade sem chamar atenção. */
