@@ -102,3 +102,34 @@ export async function marcarRecebido(recebimentoId: string, dataRecebimento: str
     return { ok: false as const, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
   }
 }
+
+export async function desmarcarRecebido(recebimentoId: string) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { ok: false as const, erro: 'Sessão expirada. Entre novamente.' }
+    const { error } = await supabase.rpc('desmarcar_recebido', {
+      p_recebimento_id: recebimentoId,
+    })
+    if (error) return { ok: false as const, erro: 'Não foi possível desfazer o recebimento.' }
+    return { ok: true as const }
+  } catch (e) {
+    return { ok: false as const, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
+  }
+}
+
+/** Confirma de uma vez todas as parcelas vencidas até hoje. */
+export async function marcarRecebidosVencidos(ate: string) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { ok: false as const, erro: 'Sessão expirada. Entre novamente.' }
+    const { data, error } = await supabase.rpc('marcar_recebidos_vencidos', {
+      p_ate: ate, p_data: ate,
+    })
+    if (error) return { ok: false as const, erro: 'Não foi possível registrar os recebimentos.' }
+    return { ok: true as const, quantidade: data ?? 0 }
+  } catch (e) {
+    return { ok: false as const, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
+  }
+}

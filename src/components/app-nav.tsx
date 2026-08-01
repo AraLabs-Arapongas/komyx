@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { LayoutDashboard, ShoppingBag, Wallet, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/logo'
+import { BotaoPrivacidade } from '@/components/privacidade'
 
 const itens = [
   { href: '/app', label: 'Início', icon: LayoutDashboard },
@@ -17,6 +18,13 @@ export function AppNav() {
   const ativo = (href: string) => href === '/app' ? path === '/app' : path.startsWith(href)
   return (
     <>
+      {/* mobile: barra superior só com marca e privacidade — a navegação
+          mora embaixo, ao alcance do polegar */}
+      <div className="sticky top-0 z-30 flex items-center justify-between border-b bg-card px-4 py-2.5 md:hidden">
+        <Logo />
+        <BotaoPrivacidade className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" />
+      </div>
+
       {/* mobile: bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-card md:hidden">
         {itens.map(({ href, label, icon: Icon }) => (
@@ -37,6 +45,7 @@ export function AppNav() {
             <Icon size={18} />{label}
           </Link>
         ))}
+        <BotaoPrivacidade className="mt-auto flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-sm text-muted-foreground hover:text-foreground" />
       </aside>
     </>
   )

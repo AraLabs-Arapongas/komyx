@@ -1,6 +1,7 @@
 'use client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/sonner'
+import { PrivacidadeProvider } from '@/components/privacidade'
 import { useState } from 'react'
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -9,8 +10,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }))
   return (
     <QueryClientProvider client={client}>
-      {children}
-      <Toaster position="top-center" />
+      <PrivacidadeProvider>
+        {children}
+        <Toaster position="top-center" />
+      </PrivacidadeProvider>
     </QueryClientProvider>
   )
 }

@@ -125,7 +125,7 @@ export default function VendaDetalhePage() {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Valor da carta</span>
-          <span className="font-medium">{formatBRL(Number(venda.valor_carta_centavos))}</span>
+          <Valor centavos={Number(venda.valor_carta_centavos)} destaque={false} className="font-medium" />
         </div>
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Administradora</span>

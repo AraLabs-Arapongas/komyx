@@ -61,11 +61,19 @@ export function dataBRParaISO(txt: string): string {
   return `${aaaa}-${mm}-${dd}`
 }
 
-/** Percentual com no máximo uma vírgula decimal. */
+/**
+ * Percentual com duas casas decimais, montado da direita como o campo de
+ * valor. Teto de 100%: comissão de consórcio vive na casa do 0,5% e um
+ * número solto digitado sem querer não pode virar regra de cálculo.
+ */
 export function mascaraPercentual(txt: string): string {
-  const limpo = txt.replace(/\./g, ',').replace(/[^\d,]/g, '')
-  const [inteiro, ...resto] = limpo.split(',')
-  return resto.length ? `${inteiro},${resto.join('')}` : inteiro
+  const digitos = txt.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+  if (!digitos) return ''
+  const centesimos = digitos.padStart(3, '0')
+  const inteiro = centesimos.slice(0, -2)
+  const decimais = centesimos.slice(-2)
+  if (Number(`${inteiro}.${decimais}`) > 100) return '100,00'
+  return `${inteiro},${decimais}`
 }
 
 export function mascaraInteiro(txt: string): string {

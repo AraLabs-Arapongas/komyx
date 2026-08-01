@@ -1,5 +1,5 @@
 'use client'
-import { useRecebimentos, useMarcarRecebido } from '@/lib/queries/recebimentos'
+import { useRecebimentos, useMarcarRecebido, useDesmarcarRecebido } from '@/lib/queries/recebimentos'
 import { Valor } from '@/components/valor'
 import { formatData, formatMesAno } from '@/lib/format'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +14,10 @@ function hojeSP(): string {
 export default function RecebimentosPage() {
   const { data: recs, isLoading } = useRecebimentos()
   const marcar = useMarcarRecebido()
+  const desmarcar = useDesmarcarRecebido()
+  const emTransito = (id: string) =>
+    (marcar.isPending && marcar.variables?.id === id) ||
+    (desmarcar.isPending && desmarcar.variables?.id === id)
   const hoje = hojeSP()
   const grupos = new Map<string, NonNullable<typeof recs>>()
   for (const r of recs ?? []) {
@@ -36,15 +40,17 @@ export default function RecebimentosPage() {
           </h2>
           {linhas.map(r => {
             const atrasado = r.status === 'previsto' && r.data_prevista < hoje
+            // no celular, valor e ações descem para a segunda linha: com o selo
+            // de atrasado, tudo junto empurrava o "Recebido" para fora da tela
             return (
-              <div key={r.id} className="flex items-center justify-between rounded-[10px] border bg-card p-3">
-                <div>
+              <div key={r.id} className="rounded-[10px] border bg-card p-3 md:flex md:items-center md:justify-between md:gap-4">
+                <div className="min-w-0">
                   <p className="font-medium">{r.comissoes.vendas.clientes?.nome}</p>
                   <p className="text-sm text-muted-foreground">
                     Parcela {r.numero_parcela} de {r.comissoes.n_parcelas} · {formatData(r.data_prevista)}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="mt-2 flex items-center justify-between gap-2 md:mt-0 md:justify-end">
                   <Valor centavos={Number(r.valor_centavos)} />
                   {atrasado && <Badge className="bg-[#F59E0B] text-white">Atrasado</Badge>}
                   {r.status === 'cancelado' && <Badge variant="outline">Cancelado</Badge>}
@@ -52,14 +58,17 @@ export default function RecebimentosPage() {
                   {(r.status === 'previsto' || r.status === 'recebido') && (
                     <Label
                       htmlFor={`recebido-${r.id}`}
-                      className="flex items-center gap-2 rounded-[10px] px-2 py-2 -mr-2 font-normal cursor-pointer has-disabled:cursor-default"
+                      className="flex items-center gap-2 rounded-[10px] px-2 py-2 -mr-2 font-normal cursor-pointer"
                     >
                       <Checkbox
                         id={`recebido-${r.id}`}
                         checked={r.status === 'recebido'}
-                        disabled={r.status === 'recebido'}
+                        // trava só a linha em trânsito: dois cliques seguidos
+                        // marcariam e desmarcariam a mesma parcela
+                        disabled={emTransito(r.id)}
                         onCheckedChange={checked => {
                           if (checked) marcar.mutate({ id: r.id, data: hojeSP() })
+                          else desmarcar.mutate({ id: r.id })
                         }}
                       />
                       Recebido

@@ -10,6 +10,7 @@ import { Valor } from '@/components/valor'
 import { formatBRL, formatData, formatDataExtenso } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BannerPagamento } from '@/components/banner-pagamento'
 import { CalendarDays, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 
 function hojeSP(): string {
@@ -42,6 +43,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {d?.vencidos && <BannerPagamento vencidos={d.vencidos} hoje={hojeSP()} />}
+
       <header className="space-y-2">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-1">
@@ -84,9 +87,10 @@ export default function DashboardPage() {
         {isLoading || !d ? <Skeleton className="h-28 w-full" /> : d.proximoPagamento ? (
           <>
             <p className="text-sm text-muted-foreground">Você receberá</p>
-            <p className="mt-1 text-5xl font-semibold tabular-nums text-money md:text-6xl">
-              {formatBRL(d.proximoPagamento.totalCentavos)}
-            </p>
+            <Valor
+              centavos={d.proximoPagamento.totalCentavos}
+              className="mt-1 block text-5xl md:text-6xl"
+            />
             <p className="mt-2 text-sm text-muted-foreground">{formatDataExtenso(d.proximoPagamento.data)}</p>
           </>
         ) : (
@@ -107,9 +111,7 @@ export default function DashboardPage() {
                 não competir com a comissão */}
             <div className="rounded-[10px] border bg-card p-3">
               <p className="text-xs text-muted-foreground">Vendido no mês</p>
-              <p className="mt-1 text-lg font-semibold tabular-nums">
-                {formatBRL(d.totalVendidoCentavos)}
-              </p>
+              <Valor centavos={d.totalVendidoCentavos} destaque={false} className="mt-1 block text-lg" />
             </div>
             <div className="rounded-[10px] border bg-card p-3">
               <p className="text-xs text-muted-foreground">Comissão prevista</p>
@@ -121,9 +123,7 @@ export default function DashboardPage() {
             </div>
             <div className="rounded-[10px] border bg-card p-3">
               <p className="text-xs text-muted-foreground">Ticket médio</p>
-              <p className="mt-1 text-lg font-semibold tabular-nums">
-                {formatBRL(d.ticketMedioCentavos)}
-              </p>
+              <Valor centavos={d.ticketMedioCentavos} destaque={false} className="mt-1 block text-lg" />
               <p className="text-xs text-muted-foreground">
                 em {d.nVendas} {pluralizar(d.nVendas, 'venda', 'vendas')}
               </p>
@@ -156,7 +156,9 @@ export default function DashboardPage() {
               <div key={v.id} className="flex items-center justify-between rounded-[10px] border bg-card p-3 text-sm">
                 <div>
                   <p className="font-medium">{v.cliente || 'Cliente sem nome'}</p>
-                  <p className="text-muted-foreground">Carta {formatBRL(v.valorCartaCentavos)}</p>
+                  <p className="text-muted-foreground">
+                    Carta <Valor centavos={v.valorCartaCentavos} destaque={false} className="font-normal" />
+                  </p>
                 </div>
                 <Valor centavos={v.comissaoPrevistaCentavos} />
               </div>

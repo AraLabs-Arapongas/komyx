@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { queryKeys } from './keys'
-import { marcarRecebido } from '@/lib/actions/vendas'
+import { marcarRecebido, desmarcarRecebido } from '@/lib/actions/vendas'
 import { toast } from 'sonner'
 
 export type RecebimentoLinha = {
@@ -43,6 +43,29 @@ export function useMarcarRecebido() {
     onSuccess: (r) => {
       if (!r.ok) { toast.error(r.erro); qc.invalidateQueries(); return }
       toast.success('Recebimento atualizado.')
+    },
+    onSettled: () => qc.invalidateQueries(),
+  })
+}
+
+export function useDesmarcarRecebido() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id }: { id: string }) => desmarcarRecebido(id),
+    onMutate: async ({ id }) => {
+      await qc.cancelQueries({ queryKey: queryKeys.recebimentos })
+      const anterior = qc.getQueryData<RecebimentoLinha[]>(queryKeys.recebimentos)
+      qc.setQueryData<RecebimentoLinha[]>(queryKeys.recebimentos, old =>
+        (old ?? []).map(r => r.id === id ? { ...r, status: 'previsto', data_recebimento: null } : r))
+      return { anterior }
+    },
+    onError: (_e, _v, ctx) => {
+      qc.setQueryData(queryKeys.recebimentos, ctx?.anterior)
+      toast.error('Não foi possível desfazer o recebimento. Tente novamente.')
+    },
+    onSuccess: (r) => {
+      if (!r.ok) { toast.error(r.erro); qc.invalidateQueries(); return }
+      toast.success('Recebimento desfeito.')
     },
     onSettled: () => qc.invalidateQueries(),
   })

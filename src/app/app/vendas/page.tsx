@@ -72,7 +72,7 @@ export default function VendasPage() {
               <div className="mt-2 space-y-1 border-t pt-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Carta</span>
-                  <span className="font-medium tabular-nums">{formatBRL(Number(v.valor_carta_centavos))}</span>
+                  <Valor centavos={Number(v.valor_carta_centavos)} destaque={false} className="font-medium" />
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Comissão prevista</span>

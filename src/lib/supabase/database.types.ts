@@ -356,6 +356,10 @@ export type Database = {
         Args: { p_competencia_id: string; p_resultado: Json }
         Returns: undefined
       }
+      desmarcar_recebido: {
+        Args: { p_recebimento_id: string }
+        Returns: undefined
+      }
       fechar_competencias_vencidas: {
         Args: { p_hoje: string; p_snapshot: Json }
         Returns: undefined
@@ -363,6 +367,10 @@ export type Database = {
       marcar_recebido: {
         Args: { p_data: string; p_recebimento_id: string }
         Returns: undefined
+      }
+      marcar_recebidos_vencidos: {
+        Args: { p_ate: string; p_data: string }
+        Returns: number
       }
     }
     Enums: {

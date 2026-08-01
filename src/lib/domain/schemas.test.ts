@@ -39,6 +39,10 @@ describe('configFinanceiraSchema', () => {
     const faixas = [{ min: 0, max: null, percentual: 0, parcelas: 2 }]
     expect(configFinanceiraSchema.safeParse({ ...base, faixas }).success).toBe(false)
   })
+  it('rejeita percentual acima de 100%', () => {
+    const faixas = [{ min: 0, max: null, percentual: 3213131231, parcelas: 2 }]
+    expect(configFinanceiraSchema.safeParse({ ...base, faixas }).success).toBe(false)
+  })
   it('rejeita parcelas = 0 (RN-010)', () => {
     const faixas = [{ min: 0, max: null, percentual: 0.5, parcelas: 0 }]
     expect(configFinanceiraSchema.safeParse({ ...base, faixas }).success).toBe(false)

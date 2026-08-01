@@ -7,6 +7,11 @@ export type ProximoPagamento = { data: string; totalCentavos: number; quantidade
 export type UltimaVenda = {
   id: string; cliente: string; valorCartaCentavos: number; comissaoPrevistaCentavos: number
 }
+export type Vencidos = { totalCentavos: number; quantidade: number; ate: string }
+
+function hojeSP(): string {
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
+}
 
 export function useDashboard(ano: number, mes: number) {
   return useQuery({
@@ -22,11 +27,15 @@ export function useDashboard(ano: number, mes: number) {
         proximos: [] as { id: string; valor_centavos: number; data_prevista: string; cliente: string }[],
         proximoPagamento: null as ProximoPagamento | null,
         ultimasVendas: [] as UltimaVenda[],
+        vencidos: null as Vencidos | null,
       }
-      // próximos recebimentos independem da competência selecionada
+      const hoje = hojeSP()
+      // próximos recebimentos independem da competência selecionada; o que já
+      // venceu não é "próximo" — vai para o banner de confirmação
       const { data: prox } = await supabase.from('recebimentos')
         .select('id, valor_centavos, data_prevista, comissoes(vendas(clientes(nome)))')
-        .eq('status', 'previsto').order('data_prevista').limit(5)
+        .eq('status', 'previsto').gte('data_prevista', hoje)
+        .order('data_prevista').limit(5)
       vazio.proximos = (prox ?? []).map(p => ({
         id: p.id, valor_centavos: Number(p.valor_centavos), data_prevista: p.data_prevista,
         cliente: (p.comissoes as unknown as { vendas: { clientes: { nome: string } | null } })
@@ -42,6 +51,18 @@ export function useDashboard(ano: number, mes: number) {
           data: proximaData,
           totalCentavos: (doDia ?? []).reduce((s, r) => s + Number(r.valor_centavos), 0),
           quantidade: (doDia ?? []).length,
+        }
+      }
+      // banner "você recebeu?": todas as parcelas previstas com vencimento até hoje,
+      // independente da competência selecionada
+      const { data: venc } = await supabase.from('recebimentos')
+        .select('valor_centavos, data_prevista')
+        .eq('status', 'previsto').lte('data_prevista', hoje)
+      if (venc && venc.length > 0) {
+        vazio.vencidos = {
+          totalCentavos: venc.reduce((s, r) => s + Number(r.valor_centavos), 0),
+          quantidade: venc.length,
+          ate: hoje,
         }
       }
       if (!comp) return vazio

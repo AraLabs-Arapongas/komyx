@@ -3,7 +3,9 @@ import { z } from 'zod'
 export const faixaSchema = z.object({
   min: z.number().int().min(0, 'O valor inicial não pode ser negativo.'),
   max: z.number().int().positive().nullable(),
-  percentual: z.number().positive({ message: 'O percentual deve ser maior que zero.' }),
+  percentual: z.number()
+    .positive({ message: 'O percentual deve ser maior que zero.' })
+    .max(100, { message: 'O percentual não pode passar de 100%.' }),
   parcelas: z.number().int().positive({ message: 'O número de parcelas deve ser maior que zero.' }),
 })
 

@@ -13,7 +13,7 @@ import { Trash2, Plus } from 'lucide-react'
 
 function Secao({ titulo, apoio, children }: { titulo: string; apoio: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-4 rounded-[10px] border bg-card p-4">
+    <section className="space-y-4 rounded-[10px] border bg-card p-4 md:p-5">
       <div className="space-y-1">
         <h2 className="font-medium">{titulo}</h2>
         <p className="text-sm text-muted-foreground">{apoio}</p>
@@ -36,7 +36,9 @@ export function ConfigForm({ modo, inicial }: {
   const [faixas, setFaixas] = useState<FaixaDraft[]>(
     inicial?.faixas.map(f => ({
       maxTxt: f.max === null ? '' : (f.max / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
-      percentualTxt: String(f.percentual).replace('.', ','),
+      // duas casas para bater com a máscara: sem isso, "0,5" viraria "0,05"
+      // assim que o corretor tocasse no campo
+      percentualTxt: f.percentual.toFixed(2).replace('.', ','),
       parcelasTxt: String(f.parcelas),
     })) ?? [{ maxTxt: '', percentualTxt: '', parcelasTxt: '' }])
   const [fechamento, setFechamento] = useState(String(inicial?.diaFechamento ?? 25))
@@ -82,7 +84,7 @@ export function ConfigForm({ modo, inicial }: {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-5">
       <Secao titulo="Política" apoio="Um nome para você reconhecer essa regra de comissão depois.">
         <div className="space-y-1">
           <Label>Nome da política</Label>
@@ -93,7 +95,7 @@ export function ConfigForm({ modo, inicial }: {
       <Secao titulo="Faixas" apoio="Comissão calculada pelo total vendido no mês. Deixe o “vendido até” da última faixa em branco.">
         <div className="space-y-3">
           {faixas.map((f, i) => (
-            <div key={i} className="space-y-2 rounded-[10px] border p-3">
+            <div key={i} className="space-y-3 rounded-[10px] border p-3">
               <div className="flex items-center justify-between text-sm font-medium">
                 <span>Faixa {i + 1} — a partir de {formatBRL(minDaFaixa(i))}</span>
                 {faixas.length > 1 && (
@@ -101,14 +103,17 @@ export function ConfigForm({ modo, inicial }: {
                     <Trash2 size={18} className="text-muted-foreground" />
                   </button>)}
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div><Label className="text-xs">Vendido até</Label>
+              {/* no celular os três campos lado a lado truncam o "Sem limite":
+                  o valor ocupa a linha inteira e os dois curtos dividem a de baixo */}
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="col-span-2 space-y-1 sm:col-span-1">
+                  <Label className="text-xs">Vendido até</Label>
                   <CampoValor value={f.maxTxt} placeholder="Sem limite"
                     onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, maxTxt: v } : x))} /></div>
-                <div><Label className="text-xs">Comissão</Label>
+                <div className="space-y-1"><Label className="text-xs">Comissão</Label>
                   <CampoPercentual value={f.percentualTxt} required
                     onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, percentualTxt: v } : x))} /></div>
-                <div><Label className="text-xs">Parcelas</Label>
+                <div className="space-y-1"><Label className="text-xs">Parcelas</Label>
                   <CampoInteiro value={f.parcelasTxt} placeholder="2" required
                     onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, parcelasTxt: v } : x))} /></div>
               </div>
@@ -123,9 +128,9 @@ export function ConfigForm({ modo, inicial }: {
 
       <Secao titulo="Calendário" apoio="Vendas até o dia do fechamento entram no mês atual; depois disso, no mês seguinte. A primeira parcela é paga no dia do pagamento do mês seguinte.">
         <div className="grid grid-cols-2 gap-3">
-          <div><Label>Dia do fechamento</Label>
+          <div className="space-y-1"><Label>Dia do fechamento</Label>
             <CampoInteiro value={fechamento} onChange={setFechamento} required /></div>
-          <div><Label>Dia do pagamento</Label>
+          <div className="space-y-1"><Label>Dia do pagamento</Label>
             <CampoInteiro value={pagamento} onChange={setPagamento} required /></div>
         </div>
       </Secao>

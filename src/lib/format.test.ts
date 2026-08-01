@@ -67,14 +67,32 @@ describe('dataBRParaISO', () => {
   })
 })
 
-describe('mascaraPercentual e mascaraInteiro', () => {
-  it('percentual aceita uma vírgula decimal', () => {
-    expect(mascaraPercentual('0,5')).toBe('0,5')
-    expect(mascaraPercentual('0.5')).toBe('0,5')
-    expect(mascaraPercentual('0,5,5')).toBe('0,55')
-    expect(mascaraPercentual('abc1')).toBe('1')
+describe('mascaraPercentual', () => {
+  it('monta com duas casas decimais, da direita para a esquerda', () => {
+    expect(mascaraPercentual('5')).toBe('0,05')
+    expect(mascaraPercentual('50')).toBe('0,50')
+    expect(mascaraPercentual('060')).toBe('0,60')
+    expect(mascaraPercentual('150')).toBe('1,50')
+    expect(mascaraPercentual('1000')).toBe('10,00')
   })
-  it('inteiro mantém apenas dígitos', () => {
+  it('ignora o que não for dígito', () => {
+    expect(mascaraPercentual('0,50')).toBe('0,50')
+    expect(mascaraPercentual('abc')).toBe('')
+    expect(mascaraPercentual('')).toBe('')
+  })
+  it('não deixa passar de 100% — comissão de consórcio nunca chega perto disso', () => {
+    expect(mascaraPercentual('3213131231')).toBe('100,00')
+    expect(mascaraPercentual('99999')).toBe('100,00')
+    expect(mascaraPercentual('10000')).toBe('100,00')
+  })
+  it('o texto gerado é lido de volta corretamente', () => {
+    expect(parseFloat(mascaraPercentual('060').replace(',', '.'))).toBe(0.6)
+    expect(parseFloat(mascaraPercentual('1250').replace(',', '.'))).toBe(12.5)
+  })
+})
+
+describe('mascaraInteiro', () => {
+  it('mantém apenas dígitos', () => {
     expect(mascaraInteiro('12a3')).toBe('123')
     expect(mascaraInteiro('')).toBe('')
   })
