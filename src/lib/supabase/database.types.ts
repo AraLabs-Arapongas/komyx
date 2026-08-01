@@ -252,6 +252,27 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          origem: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          origem?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          origem?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
