@@ -5,6 +5,7 @@ import { CapturaLead } from '@/components/captura-lead'
 import {
   MolduraCelular, AmostraAgenda, AmostraFaixas, AmostraLoteria,
 } from '@/components/landing/amostras'
+import { Revela } from '@/components/landing/revela'
 import {
   Calculator, CalendarClock, Undo2, Search, ShieldCheck, Download,
   EyeOff, Sparkles, Check, X,
@@ -37,16 +38,43 @@ const COMO_FUNCIONA = [
   },
 ]
 
-/* uma linha por recurso: ninguém lê parágrafo em grade de oito itens */
+/* uma linha por recurso, dita como consequência: o corretor compra o que a
+   função faz pela vida dele, não a função */
 const RECURSOS = [
-  { icon: Calculator, titulo: 'Faixa retroativa', texto: 'Subiu de faixa? O mês inteiro é recalculado.' },
-  { icon: CalendarClock, titulo: 'Agenda de recebimentos', texto: 'Cada parcela com data, valor e cliente.' },
-  { icon: Undo2, titulo: 'Desistência tratada', texto: 'Parcelas futuras canceladas pela sua política.' },
-  { icon: Search, titulo: 'Busca total', texto: 'Cliente, grupo, cota ou contrato — na hora.' },
-  { icon: ShieldCheck, titulo: 'Histórico protegido', texto: 'Mês fechado guarda as regras que valiam nele.' },
-  { icon: EyeOff, titulo: 'Modo privacidade', texto: 'Um toque esconde todos os valores.' },
-  { icon: Download, titulo: 'Seus dados são seus', texto: 'Baixe tudo em um arquivo quando quiser.' },
-  { icon: Sparkles, titulo: 'Sorteio da Federal', texto: 'A extração no painel, com suas cotas marcadas.' },
+  { icon: Calculator, titulo: 'Faixa retroativa', texto: 'Subiu de faixa? Nenhum real fica para trás.' },
+  { icon: CalendarClock, titulo: 'Agenda de recebimentos', texto: 'Você nunca mais esquece um pagamento.' },
+  { icon: Undo2, titulo: 'Desistência tratada', texto: 'Estorno certo, sem refazer conta nenhuma.' },
+  { icon: Search, titulo: 'Busca total', texto: 'Qualquer venda em dois toques.' },
+  { icon: ShieldCheck, titulo: 'Histórico protegido', texto: 'Questionaram uma comissão? Está tudo registrado.' },
+  { icon: EyeOff, titulo: 'Modo privacidade', texto: 'Abra o app em reunião sem expor seus ganhos.' },
+  { icon: Download, titulo: 'Seus dados são seus', texto: 'Sair é fácil: leve tudo em um arquivo.' },
+  { icon: Sparkles, titulo: 'Sorteio da Federal', texto: 'Cliente sorteado, você fica sabendo primeiro.' },
+]
+
+/*
+ * ⚠️ DEPOIMENTOS DE EXEMPLO — pessoas fictícias.
+ *
+ * Trocar por depoimentos REAIS (com autorização por escrito) antes de
+ * publicar. Depoimento inventado em página pública é propaganda enganosa
+ * (art. 37 do CDC), e a confiança do corretor é o ativo do produto — não
+ * vale queimá-la na porta de entrada.
+ */
+const DEPOIMENTOS = [
+  {
+    nome: 'Nome do corretor',
+    onde: 'Cidade · Administradora',
+    texto: '“Depoimento real de um corretor usando o produto: o que mudou na rotina dele depois que largou a planilha.”',
+  },
+  {
+    nome: 'Nome da corretora',
+    onde: 'Cidade · Administradora',
+    texto: '“Depoimento real: uma história concreta — um erro que o sistema pegou, uma cobrança que ela conseguiu provar.”',
+  },
+  {
+    nome: 'Nome do corretor',
+    onde: 'Cidade · Administradora',
+    texto: '“Depoimento real: como é abrir o painel no dia do pagamento e o valor bater com o extrato.”',
+  },
 ]
 
 const E_NAO_E = {
@@ -162,7 +190,10 @@ export default function LandingPage() {
             </div>
 
             <div className="entra-suave">
-              <MolduraCelular />
+              {/* flutuação contínua e lenta: profundidade, não distração */}
+              <div className="levita">
+                <MolduraCelular />
+              </div>
             </div>
           </div>
         </div>
@@ -172,7 +203,7 @@ export default function LandingPage() {
       <Secao className="py-20 md:py-24">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-bold tracking-tight md:text-4xl">
-            O problema não é vender. É o que vem depois.
+            Você vende. O problema é nunca saber quanto vai receber.
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
             Fechou a venda, e aí? Quanto isso vira de comissão, em quantas parcelas,
@@ -187,11 +218,11 @@ export default function LandingPage() {
             ['Fórmula quebrada', 'Uma linha arrastada errado e o mês inteiro sai torto — e você só descobre quando o pagamento não bate.'],
             ['Faixa esquecida', 'Você subiu de faixa no dia 20 e não voltou para recalcular as vendas do começo do mês. O dinheiro fica lá.'],
             ['Cobrança no escuro', 'O escritório pagou a menos e você não tem como provar, porque a sua conta é a mesma planilha que ele contesta.'],
-          ].map(([titulo, texto]) => (
-            <div key={titulo} className="rounded-2xl border bg-card p-5">
+          ].map(([titulo, texto], i) => (
+            <Revela key={titulo} atraso={i * 110} className="rounded-2xl border bg-card p-5">
               <p className="font-semibold">{titulo}</p>
               <p className="mt-1.5 text-sm text-muted-foreground">{texto}</p>
-            </div>
+            </Revela>
           ))}
         </div>
       </Secao>
@@ -209,14 +240,15 @@ export default function LandingPage() {
           <div className="relative mt-12 grid gap-8 md:grid-cols-3">
             <div aria-hidden
               className="absolute top-[18px] hidden h-px w-full bg-gradient-to-r from-transparent via-money/40 to-transparent md:block" />
-            {COMO_FUNCIONA.map(({ passo, titulo, texto }) => (
-              <div key={passo} className="relative">
+            {COMO_FUNCIONA.map(({ passo, titulo, texto }, i) => (
+              /* o escalonamento acompanha a linha: 1, depois 2, depois 3 */
+              <Revela key={passo} atraso={i * 160} className="relative">
                 <span className="flex size-9 items-center justify-center rounded-full bg-escuro text-sm font-semibold text-money-claro ring-4 ring-card">
                   {passo}
                 </span>
                 <h3 className="mt-4 text-lg font-semibold">{titulo}</h3>
                 <p className="mt-1.5 text-muted-foreground">{texto}</p>
-              </div>
+              </Revela>
             ))}
           </div>
         </Secao>
@@ -225,7 +257,7 @@ export default function LandingPage() {
       {/* A regra que a planilha erra */}
       <Secao className="py-20 md:py-24">
         <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
-          <div>
+          <Revela>
             <p className="text-sm font-medium text-money">Faixa por acumulado do mês</p>
             <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">
               Subiu de faixa? O mês inteiro sobe junto.
@@ -238,16 +270,16 @@ export default function LandingPage() {
             <p className="mt-3 text-muted-foreground">
               Aqui ela é automática: cada venda nova recalcula o mês em aberto.
             </p>
-          </div>
-          <AmostraFaixas />
+          </Revela>
+          <Revela atraso={150}><AmostraFaixas /></Revela>
         </div>
       </Secao>
 
       <div className="bg-card/60 py-20 md:py-24">
         <Secao>
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
-            <AmostraAgenda />
-            <div className="md:order-first">
+            <Revela atraso={150}><AmostraAgenda /></Revela>
+            <Revela className="md:order-first">
               <p className="text-sm font-medium text-money">Agenda financeira</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">
                 Saiba hoje o que entra em novembro.
@@ -260,7 +292,7 @@ export default function LandingPage() {
               <p className="mt-3 text-muted-foreground">
                 É a diferença entre torcer para o mês fechar e saber que ele fecha.
               </p>
-            </div>
+            </Revela>
           </div>
         </Secao>
       </div>
@@ -268,21 +300,22 @@ export default function LandingPage() {
       {/* Diferencial recente */}
       <Secao className="py-20 md:py-24">
         <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
-          <div>
+          <Revela>
             <p className="text-sm font-medium text-money">Novidade</p>
             <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">
               O sorteio da Federal, já cruzado com suas cotas.
             </h2>
             <p className="mt-4 text-muted-foreground">
-              O resultado da extração aparece no painel, e o número que bate com a cota de
-              algum cliente seu vem marcado — com um toque para abrir a venda.
+              Os números da Loteria Federal entram sozinhos no painel, direto da fonte —
+              e o que bate com a cota de algum cliente seu vem marcado, com um toque
+              para abrir a venda.
             </p>
             <p className="mt-3 text-sm text-muted-foreground">
               Cada administradora tem a sua regra de contemplação, então o ConsorPro
               avisa para você conferir; quem confirma a contemplação é a administradora.
             </p>
-          </div>
-          <AmostraLoteria />
+          </Revela>
+          <Revela atraso={150}><AmostraLoteria /></Revela>
         </div>
       </Secao>
 
@@ -300,7 +333,7 @@ export default function LandingPage() {
           </p>
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-money/30 bg-money-soft p-6">
+          <Revela className="rounded-2xl border border-money/30 bg-money-soft p-6">
             <p className="font-semibold text-money">É isto</p>
             <ul className="mt-3 space-y-2">
               {E_NAO_E.e.map(item => (
@@ -310,8 +343,8 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-          </div>
-          <div className="rounded-2xl border bg-card p-6">
+          </Revela>
+          <Revela atraso={130} className="rounded-2xl border bg-card p-6">
             <p className="font-semibold text-muted-foreground">Não é isto</p>
             <ul className="mt-3 space-y-2">
               {E_NAO_E.naoE.map(item => (
@@ -321,7 +354,7 @@ export default function LandingPage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Revela>
         </div>
       </Secao>
       </div>
@@ -334,29 +367,60 @@ export default function LandingPage() {
           </h2>
         </div>
         <div className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-          {RECURSOS.map(({ icon: Icon, titulo, texto }) => (
-            <div key={titulo}>
+          {RECURSOS.map(({ icon: Icon, titulo, texto }, i) => (
+            /* o atraso reinicia por linha de quatro: escalonar os oito em fila
+               única deixaria a última linha esperando um segundo inteiro */
+            <Revela key={titulo} atraso={(i % 4) * 90}>
               <span className="flex size-11 items-center justify-center rounded-xl bg-money-soft">
                 <Icon className="text-money" size={22} />
               </span>
               <h3 className="mt-3 font-semibold">{titulo}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{texto}</p>
-            </div>
+            </Revela>
           ))}
         </div>
       </Secao>
+
+      {/* Depoimentos — conteúdo de EXEMPLO, ver aviso no array DEPOIMENTOS */}
+      <div className="bg-card/60 py-20 md:py-24">
+        <Secao>
+          <Revela className="mx-auto max-w-2xl text-center">
+            <h2 className="text-2xl font-bold tracking-tight md:text-4xl">
+              Quem largou a planilha
+            </h2>
+          </Revela>
+          <div className="mt-12 grid gap-4 md:grid-cols-3">
+            {DEPOIMENTOS.map((d, i) => (
+              <Revela key={i} atraso={i * 110}
+                className="flex flex-col rounded-2xl border bg-card p-6">
+                <p className="flex-1 text-sm leading-relaxed text-muted-foreground">{d.texto}</p>
+                <div className="mt-5 flex items-center gap-3 border-t pt-4">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-escuro text-sm font-semibold text-money-claro">
+                    {d.nome[0]}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold">{d.nome}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{d.onde}</span>
+                  </span>
+                </div>
+              </Revela>
+            ))}
+          </div>
+        </Secao>
+      </div>
 
       {/* Dúvidas: sobre a superfície escura, para a seção não se perder entre
           os blocos claros */}
       <div className="bg-escuro py-20 text-white md:py-24">
         <Secao>
-          <div className="mx-auto max-w-2xl">
+          <Revela className="mx-auto max-w-2xl">
             <h2 className="text-center text-2xl font-bold tracking-tight md:text-4xl">
               Perguntas que todo corretor faz
             </h2>
             <div className="mt-10 divide-y divide-white/10">
-              {DUVIDAS.map(({ p, r }) => (
-                <details key={p} className="group py-4">
+              {/* a primeira já vem aberta: FAQ todo fechado parece vazio */}
+              {DUVIDAS.map(({ p, r }, i) => (
+                <details key={p} open={i === 0} className="group py-4">
                   <summary className="cursor-pointer list-none font-medium marker:hidden">
                     <span className="flex items-start justify-between gap-4">
                       {p}
@@ -367,12 +431,13 @@ export default function LandingPage() {
                 </details>
               ))}
             </div>
-          </div>
+          </Revela>
         </Secao>
       </div>
 
       {/* Fechamento */}
       <Secao className="py-20 md:py-24">
+        <Revela>
         <div className="relative overflow-hidden rounded-3xl bg-escuro px-6 py-14 text-center text-white md:px-12">
           {/* a curva de crescimento fecha a página como abriu: assinatura */}
           <svg aria-hidden viewBox="0 0 400 200" preserveAspectRatio="none"
@@ -384,8 +449,8 @@ export default function LandingPage() {
             Descubra quanto vai receber antes<br className="hidden md:block" /> do escritório pagar.
           </h2>
           <p className="relative mx-auto mt-3 max-w-md text-escuro-texto">
-            Configure suas regras hoje e registre a próxima venda aqui em vez da planilha.
-            Em trinta dias você fecha o mês sem ter feito uma conta.
+            Grátis, sem cartão. Configure suas regras e veja sua próxima comissão
+            calculada em menos de cinco minutos.
           </p>
           <Button asChild size="lg"
             className="mt-8 h-12 bg-money-claro px-8 text-base text-[#06291F] hover:bg-money-claro/90">
@@ -401,6 +466,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        </Revela>
       </Secao>
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
