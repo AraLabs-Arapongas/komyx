@@ -33,17 +33,28 @@ function Progresso({ passo }: { passo: Passo }) {
   )
 }
 
-function Navegacao({ aoVoltar, aoContinuar, rotulo = 'Continuar', carregando = false }: {
+function Navegacao({ aoVoltar, aoContinuar, rotulo = 'Continuar', carregando = false, erro }: {
   aoVoltar: () => void; aoContinuar: () => void; rotulo?: string; carregando?: boolean
+  erro?: string | null
 }) {
   return (
-    <div className="flex items-center justify-between pt-2">
-      <Button type="button" variant="ghost" className="h-11 gap-1.5 px-3" onClick={aoVoltar}>
-        <ArrowLeft size={18} /> Voltar
-      </Button>
-      <Button type="button" className="h-11 gap-1.5 px-6" onClick={aoContinuar} disabled={carregando}>
-        {carregando ? 'Aguarde…' : rotulo} <ArrowRight size={18} />
-      </Button>
+    <div className="space-y-2 pt-2">
+      {/* o erro mora junto do botão e fica até ser resolvido: o toast some em
+          poucos segundos, no topo da tela, longe de onde o dedo acabou de
+          tocar — o corretor conclui que o botão não funciona */}
+      {erro && (
+        <p role="alert" className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {erro}
+        </p>
+      )}
+      <div className="flex items-center justify-between">
+        <Button type="button" variant="ghost" className="h-11 gap-1.5 px-3" onClick={aoVoltar}>
+          <ArrowLeft size={18} /> Voltar
+        </Button>
+        <Button type="button" className="h-11 gap-1.5 px-6" onClick={aoContinuar} disabled={carregando}>
+          {carregando ? 'Aguarde…' : rotulo} <ArrowRight size={18} />
+        </Button>
+      </div>
     </div>
   )
 }
@@ -67,6 +78,9 @@ export function OnboardingWizard() {
   const [pagamento, setPagamento] = useState('10')
   const [estorno, setEstorno] = useState<PoliticaEstorno>('perguntar')
   const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
+
+  function irPara(p: Passo) { setErro(null); setPasso(p) }
 
   function minDaFaixa(i: number): number {
     if (i === 0) return 0
@@ -95,14 +109,14 @@ export function OnboardingWizard() {
   }
 
   function avancarDeFaixas() {
-    const erro = validarFaixas()
-    if (erro) { toast.error(erro); return }
-    setPasso('calendario')
+    const problema = validarFaixas()
+    if (problema) { setErro(problema); return }
+    irPara('calendario')
   }
   function avancarDeCalendario() {
-    const erro = validarCalendario()
-    if (erro) { toast.error(erro); return }
-    setPasso('estorno')
+    const problema = validarCalendario()
+    if (problema) { setErro(problema); return }
+    irPara('estorno')
   }
 
   async function finalizar() {
@@ -207,7 +221,7 @@ export function OnboardingWizard() {
               <Plus size={18} /> Adicionar faixa
             </Button>
           </div>
-          <Navegacao aoVoltar={() => setPasso('boas-vindas')} aoContinuar={avancarDeFaixas} />
+          <Navegacao aoVoltar={() => irPara('boas-vindas')} aoContinuar={avancarDeFaixas} erro={erro} />
         </div>
       )}
 
@@ -228,7 +242,7 @@ export function OnboardingWizard() {
           <p className="text-sm text-muted-foreground">
             Venda até o dia {fechamento || '_'} entra no mês atual; a 1ª parcela cai no dia {pagamento || '_'} do mês seguinte.
           </p>
-          <Navegacao aoVoltar={() => setPasso('faixas')} aoContinuar={avancarDeCalendario} />
+          <Navegacao aoVoltar={() => irPara('faixas')} aoContinuar={avancarDeCalendario} erro={erro} />
         </div>
       )}
 
@@ -257,7 +271,7 @@ export function OnboardingWizard() {
               </label>
             ))}
           </div>
-          <Navegacao aoVoltar={() => setPasso('calendario')} aoContinuar={() => setPasso('conclusao')} rotulo="Continuar" />
+          <Navegacao aoVoltar={() => irPara('calendario')} aoContinuar={() => irPara('conclusao')} rotulo="Continuar" />
         </div>
       )}
 
@@ -270,7 +284,7 @@ export function OnboardingWizard() {
             className="h-12 gap-2 bg-money-claro px-8 text-escuro hover:bg-money-claro/90" onClick={finalizar}>
             {salvando ? 'Preparando…' : 'Começar a usar o ConsorPro'} <ArrowRight size={18} />
           </Button>
-          <button type="button" onClick={() => setPasso('estorno')} className="text-sm text-escuro-texto underline underline-offset-4">
+          <button type="button" onClick={() => irPara('estorno')} className="text-sm text-escuro-texto underline underline-offset-4">
             Revisar respostas
           </button>
         </div>
