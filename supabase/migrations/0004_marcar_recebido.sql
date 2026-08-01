@@ -8,6 +8,7 @@ begin
   if v_comissao_id is null then
     raise exception 'recebimento_indisponivel';
   end if;
+  perform 1 from comissoes where id = v_comissao_id for update;
   update comissoes set
     status = case when exists (
       select 1 from recebimentos where comissao_id = v_comissao_id and status = 'previsto')
