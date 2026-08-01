@@ -9,8 +9,11 @@ import { queryKeys } from '@/lib/queries/keys'
 import { Valor } from '@/components/valor'
 import { HeroDinheiro } from '@/components/hero-dinheiro'
 import { LoteriaFederal } from '@/components/loteria-federal'
+import { ComemoraSorteio } from '@/components/comemora-sorteio'
 import { formatDataExtenso } from '@/lib/format'
-import { Skeleton } from '@/components/ui/skeleton'
+import {
+  EsqueletoHero, EsqueletoNumeros, EsqueletoLoteria, EsqueletoLista,
+} from '@/components/esqueletos-painel'
 import { ArrowRight } from 'lucide-react'
 
 function hojeSP(): string {
@@ -117,7 +120,23 @@ export default function DashboardPage() {
   const comp = ref ?? atual
   const { data: d, isLoading } = useDashboard(comp?.ano ?? 0, comp?.mes ?? 0)
 
-  if (!comp) return <Skeleton className="h-64 w-full rounded-3xl" />
+  // sem competência ainda não há o que pedir ao banco: a tela inteira é
+  // esqueleto, com a forma que ela terá
+  if (!comp) {
+    return (
+      <div className="space-y-4">
+        <EsqueletoHero />
+        <div className="grid grid-cols-1 gap-6 min-[360px]:grid-cols-2 min-[360px]:gap-4 md:gap-6">
+          <EsqueletoNumeros />
+          <EsqueletoLoteria />
+        </div>
+        <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 md:gap-6">
+          <EsqueletoLista />
+          <EsqueletoLista />
+        </div>
+      </div>
+    )
+  }
 
   const foraDoAtual = !!atual && (comp.ano !== atual.ano || comp.mes !== atual.mes)
   function mudarMes(direcao: -1 | 1) {
@@ -130,6 +149,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4">
+      <ComemoraSorteio />
       <HeroDinheiro
         nome={perfil?.nome || 'corretor'}
         competencia={comp}
@@ -140,7 +160,20 @@ export default function DashboardPage() {
         onHoje={() => setRef(null)}
       />
 
-      {isLoading || !d ? <Skeleton className="h-40 w-full rounded-2xl" /> : (
+      {isLoading || !d ? (
+        /* a loteria não depende do painel: continua carregando por conta dela,
+           em vez de ficar presa atrás dos números do mês */
+        <>
+          <div className="grid grid-cols-1 gap-6 min-[360px]:grid-cols-2 min-[360px]:gap-4 md:gap-6">
+            <EsqueletoNumeros />
+            <LoteriaFederal />
+          </div>
+          <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 md:gap-6">
+            <EsqueletoLista />
+            <EsqueletoLista />
+          </div>
+        </>
+      ) : (
         <>
           {/* O hero respondeu "quanto vou receber". Aqui vêm as duas leituras de
               apoio, lado a lado: os números do mês e o sorteio que contempla. */}

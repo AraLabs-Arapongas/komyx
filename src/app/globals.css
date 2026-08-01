@@ -151,6 +151,23 @@
   animation: aparece 400ms ease-out both;
 }
 
+/* Confete: a única animação longa do produto, reservada para a notícia que o
+   corretor espera o ano inteiro — a cota de um cliente saiu no sorteio. */
+@keyframes confete-cai {
+  from { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  to   { transform: translateY(105vh) rotate(720deg); opacity: 0.9; }
+}
+@utility confete-peca {
+  position: absolute;
+  top: 0;
+  width: 0.6rem;
+  height: 0.9rem;
+  border-radius: 2px;
+  animation-name: confete-cai;
+  animation-timing-function: cubic-bezier(0.3, 0.6, 0.5, 1);
+  animation-fill-mode: both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

@@ -1,24 +1,12 @@
 'use client'
 import Link from 'next/link'
 import { useLoteriaFederal } from '@/lib/queries/loteria'
-import { useCotasAtivas, type CotaAtiva } from '@/lib/queries/sorteio'
-import { conferirCota } from '@/lib/engine/sorteio'
+import { useCotasSorteadas, type CotaAtiva } from '@/lib/queries/sorteio'
 import { formatData } from '@/lib/format'
-import { Skeleton } from '@/components/ui/skeleton'
+import { EsqueletoLoteria } from '@/components/esqueletos-painel'
 import { Sparkles } from 'lucide-react'
 
 const PREMIOS = ['1º', '2º', '3º', '4º', '5º']
-
-/** Quais cotas do corretor batem com cada prêmio da extração. */
-function cotasPorPremio(cotas: CotaAtiva[], bilhetes: string[]): Map<number, CotaAtiva[]> {
-  const mapa = new Map<number, CotaAtiva[]>()
-  for (const cota of cotas) {
-    for (const acerto of conferirCota(cota.cota, bilhetes)) {
-      mapa.set(acerto.premio, [...(mapa.get(acerto.premio) ?? []), cota])
-    }
-  }
-  return mapa
-}
 
 function descrever(cotas: CotaAtiva[]): string {
   const nomes = cotas.map(c => `${c.cliente} (G${c.grupo} · C${c.cota})`).join(', ')
@@ -34,22 +22,13 @@ function descrever(cotas: CotaAtiva[]): string {
  * privacidade, porque resultado de loteria é público.
  */
 export function LoteriaFederal() {
-  const { data, isLoading, isError } = useLoteriaFederal()
-  const { data: cotas } = useCotasAtivas()
+  const { data, isError } = useLoteriaFederal()
+  const { porPremio: acertos, carregando } = useCotasSorteadas()
 
   // fonte de apoio: indisponível, some da tela em vez de mostrar erro
   if (isError) return null
 
-  if (isLoading || !data) {
-    return (
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Loteria Federal</h2>
-        <Skeleton className="h-40 w-full rounded-2xl" />
-      </section>
-    )
-  }
-
-  const acertos = cotasPorPremio(cotas ?? [], data.bilhetes)
+  if (carregando || !data) return <EsqueletoLoteria />
 
   return (
     <section className="entra-suave min-w-0 space-y-3">
