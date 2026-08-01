@@ -14,7 +14,7 @@ import {
 /*
  * A página que o corretor vê antes de confiar o dinheiro dele ao produto.
  *
- * Ela não inventa prova social: o ConsorPro é novo e não tem clientes para
+ * Ela não inventa prova social: o Komyx é novo e não tem clientes para
  * citar. O que ela tem é o próprio produto — cada bloco mostra uma tela de
  * verdade e explica a regra por trás dela. Para quem vive de comissão, ver a
  * regra é a prova que importa.
@@ -95,7 +95,7 @@ const E_NAO_E = {
 const DUVIDAS = [
   {
     p: 'Meu escritório paga diferente dos outros. Serve pra mim?',
-    r: 'Serve — é justamente por isso que o ConsorPro existe. Você cadastra as faixas, os percentuais, o parcelamento e as datas do seu escritório. O sistema nunca decide a regra: ele executa a sua.',
+    r: 'Serve — é justamente por isso que o Komyx existe. Você cadastra as faixas, os percentuais, o parcelamento e as datas do seu escritório. O sistema nunca decide a regra: ele executa a sua.',
   },
   {
     p: 'E se a política mudar no meio do caminho?',
@@ -170,7 +170,7 @@ export default function LandingPage() {
                 <span className="text-money-claro">receber</span>.
               </h1>
               <p className="mx-auto mt-5 max-w-xl text-lg text-escuro-texto md:mx-0">
-                O ConsorPro sabe. Configure uma vez como seu escritório paga comissão e,
+                O Komyx sabe. Configure uma vez como seu escritório paga comissão e,
                 a partir daí, só registre as vendas — o cálculo, as parcelas e as datas
                 saem prontos.
               </p>
@@ -311,7 +311,7 @@ export default function LandingPage() {
               para abrir a venda.
             </p>
             <p className="mt-3 text-sm text-muted-foreground">
-              Cada administradora tem a sua regra de contemplação, então o ConsorPro
+              Cada administradora tem a sua regra de contemplação, então o Komyx
               avisa para você conferir; quem confirma a contemplação é a administradora.
             </p>
           </Revela>
@@ -328,7 +328,7 @@ export default function LandingPage() {
             Uma coisa só, bem feita
           </h2>
           <p className="mt-4 text-muted-foreground">
-            O ConsorPro cuida da sua remuneração. Se você procura outra coisa,
+            O Komyx cuida da sua remuneração. Se você procura outra coisa,
             é melhor saber agora.
           </p>
         </div>
@@ -470,7 +470,7 @@ export default function LandingPage() {
       </Secao>
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
-        ConsorPro — gestão financeira para corretores de consórcio.
+        Komyx — gestão financeira para corretores de consórcio.
       </footer>
     </main>
   )

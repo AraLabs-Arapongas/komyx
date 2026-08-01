@@ -151,7 +151,7 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
     <div className="mx-auto w-full max-w-lg">
       {passo === 'boas-vindas' && (
         <div key="boas-vindas" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 rounded-2xl bg-escuro px-6 py-16 text-center text-white">
-          <p className="text-xs font-medium tracking-[0.2em] text-escuro-texto uppercase">ConsorPro</p>
+          <p className="text-xs font-medium tracking-[0.2em] text-escuro-texto uppercase">Komyx</p>
           <h1 className="text-3xl leading-tight font-semibold sm:text-4xl">
             Nunca mais calcule<br />comissão no Excel.
           </h1>
@@ -287,7 +287,7 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
           <p className="max-w-xs text-escuro-texto">Agora é só registrar sua primeira venda.</p>
           <Button size="lg" disabled={salvando}
             className="h-12 gap-2 bg-money-claro px-8 text-escuro hover:bg-money-claro/90" onClick={finalizar}>
-            {salvando ? 'Preparando…' : 'Começar a usar o ConsorPro'} <ArrowRight size={18} />
+            {salvando ? 'Preparando…' : 'Começar a usar o Komyx'} <ArrowRight size={18} />
           </Button>
           <button type="button" onClick={() => irPara('estorno')} className="text-sm text-escuro-texto underline underline-offset-4">
             Revisar respostas

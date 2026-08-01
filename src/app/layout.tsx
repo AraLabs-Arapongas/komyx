@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ConsorPro — Chega de planilha para controlar suas comissões",
-  description: "Registre a venda. O ConsorPro calcula comissão, parcelas e mostra quanto você vai receber e quando.",
+  title: "Komyx — Chega de planilha para controlar suas comissões",
+  description: "Registre a venda. O Komyx calcula comissão, parcelas e mostra quanto você vai receber e quando.",
 };
 
 export default function RootLayout({

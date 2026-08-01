@@ -6,7 +6,7 @@
  * Cada administradora tem sua própria regra de sorteio, e a regra vale por
  * grupo: quantos dígitos ler, de quais prêmios, o que fazer quando o número
  * sorteado não corresponde a nenhuma cota do grupo (aproximar para cima, para
- * baixo, passar ao próximo prêmio). Nada disso está cadastrado no ConsorPro.
+ * baixo, passar ao próximo prêmio). Nada disso está cadastrado no Komyx.
  *
  * O que fazemos é a leitura mais comum — os últimos dígitos do bilhete
  * comparados com o número da cota — para o corretor saber que vale a pena

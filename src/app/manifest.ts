@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'ConsorPro', short_name: 'ConsorPro',
+    name: 'Komyx', short_name: 'Komyx',
     description: 'Gestão financeira para corretores de consórcio.',
     start_url: '/app', display: 'standalone',
     background_color: '#F8FAFC', theme_color: '#FFFFFF',

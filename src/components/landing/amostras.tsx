@@ -27,7 +27,7 @@ export function MolduraCelular() {
       <div className="flex aspect-[9/19.5] flex-col overflow-hidden rounded-[2.1rem] bg-background">
         {/* barra do app */}
         <div className="flex items-center justify-between border-b bg-card px-4 pb-2.5 pt-4">
-          <span className="text-sm font-semibold">ConsorPro</span>
+          <span className="text-sm font-semibold">Komyx</span>
           <span className="text-xs text-muted-foreground">●●</span>
         </div>
 

@@ -1,11 +1,12 @@
 import { cn } from '@/lib/utils'
 
 /**
- * Marca do ConsorPro: símbolo neutro em grafite. O verde nunca aparece aqui —
+ * Marca do Komyx: símbolo neutro em grafite. O verde nunca aparece aqui —
  * na interface ele significa dinheiro, e só.
  *
- * O símbolo é um "C" aberto formado por duas barras que sobem, sugerindo
- * evolução financeira sem recorrer a um gráfico literal.
+ * O símbolo são duas barras que sobem, sugerindo evolução financeira sem
+ * recorrer a um gráfico literal. É o mesmo desenho dos ícones PWA em public/
+ * — se um dia mudar, os ícones precisam ser regenerados juntos.
  */
 export function LogoSimbolo({ className }: { className?: string }) {
   return (
@@ -25,7 +26,7 @@ export function Logo({ className, mostrarNome = true }: {
     <span className={cn('inline-flex items-center gap-2', className)}>
       <LogoSimbolo />
       {mostrarNome && (
-        <span className="text-base font-bold tracking-tight">ConsorPro</span>
+        <span className="text-base font-bold tracking-tight">Komyx</span>
       )}
     </span>
   )

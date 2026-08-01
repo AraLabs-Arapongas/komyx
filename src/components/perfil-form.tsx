@@ -98,7 +98,7 @@ type ResumoBackup = {
 
 const CHAVES_BACKUP = ['vendas', 'clientes', 'comissoes', 'recebimentos', 'competencias', 'configuracoes'] as const
 
-/** Confere se o arquivo tem a cara de um backup do ConsorPro, sem gravar nada. */
+/** Confere se o arquivo tem a cara de um backup do Komyx, sem gravar nada. */
 function resumoDoArquivo(json: unknown): ResumoBackup | null {
   if (typeof json !== 'object' || json === null) return null
   const j = json as Record<string, unknown>
@@ -124,7 +124,7 @@ export function BackupSecao() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `consorpro-${hoje}.json`
+    a.download = `komyx-${hoje}.json`
     a.click()
     URL.revokeObjectURL(url)
     toast.success('Seus dados foram baixados.')
@@ -140,10 +140,10 @@ export function BackupSecao() {
     try {
       const json = JSON.parse(await arquivo.text())
       const r = resumoDoArquivo(json)
-      if (!r) { setErroImportacao('Este arquivo não parece ser um backup do ConsorPro.'); return }
+      if (!r) { setErroImportacao('Este arquivo não parece ser um backup do Komyx.'); return }
       setResumo(r)
     } catch {
-      setErroImportacao('Não foi possível ler este arquivo. Confirme que é um .json exportado pelo ConsorPro.')
+      setErroImportacao('Não foi possível ler este arquivo. Confirme que é um .json exportado pelo Komyx.')
     }
   }
 

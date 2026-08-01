@@ -14,7 +14,7 @@ type Preview = 'boas-vindas' | 'conclusao' | null
  * Só é renderizado em desenvolvimento — a página confere o ambiente antes de
  * montar, e as actions conferem de novo do lado do servidor.
  */
-const CHAVE_CONFETE = 'consorpro:confete-extracao'
+const CHAVE_CONFETE = 'komyx:confete-extracao'
 
 export function MenuDev() {
   const [refazendo, setRefazendo] = useState(false)

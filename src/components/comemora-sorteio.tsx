@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useCotasSorteadas } from '@/lib/queries/sorteio'
 import { Confete } from '@/components/confete'
 
-const CHAVE = 'consorpro:confete-extracao'
+const CHAVE = 'komyx:confete-extracao'
 
 /**
  * Solta confete quando o corretor abre o app e alguma cota dele saiu.

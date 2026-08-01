@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 
-const CHAVE = 'consorpro:valores-ocultos'
+const CHAVE = 'komyx:valores-ocultos'
 
 type Contexto = { oculto: boolean; alternar: () => void }
 const PrivacidadeContext = createContext<Contexto>({ oculto: false, alternar: () => {} })
