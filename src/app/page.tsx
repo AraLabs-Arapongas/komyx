@@ -150,7 +150,10 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-6 md:pb-28">
           <header className="flex items-center justify-between">
             <Logo className="[&_span]:text-white [&_rect:first-child]:fill-white [&_rect:not(:first-child)]:fill-[#06291F]" />
-            <Button asChild variant="ghost" className="text-escuro-texto hover:bg-white/10 hover:text-white">
+            {/* quem já é cliente precisa achar a porta de entrada de primeira:
+                fantasma sobre fundo escuro, ela quase não existia */}
+            <Button asChild variant="outline"
+              className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
               <Link href="/login">Entrar</Link>
             </Button>
           </header>

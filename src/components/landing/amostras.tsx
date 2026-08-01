@@ -1,4 +1,6 @@
-import { Sparkles } from 'lucide-react'
+import {
+  Sparkles, LayoutDashboard, ShoppingBag, Wallet, Users, CircleUser,
+} from 'lucide-react'
 
 /*
  * Amostras do produto para a landing.
@@ -18,8 +20,10 @@ import { Sparkles } from 'lucide-react'
  */
 export function MolduraCelular() {
   return (
-    <div className="mx-auto w-[290px] rounded-[2.6rem] border border-white/15 bg-[#0A1512] p-2.5 shadow-2xl shadow-black/50 md:w-[320px]">
-      <div className="overflow-hidden rounded-[2.1rem] bg-background">
+    <div className="mx-auto w-[280px] rounded-[2.6rem] border border-white/15 bg-[#0A1512] p-2.5 shadow-2xl shadow-black/50 md:w-[310px]">
+      {/* proporção de aparelho de verdade: o que passar disso fica cortado,
+          como ficaria na tela do corretor antes de ele rolar */}
+      <div className="flex aspect-[9/19.5] flex-col overflow-hidden rounded-[2.1rem] bg-background">
         {/* barra do app */}
         <div className="flex items-center justify-between border-b bg-card px-4 pb-2.5 pt-4">
           <span className="text-sm font-semibold">ConsorPro</span>
@@ -44,31 +48,65 @@ export function MolduraCelular() {
         </div>
 
         {/* números do mês e o sorteio, lado a lado como no produto */}
-        <div className="grid grid-cols-2 gap-3 p-4">
-          <div className="space-y-2">
-            <p className="text-[0.6rem] text-muted-foreground">Setembro em números</p>
-            {[['Vendido', 'R$ 1,2 mi'], ['Comissão', 'R$ 8.400'], ['Falta receber', 'R$ 5.300']].map(([r, v], i) => (
-              <div key={r}>
-                <p className="text-[0.55rem] text-muted-foreground">{r}</p>
-                <p className={`text-[0.7rem] font-semibold tabular-nums ${i > 0 ? 'text-money' : ''}`}>{v}</p>
-              </div>
-            ))}
-          </div>
-          <div className="space-y-2">
-            <p className="text-[0.6rem] text-muted-foreground">Loteria Federal</p>
-            <div className="divide-y overflow-hidden rounded-lg bg-card">
-              {BILHETES.slice(0, 4).map(b => (
-                <div key={b.premio} className="flex items-center justify-between px-2 py-1.5">
-                  <span className="text-[0.5rem] text-muted-foreground">{b.premio}</span>
-                  <span className={`flex items-center gap-1 font-mono text-[0.6rem] font-semibold tabular-nums ${b.seu ? 'text-money' : ''}`}>
-                    {b.seu && <Sparkles size={9} className="shrink-0" />}
-                    {b.numero}
-                  </span>
+        <div className="flex-1 space-y-4 p-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <p className="text-[0.6rem] text-muted-foreground">Setembro em números</p>
+              {[['Vendido', 'R$ 1,2 mi'], ['Comissão', 'R$ 8.400'], ['Falta receber', 'R$ 5.300']].map(([r, v], i) => (
+                <div key={r}>
+                  <p className="text-[0.55rem] text-muted-foreground">{r}</p>
+                  <p className={`text-[0.7rem] font-semibold tabular-nums ${i > 0 ? 'text-money' : ''}`}>{v}</p>
                 </div>
               ))}
             </div>
+            <div className="space-y-2">
+              <p className="text-[0.6rem] text-muted-foreground">Loteria Federal</p>
+              <div className="divide-y overflow-hidden rounded-lg bg-card">
+                {BILHETES.map(b => (
+                  <div key={b.premio} className="flex items-center justify-between px-2 py-1.5">
+                    <span className="text-[0.5rem] text-muted-foreground">{b.premio}</span>
+                    <span className={`flex items-center gap-1 font-mono text-[0.6rem] font-semibold tabular-nums ${b.seu ? 'text-money' : ''}`}>
+                      {b.seu && <Sparkles size={9} className="shrink-0" />}
+                      {b.numero}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { titulo: 'Últimas vendas', nome: 'Ana Ribeiro', apoio: 'Carta R$ 620.000', valor: 'R$ 4.340' },
+              { titulo: 'Próximos recebimentos', nome: 'Rogério Pinto', apoio: '10 de setembro', valor: 'R$ 2.400' },
+            ].map(c => (
+              <div key={c.titulo} className="space-y-2">
+                <p className="truncate text-[0.6rem] text-muted-foreground">{c.titulo}</p>
+                <div className="rounded-lg bg-card px-2 py-2">
+                  <p className="truncate text-[0.65rem] font-medium">{c.nome}</p>
+                  <p className="truncate text-[0.5rem] text-muted-foreground">{c.apoio}</p>
+                  <p className="mt-0.5 text-[0.65rem] font-semibold text-money tabular-nums">{c.valor}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+
+        {/* a barra de baixo fecha o aparelho e mostra o tamanho do produto */}
+        <nav className="flex border-t bg-card">
+          {[
+            { rotulo: 'Início', Icone: LayoutDashboard, ativo: true },
+            { rotulo: 'Vendas', Icone: ShoppingBag, ativo: false },
+            { rotulo: 'Agenda', Icone: Wallet, ativo: false },
+            { rotulo: 'Clientes', Icone: Users, ativo: false },
+            { rotulo: 'Perfil', Icone: CircleUser, ativo: false },
+          ].map(({ rotulo, Icone, ativo }) => (
+            <span key={rotulo}
+              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[0.5rem] ${ativo ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
+              <Icone size={13} />{rotulo}
+            </span>
+          ))}
+        </nav>
       </div>
     </div>
   )
