@@ -37,8 +37,8 @@ function Numero({ rotulo, centavos, destaque = false, apoio, href }: {
 }) {
   const conteudo = (
     <>
-      <p className="text-sm text-muted-foreground">{rotulo}</p>
-      <Valor centavos={centavos} destaque={destaque} className="mt-0.5 block text-xl" />
+      <p className="text-xs text-muted-foreground md:text-sm">{rotulo}</p>
+      <Valor centavos={centavos} destaque={destaque} className="mt-0.5 block text-lg md:text-xl" />
       {apoio && <p className="text-xs text-muted-foreground">{apoio}</p>}
     </>
   )
@@ -103,13 +103,16 @@ export default function DashboardPage() {
         <>
           {/* O hero respondeu "quanto vou receber". Aqui vêm as duas leituras de
               apoio, lado a lado: os números do mês e o sorteio que contempla. */}
-          <div className="grid gap-8 md:grid-cols-2 md:gap-6">
-            <section className="entra-suave space-y-4">
+          {/* abaixo de 360px "R$ 1.000.000,00" não cabe em meia tela e invade a
+              coluna vizinha: ali os dois blocos voltam a empilhar */}
+          <div className="grid grid-cols-1 gap-6 min-[360px]:grid-cols-2 min-[360px]:gap-4 md:gap-6">
+            <section className="entra-suave min-w-0 space-y-4">
               <h2 className="text-sm font-medium text-muted-foreground">
                 {['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto',
                   'Setembro','Outubro','Novembro','Dezembro'][comp.mes - 1]} em números
               </h2>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+              {/* meia tela não comporta duas colunas de dinheiro no celular */}
+              <div className="grid gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5">
                 <Numero rotulo="Vendido" centavos={d.totalVendidoCentavos}
                   apoio={`${d.nVendas} ${pluralizar(d.nVendas, 'venda', 'vendas')}`}
                   href="/app/vendas" />

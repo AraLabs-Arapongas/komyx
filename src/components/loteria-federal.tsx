@@ -29,8 +29,9 @@ export function LoteriaFederal() {
   }
 
   return (
-    <section className="entra-suave space-y-3">
-      <div className="flex items-baseline justify-between gap-2">
+    <section className="entra-suave min-w-0 space-y-3">
+      {/* em meia tela o rótulo da extração não cabe ao lado do título */}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2">
         <h2 className="text-sm font-medium text-muted-foreground">Loteria Federal</h2>
         <p className="text-xs text-muted-foreground">
           Extração {data.concurso} · {formatData(data.data)}
@@ -40,9 +41,10 @@ export function LoteriaFederal() {
       <ol className="overflow-hidden rounded-2xl bg-card">
         {data.bilhetes.map((bilhete, i) => (
           <li key={bilhete + i}
-            className="flex items-center justify-between border-b border-border/60 px-4 py-2.5 last:border-0">
-            <span className="text-sm text-muted-foreground">{PREMIOS[i] ?? `${i + 1}º`} prêmio</span>
-            <span className="font-mono text-lg font-semibold tabular-nums tracking-[0.12em]">
+            className="flex items-center justify-between gap-2 border-b border-border/60
+                       px-3 py-2 last:border-0 md:px-4 md:py-2.5">
+            <span className="text-xs text-muted-foreground md:text-sm">{PREMIOS[i] ?? `${i + 1}º`}</span>
+            <span className="font-mono text-base font-semibold tabular-nums tracking-[0.08em] md:text-lg md:tracking-[0.12em]">
               {bilhete}
             </span>
           </li>
