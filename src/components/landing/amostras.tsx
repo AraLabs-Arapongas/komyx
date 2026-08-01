@@ -1,6 +1,7 @@
 import {
   Sparkles, LayoutDashboard, ShoppingBag, Wallet, Users, CircleUser,
 } from 'lucide-react'
+import { NumeroAnimado } from '@/components/numero-animado'
 
 /*
  * Amostras do produto para a landing.
@@ -20,7 +21,7 @@ import {
  */
 export function MolduraCelular() {
   return (
-    <div className="mx-auto w-[280px] rounded-[2.6rem] border border-white/15 bg-[#0A1512] p-2.5 shadow-2xl shadow-black/50 md:w-[310px]">
+    <div className="mx-auto w-[320px] rounded-[2.8rem] border border-white/15 bg-[#0A1512] p-2.5 shadow-2xl shadow-black/50 md:w-[360px]">
       {/* proporção de aparelho de verdade: o que passar disso fica cortado,
           como ficaria na tela do corretor antes de ele rolar */}
       <div className="flex aspect-[9/19.5] flex-col overflow-hidden rounded-[2.1rem] bg-background">
@@ -36,8 +37,8 @@ export function MolduraCelular() {
             Olá, <span className="font-semibold text-white">Marcos</span> 👋
           </p>
           <p className="mt-3 text-[0.7rem] text-escuro-texto">Você receberá</p>
-          <p className="mt-0.5 text-[2rem] font-bold leading-none tracking-tight tabular-nums text-money-claro">
-            R$ 8.400,00
+          <p className="mt-0.5 text-[2.2rem] font-bold leading-none tracking-tight tabular-nums text-money-claro">
+            <NumeroAnimado ateCentavos={840000} />
           </p>
           <p className="mt-1.5 text-[0.65rem] text-escuro-texto">
             em 6 dias <span className="text-white/40">· 10 de setembro</span>
@@ -151,7 +152,8 @@ export function AmostraAgenda() {
               <p className="truncate text-sm font-medium">{p.cliente}</p>
               <p className="text-xs text-muted-foreground">Parcela 1 de 2 · {p.data}</p>
             </div>
-            <span className={`shrink-0 text-sm font-semibold tabular-nums ${p.caiu ? 'text-money' : ''}`}>
+            {/* o dinheiro é o protagonista do cartão: maior que o resto */}
+            <span className={`shrink-0 text-lg font-bold tabular-nums ${p.caiu ? 'text-money' : ''}`}>
               {p.valor}
             </span>
           </li>

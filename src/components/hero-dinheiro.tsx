@@ -1,7 +1,8 @@
 'use client'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
-import { formatBRL, formatDataExtenso } from '@/lib/format'
+import { formatDataExtenso } from '@/lib/format'
+import { NumeroAnimado } from '@/components/numero-animado'
 import { usePrivacidade } from '@/components/privacidade'
 import { Button } from '@/components/ui/button'
 
@@ -97,7 +98,9 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
                           text-[2.5rem] leading-[1.05] md:text-[3.5rem]">
               {oculto
                 ? <>R$ <span className="align-middle text-[0.45em] tracking-[0.2em]">●●●●</span></>
-                : formatBRL(pagamento.totalCentavos)}
+                /* o valor sobe até o total ao abrir e ao trocar de mês — o
+                   cálculo acontecendo na frente do corretor */
+                : <NumeroAnimado ateCentavos={pagamento.totalCentavos} duracaoMs={900} />}
             </p>
             <p className="mt-1.5 text-sm text-escuro-texto">
               {pagamento.jaCaiu

@@ -37,47 +37,16 @@ const COMO_FUNCIONA = [
   },
 ]
 
+/* uma linha por recurso: ninguém lê parágrafo em grade de oito itens */
 const RECURSOS = [
-  {
-    icon: Calculator,
-    titulo: 'Faixa retroativa, do jeito certo',
-    texto: 'A faixa vale pelo total vendido no mês. Ao subir de faixa, tudo que você já vendeu naquele mês é recalculado.',
-  },
-  {
-    icon: CalendarClock,
-    titulo: 'Agenda de recebimentos',
-    texto: 'Cada parcela com data e valor, agrupada por mês. Dá para filtrar por mês, por status e buscar pelo nome do cliente.',
-  },
-  {
-    icon: Undo2,
-    titulo: 'Desistência sem dor de cabeça',
-    texto: 'Cliente desistiu? O sistema cancela as parcelas futuras e trata o que já foi pago conforme a política do seu escritório.',
-  },
-  {
-    icon: Search,
-    titulo: 'Busca por qualquer coisa',
-    texto: 'Cliente, grupo, cota, administradora, número do contrato. Atalho no teclado, resultado na hora.',
-  },
-  {
-    icon: ShieldCheck,
-    titulo: 'Histórico que não se perde',
-    texto: 'Mês fechado guarda as regras que valiam nele. Mudar a política hoje não reescreve o que você já recebeu.',
-  },
-  {
-    icon: EyeOff,
-    titulo: 'Modo privacidade',
-    texto: 'Um toque esconde todos os valores. Para abrir o app no meio de uma reunião sem mostrar quanto você ganha.',
-  },
-  {
-    icon: Download,
-    titulo: 'Seus dados são seus',
-    texto: 'Baixe tudo em um arquivo quando quiser: vendas, clientes, comissões e recebimentos.',
-  },
-  {
-    icon: Sparkles,
-    titulo: 'Sorteio da Federal',
-    texto: 'O resultado da extração no painel, com as suas cotas marcadas quando o número bate. Um lugar a menos para conferir.',
-  },
+  { icon: Calculator, titulo: 'Faixa retroativa', texto: 'Subiu de faixa? O mês inteiro é recalculado.' },
+  { icon: CalendarClock, titulo: 'Agenda de recebimentos', texto: 'Cada parcela com data, valor e cliente.' },
+  { icon: Undo2, titulo: 'Desistência tratada', texto: 'Parcelas futuras canceladas pela sua política.' },
+  { icon: Search, titulo: 'Busca total', texto: 'Cliente, grupo, cota ou contrato — na hora.' },
+  { icon: ShieldCheck, titulo: 'Histórico protegido', texto: 'Mês fechado guarda as regras que valiam nele.' },
+  { icon: EyeOff, titulo: 'Modo privacidade', texto: 'Um toque esconde todos os valores.' },
+  { icon: Download, titulo: 'Seus dados são seus', texto: 'Baixe tudo em um arquivo quando quiser.' },
+  { icon: Sparkles, titulo: 'Sorteio da Federal', texto: 'A extração no painel, com suas cotas marcadas.' },
 ]
 
 const E_NAO_E = {
@@ -162,9 +131,11 @@ export default function LandingPage() {
               deixava metade da página vazia */}
           <div className="grid items-center gap-12 pt-12 md:grid-cols-[1.05fr_1fr] md:gap-8 md:pt-16">
             <div className="entra text-center md:text-left">
+              {/* o posicionamento inteiro já na primeira linha: sem isto a
+                  página fala de dinheiro e comissão, mas não diz o mercado */}
               <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-escuro-texto">
                 <Sparkles size={13} className="text-money-claro" />
-                Para corretores de consórcio
+                Previsibilidade financeira para corretores de consórcio
               </p>
               <h1 className="mt-5 text-[2.5rem] font-bold leading-[1.05] tracking-tight md:text-6xl">
                 Sua planilha não sabe quanto você vai{' '}
@@ -233,10 +204,14 @@ export default function LandingPage() {
               Três passos. Depois disso, você só vende.
             </h2>
           </div>
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
+          {/* timeline: os três círculos ligados por uma linha — é uma sequência,
+              não três cartões soltos */}
+          <div className="relative mt-12 grid gap-8 md:grid-cols-3">
+            <div aria-hidden
+              className="absolute top-[18px] hidden h-px w-full bg-gradient-to-r from-transparent via-money/40 to-transparent md:block" />
             {COMO_FUNCIONA.map(({ passo, titulo, texto }) => (
-              <div key={passo}>
-                <span className="flex size-9 items-center justify-center rounded-full bg-escuro text-sm font-semibold text-money-claro">
+              <div key={passo} className="relative">
+                <span className="flex size-9 items-center justify-center rounded-full bg-escuro text-sm font-semibold text-money-claro ring-4 ring-card">
                   {passo}
                 </span>
                 <h3 className="mt-4 text-lg font-semibold">{titulo}</h3>
@@ -311,28 +286,10 @@ export default function LandingPage() {
         </div>
       </Secao>
 
-      {/* Recursos */}
+      {/* Honestidade sobre escopo, antes da lista de recursos: a promessa de
+          simplicidade vende mais do que a enumeração do que tem dentro */}
       <div className="bg-card/60 py-20 md:py-24">
-        <Secao>
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight md:text-4xl">
-              O que você encontra dentro
-            </h2>
-          </div>
-          <div className="mt-12 grid gap-x-8 gap-y-9 sm:grid-cols-2 lg:grid-cols-4">
-            {RECURSOS.map(({ icon: Icon, titulo, texto }) => (
-              <div key={titulo}>
-                <Icon className="text-money" size={20} />
-                <h3 className="mt-3 font-semibold">{titulo}</h3>
-                <p className="mt-1.5 text-sm text-muted-foreground">{texto}</p>
-              </div>
-            ))}
-          </div>
-        </Secao>
-      </div>
-
-      {/* Honestidade sobre escopo: economiza o tempo de quem procura outra coisa */}
-      <Secao className="py-20 md:py-24">
+      <Secao>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-bold tracking-tight md:text-4xl">
             Uma coisa só, bem feita
@@ -367,24 +324,46 @@ export default function LandingPage() {
           </div>
         </div>
       </Secao>
+      </div>
 
-      {/* Dúvidas */}
-      <div className="bg-card/60 py-20 md:py-24">
+      {/* Recursos */}
+      <Secao className="py-20 md:py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-bold tracking-tight md:text-4xl">
+            O que você encontra dentro
+          </h2>
+        </div>
+        <div className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+          {RECURSOS.map(({ icon: Icon, titulo, texto }) => (
+            <div key={titulo}>
+              <span className="flex size-11 items-center justify-center rounded-xl bg-money-soft">
+                <Icon className="text-money" size={22} />
+              </span>
+              <h3 className="mt-3 font-semibold">{titulo}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{texto}</p>
+            </div>
+          ))}
+        </div>
+      </Secao>
+
+      {/* Dúvidas: sobre a superfície escura, para a seção não se perder entre
+          os blocos claros */}
+      <div className="bg-escuro py-20 text-white md:py-24">
         <Secao>
           <div className="mx-auto max-w-2xl">
             <h2 className="text-center text-2xl font-bold tracking-tight md:text-4xl">
               Perguntas que todo corretor faz
             </h2>
-            <div className="mt-10 divide-y">
+            <div className="mt-10 divide-y divide-white/10">
               {DUVIDAS.map(({ p, r }) => (
                 <details key={p} className="group py-4">
                   <summary className="cursor-pointer list-none font-medium marker:hidden">
                     <span className="flex items-start justify-between gap-4">
                       {p}
-                      <span className="mt-1 shrink-0 text-muted-foreground transition-transform group-open:rotate-45">+</span>
+                      <span className="mt-1 shrink-0 text-escuro-texto transition-transform group-open:rotate-45">+</span>
                     </span>
                   </summary>
-                  <p className="mt-2 text-muted-foreground">{r}</p>
+                  <p className="mt-2 text-escuro-texto">{r}</p>
                 </details>
               ))}
             </div>
@@ -394,13 +373,19 @@ export default function LandingPage() {
 
       {/* Fechamento */}
       <Secao className="py-20 md:py-24">
-        <div className="rounded-3xl bg-escuro px-6 py-14 text-center text-white md:px-12">
-          <h2 className="text-2xl font-bold tracking-tight md:text-4xl">
-            Comece pelo próximo mês.
+        <div className="relative overflow-hidden rounded-3xl bg-escuro px-6 py-14 text-center text-white md:px-12">
+          {/* a curva de crescimento fecha a página como abriu: assinatura */}
+          <svg aria-hidden viewBox="0 0 400 200" preserveAspectRatio="none"
+            className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.13]">
+            <path d="M0 190 C 120 185, 210 120, 280 70 S 370 10, 400 0" fill="none"
+              stroke="url(#brilho-landing)" strokeWidth="3" />
+          </svg>
+          <h2 className="relative text-2xl font-bold tracking-tight md:text-4xl">
+            Descubra quanto vai receber antes<br className="hidden md:block" /> do escritório pagar.
           </h2>
-          <p className="mx-auto mt-3 max-w-md text-escuro-texto">
+          <p className="relative mx-auto mt-3 max-w-md text-escuro-texto">
             Configure suas regras hoje e registre a próxima venda aqui em vez da planilha.
-            Em trinta dias você vai ter o mês inteiro fechado sem ter feito uma conta.
+            Em trinta dias você fecha o mês sem ter feito uma conta.
           </p>
           <Button asChild size="lg"
             className="mt-8 h-12 bg-money-claro px-8 text-base text-[#06291F] hover:bg-money-claro/90">
