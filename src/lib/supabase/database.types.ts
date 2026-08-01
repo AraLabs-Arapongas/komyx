@@ -352,7 +352,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      aplicar_resultado: {
+        Args: { p_competencia_id: string; p_resultado: Json }
+        Returns: undefined
+      }
+      fechar_competencias_vencidas: {
+        Args: { p_hoje: string; p_snapshot: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
