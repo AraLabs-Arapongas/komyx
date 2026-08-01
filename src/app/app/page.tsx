@@ -58,12 +58,15 @@ function Lista({ titulo, verTudo, rotuloVerTudo, children }: {
   titulo: string; verTudo: string; rotuloVerTudo: string; children: React.ReactNode
 }) {
   return (
-    <section className="min-w-0 space-y-2">
+    /* as duas listas dividem a linha e têm conteúdo de tamanhos diferentes:
+       o cartão estica até o fim da coluna e o "ver tudo" desce junto, senão
+       um termina no meio da altura do outro */
+    <section className="flex min-w-0 flex-col space-y-2">
       <h2 className="text-sm font-medium text-muted-foreground">{titulo}</h2>
-      <div className="divide-y overflow-hidden rounded-2xl bg-card">
+      <div className="flex flex-1 flex-col divide-y overflow-hidden rounded-2xl bg-card">
         {children}
         <Link href={verTudo}
-          className="flex items-center justify-center gap-1 px-3 py-2 text-xs
+          className="mt-auto flex items-center justify-center gap-1 px-3 py-2 text-xs
                      font-medium text-money transition-colors hover:bg-background">
           {rotuloVerTudo} <ArrowRight size={12} />
         </Link>
