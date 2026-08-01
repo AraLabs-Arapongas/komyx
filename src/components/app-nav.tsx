@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ShoppingBag, Wallet, Users, Settings } from 'lucide-react'
+import { LayoutDashboard, ShoppingBag, Wallet, Users, CircleUser } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/logo'
 import { BotaoPrivacidade } from '@/components/privacidade'
@@ -12,12 +12,17 @@ const itens = [
   { href: '/app/vendas', label: 'Vendas', icon: ShoppingBag },
   { href: '/app/recebimentos', label: 'Agenda', icon: Wallet },
   { href: '/app/clientes', label: 'Clientes', icon: Users },
-  { href: '/app/configuracao', label: 'Ajustes', icon: Settings },
+  // Ajustes mora dentro do perfil: a aba segue acesa quando o corretor está lá,
+  // senão ele fica sem referência de onde está na navegação
+  { href: '/app/perfil', label: 'Perfil', icon: CircleUser, tambem: ['/app/configuracao'] },
 ]
 
 export function AppNav() {
   const path = usePathname()
-  const ativo = (href: string) => href === '/app' ? path === '/app' : path.startsWith(href)
+  const ativo = (href: string, tambem: string[] = []) =>
+    href === '/app'
+      ? path === '/app'
+      : path.startsWith(href) || tambem.some(p => path.startsWith(p))
   return (
     <>
       {/* barra superior em todas as larguras: esconder valores precisa estar
@@ -33,10 +38,10 @@ export function AppNav() {
 
       {/* mobile: bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-card md:hidden">
-        {itens.map(({ href, label, icon: Icon }) => (
+        {itens.map(({ href, label, icon: Icon, tambem }) => (
           <Link key={href} href={href}
             className={cn('flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px]',
-              ativo(href) ? 'text-foreground font-medium' : 'text-muted-foreground')}>
+              ativo(href, tambem) ? 'text-foreground font-medium' : 'text-muted-foreground')}>
             <Icon size={18} />{label}
           </Link>
         ))}
@@ -44,10 +49,10 @@ export function AppNav() {
       {/* desktop: sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-44 flex-col border-r bg-card p-3 md:flex">
         <Logo className="mb-6 px-2" />
-        {itens.map(({ href, label, icon: Icon }) => (
+        {itens.map(({ href, label, icon: Icon, tambem }) => (
           <Link key={href} href={href}
             className={cn('flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-sm',
-              ativo(href) ? 'bg-background font-medium' : 'text-muted-foreground hover:text-foreground')}>
+              ativo(href, tambem) ? 'bg-background font-medium' : 'text-muted-foreground hover:text-foreground')}>
             <Icon size={18} />{label}
           </Link>
         ))}

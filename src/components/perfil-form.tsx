@@ -5,7 +5,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { atualizarPerfil, alterarSenha } from '@/lib/actions/perfil'
 import { exportarDados } from '@/lib/actions/backup'
-import { sair } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -87,10 +86,6 @@ export function PerfilForm({ email, nome: nomeInicial, telefone: telefoneInicial
         <Button type="submit" variant="outline" size="sm" disabled={trocandoSenha}>
           {trocandoSenha ? 'Alterando…' : 'Alterar senha'}
         </Button>
-      </form>
-
-      <form action={sair} className="border-t pt-4">
-        <Button variant="outline" type="submit">Sair</Button>
       </form>
     </Secao>
   )
