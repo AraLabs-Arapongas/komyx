@@ -14,6 +14,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // gate via página: onboarding/page redireciona de volta se config existe;
   // demais páginas: layout redireciona se falta config — usar cookie-free check:
   if (!config && !path.includes('onboarding')) redirect('/app/onboarding')
+
+  // Sem configuração, só o onboarding é acessível: os itens de navegação
+  // apontariam para rotas que redirecionam de volta para cá, e o prefetch
+  // desses links entra em loop infinito.
+  if (!config) {
+    return (
+      <Providers>
+        <main className="min-h-dvh">
+          <div className="mx-auto max-w-3xl p-4">{children}</div>
+        </main>
+      </Providers>
+    )
+  }
+
   return (
     <Providers>
       <AppNav />
