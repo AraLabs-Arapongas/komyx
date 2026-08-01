@@ -75,10 +75,12 @@
   --money-claro: #00E6BB;
   /* acento ciano: gradientes e detalhes, nunca texto corrido */
   --ciano: #00C2FF;
-  /* a superfície escura é o "extrato": onde o dinheiro do corretor mora */
-  --escuro: #0B132B;
-  --escuro-topo: #1A2350;
-  --escuro-texto: #A6AFD3;
+  /* O roxo é a cor do produto: toda superfície de destaque usa ele — hero do
+     painel, resumo da agenda, telas de entrada e os blocos da landing. O navy
+     ficou só para texto e para o tile do ícone. */
+  --escuro: #6C5CE7;
+  --escuro-topo: #8F7BFF;
+  --escuro-texto: #DCD7FF;
   --secondary: #EAEDF8;
   --secondary-foreground: #1D2440;
   --muted: #EAEDF8;
@@ -94,7 +96,13 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 10px;
+  /* cartões mais arredondados: a identidade nova pede menos canto vivo */
+  --radius: 14px;
+  /* gradiente proprietário: roxo → azul → ciano. Aparece nas superfícies de
+     destaque e é o que se reconhece de longe como Komyx. */
+  /* o ciano fica concentrado no canto: numa superfície larga, aberto cedo
+     demais ele clareia metade do bloco e o texto branco perde contraste */
+  --gradiente-marca: linear-gradient(140deg, #5A3FD8 0%, #6C5CE7 42%, #5468F0 74%, #2E86E8 92%, #00C8FF 100%);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -155,6 +163,18 @@
 }
 @utility entra-suave {
   animation: aparece 400ms ease-out both;
+}
+
+/* Superfície da marca: o gradiente proprietário no lugar do roxo chapado. */
+@utility superficie-marca {
+  background-image: var(--gradiente-marca);
+}
+
+/* Manchas de luz por cima do gradiente: profundidade sem virar enfeite. */
+@utility brilho-marca {
+  background-image:
+    radial-gradient(60% 55% at 15% 12%, rgba(255, 255, 255, 0.20), transparent 70%),
+    radial-gradient(45% 45% at 88% 78%, rgba(0, 200, 255, 0.28), transparent 72%);
 }
 
 /* Revelação no scroll (landing): o estado escondido só existe com JavaScript

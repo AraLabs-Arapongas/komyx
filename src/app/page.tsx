@@ -124,7 +124,9 @@ export default function LandingPage() {
     <main>
       {/* O visitante vê o produto antes de ler sobre ele: a mesma superfície
           escura que ele encontrará todo dia no painel. */}
-      <div className="relative overflow-hidden bg-escuro text-white">
+      <div className="superficie-marca relative overflow-hidden text-white">
+        {/* manchas de luz sobre o gradiente: profundidade, não enfeite */}
+        <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
         {/* a curva de crescimento é a assinatura visual do produto; aqui ela
             entra em escala grande, atrás do conteúdo */}
         <svg aria-hidden viewBox="0 0 400 200" preserveAspectRatio="none"
@@ -140,13 +142,13 @@ export default function LandingPage() {
           <path d="M0 200 C 120 195, 210 130, 280 80 S 370 20, 400 10 L400 200 Z"
             fill="url(#brilho-landing)" opacity="0.22" />
         </svg>
-        {/* brilho atrás do aparelho, para o mockup não afundar no fundo escuro */}
+        {/* halo atrás do aparelho: faz o mockup parecer flutuar sobre a página */}
         <div aria-hidden
-          className="pointer-events-none absolute -right-20 top-24 h-[32rem] w-[32rem] rounded-full bg-money-claro/15 blur-3xl" />
+          className="pointer-events-none absolute -right-10 top-20 h-[36rem] w-[36rem] rounded-full bg-ciano/25 blur-3xl" />
 
         <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-6 md:pb-28">
           <header className="flex items-center justify-between">
-            <Logo className="[&_span]:text-white [&_rect]:fill-white" />
+            <Logo className="[&_span]:text-white" />
             {/* quem já é cliente precisa achar a porta de entrada de primeira:
                 fantasma sobre fundo escuro, ela quase não existia */}
             <Button asChild variant="outline"
@@ -411,7 +413,9 @@ export default function LandingPage() {
 
       {/* Dúvidas: sobre a superfície escura, para a seção não se perder entre
           os blocos claros */}
-      <div className="bg-escuro py-20 text-white md:py-24">
+      {/* o roxo aqui é mais fundo que o do hero: a seção precisa de peso sem
+          competir com a abertura da página */}
+      <div className="bg-[#3B2FA8] py-20 text-white md:py-24">
         <Secao>
           <Revela className="mx-auto max-w-2xl">
             <h2 className="text-center text-2xl font-bold tracking-tight md:text-4xl">
@@ -438,7 +442,11 @@ export default function LandingPage() {
       {/* Fechamento */}
       <Secao className="py-20 md:py-24">
         <Revela>
-        <div className="relative overflow-hidden rounded-3xl bg-escuro px-6 py-14 text-center text-white md:px-12">
+        {/* o fechamento vem logo depois do FAQ roxo: sem uma superfície própria
+            ele desaparecia dentro do outro roxo. Aqui é vidro fosco sobre o
+            gradiente da marca. */}
+        <div className="superficie-marca relative overflow-hidden rounded-3xl p-1.5">
+        <div className="relative overflow-hidden rounded-[calc(1.5rem-0.375rem)] border border-white/20 bg-white/10 px-6 py-14 text-center text-white backdrop-blur-xl md:px-12">
           {/* a curva de crescimento fecha a página como abriu: assinatura */}
           <svg aria-hidden viewBox="0 0 400 200" preserveAspectRatio="none"
             className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.13]">
@@ -465,6 +473,7 @@ export default function LandingPage() {
               <CapturaLead origem="landing-rodape" />
             </div>
           </div>
+        </div>
         </div>
         </Revela>
       </Secao>

@@ -16,7 +16,8 @@ export function AuthMoldura({ titulo, apoio, children }: {
 }) {
   return (
     <main className="min-h-dvh md:grid md:grid-cols-2">
-      <section className="relative overflow-hidden bg-primary px-6 py-10 text-white md:flex md:min-h-dvh md:items-center md:px-14">
+      <section className="superficie-marca relative overflow-hidden px-6 py-10 text-white md:flex md:min-h-dvh md:items-center md:px-14">
+        <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
         {/* a curva da marca, discreta sobre o roxo */}
         <svg aria-hidden viewBox="0 0 400 200" preserveAspectRatio="none"
           className="pointer-events-none absolute inset-0 h-full w-full opacity-20">
@@ -33,7 +34,7 @@ export function AuthMoldura({ titulo, apoio, children }: {
         </svg>
 
         <div className="entra relative mx-auto w-full max-w-sm md:mx-0 md:max-w-md">
-          <Logo className="[&_span]:text-white [&_rect]:fill-white" />
+          <Logo className="[&_span]:text-white" />
           <h1 className="mt-8 text-3xl font-bold leading-tight tracking-tight md:mt-10 md:text-5xl">
             {titulo}
           </h1>

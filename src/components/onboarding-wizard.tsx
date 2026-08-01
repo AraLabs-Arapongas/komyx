@@ -150,7 +150,7 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
   return (
     <div className="mx-auto w-full max-w-lg">
       {passo === 'boas-vindas' && (
-        <div key="boas-vindas" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 rounded-2xl bg-escuro px-6 py-16 text-center text-white">
+        <div key="boas-vindas" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 rounded-2xl superficie-marca px-6 py-16 text-center text-white">
           <p className="text-xs font-medium tracking-[0.2em] text-escuro-texto uppercase">Komyx</p>
           <h1 className="text-3xl leading-tight font-semibold sm:text-4xl">
             Nunca mais calcule<br />comissão no Excel.
@@ -281,7 +281,7 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
       )}
 
       {passo === 'conclusao' && (
-        <div key="conclusao" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 rounded-2xl bg-escuro px-6 py-16 text-center text-white">
+        <div key="conclusao" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 rounded-2xl superficie-marca px-6 py-16 text-center text-white">
           <p className="text-4xl">🎉</p>
           <h2 className="text-3xl font-semibold sm:text-4xl">Tudo pronto.</h2>
           <p className="max-w-xs text-escuro-texto">Agora é só registrar sua primeira venda.</p>

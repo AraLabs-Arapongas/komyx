@@ -21,7 +21,7 @@ import { NumeroAnimado } from '@/components/numero-animado'
  */
 export function MolduraCelular() {
   return (
-    <div className="mx-auto w-[320px] rounded-[2.8rem] border border-white/15 bg-[#070D1F] p-2.5 shadow-2xl shadow-black/50 md:w-[360px]">
+    <div className="mx-auto w-[350px] rounded-[2.8rem] border border-white/15 bg-[#070D1F] p-2.5 shadow-[0_40px_90px_-20px_rgba(0,0,0,0.65)] md:w-[410px]">
       {/* proporção de aparelho de verdade: o que passar disso fica cortado,
           como ficaria na tela do corretor antes de ele rolar */}
       <div className="flex aspect-[9/19.5] flex-col overflow-hidden rounded-[2.1rem] bg-background">
@@ -32,7 +32,7 @@ export function MolduraCelular() {
         </div>
 
         {/* hero: o número que ele abre o app para ver */}
-        <div className="bg-escuro px-4 pb-5 pt-4 text-white">
+        <div className="superficie-marca px-4 pb-5 pt-4 text-white">
           <p className="text-[0.7rem] text-escuro-texto">
             Olá, <span className="font-semibold text-white">Marcos</span> 👋
           </p>
@@ -116,7 +116,7 @@ export function MolduraCelular() {
 /** O bloco escuro que abre o painel: quanto e quando. */
 export function AmostraPainel() {
   return (
-    <div className="rounded-3xl bg-escuro p-6 text-white shadow-2xl shadow-black/20 md:p-8">
+    <div className="rounded-3xl superficie-marca p-6 text-white shadow-2xl shadow-black/20 md:p-8">
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm text-escuro-texto">Olá, <span className="font-semibold text-white">Marcos</span> 👋</p>
         <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium">Setembro</span>
