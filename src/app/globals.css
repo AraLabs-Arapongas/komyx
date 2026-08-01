@@ -165,16 +165,24 @@
   animation: aparece 400ms ease-out both;
 }
 
-/* Superfície da marca: o gradiente proprietário no lugar do roxo chapado. */
+/* Superfície da marca: aurora, não faixa.
+   Um gradiente linear tem direção — o olho segue a diagonal e sai da tela.
+   Manchas radiais sobrepostas não têm começo nem fim: a cor respira, e é isso
+   que separa "gradiente aplicado" de identidade. */
 @utility superficie-marca {
-  background-image: var(--gradiente-marca);
+  background-color: #5B3FD8;
+  background-image:
+    radial-gradient(75% 65% at 6% -5%, #7B5CFF 0%, transparent 62%),
+    radial-gradient(65% 70% at 98% 18%, #4E7BFF 0%, transparent 68%),
+    radial-gradient(55% 65% at 82% 105%, #00C8FF 0%, transparent 62%),
+    radial-gradient(60% 60% at 25% 95%, #5A2FD0 0%, transparent 70%);
 }
 
-/* Manchas de luz por cima do gradiente: profundidade sem virar enfeite. */
+/* Luz por cima da aurora: dá volume sem acender a cena. */
 @utility brilho-marca {
   background-image:
-    radial-gradient(60% 55% at 15% 12%, rgba(255, 255, 255, 0.20), transparent 70%),
-    radial-gradient(45% 45% at 88% 78%, rgba(0, 200, 255, 0.28), transparent 72%);
+    radial-gradient(50% 45% at 18% 8%, rgba(255, 255, 255, 0.18), transparent 72%),
+    radial-gradient(40% 40% at 92% 88%, rgba(0, 230, 255, 0.20), transparent 74%);
 }
 
 /* Revelação no scroll (landing). O atributo só existe depois que o JavaScript

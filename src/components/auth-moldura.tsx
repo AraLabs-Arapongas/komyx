@@ -1,4 +1,5 @@
 import { Logo } from '@/components/logo'
+import { CurvaMarca } from '@/components/curva-marca'
 
 /**
  * Moldura das telas de entrada: no desktop a tela divide em duas — a marca à
@@ -18,20 +19,7 @@ export function AuthMoldura({ titulo, apoio, children }: {
     <main className="min-h-dvh md:grid md:grid-cols-2">
       <section className="superficie-marca relative overflow-hidden px-6 py-10 text-white md:flex md:min-h-dvh md:items-center md:px-14">
         <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
-        {/* a curva da marca, discreta sobre o roxo */}
-        <svg aria-hidden viewBox="0 0 400 200" preserveAspectRatio="none"
-          className="pointer-events-none absolute inset-0 h-full w-full opacity-20">
-          <defs>
-            <linearGradient id="curva-auth" x1="0" y1="1" x2="1" y2="0">
-              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0" />
-              <stop offset="100%" stopColor="#00C2FF" stopOpacity="1" />
-            </linearGradient>
-          </defs>
-          <path d="M0 190 C 120 185, 210 120, 280 70 S 370 10, 400 0" fill="none"
-            stroke="url(#curva-auth)" strokeWidth="2.5" />
-          <path d="M0 200 C 120 195, 210 130, 280 80 S 370 20, 400 10 L400 200 Z"
-            fill="url(#curva-auth)" opacity="0.25" />
-        </svg>
+        <CurvaMarca />
 
         <div className="entra relative mx-auto w-full max-w-sm md:mx-0 md:max-w-md">
           <Logo className="[&_span]:text-white" />

@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { CampoValor, CampoPercentual, CampoInteiro } from '@/components/campos'
+import { CurvaMarca } from '@/components/curva-marca'
 import { salvarConfig } from '@/lib/actions/config'
 import { parseBRLParaCentavos, formatBRL } from '@/lib/format'
 import { ROTULOS_ESTORNO, type PoliticaEstorno } from '@/lib/domain/types'
@@ -150,7 +151,9 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
   return (
     <div className="mx-auto w-full max-w-lg">
       {passo === 'boas-vindas' && (
-        <div key="boas-vindas" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 rounded-2xl superficie-marca px-6 py-16 text-center text-white">
+        <div key="boas-vindas" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 relative overflow-hidden rounded-2xl superficie-marca px-6 py-16 text-center text-white">
+          <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
+          <CurvaMarca />
           <p className="text-xs font-medium tracking-[0.2em] text-escuro-texto uppercase">Komyx</p>
           <h1 className="text-3xl leading-tight font-semibold sm:text-4xl">
             Nunca mais calcule<br />comissão no Excel.
@@ -281,7 +284,9 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
       )}
 
       {passo === 'conclusao' && (
-        <div key="conclusao" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 rounded-2xl superficie-marca px-6 py-16 text-center text-white">
+        <div key="conclusao" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 relative overflow-hidden rounded-2xl superficie-marca px-6 py-16 text-center text-white">
+          <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
+          <CurvaMarca />
           <p className="text-4xl">🎉</p>
           <h2 className="text-3xl font-semibold sm:text-4xl">Tudo pronto.</h2>
           <p className="max-w-xs text-escuro-texto">Agora é só registrar sua primeira venda.</p>

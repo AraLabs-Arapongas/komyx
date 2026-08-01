@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { formatDataExtenso } from '@/lib/format'
 import { NumeroAnimado } from '@/components/numero-animado'
+import { CurvaMarca } from '@/components/curva-marca'
 import { usePrivacidade } from '@/components/privacidade'
 import { Button } from '@/components/ui/button'
 
@@ -51,24 +52,7 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
       {/* mesma luz da landing: o painel do corretor e a página pública são a
           mesma marca */}
       <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
-      {/* curva de crescimento: a assinatura visual do produto, discreta */}
-      <svg
-        aria-hidden
-        viewBox="0 0 400 200"
-        preserveAspectRatio="none"
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.13]"
-      >
-        <defs>
-          <linearGradient id="brilho" x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0%" stopColor="#00E6BB" stopOpacity="0" />
-            <stop offset="100%" stopColor="#00E6BB" stopOpacity="1" />
-          </linearGradient>
-        </defs>
-        <path d="M0 190 C 120 185, 210 120, 280 70 S 370 10, 400 0" fill="none"
-          stroke="url(#brilho)" strokeWidth="3" />
-        <path d="M0 200 C 120 195, 210 130, 280 80 S 370 20, 400 10 L400 200 Z"
-          fill="url(#brilho)" opacity="0.25" />
-      </svg>
+      <CurvaMarca />
 
       <div className="relative">
         <div className="flex items-start justify-between gap-3">

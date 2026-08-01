@@ -6,6 +6,7 @@ import {
   MolduraCelular, AmostraAgenda, AmostraFaixas, AmostraLoteria,
 } from '@/components/landing/amostras'
 import { Revela } from '@/components/landing/revela'
+import { CurvaMarca } from '@/components/curva-marca'
 import {
   Calculator, CalendarClock, Undo2, Search, ShieldCheck, Download,
   EyeOff, Sparkles, Check, X,
@@ -127,21 +128,7 @@ export default function LandingPage() {
       <div className="superficie-marca relative overflow-hidden text-white">
         {/* manchas de luz sobre o gradiente: profundidade, não enfeite */}
         <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
-        {/* a curva de crescimento é a assinatura visual do produto; aqui ela
-            entra em escala grande, atrás do conteúdo */}
-        <svg aria-hidden viewBox="0 0 400 200" preserveAspectRatio="none"
-          className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.15]">
-          <defs>
-            <linearGradient id="brilho-landing" x1="0" y1="1" x2="1" y2="0">
-              <stop offset="0%" stopColor="#00E6BB" stopOpacity="0" />
-              <stop offset="100%" stopColor="#00E6BB" stopOpacity="1" />
-            </linearGradient>
-          </defs>
-          <path d="M0 190 C 120 185, 210 120, 280 70 S 370 10, 400 0" fill="none"
-            stroke="url(#brilho-landing)" strokeWidth="2" />
-          <path d="M0 200 C 120 195, 210 130, 280 80 S 370 20, 400 10 L400 200 Z"
-            fill="url(#brilho-landing)" opacity="0.22" />
-        </svg>
+        <CurvaMarca />
         {/* halo atrás do aparelho: faz o mockup parecer flutuar sobre a página */}
         <div aria-hidden
           className="pointer-events-none absolute -right-10 top-20 h-[36rem] w-[36rem] rounded-full bg-ciano/25 blur-3xl" />
@@ -157,24 +144,27 @@ export default function LandingPage() {
             </Button>
           </header>
 
-          {/* texto e produto lado a lado: em tela larga o hero centralizado
-              deixava metade da página vazia */}
-          <div className="grid items-center gap-12 pt-12 md:grid-cols-[1.05fr_1fr] md:gap-8 md:pt-16">
-            <div className="entra text-center md:text-left">
+          {/* texto e produto compõem uma coisa só: o aparelho encosta na coluna
+              de texto (gap negativo no desktop) para não virarem dois blocos
+              separados dividindo a tela */}
+          <div className="grid items-center gap-10 pt-12 md:grid-cols-[1.1fr_1fr] md:gap-0 md:pt-16">
+            <div className="entra relative z-10 text-center md:text-left">
               {/* o posicionamento inteiro já na primeira linha: sem isto a
                   página fala de dinheiro e comissão, mas não diz o mercado */}
               <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-escuro-texto">
                 <Sparkles size={13} className="text-money-claro" />
                 Previsibilidade financeira para corretores de consórcio
               </p>
-              <h1 className="mt-5 text-[2.5rem] font-bold leading-[1.05] tracking-tight md:text-6xl">
-                Sua planilha não sabe quanto você vai{' '}
-                <span className="text-money-claro">receber</span>.
+              {/* o concorrente não é o Excel, é a incerteza: a headline fala do
+                  que o corretor sente, não da ferramenta que ele larga */}
+              <h1 className="mt-5 text-[2.5rem] font-bold leading-[1.12] tracking-tight md:text-6xl">
+                Sua comissão não deveria ser uma{' '}
+                <span className="text-money-claro">surpresa</span>.
               </h1>
               <p className="mx-auto mt-5 max-w-xl text-lg text-escuro-texto md:mx-0">
-                O Komyx sabe. Configure uma vez como seu escritório paga comissão e,
-                a partir daí, só registre as vendas — o cálculo, as parcelas e as datas
-                saem prontos.
+                Configure uma vez como seu escritório paga e o Komyx passa a dizer,
+                a cada venda, quanto entra na sua conta e em que dia — antes de o
+                escritório calcular.
               </p>
               <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row md:justify-start">
                 <Button asChild size="lg"
@@ -191,7 +181,9 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="entra-suave">
+            {/* invade a coluna do texto no desktop: uma composição, não dois
+                blocos lado a lado */}
+            <div className="entra-suave md:-ml-16 lg:-ml-24">
               {/* flutuação contínua e lenta: profundidade, não distração */}
               <div className="levita">
                 <MolduraCelular />
@@ -447,12 +439,8 @@ export default function LandingPage() {
             gradiente da marca. */}
         <div className="superficie-marca relative overflow-hidden rounded-3xl p-1.5">
         <div className="relative overflow-hidden rounded-[calc(1.5rem-0.375rem)] border border-white/20 bg-white/10 px-6 py-14 text-center text-white backdrop-blur-xl md:px-12">
-          {/* a curva de crescimento fecha a página como abriu: assinatura */}
-          <svg aria-hidden viewBox="0 0 400 200" preserveAspectRatio="none"
-            className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.13]">
-            <path d="M0 190 C 120 185, 210 120, 280 70 S 370 10, 400 0" fill="none"
-              stroke="url(#brilho-landing)" strokeWidth="3" />
-          </svg>
+          {/* a curva fecha a página como abriu: assinatura */}
+          <CurvaMarca intensidade="forte" />
           <h2 className="relative text-2xl font-bold tracking-tight md:text-4xl">
             Descubra quanto vai receber antes<br className="hidden md:block" /> do escritório pagar.
           </h2>
