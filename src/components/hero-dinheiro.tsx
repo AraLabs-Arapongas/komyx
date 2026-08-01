@@ -43,8 +43,10 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
   const primeiroNome = nome.trim().split(' ')[0]
   const mesLabel = `${MESES[competencia.mes - 1]} de ${competencia.ano}`
 
+  // sangra para fora do respiro da página: no celular o bloco escuro encosta
+  // na barra de cima, sem faixa clara entre os dois
   return (
-    <section className="entra relative -mx-4 overflow-hidden bg-escuro px-5 pb-6 pt-5 text-white md:mx-0 md:rounded-3xl md:px-8 md:pb-7 md:pt-6">
+    <section className="entra relative -mx-4 -mt-4 overflow-hidden bg-escuro px-5 pb-6 pt-5 text-white md:mx-0 md:mt-0 md:rounded-3xl md:px-8 md:pb-7 md:pt-6">
       {/* curva de crescimento: a assinatura visual do produto, discreta */}
       <svg
         aria-hidden
