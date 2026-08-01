@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <defs>
+    <linearGradient id="k-roxo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8F7BFF"/>
+      <stop offset="100%" stop-color="#6C5CE7"/>
+    </linearGradient>
+  </defs>
+  <rect width="24" height="24" rx="6" fill="#0B132B"/>
+  <path d="M8.3 6.6v10.8" fill="none" stroke="url(#k-roxo)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M15.8 6.8l-5.9 5.2" fill="none" stroke="url(#k-roxo)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M10.6 13.2l5.2 4.2" fill="none" stroke="#00C2FF" stroke-width="3.4" stroke-linecap="round"/>
+</svg>

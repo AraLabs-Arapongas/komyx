@@ -57,8 +57,8 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
       >
         <defs>
           <linearGradient id="brilho" x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0%" stopColor="#3DDC97" stopOpacity="0" />
-            <stop offset="100%" stopColor="#3DDC97" stopOpacity="1" />
+            <stop offset="0%" stopColor="#00E6BB" stopOpacity="0" />
+            <stop offset="100%" stopColor="#00E6BB" stopOpacity="1" />
           </linearGradient>
         </defs>
         <path d="M0 190 C 120 185, 210 120, 280 70 S 370 10, 400 0" fill="none"
@@ -120,7 +120,7 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
 
         <div className="mt-5 flex items-center gap-2">
           <Button asChild size="lg"
-            className="flex-1 bg-money-claro text-[#06291F] hover:bg-money-claro/90 md:flex-none">
+            className="flex-1 bg-money-claro text-[#0B132B] hover:bg-money-claro/90 md:flex-none">
             <Link href="/app/vendas/nova"><Plus size={18} /> Nova venda</Link>
           </Button>
           {foraDoAtual && (

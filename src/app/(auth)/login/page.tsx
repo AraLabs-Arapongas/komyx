@@ -11,7 +11,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <main className="flex min-h-dvh flex-col bg-escuro">
       <div className="flex flex-1 flex-col justify-center px-6 py-10 text-white">
         <div className="mx-auto w-full max-w-sm entra">
-          <Logo className="[&_span]:text-white [&_rect:first-child]:fill-white [&_rect:not(:first-child)]:fill-[#06291F]" />
+          <Logo className="[&_span]:text-white [&_rect]:fill-white" />
           <h1 className="mt-8 text-3xl font-bold leading-tight tracking-tight">
             Seu dinheiro,<br />sem planilha.
           </h1>

@@ -37,6 +37,7 @@
   --color-primary: var(--primary);
   --color-money: var(--money);
   --color-money-soft: var(--money-soft);
+  --color-ciano: var(--ciano);
   --color-money-claro: var(--money-claro);
   --color-escuro: var(--escuro);
   --color-escuro-topo: var(--escuro-topo);
@@ -55,34 +56,39 @@
 }
 
 :root {
-  /* Paleta própria, com um viés verde-petróleo que assina o produto: nenhum
-     tom aqui é cinza puro. É o que separa "app de dinheiro" de "sistema". */
-  --background: #F4F7F6;
-  --foreground: #0A1F1A;
+  /* Paleta da marca Komyx: navy profundo como superfície, roxo como marca e
+     ação, ciano como acento — e o verde continua reservado para uma coisa só,
+     o dinheiro que o corretor recebe. Nenhum tom aqui é cinza puro: os claros
+     puxam para o azul-lavanda, é o que separa "app de dinheiro" de "sistema". */
+  --background: #F2F4FB;
+  --foreground: #0B132B;
   --card: #FFFFFF;
-  --card-foreground: #0A1F1A;
+  --card-foreground: #0B132B;
   --popover: #FFFFFF;
-  --popover-foreground: #0A1F1A;
-  --primary: #0A2A22;
+  --popover-foreground: #0B132B;
+  /* roxo da marca: botões e estados ativos que não são dinheiro */
+  --primary: #6C5CE7;
   --primary-foreground: #FFFFFF;
-  --money: #0E9E6E;
-  --money-soft: #E8F7F1;
+  --money: #0BA678;
+  --money-soft: #E4FAF2;
   /* verde que sobrevive sobre a superfície escura */
-  --money-claro: #3DDC97;
+  --money-claro: #00E6BB;
+  /* acento ciano: gradientes e detalhes, nunca texto corrido */
+  --ciano: #00C2FF;
   /* a superfície escura é o "extrato": onde o dinheiro do corretor mora */
-  --escuro: #06291F;
-  --escuro-topo: #0B4030;
-  --escuro-texto: #A7C6BB;
-  --secondary: #EDF2F0;
-  --secondary-foreground: #0A2A22;
-  --muted: #EDF2F0;
-  --muted-foreground: #5E706B;
-  --accent: #EDF2F0;
-  --accent-foreground: #0A2A22;
+  --escuro: #0B132B;
+  --escuro-topo: #1A2350;
+  --escuro-texto: #A6AFD3;
+  --secondary: #EAEDF8;
+  --secondary-foreground: #1D2440;
+  --muted: #EAEDF8;
+  --muted-foreground: #5F6784;
+  --accent: #EAEDF8;
+  --accent-foreground: #1D2440;
   --destructive: #D6453D;
-  --border: #E2E9E6;
-  --input: #DDE5E2;
-  --ring: #0E9E6E;
+  --border: #DFE3F0;
+  --input: #D9DEEE;
+  --ring: #6C5CE7;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);

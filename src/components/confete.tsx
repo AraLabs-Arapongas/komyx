@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 
-const CORES = ['#0E9E6E', '#3DDC97', '#0B4030', '#F4C95D', '#FFFFFF']
+/* a festa usa a paleta da marca: verde do dinheiro, roxo, ciano e branco */
+const CORES = ['#0BA678', '#00E6BB', '#6C5CE7', '#00C2FF', '#FFFFFF']
 const PECAS = 90
 const DURACAO_MS = 4200
 

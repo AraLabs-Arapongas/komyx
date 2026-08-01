@@ -21,7 +21,7 @@ import { NumeroAnimado } from '@/components/numero-animado'
  */
 export function MolduraCelular() {
   return (
-    <div className="mx-auto w-[320px] rounded-[2.8rem] border border-white/15 bg-[#0A1512] p-2.5 shadow-2xl shadow-black/50 md:w-[360px]">
+    <div className="mx-auto w-[320px] rounded-[2.8rem] border border-white/15 bg-[#070D1F] p-2.5 shadow-2xl shadow-black/50 md:w-[360px]">
       {/* proporção de aparelho de verdade: o que passar disso fica cortado,
           como ficaria na tela do corretor antes de ele rolar */}
       <div className="flex aspect-[9/19.5] flex-col overflow-hidden rounded-[2.1rem] bg-background">
@@ -43,7 +43,7 @@ export function MolduraCelular() {
           <p className="mt-1.5 text-[0.65rem] text-escuro-texto">
             em 6 dias <span className="text-white/40">· 10 de setembro</span>
           </p>
-          <div className="mt-4 rounded-lg bg-money-claro py-2 text-center text-xs font-medium text-[#06291F]">
+          <div className="mt-4 rounded-lg bg-money-claro py-2 text-center text-xs font-medium text-[#0B132B]">
             + Nova venda
           </div>
         </div>

@@ -131,8 +131,8 @@ export default function LandingPage() {
           className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.15]">
           <defs>
             <linearGradient id="brilho-landing" x1="0" y1="1" x2="1" y2="0">
-              <stop offset="0%" stopColor="#3DDC97" stopOpacity="0" />
-              <stop offset="100%" stopColor="#3DDC97" stopOpacity="1" />
+              <stop offset="0%" stopColor="#00E6BB" stopOpacity="0" />
+              <stop offset="100%" stopColor="#00E6BB" stopOpacity="1" />
             </linearGradient>
           </defs>
           <path d="M0 190 C 120 185, 210 120, 280 70 S 370 10, 400 0" fill="none"
@@ -146,7 +146,7 @@ export default function LandingPage() {
 
         <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-6 md:pb-28">
           <header className="flex items-center justify-between">
-            <Logo className="[&_span]:text-white [&_rect:first-child]:fill-white [&_rect:not(:first-child)]:fill-[#06291F]" />
+            <Logo className="[&_span]:text-white [&_rect]:fill-white" />
             {/* quem já é cliente precisa achar a porta de entrada de primeira:
                 fantasma sobre fundo escuro, ela quase não existia */}
             <Button asChild variant="outline"
@@ -176,7 +176,7 @@ export default function LandingPage() {
               </p>
               <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row md:justify-start">
                 <Button asChild size="lg"
-                  className="h-12 w-full bg-money-claro px-8 text-base text-[#06291F] hover:bg-money-claro/90 sm:w-auto">
+                  className="h-12 w-full bg-money-claro px-8 text-base text-[#0B132B] hover:bg-money-claro/90 sm:w-auto">
                   <Link href="/cadastro">Criar conta grátis</Link>
                 </Button>
                 <Button asChild variant="ghost" size="lg"
@@ -453,7 +453,7 @@ export default function LandingPage() {
             calculada em menos de cinco minutos.
           </p>
           <Button asChild size="lg"
-            className="mt-8 h-12 bg-money-claro px-8 text-base text-[#06291F] hover:bg-money-claro/90">
+            className="mt-8 h-12 bg-money-claro px-8 text-base text-[#0B132B] hover:bg-money-claro/90">
             <Link href="/cadastro">Criar conta grátis</Link>
           </Button>
 
