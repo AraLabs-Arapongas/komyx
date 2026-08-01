@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, ShoppingBag, Wallet, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/logo'
 
 const itens = [
   { href: '/app', label: 'Início', icon: LayoutDashboard },
@@ -22,16 +23,16 @@ export function AppNav() {
           <Link key={href} href={href}
             className={cn('flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px]',
               ativo(href) ? 'text-foreground font-medium' : 'text-muted-foreground')}>
-            <Icon size={20} />{label}
+            <Icon size={18} />{label}
           </Link>
         ))}
       </nav>
       {/* desktop: sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col border-r bg-card p-4 md:flex">
-        <p className="mb-6 text-lg font-bold">ConsorPro</p>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-44 flex-col border-r bg-card p-3 md:flex">
+        <Logo className="mb-6 px-2" />
         {itens.map(({ href, label, icon: Icon }) => (
           <Link key={href} href={href}
-            className={cn('flex items-center gap-2 rounded-[10px] px-3 py-2 text-sm',
+            className={cn('flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-sm',
               ativo(href) ? 'bg-background font-medium' : 'text-muted-foreground hover:text-foreground')}>
             <Icon size={18} />{label}
           </Link>

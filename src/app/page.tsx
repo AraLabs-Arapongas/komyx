@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Calculator, CalendarClock, TrendingUp } from 'lucide-react'
+import { Logo } from '@/components/logo'
 
 const beneficios = [
   { icon: Calculator, titulo: 'Comissão calculada na hora',
@@ -15,7 +16,7 @@ export default function LandingPage() {
   return (
     <main className="mx-auto max-w-4xl px-4">
       <header className="flex items-center justify-between py-5">
-        <span className="text-lg font-bold">ConsorPro</span>
+        <Logo />
         <Button asChild variant="outline"><Link href="/login">Entrar</Link></Button>
       </header>
       <section className="py-16 text-center">
