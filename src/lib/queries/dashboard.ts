@@ -63,7 +63,9 @@ export function useDashboard(ano: number, mes: number) {
           data: primeiraData,
           jaCaiu: primeiraData <= hoje,
         }
-        vazio.proximos = parcelas.slice(0, 5).map(p => {
+        // um por lista: o painel dá a amostra, a lista inteira mora na tela
+        // própria, a um toque de "Ver agenda"
+        vazio.proximos = parcelas.slice(0, 1).map(p => {
           const venda = (p.comissoes as unknown as {
             vendas: { id: string; clientes: { nome: string } | null }
           }).vendas
@@ -110,7 +112,7 @@ export function useDashboard(ano: number, mes: number) {
         totalVendidoCentavos: total, nVendas: confirmadas.length,
         comissaoPrevistaCentavos: prevista, comissaoRecebidaCentavos: recebida,
         comissaoPendenteCentavos: Math.max(0, prevista - recebida),
-        ultimasVendas: confirmadas.slice(0, 5).map(v => {
+        ultimasVendas: confirmadas.slice(0, 1).map(v => {
           const c = v.comissoes as unknown as { valor_centavos: number } | null
           return {
             id: v.id,

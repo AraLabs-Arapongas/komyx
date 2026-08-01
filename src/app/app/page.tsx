@@ -4,12 +4,12 @@ import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useDashboard } from '@/lib/queries/dashboard'
-import { competenciaDaVenda, proximaCompetencia } from '@/lib/engine/calendario'
+import { proximaCompetencia } from '@/lib/engine/calendario'
 import { queryKeys } from '@/lib/queries/keys'
 import { Valor } from '@/components/valor'
 import { HeroDinheiro } from '@/components/hero-dinheiro'
 import { LoteriaFederal } from '@/components/loteria-federal'
-import { formatData, formatDataExtenso } from '@/lib/format'
+import { formatDataExtenso } from '@/lib/format'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ArrowRight } from 'lucide-react'
 
@@ -46,6 +46,44 @@ function Numero({ rotulo, centavos, destaque = false, apoio, href }: {
   return (
     <Link href={href} className="block rounded-xl py-1 transition-colors hover:bg-card">
       {conteudo}
+    </Link>
+  )
+}
+
+/**
+ * Uma das duas listas do rodapé do painel. O "ver tudo" fica no pé do cartão,
+ * não ao lado do título: em meia tela o título já ocupa a linha inteira.
+ */
+function Lista({ titulo, verTudo, rotuloVerTudo, children }: {
+  titulo: string; verTudo: string; rotuloVerTudo: string; children: React.ReactNode
+}) {
+  return (
+    <section className="min-w-0 space-y-2">
+      <h2 className="text-sm font-medium text-muted-foreground">{titulo}</h2>
+      <div className="divide-y overflow-hidden rounded-2xl bg-card">
+        {children}
+        <Link href={verTudo}
+          className="flex items-center justify-center gap-1 px-3 py-2 text-xs
+                     font-medium text-money transition-colors hover:bg-background">
+          {rotuloVerTudo} <ArrowRight size={12} />
+        </Link>
+      </div>
+    </section>
+  )
+}
+
+/** Linha das listas: empilha em meia tela, volta a ser lado a lado no desktop. */
+function ItemLista({ href, titulo, apoio, centavos }: {
+  href: string; titulo: string; apoio: React.ReactNode; centavos: number
+}) {
+  return (
+    <Link href={href}
+      className="block px-3 py-2.5 transition-colors hover:bg-background md:flex md:items-center md:justify-between md:gap-3 md:px-4 md:py-3">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium md:text-base">{titulo}</p>
+        <p className="truncate text-xs text-muted-foreground">{apoio}</p>
+      </div>
+      <Valor centavos={centavos} className="mt-0.5 block text-sm md:mt-0 md:text-base" />
     </Link>
   )
 }
@@ -127,72 +165,39 @@ export default function DashboardPage() {
             <LoteriaFederal />
           </div>
 
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium text-muted-foreground">Próximos recebimentos</h2>
-              <Link href="/app/recebimentos"
-                className="flex items-center gap-1 text-sm text-money hover:underline">
-                Ver agenda <ArrowRight size={14} />
-              </Link>
-            </div>
-            {d.proximos.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Nada previsto ainda. Registre uma venda para o calendário começar a encher.
-              </p>
-            ) : (
-              <div className="divide-y overflow-hidden rounded-2xl bg-card">
-                {d.proximos.map(p => (
-                  <Link key={p.id} href={`/app/vendas/${p.vendaId}`}
-                    className="flex items-center justify-between px-4 py-3 transition-colors hover:bg-background">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{p.cliente}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDataExtenso(p.data_prevista)} · {formatData(p.data_prevista)}
-                      </p>
-                    </div>
-                    <Valor centavos={p.valor_centavos} />
+          {/* as duas listas dividem a linha, como os números e a loteria acima:
+              vendas à esquerda porque é o que o corretor acabou de fazer */}
+          <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 md:gap-6">
+            <Lista titulo="Últimas vendas" verTudo="/app/vendas" rotuloVerTudo="Ver todas">
+              {d.ultimasVendas.length === 0 ? (
+                <div className="px-4 py-6 text-center">
+                  <p className="text-sm font-medium">Nenhuma venda neste mês</p>
+                  <Link href="/app/vendas/nova"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-money hover:underline">
+                    Registrar venda <ArrowRight size={12} />
                   </Link>
-                ))}
-              </div>
-            )}
-          </section>
+                </div>
+              ) : d.ultimasVendas.map(v => (
+                <ItemLista key={v.id} href={`/app/vendas/${v.id}`}
+                  titulo={v.cliente || 'Cliente sem nome'}
+                  apoio={<>Carta <Valor centavos={v.valorCartaCentavos} destaque={false} className="font-normal" /></>}
+                  centavos={v.comissaoPrevistaCentavos} />
+              ))}
+            </Lista>
 
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-medium text-muted-foreground">Últimas vendas</h2>
-              <Link href="/app/vendas"
-                className="flex items-center gap-1 text-sm text-money hover:underline">
-                Ver todas <ArrowRight size={14} />
-              </Link>
-            </div>
-            {d.ultimasVendas.length === 0 ? (
-              <div className="rounded-2xl bg-card px-4 py-8 text-center">
-                <p className="font-medium">Nenhuma venda neste mês ainda</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Cadastre uma venda e eu calculo a comissão para você.
+            <Lista titulo="Próximos recebimentos" verTudo="/app/recebimentos" rotuloVerTudo="Ver agenda">
+              {d.proximos.length === 0 ? (
+                <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  Nada previsto neste mês.
                 </p>
-                <Link href="/app/vendas/nova"
-                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-money hover:underline">
-                  Registrar venda <ArrowRight size={14} />
-                </Link>
-              </div>
-            ) : (
-              <div className="divide-y overflow-hidden rounded-2xl bg-card">
-                {d.ultimasVendas.map(v => (
-                  <Link key={v.id} href={`/app/vendas/${v.id}`}
-                    className="flex items-center justify-between px-4 py-3 transition-colors hover:bg-background">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{v.cliente || 'Cliente sem nome'}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Carta <Valor centavos={v.valorCartaCentavos} destaque={false} className="font-normal" />
-                      </p>
-                    </div>
-                    <Valor centavos={v.comissaoPrevistaCentavos} />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </section>
+              ) : d.proximos.map(p => (
+                <ItemLista key={p.id} href={`/app/vendas/${p.vendaId}`}
+                  titulo={p.cliente}
+                  apoio={formatDataExtenso(p.data_prevista)}
+                  centavos={p.valor_centavos} />
+              ))}
+            </Lista>
+          </div>
         </>
       )}
     </div>
