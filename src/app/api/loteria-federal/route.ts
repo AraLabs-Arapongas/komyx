@@ -33,7 +33,10 @@ function paraISO(dataBR: string): string {
 export async function GET() {
   try {
     const resposta = await fetch(FONTE, { signal: AbortSignal.timeout(8000) })
-    if (!resposta.ok) return Response.json({ erro: 'indisponivel' }, { status: 503 })
+    if (!resposta.ok) {
+      console.error('[loteria-federal] a Caixa respondeu', resposta.status, resposta.statusText)
+      return Response.json({ erro: 'indisponivel' }, { status: 503 })
+    }
 
     const bruto = await resposta.json() as {
       numero?: number
@@ -50,7 +53,8 @@ export async function GET() {
       bilhetes: bruto.listaDezenas,
     }
     return Response.json(resultado)
-  } catch {
+  } catch (erro) {
+    console.error('[loteria-federal] não alcancei a Caixa:', erro)
     return Response.json({ erro: 'indisponivel' }, { status: 503 })
   }
 }

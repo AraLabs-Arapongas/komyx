@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 
-export default async function CadastroPage({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
-  const { erro } = await searchParams
+export default async function CadastroPage(
+  { searchParams }: { searchParams: Promise<{ erro?: string; aviso?: string }> },
+) {
+  const { erro, aviso } = await searchParams
   return (
     <AuthMoldura
       titulo={<>Nunca mais calcule<br />comissão no Excel.</>}
@@ -15,6 +17,9 @@ export default async function CadastroPage({ searchParams }: { searchParams: Pro
       <form action={cadastrar} className="space-y-4">
         {erro && (
           <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">{erro}</p>
+        )}
+        {aviso && (
+          <p className="rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">{aviso}</p>
         )}
         <div className="space-y-1.5">
           <Label htmlFor="nome">Nome</Label>
