@@ -22,6 +22,20 @@ const CACHE = 'public, s-maxage=3600, stale-while-revalidate=86400'
 
 const FONTE = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/federal'
 
+/*
+ * Sem isto a Caixa devolve 403: o fetch do Node sai sem User-Agent nem Referer,
+ * e o filtro dela recusa. São os mesmos cabeçalhos que o portal de loterias
+ * manda ao consumir este endereço.
+ */
+const CABECALHOS = {
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+    + ' (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  Accept: 'application/json, text/plain, */*',
+  'Accept-Language': 'pt-BR,pt;q=0.9',
+  Referer: 'https://loterias.caixa.gov.br/',
+  Origin: 'https://loterias.caixa.gov.br',
+}
+
 export type ResultadoFederal = {
   concurso: number
   /** ISO, para o cliente formatar como quiser */
@@ -38,7 +52,10 @@ function paraISO(dataBR: string): string {
 
 export async function GET() {
   try {
-    const resposta = await fetch(FONTE, { signal: AbortSignal.timeout(8000) })
+    const resposta = await fetch(FONTE, {
+      headers: CABECALHOS,
+      signal: AbortSignal.timeout(8000),
+    })
     if (!resposta.ok) {
       console.error('[loteria-federal] a Caixa respondeu', resposta.status, resposta.statusText)
       return Response.json({ erro: 'indisponivel' }, { status: 503 })
