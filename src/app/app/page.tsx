@@ -8,6 +8,7 @@ import { competenciaDaVenda, proximaCompetencia } from '@/lib/engine/calendario'
 import { queryKeys } from '@/lib/queries/keys'
 import { Valor } from '@/components/valor'
 import { HeroDinheiro } from '@/components/hero-dinheiro'
+import { LoteriaFederal } from '@/components/loteria-federal'
 import { formatData, formatDataExtenso } from '@/lib/format'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ArrowRight } from 'lucide-react'
@@ -100,27 +101,31 @@ export default function DashboardPage() {
 
       {isLoading || !d ? <Skeleton className="h-40 w-full rounded-2xl" /> : (
         <>
-          {/* O mês em números: o hero respondeu "quanto vou receber"; aqui
-              vem o resto da história, com peso bem menor. */}
-          <section className="entra-suave space-y-4">
-            <h2 className="text-sm font-medium text-muted-foreground">
-              {['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto',
-                'Setembro','Outubro','Novembro','Dezembro'][comp.mes - 1]} em números
-            </h2>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-4">
-              <Numero rotulo="Vendido" centavos={d.totalVendidoCentavos}
-                apoio={`${d.nVendas} ${pluralizar(d.nVendas, 'venda', 'vendas')}`}
-                href="/app/vendas" />
-              <Numero rotulo="Comissão prevista" centavos={d.comissaoPrevistaCentavos} destaque />
-              <Numero rotulo="Recebido" centavos={d.comissaoRecebidaCentavos} destaque
-                href="/app/recebimentos" />
-              <Numero rotulo="Falta receber" centavos={d.comissaoPendenteCentavos} destaque
-                href="/app/recebimentos" />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Ticket médio de <Valor centavos={d.ticketMedioCentavos} destaque={false} className="font-normal" />
-            </p>
-          </section>
+          {/* O hero respondeu "quanto vou receber". Aqui vêm as duas leituras de
+              apoio, lado a lado: os números do mês e o sorteio que contempla. */}
+          <div className="grid gap-8 md:grid-cols-2 md:gap-6">
+            <section className="entra-suave space-y-4">
+              <h2 className="text-sm font-medium text-muted-foreground">
+                {['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto',
+                  'Setembro','Outubro','Novembro','Dezembro'][comp.mes - 1]} em números
+              </h2>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                <Numero rotulo="Vendido" centavos={d.totalVendidoCentavos}
+                  apoio={`${d.nVendas} ${pluralizar(d.nVendas, 'venda', 'vendas')}`}
+                  href="/app/vendas" />
+                <Numero rotulo="Comissão prevista" centavos={d.comissaoPrevistaCentavos} destaque />
+                <Numero rotulo="Recebido" centavos={d.comissaoRecebidaCentavos} destaque
+                  href="/app/recebimentos" />
+                <Numero rotulo="Falta receber" centavos={d.comissaoPendenteCentavos} destaque
+                  href="/app/recebimentos" />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Ticket médio de <Valor centavos={d.ticketMedioCentavos} destaque={false} className="font-normal" />
+              </p>
+            </section>
+
+            <LoteriaFederal />
+          </div>
 
 
           <section className="space-y-3">
