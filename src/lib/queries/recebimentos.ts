@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 export type RecebimentoLinha = {
   id: string; numero_parcela: number; valor_centavos: number
   data_prevista: string; data_recebimento: string | null; status: string
-  comissoes: { n_parcelas: number; vendas: { id: string; clientes: { nome: string } | null } }
+  comissoes: { n_parcelas: number; vendas: { id: string; status: string; clientes: { nome: string } | null } }
 }
 
 export function useRecebimentos() {
@@ -17,7 +17,7 @@ export function useRecebimentos() {
     queryFn: async () => {
       const supabase = createClient()
       const { data, error } = await supabase.from('recebimentos')
-        .select('id, numero_parcela, valor_centavos, data_prevista, data_recebimento, status, comissoes(n_parcelas, vendas(id, clientes(nome)))')
+        .select('id, numero_parcela, valor_centavos, data_prevista, data_recebimento, status, comissoes(n_parcelas, vendas(id, status, clientes(nome)))')
         .order('data_prevista', { ascending: true })
       if (error) throw error
       return (data ?? []) as unknown as RecebimentoLinha[]

@@ -55,6 +55,7 @@ export default function RecebimentosPage() {
                       onClick={() => marcar.mutate({ id: r.id, data: hojeSP() })}>
                       Marcar recebido</Button>)}
                   {r.status === 'cancelado' && <Badge variant="outline">Cancelado</Badge>}
+                  {r.comissoes.vendas.status === 'cancelada' && <Badge variant="outline">Venda cancelada</Badge>}
                 </div>
               </div>
             )

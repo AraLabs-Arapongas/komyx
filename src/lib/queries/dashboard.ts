@@ -47,7 +47,7 @@ export function useDashboard(ano: number, mes: number) {
         totalVendidoCentavos: total, nVendas: confirmadas.length,
         ticketMedioCentavos: confirmadas.length ? Math.round(total / confirmadas.length) : 0,
         comissaoPrevistaCentavos: prevista, comissaoRecebidaCentavos: recebida,
-        comissaoPendenteCentavos: prevista - recebida,
+        comissaoPendenteCentavos: Math.max(0, prevista - recebida),
       }
     },
   })
