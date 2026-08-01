@@ -40,17 +40,29 @@ type ComissaoResumo = {
   recebimentos: { data_prevista: string; status: string }[]
 } | null
 
-/** Mês da primeira parcela ainda prevista, ou "—" se não houver. */
-function receberaEm(comissao: ComissaoResumo): string {
+function hojeSP(): string {
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
+}
+
+/**
+ * Mês da primeira parcela que ainda vai cair — pela mesma regra do resto do
+ * produto: parcela cujo dia chegou (ou marcada à mão na época em que isso
+ * existia) já caiu. Quando não resta nenhuma, a resposta é "já recebeu", não
+ * um traço: traço se lê como "nada", e aqui o que houve foi o contrário.
+ */
+function receberaEm(comissao: ComissaoResumo, hoje: string): string {
   if (!comissao) return '—'
-  const previstos = comissao.recebimentos.filter(r => r.status === 'previsto')
-  if (previstos.length === 0) return '—'
-  const menor = previstos.reduce((m, r) => (r.data_prevista < m ? r.data_prevista : m), previstos[0].data_prevista)
+  const ativos = comissao.recebimentos.filter(r => r.status !== 'cancelado' && r.status !== 'estornado')
+  if (ativos.length === 0) return '—'
+  const pendentes = ativos.filter(r => r.status === 'previsto' && r.data_prevista > hoje)
+  if (pendentes.length === 0) return 'Já recebeu'
+  const menor = pendentes.reduce((m, r) => (r.data_prevista < m ? r.data_prevista : m), pendentes[0].data_prevista)
   const mes = Number(menor.slice(5, 7))
   return MESES[mes - 1] ?? '—'
 }
 
 export default function VendasPage() {
+  const hoje = hojeSP()
   const [busca, setBusca] = useState('')
   const [status, setStatus] = useState<VendaStatusFiltro>('todas')
   const [ordenacao, setOrdenacao] = useState<VendaOrdenacao>('recentes')
@@ -143,7 +155,7 @@ export default function VendasPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Receberá</span>
-                  <span className="font-medium">{receberaEm(comissao)}</span>
+                  <span className="font-medium">{receberaEm(comissao, hoje)}</span>
                 </div>
               </div>
             </Link>
