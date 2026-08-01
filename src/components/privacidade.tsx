@@ -1,39 +1,54 @@
 'use client'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 
 const CHAVE = 'komyx:valores-ocultos'
 
-type Contexto = { oculto: boolean; alternar: () => void }
-const PrivacidadeContext = createContext<Contexto>({ oculto: false, alternar: () => {} })
+/*
+ * O modo privacidade mora no aparelho, não no React.
+ *
+ * É estado de fora da árvore — localStorage —, então quem lê é
+ * `useSyncExternalStore`: sem provider, sem efeito copiando valor para dentro
+ * de um estado, e sem o piscar de renderizar visível antes de descobrir a
+ * preferência. Cada componente que chama o hook lê a mesma fonte.
+ */
+const ouvintes = new Set<() => void>()
 
-export function usePrivacidade() {
-  return useContext(PrivacidadeContext)
+function avisarTodos() {
+  for (const ouvinte of ouvintes) ouvinte()
 }
 
-export function PrivacidadeProvider({ children }: { children: React.ReactNode }) {
-  // começa oculto de propósito: o corretor costuma abrir o app na rua, e um
-  // valor que aparece antes da preferência ser lida já foi visto por quem
-  // estava do lado. Quem prefere ver escolhe uma vez e a escolha fica salva.
-  const [oculto, setOculto] = useState(true)
+function assinar(aoMudar: () => void) {
+  ouvintes.add(aoMudar)
+  // outra aba do mesmo corretor também alterna: o evento mantém as duas juntas
+  window.addEventListener('storage', aoMudar)
+  return () => {
+    ouvintes.delete(aoMudar)
+    window.removeEventListener('storage', aoMudar)
+  }
+}
 
-  useEffect(() => {
-    setOculto(window.localStorage.getItem(CHAVE) !== '0')
+function lerDoAparelho(): boolean {
+  return window.localStorage.getItem(CHAVE) !== '0'
+}
+
+/* No servidor não há aparelho: oculto. O corretor costuma abrir o app na rua,
+   e um valor que aparece antes da preferência ser lida já foi visto por quem
+   estava do lado. */
+function lerNoServidor(): boolean {
+  return true
+}
+
+export function usePrivacidade() {
+  const oculto = useSyncExternalStore(assinar, lerDoAparelho, lerNoServidor)
+
+  const alternar = useCallback(() => {
+    const novo = window.localStorage.getItem(CHAVE) === '0'
+    window.localStorage.setItem(CHAVE, novo ? '1' : '0')
+    avisarTodos()
   }, [])
 
-  function alternar() {
-    setOculto(anterior => {
-      const novo = !anterior
-      window.localStorage.setItem(CHAVE, novo ? '1' : '0')
-      return novo
-    })
-  }
-
-  return (
-    <PrivacidadeContext.Provider value={{ oculto, alternar }}>
-      {children}
-    </PrivacidadeContext.Provider>
-  )
+  return { oculto, alternar }
 }
 
 export function BotaoPrivacidade({ className }: { className?: string }) {
