@@ -8,7 +8,20 @@ import { parseBRLParaCentavos, formatBRL } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { CampoValor, CampoPercentual, CampoInteiro } from '@/components/campos'
 import { Trash2, Plus } from 'lucide-react'
+
+function Secao({ titulo, apoio, children }: { titulo: string; apoio: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-4 rounded-[10px] border bg-card p-4">
+      <div className="space-y-1">
+        <h2 className="font-medium">{titulo}</h2>
+        <p className="text-sm text-muted-foreground">{apoio}</p>
+      </div>
+      {children}
+    </section>
+  )
+}
 
 type FaixaDraft = { maxTxt: string; percentualTxt: string; parcelasTxt: string }
 
@@ -58,68 +71,69 @@ export function ConfigForm({ modo, inicial }: {
     qc.invalidateQueries()
     if (modo === 'onboarding') {
       toast.success('Tudo pronto! Agora é só registrar suas vendas.')
-      router.push('/app')
+      // a navegação do app só aparece depois que existe configuração, e quem
+      // decide isso é o layout no servidor: sem recarregar, o corretor cairia
+      // no painel sem menu nenhum
+      window.location.assign('/app')
     } else {
       toast.success('Regras salvas. O mês atual foi recalculado com as novas regras.')
+      router.refresh()
     }
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
-      <div className="space-y-1">
-        <Label>Nome da política</Label>
-        <Input value={nome} onChange={e => setNome(e.target.value)} required />
-      </div>
+    <form onSubmit={onSubmit} className="space-y-4">
+      <Secao titulo="Política" apoio="Um nome para você reconhecer essa regra de comissão depois.">
+        <div className="space-y-1">
+          <Label>Nome da política</Label>
+          <Input value={nome} onChange={e => setNome(e.target.value)} required />
+        </div>
+      </Secao>
 
-      <div className="space-y-3">
-        <Label>Faixas de comissão</Label>
-        <p className="text-sm text-muted-foreground">
-          Comissão calculada pelo total vendido no mês. Deixe o “valor até” da última faixa em branco.
-        </p>
-        {faixas.map((f, i) => (
-          <div key={i} className="space-y-2 rounded-[10px] border p-3">
-            <div className="flex items-center justify-between text-sm font-medium">
-              <span>Faixa {i + 1} — a partir de {formatBRL(minDaFaixa(i))}</span>
-              {faixas.length > 1 && (
-                <button type="button" onClick={() => setFaixas(fs => fs.filter((_, j) => j !== i))}>
-                  <Trash2 size={16} className="text-muted-foreground" />
-                </button>)}
+      <Secao titulo="Faixas" apoio="Comissão calculada pelo total vendido no mês. Deixe o “vendido até” da última faixa em branco.">
+        <div className="space-y-3">
+          {faixas.map((f, i) => (
+            <div key={i} className="space-y-2 rounded-[10px] border p-3">
+              <div className="flex items-center justify-between text-sm font-medium">
+                <span>Faixa {i + 1} — a partir de {formatBRL(minDaFaixa(i))}</span>
+                {faixas.length > 1 && (
+                  <button type="button" onClick={() => setFaixas(fs => fs.filter((_, j) => j !== i))}>
+                    <Trash2 size={18} className="text-muted-foreground" />
+                  </button>)}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div><Label className="text-xs">Vendido até</Label>
+                  <CampoValor value={f.maxTxt} placeholder="Sem limite"
+                    onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, maxTxt: v } : x))} /></div>
+                <div><Label className="text-xs">Comissão</Label>
+                  <CampoPercentual value={f.percentualTxt} required
+                    onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, percentualTxt: v } : x))} /></div>
+                <div><Label className="text-xs">Parcelas</Label>
+                  <CampoInteiro value={f.parcelasTxt} placeholder="2" required
+                    onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, parcelasTxt: v } : x))} /></div>
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div><Label className="text-xs">Vendido até (R$)</Label>
-                <Input inputMode="decimal" placeholder="Sem limite" value={f.maxTxt}
-                  onChange={e => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, maxTxt: e.target.value } : x))} /></div>
-              <div><Label className="text-xs">Comissão (%)</Label>
-                <Input inputMode="decimal" placeholder="0,5" value={f.percentualTxt} required
-                  onChange={e => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, percentualTxt: e.target.value } : x))} /></div>
-              <div><Label className="text-xs">Parcelas</Label>
-                <Input inputMode="numeric" placeholder="2" value={f.parcelasTxt} required
-                  onChange={e => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, parcelasTxt: e.target.value } : x))} /></div>
-            </div>
-          </div>
-        ))}
-        <Button type="button" variant="outline" size="sm"
-          onClick={() => setFaixas(fs => [...fs, { maxTxt: '', percentualTxt: '', parcelasTxt: '' }])}>
-          <Plus size={16} /> Adicionar faixa
-        </Button>
-      </div>
+          ))}
+          <Button type="button" variant="outline" size="sm"
+            onClick={() => setFaixas(fs => [...fs, { maxTxt: '', percentualTxt: '', parcelasTxt: '' }])}>
+            <Plus size={18} /> Adicionar faixa
+          </Button>
+        </div>
+      </Secao>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div><Label>Dia do fechamento</Label>
-          <Input inputMode="numeric" value={fechamento} onChange={e => setFechamento(e.target.value)} required /></div>
-        <div><Label>Dia do pagamento</Label>
-          <Input inputMode="numeric" value={pagamento} onChange={e => setPagamento(e.target.value)} required /></div>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        Vendas até o dia do fechamento entram no mês atual; depois disso, no mês seguinte.
-        A primeira parcela é paga no dia do pagamento do mês seguinte.
-      </p>
+      <Secao titulo="Calendário" apoio="Vendas até o dia do fechamento entram no mês atual; depois disso, no mês seguinte. A primeira parcela é paga no dia do pagamento do mês seguinte.">
+        <div className="grid grid-cols-2 gap-3">
+          <div><Label>Dia do fechamento</Label>
+            <CampoInteiro value={fechamento} onChange={setFechamento} required /></div>
+          <div><Label>Dia do pagamento</Label>
+            <CampoInteiro value={pagamento} onChange={setPagamento} required /></div>
+        </div>
+      </Secao>
 
-      <div className="space-y-1">
-        <Label>Regras de estorno (opcional)</Label>
+      <Secao titulo="Estorno" apoio="Opcional. Explique o que acontece com a comissão se o cliente desistir.">
         <Input value={estorno} onChange={e => setEstorno(e.target.value)}
           placeholder="Ex.: estorno integral em caso de desistência" />
-      </div>
+      </Secao>
 
       <Button type="submit" className="w-full" disabled={salvando}>
         {salvando ? 'Salvando…' : 'Salvar regras'}

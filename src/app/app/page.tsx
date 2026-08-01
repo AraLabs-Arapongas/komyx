@@ -7,15 +7,19 @@ import { useDashboard } from '@/lib/queries/dashboard'
 import { competenciaDaVenda, proximaCompetencia } from '@/lib/engine/calendario'
 import { queryKeys } from '@/lib/queries/keys'
 import { Valor } from '@/components/valor'
-import { formatBRL, formatData } from '@/lib/format'
+import { formatBRL, formatData, formatDataExtenso } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
 }
 const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+
+function pluralizar(n: number, singular: string, plural: string): string {
+  return n === 1 ? singular : plural
+}
 
 export default function DashboardPage() {
   const { data: config } = useQuery({
@@ -34,43 +38,96 @@ export default function DashboardPage() {
 
   if (!comp) return <Skeleton className="h-40 w-full" />
   const anterior = comp.mes === 1 ? { ano: comp.ano - 1, mes: 12 } : { ano: comp.ano, mes: comp.mes - 1 }
+  const foraDoAtual = !!atual && (comp.ano !== atual.ano || comp.mes !== atual.mes)
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <button onClick={() => setRef(anterior)}><ChevronLeft size={18} /></button>
-          <h1 className="text-lg font-semibold">{nomes[comp.mes - 1]} {comp.ano}</h1>
-          <button onClick={() => setRef(proximaCompetencia(comp))}><ChevronRight size={18} /></button>
+    <div className="space-y-6">
+      <header className="space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setRef(anterior)}
+              aria-label="Competência anterior"
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <CalendarDays className="text-muted-foreground" size={22} />
+            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+              Competência {nomes[comp.mes - 1]}/{comp.ano}
+            </h1>
+            <button
+              onClick={() => setRef(proximaCompetencia(comp))}
+              aria-label="Próxima competência"
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <ChevronRight size={20} />
+            </button>
+            {foraDoAtual && (
+              <Button variant="ghost" size="sm" onClick={() => setRef(null)}>Hoje</Button>
+            )}
+          </div>
+          <Button asChild><Link href="/app/vendas/nova"><Plus size={16} /> Nova venda</Link></Button>
         </div>
-        <Button asChild><Link href="/app/vendas/nova"><Plus size={16} /> Nova venda</Link></Button>
-      </div>
+        {d?.proximoPagamento && (
+          <p className="text-sm text-muted-foreground">
+            Próximo pagamento: {formatDataExtenso(d.proximoPagamento.data)} · {d.proximoPagamento.quantidade}{' '}
+            {pluralizar(d.proximoPagamento.quantidade, 'recebimento previsto', 'recebimentos previstos')}
+          </p>
+        )}
+      </header>
 
-      {isLoading || !d ? <Skeleton className="h-64 w-full" /> : (
+      {/* HERO — o dinheiro grita primeiro */}
+      <section className="rounded-[10px] border bg-card p-6 md:p-8">
+        {isLoading || !d ? <Skeleton className="h-28 w-full" /> : d.proximoPagamento ? (
+          <>
+            <p className="text-sm text-muted-foreground">Você receberá</p>
+            <p className="mt-1 text-5xl font-semibold tabular-nums text-money md:text-6xl">
+              {formatBRL(d.proximoPagamento.totalCentavos)}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{formatDataExtenso(d.proximoPagamento.data)}</p>
+          </>
+        ) : (
+          <>
+            <p className="text-lg font-semibold">Nenhum recebimento previsto</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Assim que uma venda for confirmada, os recebimentos previstos aparecem aqui.
+            </p>
+          </>
+        )}
+      </section>
+
+      {isLoading || !d ? <Skeleton className="h-24 w-full" /> : (
         <>
-          <div className="rounded-[10px] border bg-card p-4">
-            <p className="text-sm text-muted-foreground">Falta receber</p>
-            <p className="text-3xl"><Valor centavos={d.comissaoPendenteCentavos} /></p>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              ['Vendi no mês', formatBRL(d.totalVendidoCentavos), false],
-              ['Comissão prevista', formatBRL(d.comissaoPrevistaCentavos), true],
-              ['Já recebi', formatBRL(d.comissaoRecebidaCentavos), true],
-              [`${d.nVendas} venda${d.nVendas === 1 ? '' : 's'}`, `Ticket ${formatBRL(d.ticketMedioCentavos)}`, false],
-            ].map(([label, valor, verde], i) => (
-              <div key={i} className="rounded-[10px] border bg-card p-3">
-                <p className="text-xs text-muted-foreground">{label as string}</p>
-                <p className={`text-lg font-semibold tabular-nums ${verde ? 'text-primary' : ''}`}>
-                  {valor as string}</p>
-              </div>
-            ))}
-          </div>
-          {d.nVendas === 0 && (
-            <div className="rounded-[10px] border p-6 text-center text-muted-foreground">
-              Nenhuma venda neste mês ainda.
+          {/* Resumo — hierarquia bem menor que o hero */}
+          <section className="grid grid-cols-2 gap-2 md:grid-cols-4">
+            {/* volume vendido não é dinheiro do corretor: fica neutro para
+                não competir com a comissão */}
+            <div className="rounded-[10px] border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Vendido no mês</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums">
+                {formatBRL(d.totalVendidoCentavos)}
+              </p>
             </div>
-          )}
+            <div className="rounded-[10px] border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Comissão prevista</p>
+              <Valor centavos={d.comissaoPrevistaCentavos} className="mt-1 block text-lg" />
+            </div>
+            <div className="rounded-[10px] border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Já recebi</p>
+              <Valor centavos={d.comissaoRecebidaCentavos} className="mt-1 block text-lg" />
+            </div>
+            <div className="rounded-[10px] border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Ticket médio</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums">
+                {formatBRL(d.ticketMedioCentavos)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                em {d.nVendas} {pluralizar(d.nVendas, 'venda', 'vendas')}
+              </p>
+            </div>
+          </section>
+
           <section className="space-y-2">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-medium text-muted-foreground">Próximos recebimentos</h2>
@@ -82,6 +139,24 @@ export default function DashboardPage() {
               <div key={p.id} className="flex items-center justify-between rounded-[10px] border bg-card p-3 text-sm">
                 <span>{p.cliente} · {formatData(p.data_prevista)}</span>
                 <Valor centavos={p.valor_centavos} />
+              </div>
+            ))}
+          </section>
+
+          <section className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-medium text-muted-foreground">Últimas vendas</h2>
+              <Link href="/app/vendas" className="text-sm underline">ver todas</Link>
+            </div>
+            {d.ultimasVendas.length === 0 && (
+              <p className="text-sm text-muted-foreground">Nenhuma venda confirmada nesta competência ainda.</p>)}
+            {d.ultimasVendas.map(v => (
+              <div key={v.id} className="flex items-center justify-between rounded-[10px] border bg-card p-3 text-sm">
+                <div>
+                  <p className="font-medium">{v.cliente || 'Cliente sem nome'}</p>
+                  <p className="text-muted-foreground">Carta {formatBRL(v.valorCartaCentavos)}</p>
+                </div>
+                <Valor centavos={v.comissaoPrevistaCentavos} />
               </div>
             ))}
           </section>

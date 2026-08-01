@@ -9,7 +9,7 @@ export function useVendas(busca = '') {
     queryFn: async () => {
       const supabase = createClient()
       let q = supabase.from('vendas')
-        .select('id, valor_carta_centavos, administradora, grupo, cota, data_venda, status, clientes(nome), comissoes(valor_centavos, percentual, status)')
+        .select('id, valor_carta_centavos, administradora, grupo, cota, data_venda, status, clientes(nome), comissoes(valor_centavos, percentual, status, recebimentos(data_prevista, status))')
         .order('data_venda', { ascending: false }).limit(100)
       if (busca) {
         const b = busca.replace(/[,()%]/g, ' ').trim()

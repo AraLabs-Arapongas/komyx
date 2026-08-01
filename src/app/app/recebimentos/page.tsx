@@ -1,18 +1,14 @@
 'use client'
 import { useRecebimentos, useMarcarRecebido } from '@/lib/queries/recebimentos'
 import { Valor } from '@/components/valor'
-import { formatData } from '@/lib/format'
-import { Button } from '@/components/ui/button'
+import { formatData, formatMesAno } from '@/lib/format'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
-}
-const mesLabel = (iso: string) => {
-  const [a, m] = iso.split('-')
-  const nomes = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
-  return `${nomes[Number(m) - 1]} de ${a}`
 }
 
 export default function RecebimentosPage() {
@@ -35,7 +31,9 @@ export default function RecebimentosPage() {
       )}
       {[...grupos.entries()].map(([mes, linhas]) => (
         <section key={mes} className="space-y-2">
-          <h2 className="text-sm font-medium capitalize text-muted-foreground">{mesLabel(mes + '-01')}</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">
+            {formatMesAno(Number(mes.slice(0, 4)), Number(mes.slice(5, 7)))}
+          </h2>
           {linhas.map(r => {
             const atrasado = r.status === 'previsto' && r.data_prevista < hoje
             return (
@@ -48,14 +46,25 @@ export default function RecebimentosPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Valor centavos={Number(r.valor_centavos)} />
-                  {r.status === 'recebido' && <Badge variant="secondary">Recebido</Badge>}
                   {atrasado && <Badge className="bg-[#F59E0B] text-white">Atrasado</Badge>}
-                  {r.status === 'previsto' && (
-                    <Button size="sm" variant="outline"
-                      onClick={() => marcar.mutate({ id: r.id, data: hojeSP() })}>
-                      Marcar recebido</Button>)}
                   {r.status === 'cancelado' && <Badge variant="outline">Cancelado</Badge>}
                   {r.comissoes.vendas.status === 'cancelada' && <Badge variant="outline">Venda cancelada</Badge>}
+                  {(r.status === 'previsto' || r.status === 'recebido') && (
+                    <Label
+                      htmlFor={`recebido-${r.id}`}
+                      className="flex items-center gap-2 rounded-[10px] px-2 py-2 -mr-2 font-normal cursor-pointer has-disabled:cursor-default"
+                    >
+                      <Checkbox
+                        id={`recebido-${r.id}`}
+                        checked={r.status === 'recebido'}
+                        disabled={r.status === 'recebido'}
+                        onCheckedChange={checked => {
+                          if (checked) marcar.mutate({ id: r.id, data: hojeSP() })
+                        }}
+                      />
+                      Recebido
+                    </Label>
+                  )}
                 </div>
               </div>
             )

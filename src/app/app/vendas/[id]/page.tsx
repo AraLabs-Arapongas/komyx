@@ -9,6 +9,7 @@ import { cancelarVenda } from '@/lib/actions/vendas'
 import { formatBRL, formatData, formatPercentual } from '@/lib/format'
 import type { Faixa } from '@/lib/domain/types'
 import { VendaForm } from '@/components/venda-form'
+import { Valor } from '@/components/valor'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -147,33 +148,33 @@ export default function VendaDetalhePage() {
       </div>
 
       {/* Comissão */}
-      <div className="space-y-2 rounded-[10px] border bg-card p-4">
+      <div className="space-y-3 rounded-[10px] border bg-card p-4">
         <p className="font-medium">Comissão</p>
         {comissao ? (
           <>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Percentual</span>
-              <span className="font-medium">{formatPercentual(comissao.percentual)}</span>
+            <div>
+              <p className="text-3xl"><Valor centavos={Number(comissao.valor_centavos)} /></p>
+              <p className="text-sm text-muted-foreground">
+                {formatPercentual(comissao.percentual)} sobre o valor da carta
+              </p>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Valor</span>
-              <span className="font-semibold text-primary">{formatBRL(Number(comissao.valor_centavos))}</span>
-            </div>
-            {faixa && (
+            <div className="space-y-2 border-t pt-2 text-sm">
+              {faixa && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Faixa</span>
+                  <span className="font-medium">
+                    {formatBRL(faixa.min)} – {faixa.max === null ? 'sem limite' : formatBRL(faixa.max)}
+                  </span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Faixa</span>
-                <span className="font-medium">
-                  {formatBRL(faixa.min)} – {faixa.max === null ? 'sem limite' : formatBRL(faixa.max)}
-                </span>
+                <span className="text-muted-foreground">Parcelas</span>
+                <span className="font-medium">{comissao.n_parcelas} parcelas</span>
               </div>
-            )}
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Parcelas</span>
-              <span className="font-medium">{comissao.n_parcelas} parcelas</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Status</span>
-              <Badge variant="outline">{comissaoStatusLabel[comissao.status] ?? comissao.status}</Badge>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Status</span>
+                <Badge variant="outline">{comissaoStatusLabel[comissao.status] ?? comissao.status}</Badge>
+              </div>
             </div>
           </>
         ) : (
@@ -194,7 +195,7 @@ export default function VendaDetalhePage() {
                     Parcela {r.numero_parcela} · {formatData(r.data_prevista)}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{formatBRL(Number(r.valor_centavos))}</span>
+                    <Valor centavos={Number(r.valor_centavos)} />
                     <Badge variant="outline">{recebimentoStatusLabel[r.status] ?? r.status}</Badge>
                   </div>
                 </div>

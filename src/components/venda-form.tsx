@@ -4,11 +4,11 @@ import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { criarVenda, editarVenda } from '@/lib/actions/vendas'
-import { parseBRLParaCentavos } from '@/lib/format'
+import { parseBRLParaCentavos, dataBRParaISO, formatData } from '@/lib/format'
 import { ClientePicker } from './cliente-picker'
+import { CampoValor, CampoData, CampoInteiro } from '@/components/campos'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
@@ -27,13 +27,16 @@ export function VendaForm({ vendaId, inicial }: {
   const [administradora, setAdministradora] = useState(inicial?.administradora ?? '')
   const [grupo, setGrupo] = useState(inicial?.grupo ?? '')
   const [cota, setCota] = useState(inicial?.cota ?? '')
-  const [dataVenda, setDataVenda] = useState(inicial?.dataVenda ?? hojeSP())
+  const [dataTxt, setDataTxt] = useState(formatData(inicial?.dataVenda ?? hojeSP()))
   const [observacoes, setObservacoes] = useState(inicial?.observacoes ?? '')
+  const [mostrarObs, setMostrarObs] = useState(!!inicial?.observacoes)
   const [salvando, setSalvando] = useState(false)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!clienteId) { toast.error('Selecione um cliente.'); return }
+    const dataVenda = dataBRParaISO(dataTxt)
+    if (!dataVenda) { toast.error('Informe uma data válida.'); return }
     setSalvando(true)
     const payload = {
       clienteId, valorCartaCentavos: parseBRLParaCentavos(valorTxt),
@@ -49,25 +52,39 @@ export function VendaForm({ vendaId, inicial }: {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="space-y-1"><Label>Cliente</Label>
+    <form onSubmit={onSubmit} className="space-y-3">
+      <div>
+        <p className="mb-1 text-xs text-muted-foreground">Cliente</p>
         <ClientePicker value={clienteId} nomeSelecionado={clienteNome}
-          onChange={(id, nome) => { setClienteId(id); setClienteNome(nome) }} /></div>
-      <div className="space-y-1"><Label>Valor da carta (R$)</Label>
-        <Input inputMode="decimal" placeholder="500.000,00" value={valorTxt}
-          onChange={e => setValorTxt(e.target.value)} required /></div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1"><Label>Administradora</Label>
-          <Input value={administradora} onChange={e => setAdministradora(e.target.value)} required /></div>
-        <div className="space-y-1"><Label>Data da venda</Label>
-          <Input type="date" value={dataVenda} onChange={e => setDataVenda(e.target.value)} required /></div>
-        <div className="space-y-1"><Label>Grupo</Label>
-          <Input value={grupo} onChange={e => setGrupo(e.target.value)} required /></div>
-        <div className="space-y-1"><Label>Cota</Label>
-          <Input value={cota} onChange={e => setCota(e.target.value)} required /></div>
+          onChange={(id, nome) => { setClienteId(id); setClienteNome(nome) }} />
       </div>
-      <div className="space-y-1"><Label>Observações (opcional)</Label>
-        <Input value={observacoes} onChange={e => setObservacoes(e.target.value)} /></div>
+
+      <CampoValor value={valorTxt} onChange={setValorTxt} placeholder="Valor da carta" required />
+
+      <div className="grid grid-cols-2 gap-3">
+        <CampoInteiro value={grupo} onChange={setGrupo} placeholder="Grupo" required />
+        <CampoInteiro value={cota} onChange={setCota} placeholder="Cota" required />
+      </div>
+
+      <Input value={administradora} onChange={e => setAdministradora(e.target.value)}
+        placeholder="Administradora" required />
+
+      <div>
+        <p className="mb-1 text-xs text-muted-foreground">Data da venda</p>
+        <CampoData value={dataTxt} onChange={setDataTxt} required />
+      </div>
+
+      {mostrarObs ? (
+        <Input value={observacoes} onChange={e => setObservacoes(e.target.value)}
+          placeholder="Observações" autoFocus />
+      ) : (
+        <button type="button"
+          className="text-sm text-muted-foreground underline underline-offset-2"
+          onClick={() => setMostrarObs(true)}>
+          + Observações
+        </button>
+      )}
+
       <Button type="submit" className="w-full" disabled={salvando}>
         {salvando ? 'Salvando…' : 'Salvar venda'}
       </Button>
