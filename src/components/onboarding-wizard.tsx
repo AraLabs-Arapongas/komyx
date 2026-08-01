@@ -71,8 +71,12 @@ function SecaoTitulo({ icone: Icone, rotulo, titulo }: { icone: typeof TrendingU
   )
 }
 
-export function OnboardingWizard() {
-  const [passo, setPasso] = useState<Passo>('boas-vindas')
+export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false }: {
+  passoInicial?: Passo
+  /** No menu de desenvolvimento: percorre as telas sem gravar configuração. */
+  preview?: boolean
+} = {}) {
+  const [passo, setPasso] = useState<Passo>(passoInicial)
   const [faixas, setFaixas] = useState<FaixaDraft[]>([{ maxTxt: '', percentualTxt: '', parcelasTxt: '', semLimite: true }])
   const [fechamento, setFechamento] = useState('25')
   const [pagamento, setPagamento] = useState('10')
@@ -120,6 +124,7 @@ export function OnboardingWizard() {
   }
 
   async function finalizar() {
+    if (preview) { toast.success('Pré-visualização: nada foi salvo.'); return }
     setSalvando(true)
     const payload = {
       nomePolitica: 'Política do escritório',
@@ -145,7 +150,7 @@ export function OnboardingWizard() {
   return (
     <div className="mx-auto w-full max-w-lg">
       {passo === 'boas-vindas' && (
-        <div key="boas-vindas" className="entra flex min-h-[70vh] flex-col items-center justify-center gap-6 rounded-2xl bg-escuro px-6 py-16 text-center text-white">
+        <div key="boas-vindas" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 rounded-2xl bg-escuro px-6 py-16 text-center text-white">
           <p className="text-xs font-medium tracking-[0.2em] text-escuro-texto uppercase">ConsorPro</p>
           <h1 className="text-3xl leading-tight font-semibold sm:text-4xl">
             Nunca mais calcule<br />comissão no Excel.
@@ -276,7 +281,7 @@ export function OnboardingWizard() {
       )}
 
       {passo === 'conclusao' && (
-        <div key="conclusao" className="entra flex min-h-[70vh] flex-col items-center justify-center gap-6 rounded-2xl bg-escuro px-6 py-16 text-center text-white">
+        <div key="conclusao" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 rounded-2xl bg-escuro px-6 py-16 text-center text-white">
           <p className="text-4xl">🎉</p>
           <h2 className="text-3xl font-semibold sm:text-4xl">Tudo pronto.</h2>
           <p className="max-w-xs text-escuro-texto">Agora é só registrar sua primeira venda.</p>

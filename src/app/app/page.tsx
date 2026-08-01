@@ -169,14 +169,12 @@ export default function DashboardPage() {
               vendas à esquerda porque é o que o corretor acabou de fazer */}
           <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 md:gap-6">
             <Lista titulo="Últimas vendas" verTudo="/app/vendas" rotuloVerTudo="Ver todas">
+              {/* mesmo tom do vazio da coluna vizinha; o caminho para criar
+                  venda já é o botão do hero, logo acima */}
               {d.ultimasVendas.length === 0 ? (
-                <div className="px-4 py-6 text-center">
-                  <p className="text-sm font-medium">Nenhuma venda neste mês</p>
-                  <Link href="/app/vendas/nova"
-                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-money hover:underline">
-                    Registrar venda <ArrowRight size={12} />
-                  </Link>
-                </div>
+                <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  Nenhuma venda neste mês
+                </p>
               ) : d.ultimasVendas.map(v => (
                 <ItemLista key={v.id} href={`/app/vendas/${v.id}`}
                   titulo={v.cliente || 'Cliente sem nome'}

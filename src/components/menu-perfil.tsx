@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { ChevronRight, Settings, User, Download, type LucideIcon } from 'lucide-react'
+import { ChevronRight, Settings, User, Download, FlaskConical, type LucideIcon } from 'lucide-react'
 
 /**
  * Menu do perfil. É aqui que entram as próximas áreas do produto (relatórios,
@@ -23,6 +23,12 @@ const ITENS: { href: string; icone: LucideIcon; titulo: string; apoio: string }[
     href: '/app/perfil/backup', icone: Download, titulo: 'Backup',
     apoio: 'Baixe uma cópia dos seus dados',
   },
+  // NODE_ENV é substituído em tempo de build, então o item nem chega ao pacote
+  // de produção
+  ...(process.env.NODE_ENV !== 'production' ? [{
+    href: '/app/perfil/dev', icone: FlaskConical, titulo: 'Desenvolvimento',
+    apoio: 'Refazer onboarding e pré-visualizar telas',
+  }] : []),
 ]
 
 export function MenuPerfil() {
