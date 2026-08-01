@@ -10,9 +10,15 @@
  * endpoint não envia cabeçalhos de CORS, e assim a resposta fica em cache na
  * borda — a extração acontece duas vezes por semana, não faz sentido consultar
  * a Caixa a cada visita ao painel.
+ *
+ * `force-dynamic` em vez de `force-static` porque a Caixa devolve 403 para IP
+ * de fora do Brasil: prerenderizar assaria a resposta do build, que roda nos
+ * EUA. Rodando por requisição, a consulta sai da região das funções (gru1) e o
+ * cache vem do cabeçalho abaixo, na CDN.
  */
-export const dynamic = 'force-static'
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
+
+const CACHE = 'public, s-maxage=3600, stale-while-revalidate=86400'
 
 const FONTE = 'https://servicebus2.caixa.gov.br/portaldeloterias/api/federal'
 
@@ -52,7 +58,7 @@ export async function GET() {
       data: paraISO(bruto.dataApuracao),
       bilhetes: bruto.listaDezenas,
     }
-    return Response.json(resultado)
+    return Response.json(resultado, { headers: { 'Cache-Control': CACHE } })
   } catch (erro) {
     console.error('[loteria-federal] não alcancei a Caixa:', erro)
     return Response.json({ erro: 'indisponivel' }, { status: 503 })
