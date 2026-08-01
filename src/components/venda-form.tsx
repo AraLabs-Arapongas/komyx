@@ -6,6 +6,8 @@ import { toast } from 'sonner'
 import { X } from 'lucide-react'
 import { criarVenda, editarVenda } from '@/lib/actions/vendas'
 import { parseBRLParaCentavos, dataBRParaISO, formatData } from '@/lib/format'
+import { createClient } from '@/lib/supabase/client'
+import { PrimeiraComissao } from '@/components/primeira-comissao'
 import { ClientePicker } from './cliente-picker'
 import { CampoValor, CampoData, CampoInteiro } from '@/components/campos'
 import { Button } from '@/components/ui/button'
@@ -13,6 +15,29 @@ import { Input } from '@/components/ui/input'
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
+}
+
+type Celebracao = { valorCentavos: number; dataPrevista: string }
+
+/**
+ * Só celebra se esta for mesmo a primeira venda da conta. Devolve o valor da
+ * comissão e a data da primeira parcela, ou null quando não há o que celebrar.
+ */
+async function celebrarSePrimeira(vendaId: string): Promise<Celebracao | null> {
+  const supabase = createClient()
+  const { count } = await supabase.from('vendas').select('id', { count: 'exact', head: true })
+  if ((count ?? 0) !== 1) return null
+
+  const { data } = await supabase.from('comissoes')
+    .select('valor_centavos, recebimentos(data_prevista, status)')
+    .eq('venda_id', vendaId).maybeSingle()
+  if (!data) return null
+
+  const previstos = (data.recebimentos ?? []).filter(r => r.status === 'previsto')
+  if (previstos.length === 0) return null
+  const primeira = previstos.reduce((m, r) => (r.data_prevista < m ? r.data_prevista : m),
+    previstos[0].data_prevista)
+  return { valorCentavos: Number(data.valor_centavos), dataPrevista: primeira }
 }
 
 export function VendaForm({ vendaId, inicial }: {
@@ -38,6 +63,7 @@ export function VendaForm({ vendaId, inicial }: {
   const [observacoes, setObservacoes] = useState(inicial?.observacoes ?? '')
   const [mostrarObs, setMostrarObs] = useState(!!inicial?.observacoes)
   const [salvando, setSalvando] = useState(false)
+  const [celebracao, setCelebracao] = useState<Celebracao | null>(null)
 
   function onTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {
@@ -65,9 +91,27 @@ export function VendaForm({ vendaId, inicial }: {
     setSalvando(false)
     if (!r.ok) { toast.error(r.erro); return }
     qc.invalidateQueries()
+
+    // a primeira venda é o momento em que o produto prova o que promete:
+    // em vez de um toast que some, o corretor vê a comissão que acabou de ganhar
+    if (!vendaId && 'vendaId' in r && typeof r.vendaId === 'string') {
+      const primeira = await celebrarSePrimeira(r.vendaId)
+      if (primeira) { setCelebracao(primeira); return }
+    }
+
     toast.success(vendaId ? 'Venda atualizada. Comissões recalculadas.'
                           : 'Venda registrada. Comissão calculada automaticamente.')
     router.push('/app/vendas')
+  }
+
+  if (celebracao) {
+    return (
+      <PrimeiraComissao
+        valorCentavos={celebracao.valorCentavos}
+        dataPrevista={celebracao.dataPrevista}
+        aoFechar={() => router.push('/app')}
+      />
+    )
   }
 
   return (
