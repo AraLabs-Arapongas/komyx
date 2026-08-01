@@ -84,8 +84,12 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
           </div>
         </div>
 
+        {/* altura reservada para o maior dos dois estados: sem isso o bloco
+            escuro encolhe 22px nos meses sem parcela, e trocar de mês faz a
+            tela inteira pular */}
+        <div className="mt-4 min-h-24 md:min-h-28">
         {pagamento ? (
-          <div className="mt-4">
+          <div>
             <p className="text-escuro-texto">
               {pagamento.jaCaiu ? 'Você recebeu' : 'Você receberá'}
             </p>
@@ -102,13 +106,14 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
             </p>
           </div>
         ) : (
-          <div className="mt-4">
+          <div>
             <p className="text-xl font-semibold md:text-2xl">Nada em {mesLabel}</p>
             <p className="mt-1 text-sm text-escuro-texto">
               Nenhuma parcela cai neste mês. Use as setas para ver outro mês.
             </p>
           </div>
         )}
+        </div>
 
         <div className="mt-5 flex items-center gap-2">
           <Button asChild size="lg"
