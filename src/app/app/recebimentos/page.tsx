@@ -1,13 +1,16 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRecebimentos, type RecebimentoLinha } from '@/lib/queries/recebimentos'
+import { useRecebimentos, useResumoAgenda, type RecebimentoLinha } from '@/lib/queries/recebimentos'
 import { Valor } from '@/components/valor'
 import { formatData, formatMesAno } from '@/lib/format'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Seletor, type Opcao } from '@/components/seletor'
+
+const PAGINA = 50
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
@@ -16,6 +19,7 @@ function hojeSP(): string {
 /**
  * O escritório paga no dia combinado, então a parcela conta como recebida
  * assim que a data chega — sem o corretor precisar confirmar nada.
+ * Mesma regra da função `resumo_agenda` no banco.
  */
 function jaCaiu(r: RecebimentoLinha, hoje: string): boolean {
   if (r.status === 'cancelado' || r.status === 'estornado') return false
@@ -43,11 +47,10 @@ const MES_ABREV = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
 const TODOS_OS_MESES = 'todos'
 
 /** Só os meses que têm parcela: oferecer um calendário inteiro seria escolher no vazio. */
-function mesesDisponiveis(recs: RecebimentoLinha[]): Opcao<string>[] {
-  const chaves = [...new Set(recs.map(r => r.data_prevista.slice(0, 7)))].sort()
+function opcoesDeMes(meses: string[]): Opcao<string>[] {
   return [
     { valor: TODOS_OS_MESES, rotulo: 'Todos os meses', rotuloCurto: 'Mês' },
-    ...chaves.map(k => {
+    ...meses.map(k => {
       const ano = Number(k.slice(0, 4)), mes = Number(k.slice(5, 7))
       return {
         valor: k,
@@ -59,38 +62,40 @@ function mesesDisponiveis(recs: RecebimentoLinha[]): Opcao<string>[] {
 }
 
 export default function RecebimentosPage() {
-  const { data: recs, isLoading } = useRecebimentos()
   const hoje = hojeSP()
 
   const [filtro, setFiltro] = useState<Filtro>('tudo')
   const [busca, setBusca] = useState('')
   const [ordenacao, setOrdenacao] = useState<Ordenacao>('proxima')
   const [mes, setMes] = useState<string>(TODOS_OS_MESES)
+  const [limite, setLimite] = useState(PAGINA)
 
-  const MESES_OPCOES = mesesDisponiveis(recs ?? [])
+  const buscaNorm = busca.trim()
+  const { data: resumo, isLoading: carregandoResumo } = useResumoAgenda(hoje, buscaNorm)
+  const MESES_OPCOES = opcoesDeMes(resumo?.meses ?? [])
   // um mês que sumiu da lista (a busca estreitou o conjunto) deixaria a tela
   // vazia sem explicação: nesse caso o filtro de mês não se aplica
   const mesValido = MESES_OPCOES.some(o => o.valor === mes) ? mes : TODOS_OS_MESES
 
-  const buscaNorm = busca.trim().toLowerCase()
-  const filtrados = (recs ?? []).filter(r => {
-    if (buscaNorm && !(r.comissoes.vendas.clientes?.nome ?? '').toLowerCase().includes(buscaNorm)) return false
-    if (mesValido !== TODOS_OS_MESES && r.data_prevista.slice(0, 7) !== mesValido) return false
+  const { data: recs, isLoading, isFetching } = useRecebimentos({
+    mes: mesValido === TODOS_OS_MESES ? '' : mesValido,
+    busca: buscaNorm,
+    limite,
+  })
+
+  function trocarFiltro<T>(set: (v: T) => void) {
+    return (v: T) => { set(v); setLimite(PAGINA) }
+  }
+
+  // status e ordenação continuam no cliente: incidem sobre a página já carregada
+  const linhas = (recs ?? []).filter(r => {
     const caiu = jaCaiu(r, hoje)
     if (filtro === 'a_receber') return !caiu && r.status === 'previsto'
     if (filtro === 'recebidos') return caiu
     return true
   })
 
-  // resumo reflete o que está na tela agora: busca e pílula já aplicadas
-  let totalAReceberCentavos = 0, totalRecebidoCentavos = 0
-  for (const r of filtrados) {
-    const valor = Number(r.valor_centavos)
-    if (jaCaiu(r, hoje)) totalRecebidoCentavos += valor
-    else if (r.status === 'previsto') totalAReceberCentavos += valor
-  }
-
-  const ordenados = [...filtrados].sort((a, b) => {
+  const ordenados = [...linhas].sort((a, b) => {
     if (ordenacao === 'maior_valor') return Number(b.valor_centavos) - Number(a.valor_centavos)
     if (ordenacao === 'distante') return b.data_prevista.localeCompare(a.data_prevista)
     return a.data_prevista.localeCompare(b.data_prevista)
@@ -102,14 +107,16 @@ export default function RecebimentosPage() {
     grupos.set(k, [...(grupos.get(k) ?? []), r])
   }
 
-  const semNenhumRecebimento = !isLoading && (recs ?? []).length === 0
-  const semResultadoNoFiltro = !isLoading && !semNenhumRecebimento && filtrados.length === 0
+  const carregando = isLoading || carregandoResumo
+  const semNenhumRecebimento = !carregando && !buscaNorm && (resumo?.total ?? 0) === 0
+  const semResultadoNoFiltro = !carregando && !semNenhumRecebimento && ordenados.length === 0
+  const temMais = !carregando && (recs?.length ?? 0) >= limite
 
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">Agenda financeira</h1>
 
-      {isLoading && <Skeleton className="h-24 w-full" />}
+      {carregando && <Skeleton className="h-24 w-full" />}
 
       {semNenhumRecebimento && (
         <div className="rounded-[10px] border p-8 text-center text-muted-foreground">
@@ -117,29 +124,30 @@ export default function RecebimentosPage() {
         </div>
       )}
 
-      {!isLoading && !semNenhumRecebimento && (
+      {!carregando && !semNenhumRecebimento && (
         <>
           {/* Resumo — superfície escura pra separar do restante da tela e dar peso ao dinheiro */}
           <section className="entra rounded-[10px] bg-escuro p-5 text-white">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-escuro-texto">A receber</p>
-                <Valor centavos={totalAReceberCentavos} destaque={false}
+                <Valor centavos={resumo?.aReceberCentavos ?? 0} destaque={false}
                   className="mt-1 block text-lg text-white md:text-2xl" />
               </div>
               <div>
                 <p className="text-xs text-escuro-texto">Recebido</p>
-                <Valor centavos={totalRecebidoCentavos} destaque={false}
+                <Valor centavos={resumo?.recebidoCentavos ?? 0} destaque={false}
                   className="mt-1 block text-lg text-money-claro md:text-2xl" />
               </div>
             </div>
           </section>
 
           <Input placeholder="Buscar por cliente…" value={busca}
-            onChange={e => setBusca(e.target.value)} />
+            onChange={e => { setBusca(e.target.value); setLimite(PAGINA) }} />
 
           <div className="flex flex-wrap items-center gap-2">
-            <Seletor valor={mesValido} opcoes={MESES_OPCOES} onMuda={setMes} padrao={TODOS_OS_MESES} />
+            <Seletor valor={mesValido} opcoes={MESES_OPCOES} onMuda={trocarFiltro(setMes)}
+              padrao={TODOS_OS_MESES} />
             <Seletor valor={filtro} opcoes={FILTROS} onMuda={setFiltro} padrao="tudo" />
             <Seletor valor={ordenacao} opcoes={ORDENACOES} onMuda={setOrdenacao} padrao="proxima" />
           </div>
@@ -150,12 +158,12 @@ export default function RecebimentosPage() {
             </div>
           )}
 
-          {[...grupos.entries()].map(([mes, linhas]) => (
-            <section key={mes} className="space-y-2">
+          {[...grupos.entries()].map(([mesGrupo, linhasDoMes]) => (
+            <section key={mesGrupo} className="space-y-2">
               <h2 className="text-sm font-medium text-muted-foreground">
-                {formatMesAno(Number(mes.slice(0, 4)), Number(mes.slice(5, 7)))}
+                {formatMesAno(Number(mesGrupo.slice(0, 4)), Number(mesGrupo.slice(5, 7)))}
               </h2>
-              {linhas.map(r => {
+              {linhasDoMes.map(r => {
                 const caiu = jaCaiu(r, hoje)
                 const anulada = r.status === 'cancelado' || r.status === 'estornado'
                 return (
@@ -185,6 +193,13 @@ export default function RecebimentosPage() {
               })}
             </section>
           ))}
+
+          {temMais && (
+            <Button variant="outline" className="w-full" disabled={isFetching}
+              onClick={() => setLimite(l => l + PAGINA)}>
+              {isFetching ? 'Carregando…' : 'Carregar mais'}
+            </Button>
+          )}
         </>
       )}
     </div>

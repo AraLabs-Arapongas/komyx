@@ -433,6 +433,10 @@ export type Database = {
         Args: { p_ate: string; p_data: string }
         Returns: number
       }
+      resumo_agenda: {
+        Args: { p_busca?: string; p_hoje: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

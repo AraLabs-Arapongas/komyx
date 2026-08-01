@@ -28,6 +28,9 @@ function ultimoDiaDoMes(ano: number, mes: number): string {
 export function useDashboard(ano: number, mes: number) {
   return useQuery({
     queryKey: queryKeys.dashboard(ano, mes),
+    // a competência só existe depois que a config chega; sem isso o painel
+    // dispara três consultas com ano=0 a cada visita, uma delas devolvendo 400
+    enabled: ano > 0 && mes > 0,
     queryFn: async () => {
       const supabase = createClient()
       const hoje = hojeSP()
