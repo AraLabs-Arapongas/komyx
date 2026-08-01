@@ -4,11 +4,12 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useVenda } from '@/lib/queries/vendas'
+import { Copy } from 'lucide-react'
+import { useVenda, useEventosVenda, type EventoVenda } from '@/lib/queries/vendas'
 import { queryKeys } from '@/lib/queries/keys'
 import { createClient } from '@/lib/supabase/client'
 import { cancelarVenda, estornarVenda } from '@/lib/actions/vendas'
-import { formatBRL, formatData, formatPercentual } from '@/lib/format'
+import { formatBRL, formatData, formatPercentual, formatMesAno } from '@/lib/format'
 import { ROTULOS_ESTORNO, type Faixa, type PoliticaEstorno } from '@/lib/domain/types'
 import { VendaForm } from '@/components/venda-form'
 import { Valor } from '@/components/valor'
@@ -35,11 +36,40 @@ const recebimentoStatusLabel: Record<string, string> = {
   previsto: 'Previsto', recebido: 'Recebido', cancelado: 'Cancelado', estornado: 'Estornado',
 }
 
+/** Traduz um evento de auditoria da venda para uma frase em pt-BR. */
+function descreverEvento(ev: EventoVenda): string {
+  if (ev.acao === 'criou') return 'Venda registrada'
+  if (ev.acao === 'removeu') return 'Venda removida'
+
+  const antes = ev.antes, depois = ev.depois
+  if (!antes || !depois) return 'Venda atualizada'
+
+  if (antes.status !== depois.status) {
+    if (depois.status === 'cancelada') return 'Venda cancelada'
+    if (depois.status === 'estornada') return 'Desistência registrada'
+    return `Status alterado de ${vendaStatusLabel[String(antes.status)] ?? antes.status} para ${vendaStatusLabel[String(depois.status)] ?? depois.status}`
+  }
+  if (antes.valor_carta_centavos !== depois.valor_carta_centavos) {
+    return `Valor alterado de ${formatBRL(Number(antes.valor_carta_centavos))} para ${formatBRL(Number(depois.valor_carta_centavos))}`
+  }
+  if (antes.data_venda !== depois.data_venda) {
+    return `Data da venda alterada de ${formatData(String(antes.data_venda))} para ${formatData(String(depois.data_venda))}`
+  }
+  return 'Venda atualizada'
+}
+
+function formatDataHora(iso: string): string {
+  return new Date(iso).toLocaleString('pt-BR', {
+    dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo',
+  })
+}
+
 export default function VendaDetalhePage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const qc = useQueryClient()
   const { data: venda, isLoading } = useVenda(id)
+  const { data: eventos } = useEventosVenda(id)
   const [editando, setEditando] = useState(false)
   const [dialogAberto, setDialogAberto] = useState(false)
   const [motivo, setMotivo] = useState('')
@@ -87,6 +117,7 @@ export default function VendaDetalhePage() {
       data_prevista: string; status: string
     }[]
   }
+  const competencia = venda.competencias as { ano: number; mes: number } | null
   const faixa = comissao?.faixa_aplicada as Faixa | undefined
   const podeGerenciar = venda.status === 'confirmada'
   const politica = (config?.politica_estorno ?? 'perguntar') as PoliticaEstorno
@@ -135,6 +166,8 @@ export default function VendaDetalhePage() {
             cota: venda.cota,
             dataVenda: venda.data_venda,
             observacoes: venda.observacoes ?? '',
+            numeroContrato: venda.numero_contrato ?? '',
+            tags: venda.tags ?? [],
           }}
         />
       </div>
@@ -150,30 +183,53 @@ export default function VendaDetalhePage() {
         </Badge>
       </div>
 
+      <Button variant="outline" size="sm"
+        onClick={() => router.push(`/app/vendas/nova?duplicar=${venda.id}`)}>
+        <Copy size={16} /> Duplicar
+      </Button>
+
       {/* Dados da venda */}
-      <div className="space-y-2 rounded-[10px] border bg-card p-4">
-        <div className="flex items-center justify-between">
+      <div className="entra space-y-0.5">
+        <div className="flex items-center justify-between border-b border-border/60 py-2">
           <span className="text-muted-foreground">Cliente</span>
           <span className="font-medium">{cliente?.nome ?? '—'}</span>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-b border-border/60 py-2">
           <span className="text-muted-foreground">Valor da carta</span>
           <Valor centavos={Number(venda.valor_carta_centavos)} destaque={false} className="font-medium" />
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-b border-border/60 py-2">
           <span className="text-muted-foreground">Administradora</span>
           <span className="font-medium">{venda.administradora}</span>
         </div>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-b border-border/60 py-2">
           <span className="text-muted-foreground">Grupo / Cota</span>
           <span className="font-medium">G{venda.grupo} · C{venda.cota}</span>
         </div>
-        <div className="flex items-center justify-between">
+        {venda.numero_contrato && (
+          <div className="flex items-center justify-between border-b border-border/60 py-2">
+            <span className="text-muted-foreground">Número do contrato</span>
+            <span className="font-medium">{venda.numero_contrato}</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between border-b border-border/60 py-2">
           <span className="text-muted-foreground">Data da venda</span>
           <span className="font-medium">{formatData(venda.data_venda)}</span>
         </div>
+        {venda.tags && venda.tags.length > 0 && (
+          <div className="flex items-start justify-between gap-4 border-b border-border/60 py-2">
+            <span className="shrink-0 text-muted-foreground">Tags</span>
+            <div className="flex flex-wrap justify-end gap-1.5">
+              {venda.tags.map(t => (
+                <span key={t} className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         {venda.observacoes && (
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-4 py-2">
             <span className="shrink-0 text-muted-foreground">Observações</span>
             <span className="text-right font-medium">{venda.observacoes}</span>
           </div>
@@ -181,31 +237,37 @@ export default function VendaDetalhePage() {
       </div>
 
       {/* Comissão */}
-      <div className="space-y-3 rounded-[10px] border bg-card p-4">
+      <div className="entra-suave space-y-3">
         <p className="font-medium">Comissão</p>
         {comissao ? (
           <>
-            <div>
+            <div className="rounded-2xl bg-money-soft p-5">
               <p className="text-3xl"><Valor centavos={Number(comissao.valor_centavos)} /></p>
-              <p className="text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {formatPercentual(comissao.percentual)} sobre o valor da carta
               </p>
             </div>
-            <div className="space-y-2 border-t pt-2 text-sm">
+            <div className="space-y-0.5 text-sm">
+              {competencia && (
+                <div className="flex items-center justify-between border-b border-border/60 py-2">
+                  <span className="text-muted-foreground">Competência</span>
+                  <span className="font-medium">{formatMesAno(competencia.ano, competencia.mes)}</span>
+                </div>
+              )}
               {faixa && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Faixa</span>
+                <div className="flex items-center justify-between border-b border-border/60 py-2">
+                  <span className="text-muted-foreground">Faixa aplicada</span>
                   <span className="font-medium">
                     {formatBRL(faixa.min)} – {faixa.max === null ? 'sem limite' : formatBRL(faixa.max)}
                   </span>
                 </div>
               )}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between border-b border-border/60 py-2">
                 <span className="text-muted-foreground">Parcelas</span>
                 <span className="font-medium">{comissao.n_parcelas} parcelas</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Status</span>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-muted-foreground">Situação</span>
                 <Badge variant="outline">{comissaoStatusLabel[comissao.status] ?? comissao.status}</Badge>
               </div>
             </div>
@@ -216,14 +278,14 @@ export default function VendaDetalhePage() {
       </div>
 
       {/* Recebimentos */}
-      <div className="space-y-2 rounded-[10px] border bg-card p-4">
+      <div className="entra-suave space-y-2">
         <p className="font-medium">Recebimentos</p>
         {comissao && comissao.recebimentos.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-0.5">
             {[...comissao.recebimentos]
               .sort((a, b) => a.numero_parcela - b.numero_parcela)
               .map(r => (
-                <div key={r.id} className="flex items-center justify-between text-sm">
+                <div key={r.id} className="flex items-center justify-between border-b border-border/60 py-2 text-sm">
                   <span className="text-muted-foreground">
                     Parcela {r.numero_parcela} · {formatData(r.data_prevista)}
                   </span>
@@ -257,6 +319,21 @@ export default function VendaDetalhePage() {
             Cancele quando a venda foi registrada por engano. Se o cliente fechou e depois
             desistiu, registre a desistência para o estorno ficar no histórico.
           </p>
+        </div>
+      )}
+
+      {/* Histórico */}
+      {eventos && eventos.length > 0 && (
+        <div className="entra-suave space-y-3">
+          <p className="font-medium">Histórico</p>
+          <div className="space-y-3 border-l-2 border-border pl-4">
+            {eventos.map(ev => (
+              <div key={ev.id}>
+                <p className="text-sm font-medium">{descreverEvento(ev)}</p>
+                <p className="text-xs text-muted-foreground">{formatDataHora(ev.criado_em)}</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

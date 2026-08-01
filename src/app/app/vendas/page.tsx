@@ -1,13 +1,13 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useVendas } from '@/lib/queries/vendas'
-import { formatBRL } from '@/lib/format'
+import { useVendas, type VendaStatusFiltro, type VendaOrdenacao } from '@/lib/queries/vendas'
 import { Valor } from '@/components/valor'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 import { Plus } from 'lucide-react'
 
 const statusLabel: Record<string, string> = {
@@ -17,6 +17,21 @@ const statusLabel: Record<string, string> = {
 
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+
+const FILTROS_STATUS: { valor: VendaStatusFiltro; rotulo: string }[] = [
+  { valor: 'todas', rotulo: 'Todas' },
+  { valor: 'confirmada', rotulo: 'Confirmadas' },
+  { valor: 'cancelada', rotulo: 'Canceladas' },
+  { valor: 'estornada', rotulo: 'Estornadas' },
+]
+
+const ORDENACOES: { valor: VendaOrdenacao; rotulo: string }[] = [
+  { valor: 'recentes', rotulo: 'Mais recentes' },
+  { valor: 'valor', rotulo: 'Maior valor' },
+  { valor: 'comissao', rotulo: 'Maior comissão' },
+]
+
+const PAGINA = 20
 
 type ComissaoResumo = {
   valor_centavos: number
@@ -35,32 +50,96 @@ function receberaEm(comissao: ComissaoResumo): string {
   return MESES[mes - 1] ?? '—'
 }
 
+function Pilula({ ativo, onClick, children }: { ativo: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+        ativo
+          ? 'bg-primary text-primary-foreground'
+          : 'bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_8%)]',
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
 export default function VendasPage() {
   const [busca, setBusca] = useState('')
-  const { data: vendas, isLoading } = useVendas(busca)
+  const [status, setStatus] = useState<VendaStatusFiltro>('todas')
+  const [ordenacao, setOrdenacao] = useState<VendaOrdenacao>('recentes')
+  const [limite, setLimite] = useState(PAGINA)
+
+  const { data, isLoading, isFetching } = useVendas({ busca, status, ordenacao, limite })
+  const vendas = data?.itens ?? []
+  const total = data?.total ?? 0
+
+  function atualizarBusca(v: string) { setBusca(v); setLimite(PAGINA) }
+  function atualizarStatus(v: VendaStatusFiltro) { setStatus(v); setLimite(PAGINA) }
+  function atualizarOrdenacao(v: VendaOrdenacao) { setOrdenacao(v); setLimite(PAGINA) }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Vendas</h1>
         <Button asChild><Link href="/app/vendas/nova"><Plus size={18} /> Nova venda</Link></Button>
       </div>
-      <Input placeholder="Buscar por cliente, grupo, cota ou administradora…"
-        value={busca} onChange={e => setBusca(e.target.value)} />
-      {isLoading && <Skeleton className="h-24 w-full" />}
-      {!isLoading && (vendas ?? []).length === 0 && (
-        <div className="rounded-[10px] border p-8 text-center">
-          <p className="mb-3 text-muted-foreground">
-            {busca ? 'Nenhuma venda encontrada para essa busca.' : 'Você ainda não possui vendas cadastradas.'}
-          </p>
-          {!busca && <Button asChild><Link href="/app/vendas/nova">Cadastrar primeira venda</Link></Button>}
+
+      <Input placeholder="Buscar por cliente, grupo, cota, administradora, contrato ou observações…"
+        value={busca} onChange={e => atualizarBusca(e.target.value)} />
+
+      <div className="flex flex-wrap gap-2">
+        {FILTROS_STATUS.map(f => (
+          <Pilula key={f.valor} ativo={status === f.valor} onClick={() => atualizarStatus(f.valor)}>
+            {f.rotulo}
+          </Pilula>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">
+          {isLoading ? 'Carregando…' : `${total} ${total === 1 ? 'venda' : 'vendas'}`}
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {ORDENACOES.map(o => (
+            <Pilula key={o.valor} ativo={ordenacao === o.valor} onClick={() => atualizarOrdenacao(o.valor)}>
+              {o.rotulo}
+            </Pilula>
+          ))}
+        </div>
+      </div>
+
+      {isLoading && (
+        <div className="space-y-2">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
         </div>
       )}
+
+      {!isLoading && vendas.length === 0 && (
+        <div className="rounded-[10px] border p-8 text-center">
+          <p className="mb-3 text-muted-foreground">
+            {busca || status !== 'todas'
+              ? 'Nenhuma venda encontrada para esse filtro.'
+              : 'Você ainda não possui vendas cadastradas.'}
+          </p>
+          {!busca && status === 'todas' && (
+            <Button asChild><Link href="/app/vendas/nova">Cadastrar primeira venda</Link></Button>
+          )}
+        </div>
+      )}
+
       <div className="space-y-2">
-        {(vendas ?? []).map(v => {
+        {vendas.map((v, i) => {
           const comissao = v.comissoes as ComissaoResumo
           return (
             <Link key={v.id} href={`/app/vendas/${v.id}`}
-              className="block rounded-[10px] border bg-card p-3 hover:bg-background">
+              style={{ animationDelay: `${Math.min(i, 8) * 30}ms` }}
+              className="entra block rounded-[10px] border bg-card p-3 transition-colors hover:bg-background">
               <div className="flex items-center justify-between">
                 <p className="font-medium">{(v.clientes as { nome: string } | null)?.nome}</p>
                 <Badge variant={v.status === 'confirmada' ? 'secondary' : 'outline'}>
@@ -68,7 +147,17 @@ export default function VendasPage() {
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {v.administradora} · G{v.grupo} · C{v.cota}
+                {v.numero_contrato ? ` · Contrato ${v.numero_contrato}` : ''}
               </p>
+              {v.tags && v.tags.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {v.tags.map(t => (
+                    <span key={t} className="rounded-full bg-secondary px-2 py-0.5 text-[0.65rem] text-secondary-foreground">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
               <div className="mt-2 space-y-1 border-t pt-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Carta</span>
@@ -89,6 +178,13 @@ export default function VendasPage() {
           )
         })}
       </div>
+
+      {!isLoading && vendas.length < total && (
+        <Button variant="outline" className="w-full" disabled={isFetching}
+          onClick={() => setLimite(l => l + PAGINA)}>
+          {isFetching ? 'Carregando…' : 'Carregar mais'}
+        </Button>
+      )}
     </div>
   )
 }

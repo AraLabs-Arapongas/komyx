@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { X } from 'lucide-react'
 import { criarVenda, editarVenda } from '@/lib/actions/vendas'
 import { parseBRLParaCentavos, dataBRParaISO, formatData } from '@/lib/format'
 import { ClientePicker } from './cliente-picker'
@@ -16,8 +17,11 @@ function hojeSP(): string {
 
 export function VendaForm({ vendaId, inicial }: {
   vendaId?: string
-  inicial?: { clienteId: string; clienteNome: string; valorTxt: string; administradora: string;
-              grupo: string; cota: string; dataVenda: string; observacoes: string }
+  inicial?: {
+    clienteId: string; clienteNome: string; valorTxt: string; administradora: string
+    grupo: string; cota: string; dataVenda?: string; observacoes: string
+    numeroContrato?: string; tags?: string[]
+  }
 }) {
   const router = useRouter()
   const qc = useQueryClient()
@@ -28,9 +32,23 @@ export function VendaForm({ vendaId, inicial }: {
   const [grupo, setGrupo] = useState(inicial?.grupo ?? '')
   const [cota, setCota] = useState(inicial?.cota ?? '')
   const [dataTxt, setDataTxt] = useState(formatData(inicial?.dataVenda ?? hojeSP()))
+  const [numeroContrato, setNumeroContrato] = useState(inicial?.numeroContrato ?? '')
+  const [tags, setTags] = useState<string[]>(inicial?.tags ?? [])
+  const [tagTxt, setTagTxt] = useState('')
   const [observacoes, setObservacoes] = useState(inicial?.observacoes ?? '')
   const [mostrarObs, setMostrarObs] = useState(!!inicial?.observacoes)
   const [salvando, setSalvando] = useState(false)
+
+  function onTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const t = tagTxt.trim()
+      if (t && !tags.includes(t)) setTags(prev => [...prev, t])
+      setTagTxt('')
+    } else if (e.key === 'Backspace' && !tagTxt && tags.length > 0) {
+      setTags(prev => prev.slice(0, -1))
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -41,6 +59,7 @@ export function VendaForm({ vendaId, inicial }: {
     const payload = {
       clienteId, valorCartaCentavos: parseBRLParaCentavos(valorTxt),
       administradora, grupo, cota, dataVenda, observacoes,
+      numeroContrato, tags,
     }
     const r = vendaId ? await editarVenda(vendaId, payload) : await criarVenda(payload)
     setSalvando(false)
@@ -52,7 +71,7 @@ export function VendaForm({ vendaId, inicial }: {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form onSubmit={onSubmit} className="entra space-y-3">
       <div>
         <p className="mb-1 text-xs text-muted-foreground">Cliente</p>
         <ClientePicker value={clienteId} nomeSelecionado={clienteNome}
@@ -72,6 +91,28 @@ export function VendaForm({ vendaId, inicial }: {
       <div>
         <p className="mb-1 text-xs text-muted-foreground">Data da venda</p>
         <CampoData value={dataTxt} onChange={setDataTxt} required />
+      </div>
+
+      <Input value={numeroContrato} onChange={e => setNumeroContrato(e.target.value)}
+        placeholder="Número do contrato (opcional)" />
+
+      <div>
+        {tags.length > 0 && (
+          <div className="mb-1.5 flex flex-wrap gap-1.5">
+            {tags.map(t => (
+              <span key={t}
+                className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground">
+                {t}
+                <button type="button" onClick={() => setTags(prev => prev.filter(x => x !== t))}
+                  className="text-muted-foreground hover:text-foreground" aria-label={`Remover tag ${t}`}>
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <Input value={tagTxt} onChange={e => setTagTxt(e.target.value)} onKeyDown={onTagKeyDown}
+          placeholder="Tags (opcional) — Enter para adicionar" />
       </div>
 
       {mostrarObs ? (

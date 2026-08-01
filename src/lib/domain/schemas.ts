@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { formatBRL } from '@/lib/format'
 
 export const faixaSchema = z.object({
   min: z.number().int().min(0, 'O valor inicial não pode ser negativo.'),
@@ -16,19 +17,26 @@ export const configFinanceiraSchema = z.object({
   diaPrimeiroPagamento: z.number().int().min(1, 'O dia deve ser entre 1 e 31.').max(31, 'O dia deve ser entre 1 e 31.'),
   politicaEstorno: z.enum(['perguntar', 'tudo', 'proximas']).default('perguntar'),
 }).superRefine((cfg, ctx) => {
-  const faixas = [...cfg.faixas].sort((a, b) => a.min - b.min)
-  if (faixas.length > 0 && faixas[0].min !== 0)
-    ctx.addIssue({ code: 'custom', path: ['faixas'], message: 'A primeira faixa deve começar em R$ 0.' })
-  for (let i = 0; i < faixas.length; i++) {
-    const f = faixas[i]
+  // ordena por valor inicial para checar a sequência, mas os erros apontam
+  // para o índice ORIGINAL de cada faixa em cfg.faixas — é o índice que o
+  // formulário usa para saber embaixo de qual campo mostrar a mensagem
+  const ordenadas = [...cfg.faixas].sort((a, b) => a.min - b.min)
+  const indiceOriginal = (faixa: (typeof cfg.faixas)[number]) => cfg.faixas.indexOf(faixa)
+
+  if (ordenadas.length > 0 && ordenadas[0].min !== 0)
+    ctx.addIssue({ code: 'custom', path: ['faixas', indiceOriginal(ordenadas[0])], message: 'A primeira faixa deve começar em R$ 0.' })
+
+  for (let i = 0; i < ordenadas.length; i++) {
+    const f = ordenadas[i]
+    const idx = indiceOriginal(f)
     if (f.max !== null && f.max <= f.min)
-      ctx.addIssue({ code: 'custom', path: ['faixas'], message: 'O valor final da faixa deve ser maior que o inicial.' })
-    if (f.max === null && i !== faixas.length - 1)
-      ctx.addIssue({ code: 'custom', path: ['faixas'], message: 'Apenas a última faixa pode ficar sem valor máximo.' })
+      ctx.addIssue({ code: 'custom', path: ['faixas', idx, 'max'], message: `O valor final precisa ser maior que ${formatBRL(f.min)}.` })
+    if (f.max === null && i !== ordenadas.length - 1)
+      ctx.addIssue({ code: 'custom', path: ['faixas', idx, 'max'], message: 'Apenas a última faixa pode ficar sem valor máximo.' })
     if (i > 0) {
-      const ant = faixas[i - 1]
+      const ant = ordenadas[i - 1]
       if (ant.max === null || f.min !== ant.max + 1)
-        ctx.addIssue({ code: 'custom', path: ['faixas'], message: 'As faixas não podem se sobrepor nem deixar intervalos vazios.' })
+        ctx.addIssue({ code: 'custom', path: ['faixas', idx, 'max'], message: 'As faixas não podem se sobrepor nem deixar intervalos vazios.' })
     }
   }
 })

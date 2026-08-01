@@ -36,27 +36,33 @@ export type Database = {
     Tables: {
       clientes: {
         Row: {
+          cidade: string | null
           corretor_id: string
           created_at: string
           documento: string | null
+          email: string | null
           id: string
           nome: string
           observacoes: string | null
           telefone: string | null
         }
         Insert: {
+          cidade?: string | null
           corretor_id: string
           created_at?: string
           documento?: string | null
+          email?: string | null
           id?: string
           nome: string
           observacoes?: string | null
           telefone?: string | null
         }
         Update: {
+          cidade?: string | null
           corretor_id?: string
           created_at?: string
           documento?: string | null
+          email?: string | null
           id?: string
           nome?: string
           observacoes?: string | null
@@ -205,6 +211,47 @@ export type Database = {
           },
         ]
       }
+      eventos: {
+        Row: {
+          acao: string
+          antes: Json | null
+          corretor_id: string
+          criado_em: string
+          depois: Json | null
+          entidade: string
+          entidade_id: string
+          id: string
+        }
+        Insert: {
+          acao: string
+          antes?: Json | null
+          corretor_id: string
+          criado_em?: string
+          depois?: Json | null
+          entidade: string
+          entidade_id: string
+          id?: string
+        }
+        Update: {
+          acao?: string
+          antes?: Json | null
+          corretor_id?: string
+          criado_em?: string
+          depois?: Json | null
+          entidade?: string
+          entidade_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_corretor_id_fkey"
+            columns: ["corretor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -286,8 +333,10 @@ export type Database = {
           grupo: string
           id: string
           motivo_cancelamento: string | null
+          numero_contrato: string | null
           observacoes: string | null
           status: string
+          tags: string[]
           updated_at: string
           valor_carta_centavos: number
         }
@@ -302,8 +351,10 @@ export type Database = {
           grupo: string
           id?: string
           motivo_cancelamento?: string | null
+          numero_contrato?: string | null
           observacoes?: string | null
           status?: string
+          tags?: string[]
           updated_at?: string
           valor_carta_centavos: number
         }
@@ -318,8 +369,10 @@ export type Database = {
           grupo?: string
           id?: string
           motivo_cancelamento?: string | null
+          numero_contrato?: string | null
           observacoes?: string | null
           status?: string
+          tags?: string[]
           updated_at?: string
           valor_carta_centavos?: number
         }

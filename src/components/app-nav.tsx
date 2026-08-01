@@ -1,15 +1,17 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ShoppingBag, Wallet, Settings } from 'lucide-react'
+import { LayoutDashboard, ShoppingBag, Wallet, Users, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/logo'
 import { BotaoPrivacidade } from '@/components/privacidade'
+import { BuscaGlobal } from '@/components/busca-global'
 
 const itens = [
   { href: '/app', label: 'Início', icon: LayoutDashboard },
   { href: '/app/vendas', label: 'Vendas', icon: ShoppingBag },
-  { href: '/app/recebimentos', label: 'Recebimentos', icon: Wallet },
+  { href: '/app/recebimentos', label: 'Agenda', icon: Wallet },
+  { href: '/app/clientes', label: 'Clientes', icon: Users },
   { href: '/app/configuracao', label: 'Ajustes', icon: Settings },
 ]
 
@@ -23,7 +25,10 @@ export function AppNav() {
           na lateral, então aqui sobra só o olho */}
       <div className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b bg-card px-4 py-2.5 md:justify-end md:pl-48">
         <Logo className="md:hidden" />
-        <BotaoPrivacidade className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" />
+        <div className="flex items-center gap-1">
+          <BuscaGlobal />
+          <BotaoPrivacidade className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" />
+        </div>
       </div>
 
       {/* mobile: bottom nav */}

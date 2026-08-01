@@ -1,14 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { ConfigForm } from '@/components/config-form'
-import { sair } from '@/app/(auth)/actions'
-import { Button } from '@/components/ui/button'
+import { PerfilForm, BackupSecao } from '@/components/perfil-form'
 import type { Faixa, PoliticaEstorno } from '@/lib/domain/types'
 
 export default async function ConfiguracaoPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: cfg } = await supabase.from('config_financeira')
-    .select('*').eq('ativa', true).single()
+  const [{ data: cfg }, { data: perfil }] = await Promise.all([
+    supabase.from('config_financeira').select('*').eq('ativa', true).single(),
+    supabase.from('profiles').select('nome, telefone').eq('id', user?.id ?? '').single(),
+  ])
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold">Ajustes</h1>
@@ -25,11 +26,15 @@ export default async function ConfiguracaoPage() {
           politicaEstorno: (cfg.politica_estorno ?? 'perguntar') as PoliticaEstorno,
         }} />
       )}
-      <div className="rounded-[10px] border bg-card p-4">
-        <p className="font-medium">Conta</p>
-        <p className="text-sm text-muted-foreground">{user?.email}</p>
-        <form action={sair} className="mt-3"><Button variant="outline" type="submit">Sair</Button></form>
-      </div>
+
+      {/* as seções vivem dentro dos componentes cliente: um ícone do Lucide é
+          uma função, e função não atravessa a fronteira servidor → cliente */}
+      <PerfilForm
+        email={user?.email ?? ''}
+        nome={perfil?.nome ?? ''}
+        telefone={perfil?.telefone ?? ''}
+      />
+      <BackupSecao />
     </div>
   )
 }

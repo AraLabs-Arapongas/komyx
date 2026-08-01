@@ -4,6 +4,21 @@ import { vendaFormSchema, type VendaForm } from '@/lib/domain/schemas'
 import { competenciaDaVenda } from '@/lib/engine/calendario'
 import { fecharCompetenciasVencidas, garantirCompetencia, recalcularCompetencia } from './recalcular'
 
+/**
+ * `numeroContrato`/`tags` são colunas novas que ainda não entraram no schema
+ * Zod compartilhado — tratadas aqui como opcionais e validadas na mão, sem
+ * mexer em `domain/schemas.ts`.
+ */
+type VendaFormInput = VendaForm & { numeroContrato?: string; tags?: string[] }
+
+function camposExtras(input: VendaFormInput) {
+  const numeroContrato = typeof input.numeroContrato === 'string' ? input.numeroContrato.trim() : ''
+  const tags = Array.isArray(input.tags)
+    ? Array.from(new Set(input.tags.map(t => (typeof t === 'string' ? t.trim() : '')).filter(Boolean)))
+    : []
+  return { numero_contrato: numeroContrato || null, tags }
+}
+
 async function contexto() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -14,13 +29,14 @@ async function contexto() {
   return { supabase, user, diaFechamento: config.dia_fechamento }
 }
 
-export async function criarVenda(input: VendaForm) {
+export async function criarVenda(input: VendaFormInput) {
   try {
     const parsed = vendaFormSchema.safeParse(input)
     if (!parsed.success)
       return { ok: false as const, erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' }
     const { supabase, user, diaFechamento } = await contexto()
     const d = parsed.data
+    const extra = camposExtras(input)
     const ref = competenciaDaVenda(d.dataVenda, diaFechamento)
     const competenciaId = await garantirCompetencia(supabase, user.id, ref)
     const { data: venda, error } = await supabase.from('vendas').insert({
@@ -28,6 +44,7 @@ export async function criarVenda(input: VendaForm) {
       valor_carta_centavos: d.valorCartaCentavos, administradora: d.administradora,
       grupo: d.grupo, cota: d.cota, data_venda: d.dataVenda,
       observacoes: d.observacoes, status: 'confirmada',
+      ...extra,
     }).select('id').single()
     if (error) return { ok: false as const, erro: 'Não foi possível salvar a venda.' }
     await recalcularCompetencia(supabase, competenciaId)
@@ -37,13 +54,14 @@ export async function criarVenda(input: VendaForm) {
   }
 }
 
-export async function editarVenda(id: string, input: VendaForm) {
+export async function editarVenda(id: string, input: VendaFormInput) {
   try {
     const parsed = vendaFormSchema.safeParse(input)
     if (!parsed.success)
       return { ok: false as const, erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' }
     const { supabase, user, diaFechamento } = await contexto()
     const d = parsed.data
+    const extra = camposExtras(input)
     const { data: atual, error: e1 } = await supabase.from('vendas')
       .select('competencia_id').eq('id', id).single()
     if (e1) return { ok: false as const, erro: 'Venda não encontrada.' }
@@ -61,6 +79,7 @@ export async function editarVenda(id: string, input: VendaForm) {
       administradora: d.administradora, grupo: d.grupo, cota: d.cota,
       data_venda: d.dataVenda, observacoes: d.observacoes,
       competencia_id: novaCompetenciaId, updated_at: new Date().toISOString(),
+      ...extra,
     }).eq('id', id)
     if (error) return { ok: false as const, erro: 'Não foi possível salvar as alterações.' }
     await recalcularCompetencia(supabase, novaCompetenciaId)
