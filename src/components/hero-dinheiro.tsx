@@ -69,7 +69,7 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
       <div className="relative">
         <div className="flex items-start justify-between gap-3">
           <p className="text-sm text-escuro-texto">
-            Olá, {primeiroNome} 👋
+            Olá, <span className="font-semibold text-white">{primeiroNome}</span> 👋
           </p>
           <div className="flex items-center gap-0.5 rounded-full bg-white/10 px-1 py-0.5 text-xs">
             <button onClick={() => onMes(-1)} aria-label="Competência anterior"
