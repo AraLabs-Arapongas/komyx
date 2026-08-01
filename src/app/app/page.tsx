@@ -43,8 +43,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setRef(anterior)}
               aria-label="Competência anterior"
@@ -52,8 +52,8 @@ export default function DashboardPage() {
             >
               <ChevronLeft size={20} />
             </button>
-            <CalendarDays className="text-muted-foreground" size={22} />
-            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+            <CalendarDays className="shrink-0 text-muted-foreground" size={20} />
+            <h1 className="text-xl font-bold tracking-tight md:text-3xl">
               Competência {nomes[comp.mes - 1]}/{comp.ano}
             </h1>
             <button
@@ -67,7 +67,9 @@ export default function DashboardPage() {
               <Button variant="ghost" size="sm" onClick={() => setRef(null)}>Hoje</Button>
             )}
           </div>
-          <Button asChild><Link href="/app/vendas/nova"><Plus size={16} /> Nova venda</Link></Button>
+          <Button asChild className="w-full md:w-auto">
+            <Link href="/app/vendas/nova"><Plus size={18} /> Nova venda</Link>
+          </Button>
         </div>
         {d?.proximoPagamento && (
           <p className="text-sm text-muted-foreground">
