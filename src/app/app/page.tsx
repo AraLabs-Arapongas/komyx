@@ -127,13 +127,6 @@ export default function DashboardPage() {
             <LoteriaFederal />
           </div>
 
-          {/* o ticket médio é a leitura mais periférica das duas colunas: sai
-              delas para as alturas fecharem e vira rodapé do bloco */}
-          <p className="-mt-4 text-xs text-muted-foreground">
-            Ticket médio de <Valor centavos={d.ticketMedioCentavos} destaque={false} className="font-normal" />
-          </p>
-
-
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-medium text-muted-foreground">Próximos recebimentos</h2>

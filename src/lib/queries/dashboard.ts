@@ -38,7 +38,7 @@ export function useDashboard(ano: number, mes: number) {
       const ultimoDia = ultimoDiaDoMes(ano, mes)
 
       const vazio = {
-        totalVendidoCentavos: 0, nVendas: 0, ticketMedioCentavos: 0,
+        totalVendidoCentavos: 0, nVendas: 0,
         comissaoPrevistaCentavos: 0, comissaoRecebidaCentavos: 0,
         comissaoPendenteCentavos: 0,
         proximos: [] as { id: string; vendaId: string; valor_centavos: number; data_prevista: string; cliente: string; jaCaiu: boolean }[],
@@ -108,7 +108,6 @@ export function useDashboard(ano: number, mes: number) {
       return {
         ...vazio,
         totalVendidoCentavos: total, nVendas: confirmadas.length,
-        ticketMedioCentavos: confirmadas.length ? Math.round(total / confirmadas.length) : 0,
         comissaoPrevistaCentavos: prevista, comissaoRecebidaCentavos: recebida,
         comissaoPendenteCentavos: Math.max(0, prevista - recebida),
         ultimasVendas: confirmadas.slice(0, 5).map(v => {
