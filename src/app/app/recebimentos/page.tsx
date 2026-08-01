@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRecebimentos, type RecebimentoLinha } from '@/lib/queries/recebimentos'
 import { Valor } from '@/components/valor'
 import { formatData, formatMesAno } from '@/lib/format'
@@ -141,7 +142,8 @@ export default function RecebimentosPage() {
                 const caiu = jaCaiu(r, hoje)
                 const anulada = r.status === 'cancelado' || r.status === 'estornado'
                 return (
-                  <div key={r.id} className="rounded-[10px] border bg-card p-3 md:flex md:items-center md:justify-between md:gap-4">
+                  <Link key={r.id} href={`/app/vendas/${r.comissoes.vendas.id}`}
+                    className="block rounded-[10px] border bg-card p-3 transition-colors hover:border-money/40 md:flex md:items-center md:justify-between md:gap-4">
                     <div className="min-w-0">
                       <p className="font-medium">{r.comissoes.vendas.clientes?.nome}</p>
                       <p className="text-sm text-muted-foreground">
@@ -161,7 +163,7 @@ export default function RecebimentosPage() {
                         </Badge>
                       )}
                     </div>
-                  </div>
+                  </Link>
                 )
               })}
             </section>

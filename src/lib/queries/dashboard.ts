@@ -38,7 +38,7 @@ export function useDashboard(ano: number, mes: number) {
         totalVendidoCentavos: 0, nVendas: 0, ticketMedioCentavos: 0,
         comissaoPrevistaCentavos: 0, comissaoRecebidaCentavos: 0,
         comissaoPendenteCentavos: 0,
-        proximos: [] as { id: string; valor_centavos: number; data_prevista: string; cliente: string; jaCaiu: boolean }[],
+        proximos: [] as { id: string; vendaId: string; valor_centavos: number; data_prevista: string; cliente: string; jaCaiu: boolean }[],
         pagamentoDoMes: null as PagamentoDoMes | null,
         ultimasVendas: [] as UltimaVenda[],
       }
@@ -46,7 +46,7 @@ export function useDashboard(ano: number, mes: number) {
       // Tudo que cai no MÊS ESCOLHIDO — é o que o seletor de mês governa.
       // Parcela cancelada ou estornada não é dinheiro do corretor.
       const { data: doMes } = await supabase.from('recebimentos')
-        .select('id, valor_centavos, data_prevista, status, comissoes(vendas(clientes(nome)))')
+        .select('id, valor_centavos, data_prevista, status, comissoes(vendas(id, clientes(nome)))')
         .in('status', ['previsto', 'recebido'])
         .gte('data_prevista', primeiroDia).lte('data_prevista', ultimoDia)
         .order('data_prevista')
@@ -60,12 +60,17 @@ export function useDashboard(ano: number, mes: number) {
           data: primeiraData,
           jaCaiu: primeiraData <= hoje,
         }
-        vazio.proximos = parcelas.slice(0, 5).map(p => ({
-          id: p.id, valor_centavos: Number(p.valor_centavos), data_prevista: p.data_prevista,
-          cliente: (p.comissoes as unknown as { vendas: { clientes: { nome: string } | null } })
-            .vendas.clientes?.nome ?? '',
-          jaCaiu: p.data_prevista <= hoje,
-        }))
+        vazio.proximos = parcelas.slice(0, 5).map(p => {
+          const venda = (p.comissoes as unknown as {
+            vendas: { id: string; clientes: { nome: string } | null }
+          }).vendas
+          return {
+            id: p.id, vendaId: venda.id,
+            valor_centavos: Number(p.valor_centavos), data_prevista: p.data_prevista,
+            cliente: venda.clientes?.nome ?? '',
+            jaCaiu: p.data_prevista <= hoje,
+          }
+        })
       }
 
       const { data: comp } = await supabase.from('competencias')

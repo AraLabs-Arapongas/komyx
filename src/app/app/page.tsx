@@ -138,7 +138,8 @@ export default function DashboardPage() {
             ) : (
               <div className="divide-y overflow-hidden rounded-2xl bg-card">
                 {d.proximos.map(p => (
-                  <div key={p.id} className="flex items-center justify-between px-4 py-3">
+                  <Link key={p.id} href={`/app/vendas/${p.vendaId}`}
+                    className="flex items-center justify-between px-4 py-3 transition-colors hover:bg-background">
                     <div className="min-w-0">
                       <p className="truncate font-medium">{p.cliente}</p>
                       <p className="text-xs text-muted-foreground">
@@ -146,7 +147,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <Valor centavos={p.valor_centavos} />
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

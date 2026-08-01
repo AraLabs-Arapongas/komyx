@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { VendaForm } from '@/components/venda-form'
 import { useVenda } from '@/lib/queries/vendas'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Voltar } from '@/components/voltar'
 
 function NovaVendaConteudo() {
   const params = useSearchParams()
@@ -40,6 +41,7 @@ function NovaVendaConteudo() {
 export default function NovaVendaPage() {
   return (
     <div className="space-y-4">
+      <Voltar href="/app/vendas" />
       <h1 className="text-xl font-semibold">Nova venda</h1>
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
         <NovaVendaConteudo />

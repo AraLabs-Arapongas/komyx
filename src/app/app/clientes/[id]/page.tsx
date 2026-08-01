@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Pencil } from 'lucide-react'
+import { Voltar } from '@/components/voltar'
 
 const vendaStatusLabel: Record<string, string> = {
   confirmada: 'Confirmada', cancelada: 'Cancelada', estornada: 'Estornada',
@@ -27,6 +28,7 @@ export default function ClienteDetalhePage() {
   if (id === 'novo') {
     return (
       <div className="space-y-4">
+        <Voltar href="/app/clientes" />
         <h1 className="text-xl font-semibold">Novo cliente</h1>
         <ClienteForm />
       </div>
@@ -62,6 +64,7 @@ function ClienteExistente({ id }: { id: string }) {
   if (editando) {
     return (
       <div className="space-y-4">
+        <Voltar rotulo="Cancelar edição" aoVoltar={() => setEditando(false)} />
         <h1 className="text-xl font-semibold">Editar cliente</h1>
         <ClienteForm
           clienteId={cliente.id}
@@ -81,6 +84,7 @@ function ClienteExistente({ id }: { id: string }) {
 
   return (
     <div className="space-y-4">
+      <Voltar href="/app/clientes" />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">{cliente.nome}</h1>
         <Button variant="outline" onClick={() => setEditando(true)}><Pencil size={18} /> Editar</Button>

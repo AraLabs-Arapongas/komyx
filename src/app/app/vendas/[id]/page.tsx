@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Voltar } from '@/components/voltar'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog'
@@ -162,6 +163,7 @@ export default function VendaDetalhePage() {
   if (editando) {
     return (
       <div className="space-y-4">
+        <Voltar rotulo="Cancelar edição" aoVoltar={() => setEditando(false)} />
         <h1 className="text-xl font-semibold">Editar venda</h1>
         <VendaForm
           vendaId={venda.id}
@@ -184,6 +186,7 @@ export default function VendaDetalhePage() {
 
   return (
     <div className="space-y-4">
+      <Voltar href="/app/vendas" />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Detalhe da venda</h1>
         <Badge variant={venda.status === 'confirmada' ? 'secondary' : 'outline'}>
