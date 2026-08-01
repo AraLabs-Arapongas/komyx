@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatBRL, formatData, parseBRLParaCentavos } from './format'
+import { formatBRL, formatData, parseBRLParaCentavos, formatPercentual } from './format'
 
 describe('format', () => {
   it('formatBRL', () => expect(formatBRL(123456)).toMatch(/R\$\s?1\.234,56/))
@@ -8,4 +8,5 @@ describe('format', () => {
     expect(parseBRLParaCentavos('500.000,00')).toBe(50_000_000)
     expect(parseBRLParaCentavos('R$ 1.234,56')).toBe(123_456)
   })
+  it('formatPercentual', () => expect(formatPercentual(0.5)).toBe('0,5%'))
 })

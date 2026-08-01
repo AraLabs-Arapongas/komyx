@@ -6,7 +6,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useVenda } from '@/lib/queries/vendas'
 import { cancelarVenda } from '@/lib/actions/vendas'
-import { formatBRL, formatData } from '@/lib/format'
+import { formatBRL, formatData, formatPercentual } from '@/lib/format'
 import type { Faixa } from '@/lib/domain/types'
 import { VendaForm } from '@/components/venda-form'
 import { Button } from '@/components/ui/button'
@@ -153,7 +153,7 @@ export default function VendaDetalhePage() {
           <>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Percentual</span>
-              <span className="font-medium">{comissao.percentual}%</span>
+              <span className="font-medium">{formatPercentual(comissao.percentual)}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Valor</span>

@@ -11,7 +11,10 @@ export function useVendas(busca = '') {
       let q = supabase.from('vendas')
         .select('id, valor_carta_centavos, administradora, grupo, cota, data_venda, status, clientes(nome), comissoes(valor_centavos, percentual, status)')
         .order('data_venda', { ascending: false }).limit(100)
-      if (busca) q = q.or(`grupo.ilike.%${busca}%,cota.ilike.%${busca}%,administradora.ilike.%${busca}%`)
+      if (busca) {
+        const b = busca.replace(/[,()%]/g, ' ').trim()
+        if (b) q = q.or(`grupo.ilike.%${b}%,cota.ilike.%${b}%,administradora.ilike.%${b}%`)
+      }
       const { data, error } = await q
       if (error) throw error
       // busca por nome de cliente: filtro client-side (MVP)

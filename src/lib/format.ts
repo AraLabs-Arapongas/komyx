@@ -9,3 +9,6 @@ export function parseBRLParaCentavos(txt: string): number {
   const limpo = txt.replace(/[^\d,]/g, '').replace(',', '.')
   return Math.round(parseFloat(limpo || '0') * 100)
 }
+export function formatPercentual(p: number): string {
+  return String(p).replace('.', ',') + '%'
+}
