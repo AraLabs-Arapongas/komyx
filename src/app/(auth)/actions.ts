@@ -1,8 +1,22 @@
 'use server'
 import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { COOKIE_LEMBRAR } from '@/lib/supabase/sessao'
+
+const UM_ANO = 60 * 60 * 24 * 365
 
 export async function login(formData: FormData) {
+  const lembrar = formData.get('lembrar') === 'on'
+  // gravado antes do login para que os cookies da sessão já nasçam com a
+  // validade escolhida
+  const cookieStore = await cookies()
+  cookieStore.set(COOKIE_LEMBRAR, lembrar ? '1' : '0', {
+    httpOnly: true, sameSite: 'lax', path: '/',
+    secure: process.env.NODE_ENV === 'production',
+    ...(lembrar ? { maxAge: UM_ANO } : {}),
+  })
+
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({
     email: String(formData.get('email')),
