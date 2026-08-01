@@ -42,7 +42,7 @@ export function LoteriaFederal() {
         {data.bilhetes.map((bilhete, i) => (
           <li key={bilhete + i}
             className="flex items-center justify-between gap-2 border-b border-border/60
-                       px-3 py-2 last:border-0 md:px-4 md:py-2.5">
+                       px-3 py-2.5 last:border-0 md:px-4">
             <span className="text-xs text-muted-foreground md:text-sm">{PREMIOS[i] ?? `${i + 1}º`}</span>
             <span className="font-mono text-base font-semibold tabular-nums tracking-[0.08em] md:text-lg md:tracking-[0.12em]">
               {bilhete}

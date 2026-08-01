@@ -38,7 +38,7 @@ function Numero({ rotulo, centavos, destaque = false, apoio, href }: {
   const conteudo = (
     <>
       <p className="text-xs text-muted-foreground md:text-sm">{rotulo}</p>
-      <Valor centavos={centavos} destaque={destaque} className="mt-0.5 block text-lg md:text-xl" />
+      <Valor centavos={centavos} destaque={destaque} className="block text-base md:mt-0.5 md:text-xl" />
       {apoio && <p className="text-xs text-muted-foreground">{apoio}</p>}
     </>
   )
@@ -106,13 +106,13 @@ export default function DashboardPage() {
           {/* abaixo de 360px "R$ 1.000.000,00" não cabe em meia tela e invade a
               coluna vizinha: ali os dois blocos voltam a empilhar */}
           <div className="grid grid-cols-1 gap-6 min-[360px]:grid-cols-2 min-[360px]:gap-4 md:gap-6">
-            <section className="entra-suave min-w-0 space-y-4">
+            <section className="entra-suave min-w-0 space-y-3">
               <h2 className="text-sm font-medium text-muted-foreground">
                 {['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto',
                   'Setembro','Outubro','Novembro','Dezembro'][comp.mes - 1]} em números
               </h2>
               {/* meia tela não comporta duas colunas de dinheiro no celular */}
-              <div className="grid gap-y-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5">
+              <div className="grid gap-y-2.5 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5">
                 <Numero rotulo="Vendido" centavos={d.totalVendidoCentavos}
                   apoio={`${d.nVendas} ${pluralizar(d.nVendas, 'venda', 'vendas')}`}
                   href="/app/vendas" />
@@ -122,13 +122,16 @@ export default function DashboardPage() {
                 <Numero rotulo="Falta receber" centavos={d.comissaoPendenteCentavos} destaque
                   href="/app/recebimentos" />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Ticket médio de <Valor centavos={d.ticketMedioCentavos} destaque={false} className="font-normal" />
-              </p>
             </section>
 
             <LoteriaFederal />
           </div>
+
+          {/* o ticket médio é a leitura mais periférica das duas colunas: sai
+              delas para as alturas fecharem e vira rodapé do bloco */}
+          <p className="-mt-4 text-xs text-muted-foreground">
+            Ticket médio de <Valor centavos={d.ticketMedioCentavos} destaque={false} className="font-normal" />
+          </p>
 
 
           <section className="space-y-3">
