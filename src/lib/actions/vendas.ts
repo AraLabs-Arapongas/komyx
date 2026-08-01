@@ -103,6 +103,30 @@ export async function marcarRecebido(recebimentoId: string, dataRecebimento: str
   }
 }
 
+/**
+ * Cliente desistiu depois da venda fechada. `cobrarRecebido` diz se o
+ * escritório vai descontar as parcelas que já caíram na conta do corretor.
+ */
+export async function estornarVenda(id: string, motivo: string, cobrarRecebido: boolean) {
+  try {
+    if (!motivo.trim()) return { ok: false as const, erro: 'Informe o motivo da desistência.' }
+    const { supabase } = await contexto()
+    const { data: venda, error: e1 } = await supabase.from('vendas')
+      .select('competencia_id').eq('id', id).single()
+    if (e1) return { ok: false as const, erro: 'Venda não encontrada.' }
+
+    const { error } = await supabase.rpc('estornar_venda', {
+      p_venda_id: id, p_motivo: motivo, p_cobrar_recebido: cobrarRecebido,
+    })
+    if (error) return { ok: false as const, erro: 'Não foi possível registrar a desistência.' }
+
+    await recalcularCompetencia(supabase, venda.competencia_id)
+    return { ok: true as const }
+  } catch (e) {
+    return { ok: false as const, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
+  }
+}
+
 export async function desmarcarRecebido(recebimentoId: string) {
   try {
     const supabase = await createClient()

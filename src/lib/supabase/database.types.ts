@@ -168,7 +168,7 @@ export type Database = {
           faixas: Json
           id: string
           nome_politica: string
-          regras_estorno: string | null
+          politica_estorno: string
           updated_at: string
         }
         Insert: {
@@ -180,7 +180,7 @@ export type Database = {
           faixas: Json
           id?: string
           nome_politica?: string
-          regras_estorno?: string | null
+          politica_estorno?: string
           updated_at?: string
         }
         Update: {
@@ -192,7 +192,7 @@ export type Database = {
           faixas?: Json
           id?: string
           nome_politica?: string
-          regras_estorno?: string | null
+          politica_estorno?: string
           updated_at?: string
         }
         Relationships: [
@@ -358,6 +358,14 @@ export type Database = {
       }
       desmarcar_recebido: {
         Args: { p_recebimento_id: string }
+        Returns: undefined
+      }
+      estornar_venda: {
+        Args: {
+          p_cobrar_recebido: boolean
+          p_motivo: string
+          p_venda_id: string
+        }
         Returns: undefined
       }
       fechar_competencias_vencidas: {

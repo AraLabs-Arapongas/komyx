@@ -11,6 +11,7 @@ type Base = {
   className?: string
   id?: string
   autoFocus?: boolean
+  disabled?: boolean
 }
 
 /** Valor em reais: digita-se só números e a máscara monta a partir dos centavos. */

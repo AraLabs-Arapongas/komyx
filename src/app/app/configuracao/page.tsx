@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ConfigForm } from '@/components/config-form'
 import { sair } from '@/app/(auth)/actions'
 import { Button } from '@/components/ui/button'
-import type { Faixa } from '@/lib/domain/types'
+import type { Faixa, PoliticaEstorno } from '@/lib/domain/types'
 
 export default async function ConfiguracaoPage() {
   const supabase = await createClient()
@@ -22,7 +22,7 @@ export default async function ConfiguracaoPage() {
           faixas: (cfg.faixas as Faixa[]).map(f => ({ max: f.max, percentual: f.percentual, parcelas: f.parcelas })),
           diaFechamento: cfg.dia_fechamento,
           diaPrimeiroPagamento: cfg.dia_primeiro_pagamento,
-          regrasEstorno: cfg.regras_estorno ?? '',
+          politicaEstorno: (cfg.politica_estorno ?? 'perguntar') as PoliticaEstorno,
         }} />
       )}
       <div className="rounded-[10px] border bg-card p-4">

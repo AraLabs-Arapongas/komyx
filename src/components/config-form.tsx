@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CampoValor, CampoPercentual, CampoInteiro } from '@/components/campos'
+import { ROTULOS_ESTORNO, type PoliticaEstorno } from '@/lib/domain/types'
+import { cn } from '@/lib/utils'
 import { Trash2, Plus } from 'lucide-react'
 
 function Secao({ titulo, apoio, children }: { titulo: string; apoio: string; children: React.ReactNode }) {
@@ -23,12 +25,12 @@ function Secao({ titulo, apoio, children }: { titulo: string; apoio: string; chi
   )
 }
 
-type FaixaDraft = { maxTxt: string; percentualTxt: string; parcelasTxt: string }
+type FaixaDraft = { maxTxt: string; percentualTxt: string; parcelasTxt: string; semLimite: boolean }
 
 export function ConfigForm({ modo, inicial }: {
   modo: 'onboarding' | 'edicao'
   inicial?: { nomePolitica: string; faixas: { max: number | null; percentual: number; parcelas: number }[];
-              diaFechamento: number; diaPrimeiroPagamento: number; regrasEstorno: string }
+              diaFechamento: number; diaPrimeiroPagamento: number; politicaEstorno: PoliticaEstorno }
 }) {
   const router = useRouter()
   const qc = useQueryClient()
@@ -40,10 +42,11 @@ export function ConfigForm({ modo, inicial }: {
       // assim que o corretor tocasse no campo
       percentualTxt: f.percentual.toFixed(2).replace('.', ','),
       parcelasTxt: String(f.parcelas),
-    })) ?? [{ maxTxt: '', percentualTxt: '', parcelasTxt: '' }])
+      semLimite: f.max === null,
+    })) ?? [{ maxTxt: '', percentualTxt: '', parcelasTxt: '', semLimite: true }])
   const [fechamento, setFechamento] = useState(String(inicial?.diaFechamento ?? 25))
   const [pagamento, setPagamento] = useState(String(inicial?.diaPrimeiroPagamento ?? 10))
-  const [estorno, setEstorno] = useState(inicial?.regrasEstorno ?? '')
+  const [estorno, setEstorno] = useState<PoliticaEstorno>(inicial?.politicaEstorno ?? 'perguntar')
   const [salvando, setSalvando] = useState(false)
 
   function minDaFaixa(i: number): number {
@@ -59,13 +62,13 @@ export function ConfigForm({ modo, inicial }: {
       nomePolitica: nome,
       faixas: faixas.map((f, i) => ({
         min: minDaFaixa(i),
-        max: f.maxTxt.trim() === '' ? null : parseBRLParaCentavos(f.maxTxt),
+        max: f.semLimite || f.maxTxt.trim() === '' ? null : parseBRLParaCentavos(f.maxTxt),
         percentual: parseFloat(f.percentualTxt.replace(',', '.')) || 0,
         parcelas: parseInt(f.parcelasTxt) || 0,
       })),
       diaFechamento: parseInt(fechamento) || 0,
       diaPrimeiroPagamento: parseInt(pagamento) || 0,
-      regrasEstorno: estorno,
+      politicaEstorno: estorno,
     }
     const r = await salvarConfig(payload)
     setSalvando(false)
@@ -108,8 +111,21 @@ export function ConfigForm({ modo, inicial }: {
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 <div className="col-span-2 space-y-1 sm:col-span-1">
                   <Label className="text-xs">Vendido até</Label>
-                  <CampoValor value={f.maxTxt} placeholder="Sem limite"
-                    onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, maxTxt: v } : x))} /></div>
+                  <CampoValor value={f.maxTxt} placeholder="Sem limite" disabled={f.semLimite}
+                    onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, maxTxt: v } : x))} />
+                  <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      className="size-3.5 cursor-pointer accent-foreground"
+                      checked={f.semLimite}
+                      onChange={e => setFaixas(fs => fs.map((x, j) =>
+                        // limpa o valor ao marcar: guardar um teto que não vale
+                        // mais só criaria dúvida na próxima edição
+                        j === i ? { ...x, semLimite: e.target.checked, maxTxt: e.target.checked ? '' : x.maxTxt } : x))}
+                    />
+                    Sem limite
+                  </label>
+                </div>
                 <div className="space-y-1"><Label className="text-xs">Comissão</Label>
                   <CampoPercentual value={f.percentualTxt} required
                     onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, percentualTxt: v } : x))} /></div>
@@ -120,7 +136,12 @@ export function ConfigForm({ modo, inicial }: {
             </div>
           ))}
           <Button type="button" variant="outline" size="sm"
-            onClick={() => setFaixas(fs => [...fs, { maxTxt: '', percentualTxt: '', parcelasTxt: '' }])}>
+            // só a última faixa pode ficar aberta: a que era a última passa a
+            // precisar de um teto
+            onClick={() => setFaixas(fs => [
+              ...fs.map(x => ({ ...x, semLimite: false })),
+              { maxTxt: '', percentualTxt: '', parcelasTxt: '', semLimite: true },
+            ])}>
             <Plus size={18} /> Adicionar faixa
           </Button>
         </div>
@@ -135,9 +156,28 @@ export function ConfigForm({ modo, inicial }: {
         </div>
       </Secao>
 
-      <Secao titulo="Estorno" apoio="Opcional. Explique o que acontece com a comissão se o cliente desistir.">
-        <Input value={estorno} onChange={e => setEstorno(e.target.value)}
-          placeholder="Ex.: estorno integral em caso de desistência" />
+      <Secao titulo="Estorno" apoio="O que o escritório faz com a sua comissão quando o cliente desiste da cota.">
+        <div className="space-y-2">
+          {(Object.keys(ROTULOS_ESTORNO) as PoliticaEstorno[]).map(opcao => (
+            <label
+              key={opcao}
+              className={cn('flex cursor-pointer gap-3 rounded-[10px] border p-3',
+                estorno === opcao ? 'border-foreground/40 bg-background' : 'hover:bg-background')}
+            >
+              <input
+                type="radio"
+                name="politica-estorno"
+                className="mt-0.5 size-4 shrink-0 cursor-pointer accent-foreground"
+                checked={estorno === opcao}
+                onChange={() => setEstorno(opcao)}
+              />
+              <span className="space-y-0.5">
+                <span className="block text-sm font-medium">{ROTULOS_ESTORNO[opcao].titulo}</span>
+                <span className="block text-sm text-muted-foreground">{ROTULOS_ESTORNO[opcao].apoio}</span>
+              </span>
+            </label>
+          ))}
+        </div>
       </Secao>
 
       <Button type="submit" className="w-full" disabled={salvando}>

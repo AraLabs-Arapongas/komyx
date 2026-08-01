@@ -80,6 +80,32 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
     expect(r.comissoes.find(c => c.vendaId === 'v2')!.percentual).toBe(0.6)
   })
 
+  it('venda estornada sai do volume e tira a faixa das outras', () => {
+    // desistência do cliente: a venda deixa de contar para o total do mês,
+    // então quem ficou pode cair de faixa
+    const r = calcularCompetencia({ config, competencia: comp,
+      vendas: [{ ...venda('v1', 80_000_000), status: 'estornada' }, venda('v2', 40_000_000)],
+      recebimentosExistentes: [] })
+    const c1 = r.comissoes.find(c => c.vendaId === 'v1')!
+    expect(c1.status).toBe('estornada')
+    expect(r.recebimentosPrevistos.filter(p => p.vendaId === 'v1')).toHaveLength(0)
+    expect(r.comissoes.find(c => c.vendaId === 'v2')!.percentual).toBe(0.5)
+  })
+
+  it('parcela estornada não conta como dinheiro que entrou', () => {
+    // o escritório descontou de volta: a comissão volta a ser devida por
+    // inteiro, e não pode ficar marcada como recebida
+    const cfg: ConfigCalc = { ...config,
+      faixas: [{ min: 0, max: null, percentual: 0.5, parcelas: 2 }] }
+    const r = calcularCompetencia({ config: cfg, competencia: comp,
+      vendas: [venda('v1', 20_000_000)], // comissão 100.000
+      recebimentosExistentes: [
+        { id: 'r1', vendaId: 'v1', numeroParcela: 1, valorCentavos: 50_000, status: 'estornado' },
+      ] })
+    expect(r.comissoes[0].status).toBe('prevista')
+    expect(r.recebimentosPrevistos.reduce((s, p) => s + p.valorCentavos, 0)).toBe(100_000)
+  })
+
   it('todas as parcelas recebidas → comissão recebida', () => {
     const cfg: ConfigCalc = { ...config,
       faixas: [{ min: 0, max: null, percentual: 0.5, parcelas: 1 }] }

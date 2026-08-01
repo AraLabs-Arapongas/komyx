@@ -20,7 +20,7 @@ export async function salvarConfig(input: ConfigFinanceiraForm) {
   const { error } = await supabase.from('config_financeira').insert({
     corretor_id: user.id, nome_politica: d.nomePolitica, faixas: d.faixas,
     dia_fechamento: d.diaFechamento, dia_primeiro_pagamento: d.diaPrimeiroPagamento,
-    regras_estorno: d.regrasEstorno, ativa: true,
+    politica_estorno: d.politicaEstorno, ativa: true,
   })
   if (error) return { ok: false as const, erro: 'Não foi possível salvar. Tente novamente.' }
 

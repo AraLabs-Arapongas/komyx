@@ -14,7 +14,7 @@ export const configFinanceiraSchema = z.object({
   faixas: z.array(faixaSchema).min(1, 'Cadastre pelo menos uma faixa.'),
   diaFechamento: z.number().int().min(1, 'O dia deve ser entre 1 e 31.').max(31, 'O dia deve ser entre 1 e 31.'),
   diaPrimeiroPagamento: z.number().int().min(1, 'O dia deve ser entre 1 e 31.').max(31, 'O dia deve ser entre 1 e 31.'),
-  regrasEstorno: z.string().optional().default(''),
+  politicaEstorno: z.enum(['perguntar', 'tudo', 'proximas']).default('perguntar'),
 }).superRefine((cfg, ctx) => {
   const faixas = [...cfg.faixas].sort((a, b) => a.min - b.min)
   if (faixas.length > 0 && faixas[0].min !== 0)

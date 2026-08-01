@@ -2,12 +2,14 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useVenda } from '@/lib/queries/vendas'
-import { cancelarVenda } from '@/lib/actions/vendas'
+import { queryKeys } from '@/lib/queries/keys'
+import { createClient } from '@/lib/supabase/client'
+import { cancelarVenda, estornarVenda } from '@/lib/actions/vendas'
 import { formatBRL, formatData, formatPercentual } from '@/lib/format'
-import type { Faixa } from '@/lib/domain/types'
+import { ROTULOS_ESTORNO, type Faixa, type PoliticaEstorno } from '@/lib/domain/types'
 import { VendaForm } from '@/components/venda-form'
 import { Valor } from '@/components/valor'
 import { Button } from '@/components/ui/button'
@@ -42,6 +44,19 @@ export default function VendaDetalhePage() {
   const [dialogAberto, setDialogAberto] = useState(false)
   const [motivo, setMotivo] = useState('')
   const [cancelando, setCancelando] = useState(false)
+  const [dialogEstorno, setDialogEstorno] = useState(false)
+  const [motivoEstorno, setMotivoEstorno] = useState('')
+  const [cobrarRecebido, setCobrarRecebido] = useState(false)
+  const [estornando, setEstornando] = useState(false)
+  const { data: config } = useQuery({
+    queryKey: queryKeys.config,
+    queryFn: async () => {
+      const { data, error } = await createClient().from('config_financeira')
+        .select('politica_estorno').eq('ativa', true).single()
+      if (error) throw error
+      return data
+    },
+  })
 
   if (isLoading) {
     return (
@@ -74,6 +89,10 @@ export default function VendaDetalhePage() {
   }
   const faixa = comissao?.faixa_aplicada as Faixa | undefined
   const podeGerenciar = venda.status === 'confirmada'
+  const politica = (config?.politica_estorno ?? 'perguntar') as PoliticaEstorno
+  const totalRecebidoCentavos = (comissao?.recebimentos ?? [])
+    .filter(r => r.status === 'recebido')
+    .reduce((s, r) => s + Number(r.valor_centavos), 0)
 
   async function onConfirmarCancelamento() {
     if (!motivo.trim()) { toast.error('Informe o motivo do cancelamento.'); return }
@@ -84,6 +103,20 @@ export default function VendaDetalhePage() {
     qc.invalidateQueries()
     toast.success('Venda cancelada. As parcelas previstas foram canceladas; as já recebidas permanecem no histórico.')
     setDialogAberto(false)
+    router.push('/app/vendas')
+  }
+
+  async function onConfirmarEstorno() {
+    if (!motivoEstorno.trim()) { toast.error('Informe o motivo da desistência.'); return }
+    setEstornando(true)
+    const r = await estornarVenda(id, motivoEstorno, cobrarRecebido)
+    setEstornando(false)
+    if (!r.ok) { toast.error(r.erro); return }
+    qc.invalidateQueries()
+    toast.success(cobrarRecebido
+      ? 'Desistência registrada. As parcelas futuras foram canceladas e as já pagas entraram como estorno.'
+      : 'Desistência registrada. As parcelas futuras foram canceladas.')
+    setDialogEstorno(false)
     router.push('/app/vendas')
   }
 
@@ -207,10 +240,23 @@ export default function VendaDetalhePage() {
       </div>
 
       {podeGerenciar && (
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={() => setEditando(true)}>Editar</Button>
-          <Button variant="destructive" className="flex-1"
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setEditando(true)}>Editar</Button>
+            <Button variant="outline" className="flex-1" onClick={() => {
+              setMotivoEstorno('')
+              // a política do escritório entra como sugestão; a palavra final
+              // é de quem está registrando
+              setCobrarRecebido(politica === 'tudo')
+              setDialogEstorno(true)
+            }}>Cliente desistiu</Button>
+          </div>
+          <Button variant="destructive" className="w-full"
             onClick={() => { setMotivo(''); setDialogAberto(true) }}>Cancelar venda</Button>
+          <p className="text-xs text-muted-foreground">
+            Cancele quando a venda foi registrada por engano. Se o cliente fechou e depois
+            desistiu, registre a desistência para o estorno ficar no histórico.
+          </p>
         </div>
       )}
 
@@ -232,6 +278,56 @@ export default function VendaDetalhePage() {
             <Button variant="destructive" disabled={cancelando || !motivo.trim()}
               onClick={onConfirmarCancelamento}>
               {cancelando ? 'Cancelando…' : 'Confirmar cancelamento'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={dialogEstorno} onOpenChange={setDialogEstorno}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cliente desistiu</DialogTitle>
+            <DialogDescription>
+              As parcelas ainda não pagas serão canceladas.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-1">
+            <Label>Motivo da desistência</Label>
+            <Input value={motivoEstorno} onChange={e => setMotivoEstorno(e.target.value)} required autoFocus />
+          </div>
+
+          {totalRecebidoCentavos > 0 ? (
+            <label className="flex cursor-pointer gap-3 rounded-[10px] border p-3">
+              <input
+                type="checkbox"
+                className="mt-0.5 size-4 shrink-0 cursor-pointer accent-foreground"
+                checked={cobrarRecebido}
+                onChange={e => setCobrarRecebido(e.target.checked)}
+              />
+              <span className="space-y-0.5">
+                <span className="block text-sm font-medium">
+                  O escritório vai descontar o que já recebi
+                </span>
+                <span className="block text-sm text-muted-foreground">
+                  Você já recebeu <Valor centavos={totalRecebidoCentavos} destaque={false} className="font-normal" />{' '}
+                  desta venda. Marcando, esse valor entra como estorno e deixa de contar como recebido.
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  Sua regra: {ROTULOS_ESTORNO[politica].titulo.toLowerCase()}.
+                </span>
+              </span>
+            </label>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Nenhuma parcela desta venda foi recebida ainda, então não há o que estornar.
+            </p>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogEstorno(false)}>Voltar</Button>
+            <Button disabled={estornando || !motivoEstorno.trim()} onClick={onConfirmarEstorno}>
+              {estornando ? 'Registrando…' : 'Registrar desistência'}
             </Button>
           </DialogFooter>
         </DialogContent>

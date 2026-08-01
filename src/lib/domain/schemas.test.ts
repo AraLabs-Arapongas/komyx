@@ -7,7 +7,7 @@ const faixasValidas = [
 ]
 const base = {
   nomePolitica: 'Padrão', faixas: faixasValidas,
-  diaFechamento: 25, diaPrimeiroPagamento: 10, regrasEstorno: '',
+  diaFechamento: 25, diaPrimeiroPagamento: 10, politicaEstorno: 'perguntar' as const,
 }
 
 describe('configFinanceiraSchema', () => {

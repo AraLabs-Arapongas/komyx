@@ -18,10 +18,11 @@ export function AppNav() {
   const ativo = (href: string) => href === '/app' ? path === '/app' : path.startsWith(href)
   return (
     <>
-      {/* mobile: barra superior só com marca e privacidade — a navegação
-          mora embaixo, ao alcance do polegar */}
-      <div className="sticky top-0 z-30 flex items-center justify-between border-b bg-card px-4 py-2.5 md:hidden">
-        <Logo />
+      {/* barra superior em todas as larguras: esconder valores precisa estar
+          a um toque de distância em qualquer tela. No desktop a marca já vive
+          na lateral, então aqui sobra só o olho */}
+      <div className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b bg-card px-4 py-2.5 md:justify-end md:pl-48">
+        <Logo className="md:hidden" />
         <BotaoPrivacidade className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" />
       </div>
 
@@ -45,7 +46,6 @@ export function AppNav() {
             <Icon size={18} />{label}
           </Link>
         ))}
-        <BotaoPrivacidade className="mt-auto flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-sm text-muted-foreground hover:text-foreground" />
       </aside>
     </>
   )
