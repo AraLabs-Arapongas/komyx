@@ -2,7 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { vendaFormSchema, type VendaForm } from '@/lib/domain/schemas'
 import { competenciaDaVenda } from '@/lib/engine/calendario'
-import { garantirCompetencia, recalcularCompetencia } from './recalcular'
+import { fecharCompetenciasVencidas, garantirCompetencia, recalcularCompetencia } from './recalcular'
 
 async function contexto() {
   const supabase = await createClient()
@@ -76,6 +76,7 @@ export async function cancelarVenda(id: string, motivo: string) {
   try {
     if (!motivo.trim()) return { ok: false as const, erro: 'Informe o motivo do cancelamento.' }
     const { supabase } = await contexto()
+    await fecharCompetenciasVencidas(supabase)
     const { data: venda, error } = await supabase.from('vendas')
       .update({ status: 'cancelada', motivo_cancelamento: motivo, updated_at: new Date().toISOString() })
       .eq('id', id).select('competencia_id').single()

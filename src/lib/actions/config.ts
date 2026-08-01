@@ -1,7 +1,7 @@
 'use server'
 import { createClient } from '@/lib/supabase/server'
 import { configFinanceiraSchema, type ConfigFinanceiraForm } from '@/lib/domain/schemas'
-import { recalcularCompetencia } from './recalcular'
+import { fecharCompetenciasVencidas, recalcularCompetencia } from './recalcular'
 
 export async function salvarConfig(input: ConfigFinanceiraForm) {
   const parsed = configFinanceiraSchema.safeParse(input)
@@ -13,6 +13,9 @@ export async function salvarConfig(input: ConfigFinanceiraForm) {
   if (!user) return { ok: false as const, erro: 'Sessão expirada. Entre novamente.' }
 
   const d = parsed.data
+  // fecha competências vencidas com a config ANTIGA ainda ativa, antes de trocar a política
+  // (meses já fechados não podem ser recalculados retroativamente com a nova config)
+  await fecharCompetenciasVencidas(supabase)
   await supabase.from('config_financeira').update({ ativa: false }).eq('ativa', true)
   const { error } = await supabase.from('config_financeira').insert({
     corretor_id: user.id, nome_politica: d.nomePolitica, faixas: d.faixas,

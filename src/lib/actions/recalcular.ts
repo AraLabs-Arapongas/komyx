@@ -5,11 +5,16 @@ import { calcularCompetencia } from '@/lib/engine/calculo'
 
 type SB = SupabaseClient<Database>
 
-export async function garantirCompetencia(supabase: SB, userId: string, ref: CompetenciaRef): Promise<string> {
+export async function fecharCompetenciasVencidas(supabase: SB): Promise<void> {
   const { data: config } = await supabase.from('config_financeira')
-    .select('*').eq('ativa', true).single()
+    .select('*').eq('ativa', true).maybeSingle()
+  if (!config) return
   const hoje = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
-  await supabase.rpc('fechar_competencias_vencidas', { p_snapshot: config, p_hoje: hoje })
+  await supabase.rpc('fechar_competencias_vencidas', { p_snapshot: config as never, p_hoje: hoje })
+}
+
+export async function garantirCompetencia(supabase: SB, userId: string, ref: CompetenciaRef): Promise<string> {
+  await fecharCompetenciasVencidas(supabase)
 
   const { data: existente } = await supabase.from('competencias')
     .select('id').eq('ano', ref.ano).eq('mes', ref.mes).maybeSingle()
