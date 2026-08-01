@@ -7,9 +7,13 @@ import { criarCliente, atualizarCliente } from '@/lib/actions/clientes'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-export function ClienteForm({ clienteId, inicial }: {
+export function ClienteForm({ clienteId, inicial, aoSalvar }: {
   clienteId?: string
   inicial?: { nome: string; telefone: string; email: string; documento: string; cidade: string; observacoes: string }
+  /** Chamado após salvar uma edição, para o pai sair do modo edição.
+   *  Necessário porque `router.push` para a rota atual não remonta a
+   *  página (mesma URL), então o estado do pai não se resolve sozinho. */
+  aoSalvar?: () => void
 }) {
   const router = useRouter()
   const qc = useQueryClient()
@@ -32,7 +36,12 @@ export function ClienteForm({ clienteId, inicial }: {
       if (!r.ok) { toast.error(r.erro); return }
       qc.invalidateQueries()
       toast.success('Cliente atualizado.')
-      router.push(`/app/clientes/${clienteId}`)
+      if (aoSalvar) {
+        aoSalvar()
+      } else {
+        router.push(`/app/clientes/${clienteId}`)
+        router.refresh()
+      }
       return
     }
     const r = await criarCliente(payload)

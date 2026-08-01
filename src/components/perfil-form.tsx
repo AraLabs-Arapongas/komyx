@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { atualizarPerfil, alterarSenha } from '@/lib/actions/perfil'
 import { exportarDados } from '@/lib/actions/backup'
@@ -15,6 +16,7 @@ export function PerfilForm({ email, nome: nomeInicial, telefone: telefoneInicial
   email: string; nome: string; telefone: string
 }) {
   const router = useRouter()
+  const qc = useQueryClient()
   const [nome, setNome] = useState(nomeInicial)
   const [telefone, setTelefone] = useState(telefoneInicial)
   const [salvandoPerfil, setSalvandoPerfil] = useState(false)
@@ -29,6 +31,7 @@ export function PerfilForm({ email, nome: nomeInicial, telefone: telefoneInicial
     setSalvandoPerfil(false)
     if (!r.ok) { toast.error(r.erro); return }
     toast.success('Perfil atualizado.')
+    qc.invalidateQueries({ queryKey: ['perfil'] })
     router.refresh()
   }
 

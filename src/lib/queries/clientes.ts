@@ -1,7 +1,6 @@
 'use client'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
-import { queryKeys } from './keys'
 
 export type ClienteResumo = {
   id: string; nome: string; telefone: string | null
@@ -10,7 +9,12 @@ export type ClienteResumo = {
 
 export function useClientesLista(busca = '') {
   return useQuery({
-    queryKey: queryKeys.clientes(busca),
+    // Chave própria: `queryKeys.clientes(busca)` também é usada pelo
+    // seletor de cliente em src/lib/queries/vendas.ts (useClientes), com um
+    // formato de retorno diferente (sem contagem de vendas). Compartilhar a
+    // chave fazia a tela de Clientes reaproveitar o cache do seletor e
+    // mostrar "0 vendas" para todo mundo.
+    queryKey: ['clientes-lista', busca] as const,
     queryFn: async () => {
       const supabase = createClient()
       const buscaLimpa = busca.trim()

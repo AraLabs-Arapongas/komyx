@@ -30,10 +30,10 @@ function quandoCai(iso: string, hoje: string): string {
  * Fica sobre a única superfície escura do produto — o dinheiro dele não
  * divide atenção com mais nada, e é isso que separa esta tela de um relatório.
  */
-export function HeroDinheiro({ nome, competencia, proximoPagamento, hoje, foraDoAtual, onMes, onHoje }: {
+export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, onMes, onHoje }: {
   nome: string
   competencia: { ano: number; mes: number }
-  proximoPagamento: { data: string; totalCentavos: number; quantidade: number } | null
+  pagamento: { data: string; totalCentavos: number; quantidade: number; jaCaiu: boolean } | null
   hoje: string
   foraDoAtual: boolean
   onMes: (direcao: -1 | 1) => void
@@ -41,9 +41,10 @@ export function HeroDinheiro({ nome, competencia, proximoPagamento, hoje, foraDo
 }) {
   const { oculto } = usePrivacidade()
   const primeiroNome = nome.trim().split(' ')[0]
+  const mesLabel = `${MESES[competencia.mes - 1]} de ${competencia.ano}`
 
   return (
-    <section className="entra relative -mx-4 overflow-hidden bg-escuro px-5 pb-8 pt-6 text-white md:mx-0 md:rounded-3xl md:px-8 md:pb-10 md:pt-8">
+    <section className="entra relative -mx-4 overflow-hidden bg-escuro px-5 pb-6 pt-5 text-white md:mx-0 md:rounded-3xl md:px-8 md:pb-7 md:pt-6">
       {/* curva de crescimento: a assinatura visual do produto, discreta */}
       <svg
         aria-hidden
@@ -81,30 +82,33 @@ export function HeroDinheiro({ nome, competencia, proximoPagamento, hoje, foraDo
           </div>
         </div>
 
-        {proximoPagamento ? (
-          <div className="mt-6">
-            <p className="text-escuro-texto">Você receberá</p>
-            <p className="mt-1 font-bold tracking-tight tabular-nums text-money-claro
-                          text-[2.75rem] leading-[1.05] md:text-[4rem]">
+        {pagamento ? (
+          <div className="mt-4">
+            <p className="text-escuro-texto">
+              {pagamento.jaCaiu ? 'Você recebeu' : 'Você receberá'}
+            </p>
+            <p className="mt-0.5 font-bold tracking-tight tabular-nums text-money-claro
+                          text-[2.5rem] leading-[1.05] md:text-[3.5rem]">
               {oculto
                 ? <>R$ <span className="align-middle text-[0.45em] tracking-[0.2em]">●●●●</span></>
-                : formatBRL(proximoPagamento.totalCentavos)}
+                : formatBRL(pagamento.totalCentavos)}
             </p>
-            <p className="mt-2 text-escuro-texto">
-              {quandoCai(proximoPagamento.data, hoje)}
-              <span className="text-white/40"> · {formatDataExtenso(proximoPagamento.data)}</span>
+            <p className="mt-1.5 text-sm text-escuro-texto">
+              {pagamento.jaCaiu
+                ? `em ${formatDataExtenso(pagamento.data)}`
+                : <>{quandoCai(pagamento.data, hoje)}<span className="text-white/40"> · {formatDataExtenso(pagamento.data)}</span></>}
             </p>
           </div>
         ) : (
-          <div className="mt-6">
-            <p className="text-2xl font-semibold md:text-3xl">Nada a receber por enquanto</p>
-            <p className="mt-1 text-escuro-texto">
-              Registre uma venda e o ConsorPro calcula quanto e quando você recebe.
+          <div className="mt-4">
+            <p className="text-xl font-semibold md:text-2xl">Nada em {mesLabel}</p>
+            <p className="mt-1 text-sm text-escuro-texto">
+              Nenhuma parcela cai neste mês. Use as setas para ver outro mês.
             </p>
           </div>
         )}
 
-        <div className="mt-7 flex items-center gap-2">
+        <div className="mt-5 flex items-center gap-2">
           <Button asChild size="lg"
             className="flex-1 bg-money-claro text-[#06291F] hover:bg-money-claro/90 md:flex-none">
             <Link href="/app/vendas/nova"><Plus size={18} /> Nova venda</Link>

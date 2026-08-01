@@ -11,13 +11,15 @@ const config: ConfigCalc = {
   calendario: { diaFechamento: 25, diaPrimeiroPagamento: 10 },
 }
 const comp = { ano: 2026, mes: 7 }
+// antes de qualquer parcela vencer: quem já caiu vem só do status gravado
+const HOJE = '2026-08-01'
 const venda = (id: string, valor: number, status = 'confirmada' as const) =>
   ({ id, valorCartaCentavos: valor, status })
 
 describe('calcularCompetencia — faixa por acumulado retroativo', () => {
   it('uma venda de R$ 500k → faixa 1 (0,5%, 2x)', () => {
     const r = calcularCompetencia({ config, competencia: comp,
-      vendas: [venda('v1', 50_000_000)], recebimentosExistentes: [] })
+      vendas: [venda('v1', 50_000_000)], recebimentosExistentes: [], hoje: HOJE })
     expect(r.comissoes).toHaveLength(1)
     expect(r.comissoes[0]).toMatchObject({ vendaId: 'v1', percentual: 0.5,
       valorCentavos: 250_000, nParcelas: 2, status: 'prevista' })
@@ -30,7 +32,7 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
   it('segunda venda cruza faixa → TODAS as vendas recalculam para 0,6% (retroativo)', () => {
     const r = calcularCompetencia({ config, competencia: comp,
       vendas: [venda('v1', 80_000_000), venda('v2', 40_000_000)], // total R$ 1,2M
-      recebimentosExistentes: [] })
+      recebimentosExistentes: [], hoje: HOJE })
     expect(r.comissoes.map(c => c.percentual)).toEqual([0.6, 0.6])
     expect(r.comissoes[0].valorCentavos).toBe(480_000) // 800k * 0.6%
     expect(r.comissoes[0].nParcelas).toBe(3)
@@ -42,7 +44,7 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
     const cfg: ConfigCalc = { ...config,
       faixas: [{ min: 0, max: null, percentual: 0.5, parcelas: 3 }] }
     const r = calcularCompetencia({ config: cfg, competencia: comp,
-      vendas: [venda('v1', 20_000)], recebimentosExistentes: [] }) // comissão = 100
+      vendas: [venda('v1', 20_000)], recebimentosExistentes: [], hoje: HOJE }) // comissão = 100
     expect(r.recebimentosPrevistos.map(p => p.valorCentavos)).toEqual([33, 33, 34])
   })
 
@@ -53,8 +55,8 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
     const r = calcularCompetencia({ config, competencia: comp,
       vendas: [venda('v1', 80_000_000), venda('v2', 40_000_000)],
       recebimentosExistentes: [
-        { id: 'r1', vendaId: 'v1', numeroParcela: 1, valorCentavos: 200_000, status: 'recebido' },
-      ] })
+        { id: 'r1', vendaId: 'v1', numeroParcela: 1, valorCentavos: 200_000, status: 'recebido', dataPrevista: '2026-08-10' },
+      ], hoje: HOJE })
     const v1prev = r.recebimentosPrevistos.filter(p => p.vendaId === 'v1')
     expect(v1prev).toEqual([
       { vendaId: 'v1', numeroParcela: 2, valorCentavos: 140_000, dataPrevista: '2026-09-10', status: 'previsto' },
@@ -67,10 +69,10 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
   it('venda cancelada: sem previstos, comissão cancelada, não conta no volume', () => {
     const r = calcularCompetencia({ config, competencia: comp,
       vendas: [venda('v1', 80_000_000), venda('v2', 40_000_000, 'confirmada'),],
-      recebimentosExistentes: [] })
+      recebimentosExistentes: [], hoje: HOJE })
     const r2 = calcularCompetencia({ config, competencia: comp,
       vendas: [{ ...venda('v1', 80_000_000), status: 'cancelada' }, venda('v2', 40_000_000)],
-      recebimentosExistentes: [] })
+      recebimentosExistentes: [], hoje: HOJE })
     // com cancelamento, volume cai para 400k → faixa 1
     const c2 = r2.comissoes.find(c => c.vendaId === 'v2')!
     expect(c2.percentual).toBe(0.5)
@@ -85,7 +87,7 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
     // então quem ficou pode cair de faixa
     const r = calcularCompetencia({ config, competencia: comp,
       vendas: [{ ...venda('v1', 80_000_000), status: 'estornada' }, venda('v2', 40_000_000)],
-      recebimentosExistentes: [] })
+      recebimentosExistentes: [], hoje: HOJE })
     const c1 = r.comissoes.find(c => c.vendaId === 'v1')!
     expect(c1.status).toBe('estornada')
     expect(r.recebimentosPrevistos.filter(p => p.vendaId === 'v1')).toHaveLength(0)
@@ -100,10 +102,37 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
     const r = calcularCompetencia({ config: cfg, competencia: comp,
       vendas: [venda('v1', 20_000_000)], // comissão 100.000
       recebimentosExistentes: [
-        { id: 'r1', vendaId: 'v1', numeroParcela: 1, valorCentavos: 50_000, status: 'estornado' },
-      ] })
+        { id: 'r1', vendaId: 'v1', numeroParcela: 1, valorCentavos: 50_000, status: 'estornado', dataPrevista: '2026-08-10' },
+      ], hoje: HOJE })
     expect(r.comissoes[0].status).toBe('prevista')
     expect(r.recebimentosPrevistos.reduce((s, p) => s + p.valorCentavos, 0)).toBe(100_000)
+  })
+
+  it('parcela cuja data já chegou vale como paga, sem ninguém confirmar', () => {
+    // o escritório paga no dia combinado: passado o dia 10/08, a primeira
+    // parcela conta como dinheiro que entrou mesmo sem marcação manual
+    const r = calcularCompetencia({ config, competencia: comp,
+      vendas: [venda('v1', 80_000_000), venda('v2', 40_000_000)],
+      recebimentosExistentes: [
+        { id: 'r1', vendaId: 'v1', numeroParcela: 1, valorCentavos: 200_000, status: 'previsto', dataPrevista: '2026-08-10' },
+      ],
+      hoje: '2026-08-15' })
+    const c1 = r.comissoes.find(c => c.vendaId === 'v1')!
+    expect(c1.status).toBe('parcial')
+    // a parcela que já caiu não é reescrita; o resto se redistribui nas futuras
+    expect(r.recebimentosPrevistos.filter(p => p.vendaId === 'v1').map(p => p.numeroParcela))
+      .toEqual([2, 3])
+  })
+
+  it('parcela futura continua aberta a recálculo', () => {
+    const r = calcularCompetencia({ config, competencia: comp,
+      vendas: [venda('v1', 80_000_000)],
+      recebimentosExistentes: [
+        { id: 'r1', vendaId: 'v1', numeroParcela: 1, valorCentavos: 200_000, status: 'previsto', dataPrevista: '2026-08-10' },
+      ],
+      hoje: '2026-08-01' })
+    expect(r.comissoes[0].status).toBe('prevista')
+    expect(r.recebimentosPrevistos.map(p => p.numeroParcela)).toEqual([1, 2])
   })
 
   it('todas as parcelas recebidas → comissão recebida', () => {
@@ -112,8 +141,8 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
     const r = calcularCompetencia({ config: cfg, competencia: comp,
       vendas: [venda('v1', 20_000)],
       recebimentosExistentes: [
-        { id: 'r1', vendaId: 'v1', numeroParcela: 1, valorCentavos: 100, status: 'recebido' },
-      ] })
+        { id: 'r1', vendaId: 'v1', numeroParcela: 1, valorCentavos: 100, status: 'recebido', dataPrevista: '2026-08-10' },
+      ], hoje: HOJE })
     expect(r.comissoes[0].status).toBe('recebida')
     expect(r.recebimentosPrevistos).toHaveLength(0)
   })

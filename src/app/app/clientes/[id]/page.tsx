@@ -73,6 +73,7 @@ function ClienteExistente({ id }: { id: string }) {
             cidade: cliente.cidade ?? '',
             observacoes: cliente.observacoes ?? '',
           }}
+          aoSalvar={() => setEditando(false)}
         />
       </div>
     )

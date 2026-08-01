@@ -9,7 +9,7 @@ import { useVenda, useEventosVenda, type EventoVenda } from '@/lib/queries/venda
 import { queryKeys } from '@/lib/queries/keys'
 import { createClient } from '@/lib/supabase/client'
 import { cancelarVenda, estornarVenda } from '@/lib/actions/vendas'
-import { formatBRL, formatData, formatPercentual, formatMesAno } from '@/lib/format'
+import { formatData, formatPercentual, formatMesAno } from '@/lib/format'
 import { ROTULOS_ESTORNO, type Faixa, type PoliticaEstorno } from '@/lib/domain/types'
 import { VendaForm } from '@/components/venda-form'
 import { Valor } from '@/components/valor'
@@ -36,26 +36,34 @@ const recebimentoStatusLabel: Record<string, string> = {
   previsto: 'Previsto', recebido: 'Recebido', cancelado: 'Cancelado', estornado: 'Estornado',
 }
 
-/** Traduz um evento de auditoria da venda para uma frase em pt-BR. */
-function descreverEvento(ev: EventoVenda): string {
-  if (ev.acao === 'criou') return 'Venda registrada'
-  if (ev.acao === 'removeu') return 'Venda removida'
+/** Um pedaço da descrição de um evento: texto simples ou um valor monetário. */
+type PedacoEvento = string | { centavos: number }
+
+/** Traduz um evento de auditoria da venda em pedaços renderizáveis (texto + valores). */
+function descreverEvento(ev: EventoVenda): PedacoEvento[] {
+  if (ev.acao === 'criou') return ['Venda registrada']
+  if (ev.acao === 'removeu') return ['Venda removida']
 
   const antes = ev.antes, depois = ev.depois
-  if (!antes || !depois) return 'Venda atualizada'
+  if (!antes || !depois) return ['Venda atualizada']
 
   if (antes.status !== depois.status) {
-    if (depois.status === 'cancelada') return 'Venda cancelada'
-    if (depois.status === 'estornada') return 'Desistência registrada'
-    return `Status alterado de ${vendaStatusLabel[String(antes.status)] ?? antes.status} para ${vendaStatusLabel[String(depois.status)] ?? depois.status}`
+    if (depois.status === 'cancelada') return ['Venda cancelada']
+    if (depois.status === 'estornada') return ['Desistência registrada']
+    return [`Status alterado de ${vendaStatusLabel[String(antes.status)] ?? antes.status} para ${vendaStatusLabel[String(depois.status)] ?? depois.status}`]
   }
   if (antes.valor_carta_centavos !== depois.valor_carta_centavos) {
-    return `Valor alterado de ${formatBRL(Number(antes.valor_carta_centavos))} para ${formatBRL(Number(depois.valor_carta_centavos))}`
+    return [
+      'Valor alterado de ',
+      { centavos: Number(antes.valor_carta_centavos) },
+      ' para ',
+      { centavos: Number(depois.valor_carta_centavos) },
+    ]
   }
   if (antes.data_venda !== depois.data_venda) {
-    return `Data da venda alterada de ${formatData(String(antes.data_venda))} para ${formatData(String(depois.data_venda))}`
+    return [`Data da venda alterada de ${formatData(String(antes.data_venda))} para ${formatData(String(depois.data_venda))}`]
   }
-  return 'Venda atualizada'
+  return ['Venda atualizada']
 }
 
 function formatDataHora(iso: string): string {
@@ -257,8 +265,12 @@ export default function VendaDetalhePage() {
               {faixa && (
                 <div className="flex items-center justify-between border-b border-border/60 py-2">
                   <span className="text-muted-foreground">Faixa aplicada</span>
-                  <span className="font-medium">
-                    {formatBRL(faixa.min)} – {faixa.max === null ? 'sem limite' : formatBRL(faixa.max)}
+                  <span className="flex items-center gap-1 font-medium">
+                    <Valor centavos={faixa.min} destaque={false} />
+                    <span>–</span>
+                    {faixa.max === null
+                      ? 'sem limite'
+                      : <Valor centavos={faixa.max} destaque={false} />}
                   </span>
                 </div>
               )}
@@ -329,7 +341,13 @@ export default function VendaDetalhePage() {
           <div className="space-y-3 border-l-2 border-border pl-4">
             {eventos.map(ev => (
               <div key={ev.id}>
-                <p className="text-sm font-medium">{descreverEvento(ev)}</p>
+                <p className="text-sm font-medium">
+                  {descreverEvento(ev).map((pedaco, i) =>
+                    typeof pedaco === 'string'
+                      ? <span key={i}>{pedaco}</span>
+                      : <Valor key={i} centavos={pedaco.centavos} destaque={false} className="font-medium" />,
+                  )}
+                </p>
                 <p className="text-xs text-muted-foreground">{formatDataHora(ev.criado_em)}</p>
               </div>
             ))}

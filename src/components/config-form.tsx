@@ -143,6 +143,7 @@ export function ConfigForm({ modo, inicial }: {
       competencia: { ano: hoje.getFullYear(), mes: hoje.getMonth() + 1 },
       vendas: [{ id: 'simulacao', valorCartaCentavos: centavos, status: 'confirmada' }],
       recebimentosExistentes: [],
+      hoje: new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }),
     })
   }, [parseResult, valorSimulado])
   const comissaoSimulada = resultadoSimulacao?.comissoes[0]

@@ -6,6 +6,27 @@ import { queryKeys } from './keys'
 export type VendaStatusFiltro = 'todas' | 'confirmada' | 'cancelada' | 'estornada'
 export type VendaOrdenacao = 'recentes' | 'valor' | 'comissao'
 
+type VendaListaRow = {
+  id: string
+  valor_carta_centavos: number
+  administradora: string
+  grupo: string
+  cota: string
+  numero_contrato: string | null
+  tags: string[]
+  observacoes: string | null
+  data_venda: string
+  status: string
+  clientes: { nome: string } | null
+  comissoes: {
+    valor_centavos: number; percentual: number; status: string
+    recebimentos: { data_prevista: string; status: string }[]
+  } | null
+}
+
+const SELECT_VENDAS_LISTA =
+  'id, valor_carta_centavos, administradora, grupo, cota, numero_contrato, tags, observacoes, data_venda, status, clientes(nome), comissoes(valor_centavos, percentual, status, recebimentos(data_prevista, status))'
+
 export function useVendas(opts: {
   busca?: string
   status?: VendaStatusFiltro
@@ -18,50 +39,63 @@ export function useVendas(opts: {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       const supabase = createClient()
-      let q = supabase.from('vendas')
-        .select(
-          'id, valor_carta_centavos, administradora, grupo, cota, numero_contrato, tags, observacoes, data_venda, status, clientes(nome), comissoes(valor_centavos, percentual, status, recebimentos(data_prevista, status))',
-          { count: 'exact' },
-        )
-      if (status !== 'todas') q = q.eq('status', status)
-      if (busca) {
-        const b = busca.replace(/[,()%]/g, ' ').trim()
-        if (b) {
-          q = q.or(
-            `grupo.ilike.%${b}%,cota.ilike.%${b}%,administradora.ilike.%${b}%,numero_contrato.ilike.%${b}%,observacoes.ilike.%${b}%`,
-          )
+      const b = busca.replace(/[,()%]/g, ' ').trim()
+
+      function base(select: string) {
+        let q = supabase.from('vendas').select(select, { count: 'exact' })
+        if (status !== 'todas') q = q.eq('status', status)
+        if (ordenacao === 'valor') {
+          q = q.order('valor_carta_centavos', { ascending: false })
+        } else {
+          // "maior comissão" também entra aqui: o PostgREST só ordena DENTRO de
+          // uma tabela relacionada, não a lista por ela. Como comissão é 1:1 com
+          // a venda, isso não ordenaria nada — a ordem sai logo abaixo, em JS.
+          q = q.order('data_venda', { ascending: false }).order('created_at', { ascending: false })
         }
+        return q.limit(limite)
       }
-      if (ordenacao === 'valor') {
-        q = q.order('valor_carta_centavos', { ascending: false })
+
+      let lista: VendaListaRow[]
+      let total: number
+
+      if (b) {
+        // Busca por nome de cliente exige uma segunda consulta: o `.or()`
+        // abaixo roda sobre colunas da própria tabela `vendas` e não alcança
+        // `clientes.nome` (mesmo padrão de src/components/busca-global.tsx).
+        // As duas listas são unidas por id para não haver duplicatas.
+        const porCampos = base(SELECT_VENDAS_LISTA).or(
+          `grupo.ilike.%${b}%,cota.ilike.%${b}%,administradora.ilike.%${b}%,numero_contrato.ilike.%${b}%,observacoes.ilike.%${b}%`,
+        )
+        const porNomeCliente = base(SELECT_VENDAS_LISTA.replace('clientes(nome)', 'clientes!inner(nome)'))
+          .ilike('clientes.nome', `%${b}%`)
+        const [resCampos, resNome] = await Promise.all([porCampos, porNomeCliente])
+        if (resCampos.error) throw resCampos.error
+        if (resNome.error) throw resNome.error
+
+        const mapa = new Map<string, VendaListaRow>()
+        for (const v of [...(resCampos.data ?? []), ...(resNome.data ?? [])] as unknown as VendaListaRow[]) {
+          mapa.set(v.id, v)
+        }
+        lista = [...mapa.values()]
+        // total exibido: a soma das duas contagens é só um teto, já que pode
+        // haver sobreposição entre as duas buscas. Quando a união cabe
+        // inteira dentro do que já foi buscado (nenhuma das duas bateu no
+        // limite), o tamanho da união é exato; senão, usamos a soma como
+        // estimativa por cima, para não esconder "carregar mais" à toa.
+        const nenhumaTruncada = (resCampos.data?.length ?? 0) < limite && (resNome.data?.length ?? 0) < limite
+        total = nenhumaTruncada ? mapa.size : (resCampos.count ?? 0) + (resNome.count ?? 0)
       } else {
-        // "maior comissão" também entra aqui: o PostgREST só ordena DENTRO de
-        // uma tabela relacionada, não a lista por ela. Como comissão é 1:1 com
-        // a venda, isso não ordenaria nada — a ordem sai logo abaixo, em JS.
-        q = q.order('data_venda', { ascending: false }).order('created_at', { ascending: false })
+        const { data, error, count } = await base(SELECT_VENDAS_LISTA)
+        if (error) throw error
+        lista = (data ?? []) as unknown as VendaListaRow[]
+        total = count ?? lista.length
       }
-      q = q.limit(limite)
-      const { data, error, count } = await q
-      if (error) throw error
-      let lista = data ?? []
-      const total = count ?? lista.length
+
       if (ordenacao === 'comissao') {
-        const comissaoDe = (v: (typeof lista)[number]) =>
-          Number((v.comissoes as { valor_centavos: number } | null)?.valor_centavos ?? 0)
+        const comissaoDe = (v: VendaListaRow) => Number(v.comissoes?.valor_centavos ?? 0)
         lista = [...lista].sort((a, b) => comissaoDe(b) - comissaoDe(a))
       }
-      if (!busca) return { itens: lista, total }
-      // busca por nome de cliente: filtro client-side (MVP) — os demais campos
-      // já foram filtrados no servidor, então nenhuma linha é perdida aqui.
-      const b = busca.toLowerCase()
-      const itens = lista.filter(v =>
-        (v.clientes as { nome: string } | null)?.nome.toLowerCase().includes(b) ||
-        v.grupo.toLowerCase().includes(b) ||
-        v.cota.toLowerCase().includes(b) ||
-        v.administradora.toLowerCase().includes(b) ||
-        (v.numero_contrato ?? '').toLowerCase().includes(b) ||
-        (v.observacoes ?? '').toLowerCase().includes(b))
-      return { itens, total }
+      return { itens: lista, total }
     },
   })
 }

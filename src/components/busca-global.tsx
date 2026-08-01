@@ -8,7 +8,7 @@ import { formatData } from '@/lib/format'
 import { Search, X } from 'lucide-react'
 
 type Resultado =
-  | { tipo: 'venda'; id: string; titulo: string; apoio: string; centavos: number }
+  | { tipo: 'venda'; id: string; titulo: string; apoio: string; centavos: number | null }
   | { tipo: 'cliente'; id: string; titulo: string; apoio: string }
 
 /** PostgREST trata vírgula e parênteses como sintaxe do filtro `or`. */
@@ -61,7 +61,7 @@ export function BuscaGlobal() {
         mapaVendas.set(v.id, {
           tipo: 'venda', id: v.id, titulo: cliente,
           apoio: `${v.administradora} · G${v.grupo} · C${v.cota} · ${formatData(v.data_venda)}`,
-          centavos: Number(comissao?.valor_centavos ?? 0),
+          centavos: comissao ? Number(comissao.valor_centavos) : null,
         })
       }
 
@@ -131,7 +131,9 @@ export function BuscaGlobal() {
                       <span className="block truncate text-xs text-muted-foreground">{r.apoio}</span>
                     </span>
                     {r.tipo === 'venda'
-                      ? <Valor centavos={r.centavos} className="shrink-0 text-sm" />
+                      ? (r.centavos !== null
+                        ? <Valor centavos={r.centavos} className="shrink-0 text-sm" />
+                        : <span className="shrink-0 text-sm text-muted-foreground">—</span>)
                       : <span className="shrink-0 text-xs text-muted-foreground">Cliente</span>}
                   </button>
                 </li>

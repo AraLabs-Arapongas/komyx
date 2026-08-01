@@ -8,10 +8,9 @@ import { competenciaDaVenda, proximaCompetencia } from '@/lib/engine/calendario'
 import { queryKeys } from '@/lib/queries/keys'
 import { Valor } from '@/components/valor'
 import { HeroDinheiro } from '@/components/hero-dinheiro'
-import { BannerPagamento } from '@/components/banner-pagamento'
 import { formatData, formatDataExtenso } from '@/lib/format'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowRight, TriangleAlert } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
@@ -19,6 +18,16 @@ function hojeSP(): string {
 
 function pluralizar(n: number, singular: string, plural: string): string {
   return n === 1 ? singular : plural
+}
+
+/**
+ * Mês que o painel abre. Antes do dia do pagamento, o corretor ainda espera o
+ * dinheiro deste mês; depois dele, o que importa já é o mês seguinte.
+ */
+function mesDoProximoPagamento(hoje: string, diaPagamento: number): { ano: number; mes: number } {
+  const [ano, mes, dia] = hoje.split('-').map(Number)
+  if (dia <= diaPagamento) return { ano, mes }
+  return mes === 12 ? { ano: ano + 1, mes: 1 } : { ano, mes: mes + 1 }
 }
 
 /** Número do resumo: rótulo pequeno em cima, valor forte embaixo, sem moldura. */
@@ -58,7 +67,10 @@ export default function DashboardPage() {
     },
   })
   const hoje = hojeSP()
-  const atual = config ? competenciaDaVenda(hoje, config.dia_fechamento) : null
+  // o mês que abre é o do próximo pagamento, não o de hoje: enquanto o dia do
+  // pagamento não chega, o corretor ainda está esperando o dinheiro deste mês;
+  // passado o dia, o que interessa já é o mês que vem
+  const atual = config ? mesDoProximoPagamento(hoje, config.dia_primeiro_pagamento) : null
   const [ref, setRef] = useState<{ ano: number; mes: number } | null>(null)
   const comp = ref ?? atual
   const { data: d, isLoading } = useDashboard(comp?.ano ?? 0, comp?.mes ?? 0)
@@ -79,14 +91,12 @@ export default function DashboardPage() {
       <HeroDinheiro
         nome={perfil?.nome || 'corretor'}
         competencia={comp}
-        proximoPagamento={d?.proximoPagamento ?? null}
+        pagamento={d?.pagamentoDoMes ?? null}
         hoje={hoje}
         foraDoAtual={foraDoAtual}
         onMes={mudarMes}
         onHoje={() => setRef(null)}
       />
-
-      {d?.vencidos && <BannerPagamento vencidos={d.vencidos} hoje={hoje} />}
 
       {isLoading || !d ? <Skeleton className="h-40 w-full rounded-2xl" /> : (
         <>
@@ -102,7 +112,7 @@ export default function DashboardPage() {
                 apoio={`${d.nVendas} ${pluralizar(d.nVendas, 'venda', 'vendas')}`}
                 href="/app/vendas" />
               <Numero rotulo="Comissão prevista" centavos={d.comissaoPrevistaCentavos} destaque />
-              <Numero rotulo="Já recebi" centavos={d.comissaoRecebidaCentavos} destaque
+              <Numero rotulo="Recebido" centavos={d.comissaoRecebidaCentavos} destaque
                 href="/app/recebimentos" />
               <Numero rotulo="Falta receber" centavos={d.comissaoPendenteCentavos} destaque
                 href="/app/recebimentos" />
@@ -112,18 +122,6 @@ export default function DashboardPage() {
             </p>
           </section>
 
-          {d.vencidos && (
-            <Link href="/app/recebimentos"
-              className="entra flex items-center gap-3 rounded-2xl bg-[#FDF3E7] px-4 py-3 text-sm">
-              <TriangleAlert size={18} className="shrink-0 text-[#B7791F]" />
-              <span className="flex-1">
-                {d.vencidos.quantidade}{' '}
-                {pluralizar(d.vencidos.quantidade, 'parcela atrasada', 'parcelas atrasadas')} ·{' '}
-                <Valor centavos={d.vencidos.totalCentavos} destaque={false} className="font-semibold" />
-              </span>
-              <ArrowRight size={16} className="shrink-0 text-muted-foreground" />
-            </Link>
-          )}
 
           <section className="space-y-3">
             <div className="flex items-center justify-between">

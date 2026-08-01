@@ -50,7 +50,7 @@ export async function recalcularCompetencia(supabase: SB, competenciaId: string)
   const { data: vendas } = await supabase.from('vendas')
     .select('id, valor_carta_centavos, status').eq('competencia_id', competenciaId)
   const { data: recs } = await supabase.from('recebimentos')
-    .select('id, numero_parcela, valor_centavos, status, comissoes!inner(venda_id, vendas!inner(competencia_id))')
+    .select('id, numero_parcela, valor_centavos, data_prevista, status, comissoes!inner(venda_id, vendas!inner(competencia_id))')
     .eq('comissoes.vendas.competencia_id', competenciaId)
 
   const resultado = calcularCompetencia({
@@ -63,8 +63,9 @@ export async function recalcularCompetencia(supabase: SB, competenciaId: string)
     recebimentosExistentes: (recs ?? []).map(r => ({
       id: r.id, vendaId: (r.comissoes as unknown as { venda_id: string }).venda_id,
       numeroParcela: r.numero_parcela, valorCentavos: Number(r.valor_centavos),
-      status: r.status as 'recebido',
+      status: r.status as 'recebido', dataPrevista: r.data_prevista,
     })),
+    hoje: new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }),
   })
 
   const { error: e3 } = await supabase.rpc('aplicar_resultado', {

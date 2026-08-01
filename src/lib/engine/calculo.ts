@@ -4,7 +4,17 @@ import { dataParcela } from './calendario'
 export type VendaCalc = { id: string; valorCartaCentavos: number; status: VendaStatus }
 export type RecebimentoExistente = {
   id: string; vendaId: string; numeroParcela: number
-  valorCentavos: number; status: RecebimentoStatus
+  valorCentavos: number; status: RecebimentoStatus; dataPrevista: string
+}
+
+/**
+ * O escritório paga no dia combinado, então a parcela vale como paga quando
+ * essa data chega — o corretor não precisa confirmar nada. O status gravado
+ * ainda conta, para não desfazer o que já foi marcado à mão no passado.
+ */
+function jaCaiu(r: RecebimentoExistente, hoje: string): boolean {
+  if (r.status === 'cancelado' || r.status === 'estornado') return false
+  return r.status === 'recebido' || r.dataPrevista <= hoje
 }
 export type ComissaoResultado = {
   vendaId: string; percentual: number; faixaAplicada: Faixa
@@ -30,8 +40,10 @@ export function calcularCompetencia(input: {
   competencia: CompetenciaRef
   vendas: VendaCalc[]
   recebimentosExistentes: RecebimentoExistente[]
+  /** data de hoje (YYYY-MM-DD) — define quais parcelas já caíram */
+  hoje: string
 }): ResultadoCalculo {
-  const { config, competencia, vendas, recebimentosExistentes } = input
+  const { config, competencia, vendas, recebimentosExistentes, hoje } = input
   const confirmadas = vendas.filter(v => v.status === 'confirmada')
   const volume = confirmadas.reduce((s, v) => s + v.valorCartaCentavos, 0)
   const faixa = localizarFaixa(config.faixas, volume)
@@ -53,7 +65,7 @@ export function calcularCompetencia(input: {
 
     const valorComissao = Math.round(venda.valorCartaCentavos * faixa.percentual / 100)
     const recebidos = recebimentosExistentes.filter(
-      r => r.vendaId === venda.id && r.status === 'recebido')
+      r => r.vendaId === venda.id && jaCaiu(r, hoje))
     const totalRecebido = recebidos.reduce((s, r) => s + r.valorCentavos, 0)
     const parcelasRecebidas = new Set(recebidos.map(r => r.numeroParcela))
 
