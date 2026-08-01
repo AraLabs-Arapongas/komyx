@@ -4,11 +4,10 @@ import Link from 'next/link'
 import { useRecebimentos, type RecebimentoLinha } from '@/lib/queries/recebimentos'
 import { Valor } from '@/components/valor'
 import { formatData, formatMesAno } from '@/lib/format'
-import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
+import { Seletor } from '@/components/seletor'
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
@@ -26,10 +25,16 @@ function jaCaiu(r: RecebimentoLinha, hoje: string): boolean {
 type Filtro = 'tudo' | 'a_receber' | 'recebidos'
 type Ordenacao = 'proxima' | 'distante' | 'maior_valor'
 
-const FILTROS: { chave: Filtro; rotulo: string }[] = [
-  { chave: 'tudo', rotulo: 'Tudo' },
-  { chave: 'a_receber', rotulo: 'A receber' },
-  { chave: 'recebidos', rotulo: 'Recebidos' },
+const FILTROS: { valor: Filtro; rotulo: string }[] = [
+  { valor: 'tudo', rotulo: 'Tudo' },
+  { valor: 'a_receber', rotulo: 'A receber' },
+  { valor: 'recebidos', rotulo: 'Recebidos' },
+]
+
+const ORDENACOES: { valor: Ordenacao; rotulo: string }[] = [
+  { valor: 'proxima', rotulo: 'Data mais próxima' },
+  { valor: 'distante', rotulo: 'Data mais distante' },
+  { valor: 'maior_valor', rotulo: 'Maior valor' },
 ]
 
 export default function RecebimentosPage() {
@@ -102,29 +107,12 @@ export default function RecebimentosPage() {
             </div>
           </section>
 
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {FILTROS.map(f => (
-              <button key={f.chave} type="button" onClick={() => setFiltro(f.chave)}
-                className={cn('shrink-0 rounded-full px-3 py-1.5 text-sm transition-colors',
-                  filtro === f.chave
-                    ? 'bg-money font-medium text-white'
-                    : 'border text-muted-foreground hover:text-foreground')}>
-                {f.rotulo}
-              </button>
-            ))}
-          </div>
+          <Input placeholder="Buscar por cliente…" value={busca}
+            onChange={e => setBusca(e.target.value)} />
 
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Input placeholder="Buscar por cliente…" value={busca}
-              onChange={e => setBusca(e.target.value)} className="sm:flex-1" />
-            <Select value={ordenacao} onValueChange={v => setOrdenacao(v as Ordenacao)}>
-              <SelectTrigger className="sm:w-56"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="proxima">Data mais próxima</SelectItem>
-                <SelectItem value="distante">Data mais distante</SelectItem>
-                <SelectItem value="maior_valor">Maior valor</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-2">
+            <Seletor valor={filtro} opcoes={FILTROS} onMuda={setFiltro} padrao="tudo" />
+            <Seletor valor={ordenacao} opcoes={ORDENACOES} onMuda={setOrdenacao} padrao="proxima" />
           </div>
 
           {semResultadoNoFiltro && (

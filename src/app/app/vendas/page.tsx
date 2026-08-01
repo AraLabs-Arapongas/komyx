@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
+import { Seletor } from '@/components/seletor'
 import { Plus } from 'lucide-react'
 
 const statusLabel: Record<string, string> = {
@@ -50,23 +50,6 @@ function receberaEm(comissao: ComissaoResumo): string {
   return MESES[mes - 1] ?? '—'
 }
 
-function Pilula({ ativo, onClick, children }: { ativo: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-        ativo
-          ? 'bg-primary text-primary-foreground'
-          : 'bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_8%)]',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
-
 export default function VendasPage() {
   const [busca, setBusca] = useState('')
   const [status, setStatus] = useState<VendaStatusFiltro>('todas')
@@ -91,25 +74,14 @@ export default function VendasPage() {
       <Input placeholder="Buscar por cliente, grupo, cota, administradora, contrato ou observações…"
         value={busca} onChange={e => atualizarBusca(e.target.value)} />
 
-      <div className="flex flex-wrap gap-2">
-        {FILTROS_STATUS.map(f => (
-          <Pilula key={f.valor} ativo={status === f.valor} onClick={() => atualizarStatus(f.valor)}>
-            {f.rotulo}
-          </Pilula>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
+      {/* filtro e ordenação numa linha só: sete pílulas empilhadas empurravam
+          as vendas para fora da primeira tela do celular */}
+      <div className="flex items-center gap-2">
+        <Seletor valor={status} opcoes={FILTROS_STATUS} onMuda={atualizarStatus} padrao="todas" />
+        <Seletor valor={ordenacao} opcoes={ORDENACOES} onMuda={atualizarOrdenacao} padrao="recentes" />
+        <p className="ml-auto shrink-0 text-sm text-muted-foreground">
           {isLoading ? 'Carregando…' : `${total} ${total === 1 ? 'venda' : 'vendas'}`}
         </p>
-        <div className="flex flex-wrap gap-1.5">
-          {ORDENACOES.map(o => (
-            <Pilula key={o.valor} ativo={ordenacao === o.valor} onClick={() => atualizarOrdenacao(o.valor)}>
-              {o.rotulo}
-            </Pilula>
-          ))}
-        </div>
       </div>
 
       {isLoading && (
