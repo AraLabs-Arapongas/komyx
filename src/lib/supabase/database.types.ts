@@ -360,6 +360,10 @@ export type Database = {
         Args: { p_hoje: string; p_snapshot: Json }
         Returns: undefined
       }
+      marcar_recebido: {
+        Args: { p_data: string; p_recebimento_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

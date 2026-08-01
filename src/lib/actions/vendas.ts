@@ -49,6 +49,13 @@ export async function editarVenda(id: string, input: VendaForm) {
     if (e1) return { ok: false as const, erro: 'Venda não encontrada.' }
     const ref = competenciaDaVenda(d.dataVenda, diaFechamento)
     const novaCompetenciaId = await garantirCompetencia(supabase, user.id, ref)
+    if (novaCompetenciaId !== atual.competencia_id) {
+      const { data: recebidos } = await supabase.from('recebimentos')
+        .select('id, comissoes!inner(venda_id)')
+        .eq('comissoes.venda_id', id).eq('status', 'recebido').limit(1)
+      if (recebidos && recebidos.length > 0)
+        return { ok: false as const, erro: 'Esta venda já tem parcelas recebidas. Não é possível mover a venda para outro mês.' }
+    }
     const { error } = await supabase.from('vendas').update({
       cliente_id: d.clienteId, valor_carta_centavos: d.valorCartaCentavos,
       administradora: d.administradora, grupo: d.grupo, cota: d.cota,
@@ -81,18 +88,16 @@ export async function cancelarVenda(id: string, motivo: string) {
 }
 
 export async function marcarRecebido(recebimentoId: string, dataRecebimento: string) {
-  const supabase = await createClient()
-  const { data: rec, error } = await supabase.from('recebimentos')
-    .update({ status: 'recebido', data_recebimento: dataRecebimento })
-    .eq('id', recebimentoId).eq('status', 'previsto')
-    .select('comissao_id').single()
-  if (error) return { ok: false as const, erro: 'Não foi possível registrar o recebimento.' }
-
-  const { data: irmaos } = await supabase.from('recebimentos')
-    .select('status').eq('comissao_id', rec.comissao_id)
-  const pendentes = (irmaos ?? []).filter(r => r.status === 'previsto').length
-  await supabase.from('comissoes')
-    .update({ status: pendentes === 0 ? 'recebida' : 'parcial', updated_at: new Date().toISOString() })
-    .eq('id', rec.comissao_id)
-  return { ok: true as const }
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { ok: false as const, erro: 'Sessão expirada. Entre novamente.' }
+    const { error } = await supabase.rpc('marcar_recebido', {
+      p_recebimento_id: recebimentoId, p_data: dataRecebimento,
+    })
+    if (error) return { ok: false as const, erro: 'Não foi possível registrar o recebimento.' }
+    return { ok: true as const }
+  } catch (e) {
+    return { ok: false as const, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
+  }
 }
