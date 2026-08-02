@@ -199,6 +199,9 @@ export function VendaForm({ vendaId, inicial }: {
    */
   function onKeyDown(e: React.KeyboardEvent<HTMLFormElement>) {
     if (e.key !== 'Enter') return
+    // tecla segurada repete o keydown dezenas de vezes por segundo: sem isto ela
+    // sozinha atravessa os passos
+    if (e.repeat) { e.preventDefault(); return }
     const alvo = e.target as HTMLElement
     // no botão, Enter é o clique dele; em textarea, é quebra de linha
     if (alvo.tagName === 'BUTTON' || alvo.tagName === 'TEXTAREA') return
@@ -328,12 +331,19 @@ export function VendaForm({ vendaId, inicial }: {
             <ChevronLeft size={18} /> Voltar
           </Button>
         )}
+        {/*
+          As duas chaves diferentes não são enfeite: sem elas o React reaproveita
+          o mesmo nó quando "Continuar" vira "Salvar venda", e o botão chega ao
+          último passo já com o foco. Enter repetido então atravessava o wizard e
+          gravava a venda sozinho. Com chaves distintas o nó é trocado, o foco
+          cai, e gravar volta a exigir um gesto de quem está usando.
+        */}
         {emPassos && passo < ultimo ? (
-          <Button type="button" size="lg" className="h-12 flex-1" onClick={avancar}>
+          <Button key="continuar" type="button" size="lg" className="h-12 flex-1" onClick={avancar}>
             Continuar
           </Button>
         ) : (
-          <Button type="submit" size="lg" className="h-12 flex-1" disabled={salvando}>
+          <Button key="salvar" type="submit" size="lg" className="h-12 flex-1" disabled={salvando}>
             {salvando ? 'Salvando…' : vendaId ? 'Salvar alterações' : 'Salvar venda'}
           </Button>
         )}
