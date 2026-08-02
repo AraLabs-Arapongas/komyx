@@ -16,6 +16,9 @@
   --altura-nav: 3.375rem;
   /* barra superior fixa, pelo mesmo motivo */
   --altura-cabecalho: 3.1875rem;
+  /* no painel ela é transparente e carrega a marca em tamanho grande: cresce
+     sem custo, porque o que está atrás é a aurora do hero */
+  --altura-cabecalho-painel: 4.25rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);

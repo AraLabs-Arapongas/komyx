@@ -38,10 +38,11 @@ export function AppNav() {
           de longe. Nas outras telas, onde não há aurora atrás, ela volta a ter
           fundo — texto escuro sobre transparente sumiria. */}
       <div className={cn(
-        'sticky top-0 z-30 flex h-[var(--altura-cabecalho)] items-center justify-between gap-2 px-4 py-2.5 md:justify-end md:pl-48',
+        'sticky top-0 z-30 flex items-center justify-between gap-2 px-4 md:justify-end md:pl-48',
+        noPainel ? 'h-[var(--altura-cabecalho-painel)]' : 'h-[var(--altura-cabecalho)] py-2.5',
         noPainel ? 'border-b border-transparent bg-transparent text-white' : 'border-b bg-card',
       )}>
-        <Logo className="md:hidden" sobreEscuro={noPainel} />
+        <Logo className="md:hidden" sobreEscuro={noPainel} grande={noPainel} />
         <div className="flex items-center gap-1">
           <BuscaGlobal className={noPainel ? 'text-white hover:bg-white/15 hover:text-white' : undefined} />
           <BotaoPrivacidade className={cn('rounded-md p-1.5 transition-colors',

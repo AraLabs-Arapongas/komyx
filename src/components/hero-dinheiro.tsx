@@ -51,7 +51,7 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
     /* sobe por trás do cabeçalho, que no painel é transparente: a aurora
        começa no topo da tela em vez de depois de uma faixa branca. O respiro
        de cima compensa o que a barra ocupa por cima dela. */
-    <section className="entra superficie-marca relative -mx-4 -mt-[calc(var(--altura-cabecalho)+1rem)] overflow-hidden px-5 pb-6 pt-[calc(var(--altura-cabecalho)+1.25rem)] text-white md:mx-0 md:mt-0 md:rounded-lg md:px-8 md:pb-7 md:pt-6">
+    <section className="entra superficie-marca relative -mx-4 -mt-[calc(var(--altura-cabecalho-painel)+1rem)] overflow-hidden px-5 pb-12 pt-[calc(var(--altura-cabecalho-painel)+1rem)] text-white md:mx-0 md:mt-0 md:rounded-lg md:px-8 md:pb-12 md:pt-6">
       {/* mesma luz da landing: o painel do corretor e a página pública são a
           mesma marca */}
       <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
@@ -121,6 +121,19 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
           )}
         </div>
       </div>
+      {/*
+        A borda de baixo é uma onda, não um corte reto.
+        A curva ascendente é a assinatura da marca — a mesma que aparece no
+        hero, na landing e nas telas de entrada. Repeti-la aqui faz a aurora
+        terminar como um gesto do produto, em vez de um bloco cortado com
+        régua. Fica na cor do fundo da página, então é a página subindo por
+        cima da aurora.
+      */}
+      <svg aria-hidden viewBox="0 0 1440 80" preserveAspectRatio="none"
+        className="pointer-events-none absolute inset-x-0 bottom-[-1px] h-8 w-full text-background md:h-10">
+        <path fill="currentColor"
+          d="M0 80 L0 40 C 180 76, 400 78, 660 52 S 1120 6, 1440 24 L1440 80 Z" />
+      </svg>
     </section>
   )
 }
