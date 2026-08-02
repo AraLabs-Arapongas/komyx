@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
+import { cn } from '@/lib/utils'
 import { Valor } from '@/components/valor'
 import { formatData } from '@/lib/format'
 import { Search, X } from 'lucide-react'
@@ -16,7 +17,7 @@ function limpar(termo: string): string {
   return termo.replace(/[,()%]/g, ' ').trim()
 }
 
-export function BuscaGlobal() {
+export function BuscaGlobal({ className }: { className?: string } = {}) {
   const [aberto, setAberto] = useState(false)
   const [termo, setTermo] = useState('')
   const router = useRouter()
@@ -85,7 +86,7 @@ export function BuscaGlobal() {
     return (
       <button type="button" onClick={() => setAberto(true)}
         aria-label="Buscar"
-        className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+        className={cn('rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground', className)}>
         <Search size={18} />
       </button>
     )
