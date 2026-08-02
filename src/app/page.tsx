@@ -60,6 +60,14 @@ const RECURSOS = [
  * (art. 37 do CDC), e a confiança do corretor é o ativo do produto — não
  * vale queimá-la na porta de entrada.
  */
+const INCLUSO = [
+  'Vendas, comissões e parcelas calculadas pelas regras do seu escritório',
+  'Agenda do que entra e quando, mês a mês',
+  'Faixas retroativas por acumulado — inclusive quando uma venda muda o mês inteiro',
+  'Conferência das cotas contra a Loteria Federal',
+  'Seus dados exportáveis a qualquer momento',
+]
+
 const DEPOIMENTOS = [
   {
     nome: 'Nome do corretor',
@@ -169,7 +177,7 @@ export default function LandingPage() {
               <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row md:justify-start">
                 <Button asChild size="toque"
                   className="w-full bg-money-claro px-8 text-base text-[#0B132B] hover:bg-money-claro/90 sm:w-auto">
-                  <Link href="/cadastro">Criar conta grátis</Link>
+                  <Link href="/cadastro">Começar os 14 dias</Link>
                 </Button>
                 <Button asChild variant="ghost" size="toque"
                   className="w-full text-escuro-texto hover:bg-white/10 hover:text-white sm:w-auto">
@@ -177,7 +185,7 @@ export default function LandingPage() {
                 </Button>
               </div>
               <p className="mt-4 text-xs text-escuro-texto">
-                Sem cartão de crédito · Funciona no celular · Seus dados saem quando você quiser
+                14 dias grátis, sem cartão · Funciona no celular · Seus dados saem quando você quiser
               </p>
             </div>
 
@@ -403,6 +411,59 @@ export default function LandingPage() {
         </Secao>
       </div>
 
+      {/*
+        Preço antes do FAQ, não depois: quem rolou até aqui já entendeu o que o
+        produto faz e a próxima pergunta é quanto custa. Enterrar isso embaixo
+        das dúvidas obriga a procurar — e preço que se procura parece escondido.
+      */}
+      <Secao className="py-20 md:py-24">
+        <Revela className="mx-auto max-w-xl text-center">
+          <p className="text-sm font-medium text-money">Preço</p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-4xl">
+            Menos que uma comissão. Bem menos.
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            Uma carta de R$ 120 mil a 0,6% paga sua assinatura por três anos.
+          </p>
+        </Revela>
+
+        <Revela atraso={140} className="mx-auto mt-10 max-w-md">
+          <div className="superficie-marca relative overflow-hidden rounded-3xl p-1.5">
+            <div className="relative overflow-hidden rounded-[calc(1.5rem-0.375rem)] border border-white/20 bg-white/10 px-6 py-10 text-white backdrop-blur-xl">
+              <CurvaMarca />
+              <div className="relative text-center">
+                <p className="text-sm text-escuro-texto">Komyx completo</p>
+                <p className="mt-2 flex items-baseline justify-center gap-1">
+                  <span className="text-lg">R$</span>
+                  <span className="text-5xl font-bold tracking-tight">19,90</span>
+                  <span className="text-lg text-escuro-texto">/mês</span>
+                </p>
+                <p className="mt-3 text-sm text-escuro-texto">
+                  14 dias grátis. Sem cartão para começar.
+                </p>
+
+                <ul className="mt-8 space-y-3 text-left text-sm">
+                  {INCLUSO.map(item => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <Check size={18} className="mt-0.5 shrink-0 text-money-claro" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button asChild size="toque"
+                  className="mt-8 w-full bg-money-claro text-[#0B132B] hover:bg-money-claro/90">
+                  <Link href="/cadastro">Começar os 14 dias</Link>
+                </Button>
+                <p className="mt-3 text-xs text-escuro-texto">
+                  Cancele quando quiser. Seus dados saem com você.
+                </p>
+              </div>
+            </div>
+          </div>
+        </Revela>
+      </Secao>
+
       {/* Dúvidas: sobre a superfície escura, para a seção não se perder entre
           os blocos claros */}
       {/* o roxo aqui é mais fundo que o do hero: a seção precisa de peso sem
@@ -445,12 +506,12 @@ export default function LandingPage() {
             Descubra quanto vai receber antes<br className="hidden md:block" /> do escritório pagar.
           </h2>
           <p className="relative mx-auto mt-3 max-w-md text-escuro-texto">
-            Grátis, sem cartão. Configure suas regras e veja sua próxima comissão
-            calculada em menos de cinco minutos.
+            14 dias grátis, sem cartão. Configure suas regras e veja sua próxima
+            comissão calculada em menos de cinco minutos.
           </p>
           <Button asChild size="toque"
             className="mt-8 bg-money-claro px-8 text-[#0B132B] hover:bg-money-claro/90">
-            <Link href="/cadastro">Criar conta grátis</Link>
+            <Link href="/cadastro">Começar os 14 dias</Link>
           </Button>
 
           <div className="mx-auto mt-12 max-w-md border-t border-white/10 pt-8">
