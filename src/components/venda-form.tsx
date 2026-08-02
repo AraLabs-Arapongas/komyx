@@ -184,10 +184,26 @@ export function VendaForm({ vendaId, inicial }: {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    // Enter no meio do formulário significa "próximo", não "salvar": em passos,
-    // só o último passo grava
-    if (emPassos && passo < ultimo) { avancar(); return }
     void salvar()
+  }
+
+  /*
+   * Enter dentro de um campo nunca grava a venda.
+   *
+   * Um formulário envia sozinho quando se tecla Enter em qualquer input, e o
+   * último passo é o de salvar — bastava o corretor teclar Enter procurando
+   * cliente para a venda ir embora sem ele. Isso não é problema de um campo
+   * só, é da forma do formulário, então o bloqueio fica aqui: Enter avança
+   * enquanto houver passo à frente, e no último não faz nada. Gravar exige o
+   * botão.
+   */
+  function onKeyDown(e: React.KeyboardEvent<HTMLFormElement>) {
+    if (e.key !== 'Enter') return
+    const alvo = e.target as HTMLElement
+    // no botão, Enter é o clique dele; em textarea, é quebra de linha
+    if (alvo.tagName === 'BUTTON' || alvo.tagName === 'TEXTAREA') return
+    e.preventDefault()
+    if (emPassos && passo < ultimo) avancar()
   }
 
   if (celebracao) {
@@ -203,7 +219,7 @@ export function VendaForm({ vendaId, inicial }: {
   const mostrar = (p: number) => !emPassos || passo === p
 
   return (
-    <form onSubmit={onSubmit} className="entra flex min-h-[70dvh] flex-col">
+    <form onSubmit={onSubmit} onKeyDown={onKeyDown} className="entra flex min-h-[70dvh] flex-col">
       {emPassos && (
         <div className="mb-6 space-y-2">
           <div className="flex items-baseline justify-between">

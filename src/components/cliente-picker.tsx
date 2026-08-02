@@ -94,11 +94,18 @@ export function ClientePicker({ value, nomeSelecionado, onChange }: {
       setIndice(i => (i + passo + sugestoes.length) % Math.max(sugestoes.length, 1))
       return
     }
-    // Enter escolhe a sugestão em foco sem enviar o formulário: o corretor
-    // ainda tem quatro campos pela frente
-    if (e.key === 'Enter' && aberto && sugestoes[foco]) {
+    /*
+     * Enter é do picker, sempre — mesmo quando não há sugestão em foco.
+     *
+     * Antes só era interceptado com sugestão em foco. Nos outros casos ele
+     * subia até o <form>, e no último passo do cadastro submit é salvar: o
+     * corretor tentava cadastrar o cliente e a venda ia embora sem ele. No
+     * celular pior ainda, porque a tecla de ação do teclado faz isso.
+     */
+    if (e.key === 'Enter') {
       e.preventDefault()
-      escolher(sugestoes[foco])
+      if (!aberto) { setAberto(true); return }
+      if (sugestoes[foco]) escolher(sugestoes[foco])
       return
     }
     if (e.key === 'Escape' && aberto) { e.preventDefault(); fechar() }
