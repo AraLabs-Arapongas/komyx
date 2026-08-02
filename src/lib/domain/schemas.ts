@@ -32,7 +32,9 @@ export const configFinanceiraSchema = z.object({
     if (f.max !== null && f.max <= f.min)
       ctx.addIssue({ code: 'custom', path: ['faixas', idx, 'max'], message: `O valor final precisa ser maior que ${formatBRL(f.min)}.` })
     if (f.max === null && i !== ordenadas.length - 1)
-      ctx.addIssue({ code: 'custom', path: ['faixas', idx, 'max'], message: 'Apenas a última faixa pode ficar sem valor máximo.' })
+      // a mensagem diz o que fazer, não a regra violada: quem lê está com o
+      // campo vazio na frente e precisa saber que é ele que falta
+      ctx.addIssue({ code: 'custom', path: ['faixas', idx, 'max'], message: 'Informe até quanto vai esta faixa.' })
     if (i > 0) {
       const ant = ordenadas[i - 1]
       if (ant.max === null || f.min !== ant.max + 1)

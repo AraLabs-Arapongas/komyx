@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { Logo } from '@/components/logo'
 import { BotaoPrivacidade } from '@/components/privacidade'
 import { BuscaGlobal } from '@/components/busca-global'
+import { BotaoSair } from '@/components/botao-sair'
 
 const itens = [
   { href: '/app', label: 'Início', icon: LayoutDashboard },
@@ -33,6 +34,7 @@ export function AppNav() {
         <div className="flex items-center gap-1">
           <BuscaGlobal />
           <BotaoPrivacidade className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" />
+          <BotaoSair />
         </div>
       </div>
 

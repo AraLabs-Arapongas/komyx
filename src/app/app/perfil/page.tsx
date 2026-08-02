@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { sair } from '@/app/(auth)/actions'
 import { MenuPerfil } from '@/components/menu-perfil'
-import { Button } from '@/components/ui/button'
+import { BotaoSair } from '@/components/botao-sair'
 import { LayoutAba } from '@/components/ui/layout-aba'
 import { AvatarInicial } from '@/components/ui/avatar-inicial'
 
@@ -35,9 +34,9 @@ export default async function PerfilPage() {
     >
       <MenuPerfil />
 
-      <form action={sair}>
-        <Button variant="outline" type="submit" className="w-full">Sair</Button>
-      </form>
+      {/* mesma confirmação do ícone da barra superior: dois caminhos para a
+          mesma saída, uma pergunta só */}
+      <BotaoSair variante="botao" />
     </LayoutAba>
   )
 }

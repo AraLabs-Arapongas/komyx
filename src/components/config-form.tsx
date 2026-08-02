@@ -140,12 +140,14 @@ export function ConfigForm({ modo, inicial }: {
   const erroFechamento = issues.find(i => i.path[0] === 'diaFechamento')?.message
   const erroPagamento = issues.find(i => i.path[0] === 'diaPrimeiroPagamento')?.message
 
-  // não mostra erro de faixa vazia assim que a tela abre (onboarding começa
-  // em branco); no modo de edição os campos já vêm preenchidos, então mostra
-  // sempre
-  function tocado(f: FaixaDraft): boolean {
-    return modo === 'edicao' || f.maxTxt.trim() !== '' || f.percentualTxt.trim() !== '' || f.parcelasTxt.trim() !== ''
-  }
+  /*
+   * O vermelho só nasce depois de uma tentativa de seguir em frente — mesma
+   * regra dos outros formulários. Antes ele aparecia no instante em que se
+   * adicionava uma faixa: a nova nascia vazia e a anterior passava a precisar
+   * de teto, então três erros pintavam antes de a pessoa digitar qualquer
+   * coisa, acusando-a de algo que ela não teve chance de fazer.
+   */
+  const [tentouSeguir, setTentouSeguir] = useState(false)
 
 
   function duplicarUltimaFaixa() {
@@ -197,9 +199,21 @@ export function ConfigForm({ modo, inicial }: {
       conteudo: (
         <Secao titulo="Faixas" apoio="Comissão calculada pelo total vendido no mês. A última faixa vale de seu início para cima." icone={TrendingUp}>
         <div className="space-y-3">
+        {/* as ações ficam antes da lista: no fim, cada faixa adicionada empurrava
+        os botões para baixo e obrigava a rolar de novo para adicionar a próxima */}
+        <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="outline" size="sm"
+        onClick={() => setFaixas(fs => [...fs, { maxTxt: '', percentualTxt: '', parcelasTxt: '' }])}>
+        <Plus size={18} /> Adicionar faixa
+        </Button>
+        <Button type="button" variant="outline" size="sm" onClick={duplicarUltimaFaixa}
+        title="Copia a comissão e as parcelas da última faixa, para você não redigitar tudo">
+        <Copy size={18} /> Duplicar
+        </Button>
+        </div>
         {faixas.map((f, i) => {
         const erro = errosFaixas[i]
-        const mostrarErro = tocado(f)
+        const mostrarErro = tentouSeguir
         const ultima = i === faixas.length - 1
         return (
         <div key={i} className={cn('space-y-3 rounded-lg bg-muted/40 p-3',
@@ -253,18 +267,6 @@ export function ConfigForm({ modo, inicial }: {
         </div>
         )
         })}
-        <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm"
-        // a que era a última passa a precisar de teto: o campo dela aparece
-        // sozinho, vazio, e a validação cobra
-        onClick={() => setFaixas(fs => [...fs, { maxTxt: '', percentualTxt: '', parcelasTxt: '' }])}>
-        <Plus size={18} /> Adicionar faixa
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={duplicarUltimaFaixa}
-        title="Copia a comissão e as parcelas da última faixa, para você não redigitar tudo">
-        <Copy size={18} /> Duplicar
-        </Button>
-        </div>
         </div>
 
         </Secao>
@@ -321,6 +323,7 @@ export function ConfigForm({ modo, inicial }: {
 
   /** Erro que impede sair de cada passo — o schema já apontou onde. */
   function passoValido(indice: number): boolean {
+    setTentouSeguir(true)
     if (indice === 0) return Object.keys(errosFaixas).length === 0
     if (indice === 1) return !erroFechamento && !erroPagamento
     return true
