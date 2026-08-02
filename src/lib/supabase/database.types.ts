@@ -5,7 +5,6 @@ export type Json =
   | null
   | { [key: string]: Json | undefined }
   | Json[]
-
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
@@ -257,6 +256,38 @@ export type Database = {
           },
         ]
       }
+      eventos_stripe: {
+        Row: {
+          corretor_id: string | null
+          erro: string | null
+          id: string
+          recebido_em: string
+          tipo: string
+        }
+        Insert: {
+          corretor_id?: string | null
+          erro?: string | null
+          id: string
+          recebido_em?: string
+          tipo: string
+        }
+        Update: {
+          corretor_id?: string | null
+          erro?: string | null
+          id?: string
+          recebido_em?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_stripe_corretor_id_fkey"
+            columns: ["corretor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           created_at: string
@@ -280,22 +311,40 @@ export type Database = {
       }
       profiles: {
         Row: {
+          assinatura_ate: string | null
+          assinatura_status: string | null
+          cancela_no_fim: boolean
           created_at: string
           id: string
           nome: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           telefone: string | null
+          trial_termina_em: string
         }
         Insert: {
+          assinatura_ate?: string | null
+          assinatura_status?: string | null
+          cancela_no_fim?: boolean
           created_at?: string
           id: string
           nome?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           telefone?: string | null
+          trial_termina_em?: string
         }
         Update: {
+          assinatura_ate?: string | null
+          assinatura_status?: string | null
+          cancela_no_fim?: boolean
           created_at?: string
           id?: string
           nome?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           telefone?: string | null
+          trial_termina_em?: string
         }
         Relationships: []
       }
@@ -502,11 +551,8 @@ export type Database = {
     }
   }
 }
-
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
-
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
@@ -535,7 +581,6 @@ export type Tables<
       ? R
       : never
     : never
-
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
@@ -560,7 +605,6 @@ export type TablesInsert<
       ? I
       : never
     : never
-
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
@@ -585,7 +629,6 @@ export type TablesUpdate<
       ? U
       : never
     : never
-
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
@@ -602,7 +645,6 @@ export type Enums<
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
-
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
@@ -619,7 +661,6 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
 export const Constants = {
   graphql_public: {
     Enums: {},
