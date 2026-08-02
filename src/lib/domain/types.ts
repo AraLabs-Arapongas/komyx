@@ -3,6 +3,16 @@ export type Faixa = {
   max: number | null     // centavos, inclusivo; null = sem teto
   percentual: number     // pontos percentuais: 0.5 = 0,5%
   parcelas: number
+  /**
+   * Quanto da comissão cai em cada parcela, em pontos percentuais que somam
+   * 100 — [40, 40, 20] paga quase metade nas duas primeiras e o resto na
+   * última. Nem todo escritório divide igual, e supor divisão igual fazia o
+   * corretor ver na agenda uma data com valor que não era o dela.
+   *
+   * `null` mantém a divisão igual: é o que as configurações salvas antes desta
+   * opção significam, e continua sendo o padrão de quem não quer pensar nisso.
+   */
+  distribuicao?: number[] | null
 }
 
 export type Calendario = {

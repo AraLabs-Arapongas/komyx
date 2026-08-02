@@ -35,6 +35,46 @@ function localizarFaixa(faixas: Faixa[], volume: number): Faixa {
   return f ?? ordenadas[ordenadas.length - 1]
 }
 
+/**
+ * Divide o que falta receber entre as parcelas que ainda não caíram.
+ *
+ * Sem `distribuicao`, divide igual. Com ela, cada parcela leva a fatia que a
+ * política do escritório manda — [40, 40, 20] não é o mesmo que três iguais, e
+ * supor que fosse mostrava na agenda uma data com valor que não era o dela.
+ *
+ * O resto da divisão vai sempre para a ÚLTIMA parcela pendente: centavo que
+ * sobra tem que cair em algum lugar, e cair no fim é o que mantém a soma das
+ * parcelas idêntica à comissão. Quando parte já foi recebida, as fatias das
+ * parcelas que restam são renormalizadas entre si — senão o que sobra a receber
+ * não fecharia com o total.
+ */
+function repartir(restante: number, pendentes: number[], faixa: Faixa): number[] {
+  const dist = faixa.distribuicao
+  const usarDistribuicao = Array.isArray(dist)
+    && dist.length === faixa.parcelas
+    && dist.every(p => typeof p === 'number' && p >= 0)
+
+  const pesos = usarDistribuicao
+    ? pendentes.map(n => dist![n - 1] ?? 0)
+    : pendentes.map(() => 1)
+  const somaPesos = pesos.reduce((s, p) => s + p, 0)
+  // peso zerado (ou distribuição inválida) volta para a divisão igual: melhor
+  // repartir do que devolver parcelas de zero e "perder" dinheiro na tela
+  if (somaPesos <= 0) return repartirIgual(restante, pendentes.length)
+
+  const valores = pesos.map(p => Math.floor(restante * p / somaPesos))
+  const distribuido = valores.reduce((s, v) => s + v, 0)
+  valores[valores.length - 1] += restante - distribuido
+  return valores
+}
+
+function repartirIgual(restante: number, quantas: number): number[] {
+  const base = Math.floor(restante / quantas)
+  const valores = Array.from({ length: quantas }, () => base)
+  valores[quantas - 1] = restante - base * (quantas - 1)
+  return valores
+}
+
 export function calcularCompetencia(input: {
   config: ConfigCalc
   competencia: CompetenciaRef
@@ -75,12 +115,11 @@ export function calcularCompetencia(input: {
 
     const restante = Math.max(0, valorComissao - totalRecebido)
     if (numerosPendentes.length > 0 && restante > 0) {
-      const base = Math.floor(restante / numerosPendentes.length)
+      const valores = repartir(restante, numerosPendentes, faixa)
       numerosPendentes.forEach((n, i) => {
-        const ultimo = i === numerosPendentes.length - 1
         recebimentosPrevistos.push({
           vendaId: venda.id, numeroParcela: n,
-          valorCentavos: ultimo ? restante - base * (numerosPendentes.length - 1) : base,
+          valorCentavos: valores[i],
           dataPrevista: dataParcela(competencia, config.calendario.diaPrimeiroPagamento, n),
           status: 'previsto',
         })

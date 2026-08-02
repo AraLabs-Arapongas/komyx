@@ -7,7 +7,7 @@ import { Calendario } from '@/components/ui/calendario'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import {
-  mascaraValor, mascaraData, mascaraPercentual, mascaraInteiro,
+  mascaraValor, mascaraData, mascaraPercentual, mascaraInteiro, mascaraPorcentagem,
   dataBRParaISO, formatData,
 } from '@/lib/format'
 
@@ -140,6 +140,28 @@ export function CampoPercentual({ value, onChange, placeholder = '0,5', classNam
         value={value}
         placeholder={placeholder}
         onChange={e => onChange(mascaraPercentual(e.target.value))}
+        className={cn('pr-7 tabular-nums', className)}
+      />
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+        %
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Fatia de uma parcela, em porcentagem digitada direto — ver o porquê da
+ * máscara própria em `mascaraPorcentagem`.
+ */
+export function CampoFatia({ value, onChange, placeholder = '0', className, ...rest }: Base) {
+  return (
+    <div className="relative">
+      <Input
+        {...rest}
+        inputMode="decimal"
+        value={value}
+        placeholder={placeholder}
+        onChange={e => onChange(mascaraPorcentagem(e.target.value))}
         className={cn('pr-7 tabular-nums', className)}
       />
       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">

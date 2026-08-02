@@ -88,3 +88,20 @@ export function mascaraInteiro(txt: string): string {
 export function rotuloCliente(nome: string | null | undefined): string {
   return nome?.trim() || 'Sem cliente'
 }
+
+/**
+ * Porcentagem digitada direto: "40" é quarenta por cento, não quarenta
+ * centésimos.
+ *
+ * Diferente de `mascaraPercentual`, que monta o número a partir dos centésimos
+ * porque serve para comissão — onde 0,5% é comum e digitar "05" tem que virar
+ * 0,05. Aqui o corretor digita a fatia da parcela, que anda de dez em dez.
+ */
+export function mascaraPorcentagem(txt: string): string {
+  const limpo = txt.replace(/[^\d,]/g, '').replace(/,+/g, ',')
+  const [inteiro, ...resto] = limpo.split(',')
+  const decimais = resto.join('').slice(0, 2)
+  const semZeroAEsquerda = inteiro.replace(/^0+(?=\d)/, '')
+  if (Number(semZeroAEsquerda || '0') > 100) return '100'
+  return resto.length > 0 ? `${semZeroAEsquerda || '0'},${decimais}` : semZeroAEsquerda
+}

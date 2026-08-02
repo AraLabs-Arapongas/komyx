@@ -8,6 +8,24 @@ export const faixaSchema = z.object({
     .positive({ message: 'O percentual deve ser maior que zero.' })
     .max(100, { message: 'O percentual não pode passar de 100%.' }),
   parcelas: z.number().int().positive({ message: 'O número de parcelas deve ser maior que zero.' }),
+  /*
+   * Quanto cai em cada parcela. Ausente ou nulo = divide igual, que é o que as
+   * configurações anteriores a esta opção significam.
+   */
+  distribuicao: z.array(z.number().min(0)).nullable().optional(),
+}).superRefine((f, ctx) => {
+  if (!f.distribuicao) return
+  if (f.distribuicao.length !== f.parcelas) {
+    ctx.addIssue({ code: 'custom', path: ['distribuicao'],
+      message: 'Informe a fatia de cada parcela.' })
+    return
+  }
+  // duas casas: o corretor digita 33,33 e a soma tem que fechar mesmo assim
+  const soma = Math.round(f.distribuicao.reduce((s, p) => s + p, 0) * 100) / 100
+  if (soma !== 100) {
+    ctx.addIssue({ code: 'custom', path: ['distribuicao'],
+      message: `As parcelas somam ${soma.toLocaleString('pt-BR')}%. Precisa dar 100%.` })
+  }
 })
 
 export const configFinanceiraSchema = z.object({

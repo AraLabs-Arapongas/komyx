@@ -9,7 +9,7 @@ import { parseBRLParaCentavos, formatBRL } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Passos, type Passo as PassoConfig } from '@/components/ui/passos'
 import { Label } from '@/components/ui/label'
-import { CampoValor, CampoPercentual, CampoInteiro } from '@/components/campos'
+import { CampoValor, CampoPercentual, CampoInteiro, CampoFatia } from '@/components/campos'
 import { ROTULOS_ESTORNO, type PoliticaEstorno } from '@/lib/domain/types'
 import { cn } from '@/lib/utils'
 import { Trash2, Plus, Copy, TrendingUp, CalendarDays, Undo2, type LucideIcon } from 'lucide-react'
@@ -45,8 +45,12 @@ export function Secao({ titulo, apoio, icone: Icone, children }: {
  * duas coisas separadas permitia estados que não existem — a última marcada
  * como limitada, ou uma do meio marcada como aberta, deixando um buraco acima.
  */
-type FaixaDraft = { maxTxt: string; percentualTxt: string; parcelasTxt: string }
-type ErroFaixa = { max?: string; percentual?: string; parcelas?: string; geral?: string }
+type FaixaDraft = {
+  maxTxt: string; percentualTxt: string; parcelasTxt: string
+  /** vazio = divide igual; um texto por parcela quando o escritório reparte diferente */
+  fatiasTxt: string[]
+}
+type ErroFaixa = { max?: string; percentual?: string; parcelas?: string; distribuicao?: string; geral?: string }
 type Issue = { path: (string | number)[]; message: string }
 
 /**
@@ -62,7 +66,7 @@ function mapearErrosFaixas(issues: Issue[]): Record<number, ErroFaixa> {
     if (typeof idx !== 'number') continue
     const campo = issue.path[2]
     const atual = mapa[idx] ?? {}
-    if (campo === 'max' || campo === 'percentual' || campo === 'parcelas') atual[campo] = issue.message
+    if (campo === 'max' || campo === 'percentual' || campo === 'parcelas' || campo === 'distribuicao') atual[campo] = issue.message
     else atual.geral = atual.geral ?? issue.message
     mapa[idx] = atual
   }
@@ -71,7 +75,7 @@ function mapearErrosFaixas(issues: Issue[]): Record<number, ErroFaixa> {
 
 export function ConfigForm({ modo, inicial }: {
   modo: 'onboarding' | 'edicao'
-  inicial?: { nomePolitica: string; faixas: { max: number | null; percentual: number; parcelas: number }[];
+  inicial?: { nomePolitica: string; faixas: { max: number | null; percentual: number; parcelas: number; distribuicao?: number[] | null }[];
               diaFechamento: number; diaPrimeiroPagamento: number; politicaEstorno: PoliticaEstorno }
 }) {
   const router = useRouter()
@@ -90,7 +94,8 @@ export function ConfigForm({ modo, inicial }: {
       // assim que o corretor tocasse no campo
       percentualTxt: f.percentual.toFixed(2).replace('.', ','),
       parcelasTxt: String(f.parcelas),
-    })) ?? [{ maxTxt: '', percentualTxt: '', parcelasTxt: '' }])
+      fatiasTxt: (f.distribuicao ?? []).map(p => String(p).replace('.', ',')),
+    })) ?? [{ maxTxt: '', percentualTxt: '', parcelasTxt: '', fatiasTxt: [] }])
   const [fechamento, setFechamento] = useState(String(inicial?.diaFechamento ?? 25))
   const [pagamento, setPagamento] = useState(String(inicial?.diaPrimeiroPagamento ?? 10))
   const [estorno, setEstorno] = useState<PoliticaEstorno>(inicial?.politicaEstorno ?? 'perguntar')
@@ -107,7 +112,7 @@ export function ConfigForm({ modo, inicial }: {
     // existe para o rótulo "a partir de X" na tela): mantém o useMemo
     // dependente só de estado, sem precisar listar uma função como dependência.
     // reduce em vez de reatribuir uma variável: evita mutação dentro do render
-    const { itens: listaFaixas } = faixas.reduce<{ acumulado: number; itens: { min: number; max: number | null; percentual: number; parcelas: number }[] }>(
+    const { itens: listaFaixas } = faixas.reduce<{ acumulado: number; itens: { min: number; max: number | null; percentual: number; parcelas: number; distribuicao: number[] | null }[] }>(
       (estado, f) => {
         const min = estado.acumulado
         // a última faixa vai até o infinito; as outras precisam do teto digitado
@@ -119,6 +124,10 @@ export function ConfigForm({ modo, inicial }: {
             min, max,
             percentual: parseFloat(f.percentualTxt.replace(',', '.')) || 0,
             parcelas: parseInt(f.parcelasTxt) || 0,
+            // nenhuma fatia preenchida significa divisão igual, não zero
+            distribuicao: f.fatiasTxt.some(x => x.trim() !== '')
+              ? f.fatiasTxt.map(x => parseFloat(x.replace(',', '.')) || 0)
+              : null,
           }],
         }
       }, { acumulado: 0, itens: [] })
@@ -161,7 +170,7 @@ export function ConfigForm({ modo, inicial }: {
       const ganhouTeto = fs[indice].maxTxt.trim() === '' && valor.trim() !== ''
       if (!eraUltima || !ganhouTeto) return atualizadas
       setTentouSeguir(false)
-      return [...atualizadas, { maxTxt: '', percentualTxt: '', parcelasTxt: '' }]
+      return [...atualizadas, { maxTxt: '', percentualTxt: '', parcelasTxt: '', fatiasTxt: [] }]
     })
   }
 
@@ -194,11 +203,57 @@ export function ConfigForm({ modo, inicial }: {
     })
   }
 
+  function nParcelas(f: FaixaDraft): number {
+    return parseInt(f.parcelasTxt) || 0
+  }
+
+  function fechaEmCem(f: FaixaDraft): boolean {
+    const soma = f.fatiasTxt.reduce((s, x) => s + (parseFloat(x.replace(',', '.')) || 0), 0)
+    return Math.round(soma * 100) / 100 === 100
+  }
+
+  function somaFatias(f: FaixaDraft): string {
+    const soma = f.fatiasTxt.reduce((s, x) => s + (parseFloat(x.replace(',', '.')) || 0), 0)
+    return (Math.round(soma * 100) / 100).toLocaleString('pt-BR')
+  }
+
+  /** Abre as fatias já preenchidas com a divisão igual, que é de onde se parte. */
+  function abrirFatias(indice: number) {
+    setFaixas(fs => fs.map((f, j) => {
+      if (j !== indice) return f
+      const n = parseInt(f.parcelasTxt) || 0
+      if (n < 2) return f
+      const igual = Math.round((100 / n) * 100) / 100
+      const fatias = Array.from({ length: n }, () => String(igual).replace('.', ','))
+      // o resto da divisão vai na última, para o campo já abrir somando 100
+      const resto = Math.round((100 - igual * n) * 100) / 100
+      if (resto !== 0) {
+        fatias[n - 1] = String(Math.round((igual + resto) * 100) / 100).replace('.', ',')
+      }
+      return { ...f, fatiasTxt: fatias }
+    }))
+  }
+
+  function fecharFatias(indice: number) {
+    setFaixas(fs => fs.map((f, j) => (j === indice ? { ...f, fatiasTxt: [] } : f)))
+  }
+
+  /** Mudar o número de parcelas com fatias abertas as reajusta ao novo tamanho. */
+  function mudarParcelas(indice: number, valor: string) {
+    setFaixas(fs => fs.map((f, j) => {
+      if (j !== indice) return f
+      if (f.fatiasTxt.length === 0) return { ...f, parcelasTxt: valor }
+      const n = parseInt(valor) || 0
+      const fatias = Array.from({ length: n }, (_, k) => f.fatiasTxt[k] ?? '')
+      return { ...f, parcelasTxt: valor, fatiasTxt: fatias }
+    }))
+  }
+
   function duplicarUltimaFaixa() {
     // ponto de partida para uma variação da política: copia comissão e
     // parcelas da última faixa em vez de deixar tudo em branco
     const ultima = faixas[faixas.length - 1]
-    acrescentarFaixa({ maxTxt: '', percentualTxt: ultima.percentualTxt, parcelasTxt: ultima.parcelasTxt })
+    acrescentarFaixa({ maxTxt: '', percentualTxt: ultima.percentualTxt, parcelasTxt: ultima.parcelasTxt, fatiasTxt: [...ultima.fatiasTxt] })
   }
 
   async function salvar() {
@@ -243,7 +298,7 @@ export function ConfigForm({ modo, inicial }: {
         os botões para baixo e obrigava a rolar de novo para adicionar a próxima */}
         <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm"
-        onClick={() => acrescentarFaixa({ maxTxt: '', percentualTxt: '', parcelasTxt: '' })}>
+        onClick={() => acrescentarFaixa({ maxTxt: '', percentualTxt: '', parcelasTxt: '', fatiasTxt: [] })}>
         <Plus size={18} /> Adicionar faixa
         </Button>
         <Button type="button" variant="outline" size="sm" onClick={duplicarUltimaFaixa}
@@ -310,10 +365,51 @@ export function ConfigForm({ modo, inicial }: {
         <div className="space-y-1"><Label className="text-xs">Parcelas</Label>
         <CampoInteiro value={f.parcelasTxt} placeholder="2" required
         className={mostrarErro && erro?.parcelas ? 'border-destructive' : undefined}
-        onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, parcelasTxt: v } : x))} />
+        onChange={v => mudarParcelas(i, v)} />
         {mostrarErro && erro?.parcelas && <p className="text-xs text-destructive">{erro.parcelas}</p>}
         </div>
         </div>
+
+        {/*
+          Repartir diferente é exceção: a maioria dos escritórios divide igual, e
+          quem divide igual não deve nem ver esses campos. Quem não divide
+          precisa deles, porque supor divisão igual mostrava na agenda uma data
+          com valor que não era o dela.
+        */}
+        {nParcelas(f) > 1 && (
+        f.fatiasTxt.length === 0 ? (
+        <button type="button" onClick={() => abrirFatias(i)}
+        className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
+        As parcelas não são iguais?
+        </button>
+        ) : (
+        <div className="space-y-2 rounded-lg bg-card p-3">
+        <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-medium">Quanto cai em cada parcela</p>
+        <button type="button" onClick={() => fecharFatias(i)}
+        className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
+        Dividir igual
+        </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+        {f.fatiasTxt.map((fatia, k) => (
+        <div key={k} className="space-y-1">
+        <Label className="text-xs text-muted-foreground">{k + 1}ª</Label>
+        <CampoFatia value={fatia}
+        onChange={v => setFaixas(fs => fs.map((x, j) => j === i
+        ? { ...x, fatiasTxt: x.fatiasTxt.map((y, m) => (m === k ? v : y)) } : x))} />
+        </div>
+        ))}
+        </div>
+        {/* cobra só enquanto não fecha: repetir "precisa dar 100%" com a soma
+        já em 100 faz o certo parecer errado */}
+        {mostrarErro && erro?.distribuicao
+        ? <p className="text-xs text-destructive">{erro.distribuicao}</p>
+        : fechaEmCem(f)
+        ? <p className="text-xs text-money">Somam 100%.</p>
+        : <p className="text-xs text-muted-foreground">Somam {somaFatias(f)}% — precisa dar 100%.</p>}
+        </div>
+        ))}
         </div>
         )
         })}
