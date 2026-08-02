@@ -33,33 +33,55 @@ export function Secao({ titulo, apoio, icone: Icone, children }: {
   )
 }
 
-type FaixaDraft = { maxTxt: string; percentualTxt: string; parcelasTxt: string; semLimite: boolean }
-type ErroFaixa = { max?: string; percentual?: string; parcelas?: string; geral?: string }
+/*
+ * O corretor informa o PISO de cada faixa, não o teto.
+ *
+ * Antes o campo era "vendido até", e o piso da faixa seguinte nascia com um
+ * centavo a mais. Quem lê a política do escritório como "atingiu 1,5 milhão,
+ * vira 0,7%" digitava 1.500.000,00 no teto e o mês que fechasse exatamente em
+ * 1,5 milhão ficava na faixa de baixo — o corte caía um centavo longe do que a
+ * pessoa quis dizer, e nada na tela mostrava isso.
+ *
+ * Com piso, o número digitado é o ponto em que a faixa passa a valer: vendeu
+ * 1.500.000,00, está na faixa que começa em 1.500.000,00. O banco continua
+ * guardando min e max — o teto de cada faixa é derivado do piso da seguinte,
+ * então as faixas não têm como se sobrepor nem deixar buraco.
+ */
+type FaixaDraft = { minTxt: string; percentualTxt: string; parcelasTxt: string }
+type ErroFaixa = { min?: string; percentual?: string; parcelas?: string; geral?: string }
 type Issue = { path: (string | number)[]; message: string }
 
 /**
  * Reaproveita as mensagens do configFinanceiraSchema (não duplica regra) e as
  * organiza por índice de faixa + campo, para o formulário mostrar o erro
  * embaixo do input certo em vez de um toast genérico.
+ *
+ * O schema fala em `max`, que aqui não é campo de ninguém: o teto da faixa i é
+ * o piso da faixa i+1 menos um centavo. Então o erro do teto de i é culpa do
+ * piso de i+1, e é lá que ele aparece.
  */
 function mapearErrosFaixas(issues: Issue[]): Record<number, ErroFaixa> {
   const mapa: Record<number, ErroFaixa> = {}
+  const anotar = (idx: number, campo: keyof ErroFaixa, mensagem: string) => {
+    const atual = mapa[idx] ?? {}
+    atual[campo] = atual[campo] ?? mensagem
+    mapa[idx] = atual
+  }
   for (const issue of issues) {
     if (issue.path[0] !== 'faixas') continue
     const idx = issue.path[1]
     if (typeof idx !== 'number') continue
     const campo = issue.path[2]
-    const atual = mapa[idx] ?? {}
-    if (campo === 'max' || campo === 'percentual' || campo === 'parcelas') atual[campo] = issue.message
-    else atual.geral = atual.geral ?? issue.message
-    mapa[idx] = atual
+    if (campo === 'max') anotar(idx + 1, 'min', 'Precisa ser maior que o início da faixa anterior.')
+    else if (campo === 'percentual' || campo === 'parcelas') anotar(idx, campo, issue.message)
+    else anotar(idx, 'geral', issue.message)
   }
   return mapa
 }
 
 export function ConfigForm({ modo, inicial }: {
   modo: 'onboarding' | 'edicao'
-  inicial?: { nomePolitica: string; faixas: { max: number | null; percentual: number; parcelas: number }[];
+  inicial?: { nomePolitica: string; faixas: { min: number; percentual: number; parcelas: number }[];
               diaFechamento: number; diaPrimeiroPagamento: number; politicaEstorno: PoliticaEstorno }
 }) {
   const router = useRouter()
@@ -67,43 +89,36 @@ export function ConfigForm({ modo, inicial }: {
   const [nome, setNome] = useState(inicial?.nomePolitica ?? 'Política do escritório')
   const [faixas, setFaixas] = useState<FaixaDraft[]>(
     inicial?.faixas.map(f => ({
-      maxTxt: f.max === null ? '' : (f.max / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+      // a primeira faixa começa em zero por definição e não tem campo
+      minTxt: f.min === 0 ? '' : (f.min / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
       // duas casas para bater com a máscara: sem isso, "0,5" viraria "0,05"
       // assim que o corretor tocasse no campo
       percentualTxt: f.percentual.toFixed(2).replace('.', ','),
       parcelasTxt: String(f.parcelas),
-      semLimite: f.max === null,
-    })) ?? [{ maxTxt: '', percentualTxt: '', parcelasTxt: '', semLimite: true }])
+    })) ?? [{ minTxt: '', percentualTxt: '', parcelasTxt: '' }])
   const [fechamento, setFechamento] = useState(String(inicial?.diaFechamento ?? 25))
   const [pagamento, setPagamento] = useState(String(inicial?.diaPrimeiroPagamento ?? 10))
   const [estorno, setEstorno] = useState<PoliticaEstorno>(inicial?.politicaEstorno ?? 'perguntar')
   const [salvando, setSalvando] = useState(false)
   const [valorSimulado, setValorSimulado] = useState('')
 
-  function minDaFaixa(i: number): number {
-    if (i === 0) return 0
-    const antMax = parseBRLParaCentavos(faixas[i - 1].maxTxt)
-    return antMax + 1
+  /** piso da faixa: zero na primeira, o que o corretor digitou nas outras */
+  function pisoDaFaixa(i: number): number {
+    return i === 0 ? 0 : parseBRLParaCentavos(faixas[i].minTxt)
+  }
+
+  /** teto: um centavo antes do piso da próxima; a última não tem */
+  function tetoDaFaixa(i: number): number | null {
+    return i === faixas.length - 1 ? null : pisoDaFaixa(i + 1) - 1
   }
 
   const payload = useMemo(() => {
-    // recalcula o "min" acumulado aqui em vez de chamar minDaFaixa (que só
-    // existe para o rótulo "a partir de X" na tela): mantém o useMemo
-    // dependente só de estado, sem precisar listar uma função como dependência.
-    // reduce em vez de reatribuir uma variável: evita mutação dentro do render
-    const { itens: listaFaixas } = faixas.reduce<{ acumulado: number; itens: { min: number; max: number | null; percentual: number; parcelas: number }[] }>(
-      (estado, f) => {
-        const min = estado.acumulado
-        const max = f.semLimite || f.maxTxt.trim() === '' ? null : parseBRLParaCentavos(f.maxTxt)
-        return {
-          acumulado: max !== null ? max + 1 : estado.acumulado,
-          itens: [...estado.itens, {
-            min, max,
-            percentual: parseFloat(f.percentualTxt.replace(',', '.')) || 0,
-            parcelas: parseInt(f.parcelasTxt) || 0,
-          }],
-        }
-      }, { acumulado: 0, itens: [] })
+    const listaFaixas = faixas.map((f, i) => ({
+      min: i === 0 ? 0 : parseBRLParaCentavos(f.minTxt),
+      max: i === faixas.length - 1 ? null : parseBRLParaCentavos(faixas[i + 1].minTxt) - 1,
+      percentual: parseFloat(f.percentualTxt.replace(',', '.')) || 0,
+      parcelas: parseInt(f.parcelasTxt) || 0,
+    }))
     return {
       nomePolitica: nome,
       faixas: listaFaixas,
@@ -127,7 +142,7 @@ export function ConfigForm({ modo, inicial }: {
   // em branco); no modo de edição os campos já vêm preenchidos, então mostra
   // sempre
   function tocado(f: FaixaDraft): boolean {
-    return modo === 'edicao' || f.maxTxt.trim() !== '' || f.percentualTxt.trim() !== '' || f.parcelasTxt.trim() !== ''
+    return modo === 'edicao' || f.minTxt.trim() !== '' || f.percentualTxt.trim() !== '' || f.parcelasTxt.trim() !== ''
   }
 
   const resultadoSimulacao = useMemo(() => {
@@ -150,13 +165,11 @@ export function ConfigForm({ modo, inicial }: {
 
   function duplicarUltimaFaixa() {
     // ponto de partida para uma variação da política: copia comissão e
-    // parcelas da última faixa em vez de deixar tudo em branco
+    // parcelas da última faixa em vez de deixar tudo em branco. O piso fica em
+    // branco porque é justamente o que distingue a faixa nova da anterior.
     setFaixas(fs => {
       const ultima = fs[fs.length - 1]
-      return [
-        ...fs.map(x => ({ ...x, semLimite: false })),
-        { maxTxt: '', percentualTxt: ultima.percentualTxt, parcelasTxt: ultima.parcelasTxt, semLimite: true },
-      ]
+      return [...fs, { minTxt: '', percentualTxt: ultima.percentualTxt, parcelasTxt: ultima.parcelasTxt }]
     })
   }
 
@@ -194,7 +207,7 @@ export function ConfigForm({ modo, inicial }: {
         </div>
       </Secao>
 
-      <Secao titulo="Faixas" apoio="Comissão calculada pelo total vendido no mês. Deixe o “vendido até” da última faixa em branco." icone={TrendingUp}>
+      <Secao titulo="Faixas" apoio="Comissão calculada pelo total vendido no mês. Informe a partir de quanto cada faixa passa a valer — vendeu exatamente esse valor, já está nela." icone={TrendingUp}>
         <div className="space-y-3">
           {faixas.map((f, i) => {
             const erro = errosFaixas[i]
@@ -203,7 +216,11 @@ export function ConfigForm({ modo, inicial }: {
               <div key={i} className={cn('space-y-3 rounded-[10px] bg-muted/40 p-3',
                 mostrarErro && erro && 'ring-1 ring-destructive/50')}>
                 <div className="flex items-center justify-between text-sm font-medium">
-                  <span>Faixa {i + 1} — a partir de {formatBRL(minDaFaixa(i))}</span>
+                  {/* mostra o intervalo fechado que a faixa cobre: com o piso
+                      digitado, é aqui que o corretor confere onde ficou o corte */}
+                  <span>Faixa {i + 1} — {tetoDaFaixa(i) === null
+                    ? `de ${formatBRL(pisoDaFaixa(i))} em diante`
+                    : `${formatBRL(pisoDaFaixa(i))} a ${formatBRL(tetoDaFaixa(i)!)}`}</span>
                   {faixas.length > 1 && (
                     <button type="button" onClick={() => setFaixas(fs => fs.filter((_, j) => j !== i))}>
                       <Trash2 size={18} className="text-muted-foreground" />
@@ -214,23 +231,13 @@ export function ConfigForm({ modo, inicial }: {
                     o valor ocupa a linha inteira e os dois curtos dividem a de baixo */}
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   <div className="col-span-2 space-y-1 sm:col-span-1">
-                    <Label className="text-xs">Vendido até</Label>
-                    <CampoValor value={f.maxTxt} placeholder="Sem limite" disabled={f.semLimite}
-                      className={mostrarErro && erro?.max ? 'border-destructive' : undefined}
-                      onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, maxTxt: v } : x))} />
-                    <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs text-muted-foreground">
-                      <input
-                        type="checkbox"
-                        className="size-3.5 cursor-pointer accent-foreground"
-                        checked={f.semLimite}
-                        onChange={e => setFaixas(fs => fs.map((x, j) =>
-                          // limpa o valor ao marcar: guardar um teto que não vale
-                          // mais só criaria dúvida na próxima edição
-                          j === i ? { ...x, semLimite: e.target.checked, maxTxt: e.target.checked ? '' : x.maxTxt } : x))}
-                      />
-                      Sem limite
-                    </label>
-                    {mostrarErro && erro?.max && <p className="text-xs text-destructive">{erro.max}</p>}
+                    <Label className="text-xs">A partir de</Label>
+                    {/* a primeira faixa começa em zero por definição: campo
+                        travado em vez de escondido, para a coluna não desalinhar */}
+                    <CampoValor value={i === 0 ? '0,00' : f.minTxt} disabled={i === 0}
+                      className={mostrarErro && erro?.min ? 'border-destructive' : undefined}
+                      onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, minTxt: v } : x))} />
+                    {mostrarErro && erro?.min && <p className="text-xs text-destructive">{erro.min}</p>}
                   </div>
                   <div className="space-y-1"><Label className="text-xs">Comissão</Label>
                     <CampoPercentual value={f.percentualTxt} required
@@ -250,12 +257,9 @@ export function ConfigForm({ modo, inicial }: {
           })}
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" size="sm"
-              // só a última faixa pode ficar aberta: a que era a última passa a
-              // precisar de um teto
-              onClick={() => setFaixas(fs => [
-                ...fs.map(x => ({ ...x, semLimite: false })),
-                { maxTxt: '', percentualTxt: '', parcelasTxt: '', semLimite: true },
-              ])}>
+              // a nova faixa entra no fim e passa a ser a aberta; a anterior
+              // ganha teto sozinha, derivado deste piso
+              onClick={() => setFaixas(fs => [...fs, { minTxt: '', percentualTxt: '', parcelasTxt: '' }])}>
               <Plus size={18} /> Adicionar faixa
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={duplicarUltimaFaixa}

@@ -18,7 +18,7 @@ export default async function ConfiguracaoPage() {
       {cfg && (
         <ConfigForm modo="edicao" inicial={{
           nomePolitica: cfg.nome_politica,
-          faixas: (cfg.faixas as Faixa[]).map(f => ({ max: f.max, percentual: f.percentual, parcelas: f.parcelas })),
+          faixas: (cfg.faixas as Faixa[]).map(f => ({ min: f.min, percentual: f.percentual, parcelas: f.parcelas })),
           diaFechamento: cfg.dia_fechamento,
           diaPrimeiroPagamento: cfg.dia_primeiro_pagamento,
           politicaEstorno: (cfg.politica_estorno ?? 'perguntar') as PoliticaEstorno,
