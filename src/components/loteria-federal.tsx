@@ -40,7 +40,7 @@ export function LoteriaFederal() {
         </p>
       </div>
 
-      <ol className="overflow-hidden rounded-2xl bg-card">
+      <ol className="overflow-hidden rounded-lg bg-card">
         {data.bilhetes.map((bilhete, i) => {
           const doPremio = acertos.get(i + 1)
           const numero = (

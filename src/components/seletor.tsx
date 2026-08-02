@@ -53,7 +53,7 @@ export function Seletor<T extends string>({ valor, opcoes, onMuda, padrao, class
           position="popper"
           sideOffset={6}
           className="z-50 max-h-(--radix-select-content-available-height)
-                     min-w-[var(--radix-select-trigger-width)] overflow-y-auto rounded-2xl
+                     min-w-[var(--radix-select-trigger-width)] overflow-y-auto rounded-lg
                      bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-foreground/10
                      data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95
                      data-closed:animate-out data-closed:fade-out-0"
@@ -63,7 +63,7 @@ export function Seletor<T extends string>({ valor, opcoes, onMuda, padrao, class
               <SelectPrimitive.Item
                 key={o.valor}
                 value={o.valor}
-                className="flex cursor-default select-none items-center justify-between gap-6 rounded-xl
+                className="flex cursor-default select-none items-center justify-between gap-6 rounded-lg
                            px-3 py-2 text-sm outline-none data-highlighted:bg-secondary"
               >
                 <SelectPrimitive.ItemText>{o.rotulo}</SelectPrimitive.ItemText>

@@ -19,7 +19,7 @@ export default async function PerfilPage() {
 
   return (
     <div className="space-y-4">
-      <section className="entra flex items-center gap-3 rounded-2xl bg-escuro p-5 text-white">
+      <section className="entra flex items-center gap-3 rounded-lg bg-escuro p-5 text-white">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-full
                          bg-white/10 text-lg font-semibold">
           {inicial}

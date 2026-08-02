@@ -106,7 +106,7 @@ export default function VendasPage() {
       )}
 
       {!isLoading && vendas.length === 0 && (
-        <div className="rounded-[10px] border p-8 text-center">
+        <div className="rounded-lg border p-8 text-center">
           <p className="mb-3 text-muted-foreground">
             {busca || status !== 'todas'
               ? 'Nenhuma venda encontrada para esse filtro.'
@@ -124,7 +124,7 @@ export default function VendasPage() {
           return (
             <Link key={v.id} href={`/app/vendas/${v.id}`}
               style={{ animationDelay: `${Math.min(i, 8) * 30}ms` }}
-              className="entra block rounded-[10px] border bg-card p-3 transition-colors hover:bg-background">
+              className="entra block rounded-lg bg-card p-3 transition-colors hover:bg-secondary">
               <div className="flex items-center justify-between">
                 <p className="font-medium">{rotuloCliente((v.clientes as { nome: string } | null)?.nome)}</p>
                 <Badge variant={v.status === 'confirmada' ? 'secondary' : 'outline'}>

@@ -43,7 +43,7 @@ export function MenuDev() {
   }
 
   return (
-    <section className="space-y-3 rounded-2xl border border-dashed border-border p-4">
+    <section className="space-y-3 rounded-lg border border-dashed border-border p-4">
       {confete && <Confete aoTerminar={() => setConfete(false)} />}
 
       <div className="space-y-2">

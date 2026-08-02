@@ -51,7 +51,7 @@ export function AppNav() {
         <Logo className="mb-6 px-2" />
         {itens.map(({ href, label, icon: Icon, tambem }) => (
           <Link key={href} href={href}
-            className={cn('flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-sm',
+            className={cn('flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm',
               ativo(href, tambem) ? 'bg-background font-medium' : 'text-muted-foreground hover:text-foreground')}>
             <Icon size={18} />{label}
           </Link>

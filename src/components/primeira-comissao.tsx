@@ -10,7 +10,7 @@ export function PrimeiraComissao({ valorCentavos, dataPrevista, aoFechar }: {
 }) {
   return (
     <div className="entra-suave fixed inset-0 z-50 flex items-center justify-center bg-escuro/80 p-4">
-      <div className="entra w-full max-w-sm space-y-5 rounded-2xl bg-escuro p-8 text-center text-white">
+      <div className="entra w-full max-w-sm space-y-5 rounded-lg bg-escuro p-8 text-center text-white">
         <p className="text-4xl">🎉</p>
         <h2 className="text-2xl font-semibold sm:text-3xl">Sua primeira comissão foi calculada.</h2>
         <div className="py-1">

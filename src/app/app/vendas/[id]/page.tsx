@@ -110,7 +110,7 @@ export default function VendaDetalhePage() {
 
   if (!venda) {
     return (
-      <div className="rounded-[10px] border p-8 text-center">
+      <div className="rounded-lg border p-8 text-center">
         <p className="mb-3 text-muted-foreground">Venda não encontrada.</p>
         <Button asChild><Link href="/app/vendas">Voltar para vendas</Link></Button>
       </div>
@@ -251,7 +251,7 @@ export default function VendaDetalhePage() {
         <p className="font-medium">Comissão</p>
         {comissao ? (
           <>
-            <div className="rounded-2xl bg-money-soft p-5">
+            <div className="rounded-lg bg-money-soft p-5">
               <p className="text-3xl"><Valor centavos={Number(comissao.valor_centavos)} /></p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {formatPercentual(comissao.percentual)} sobre o valor da carta
@@ -395,7 +395,7 @@ export default function VendaDetalhePage() {
           </div>
 
           {totalRecebidoCentavos > 0 ? (
-            <label className="flex cursor-pointer gap-3 rounded-[10px] border p-3">
+            <label className="flex cursor-pointer gap-3 rounded-lg border p-3">
               <input
                 type="checkbox"
                 className="mt-0.5 size-4 shrink-0 cursor-pointer accent-foreground"

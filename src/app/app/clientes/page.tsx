@@ -37,7 +37,7 @@ export default function ClientesPage() {
         informa, só ocupa a primeira dobra para dizer que ainda não há notícia.
       */}
       {!isLoading && !busca && comissaoTotal > 0 && (
-        <section className="entra-suave superficie-marca-faixa relative overflow-hidden rounded-2xl px-4 py-3.5 text-white">
+        <section className="entra-suave superficie-marca-faixa relative overflow-hidden rounded-lg px-4 py-3.5 text-white">
           <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
           <div className="relative flex items-end justify-between gap-3">
             <div>
@@ -67,12 +67,12 @@ export default function ClientesPage() {
 
       {isLoading && (
         <div className="space-y-2">
-          {[0, 1, 2].map(i => <Skeleton key={i} className="h-[4.5rem] w-full rounded-2xl" />)}
+          {[0, 1, 2].map(i => <Skeleton key={i} className="h-[4.5rem] w-full rounded-lg" />)}
         </div>
       )}
 
       {!isLoading && total === 0 && (
-        <div className="rounded-2xl border border-dashed bg-card/50 p-8 text-center">
+        <div className="rounded-lg border border-dashed bg-card/50 p-8 text-center">
           <p className="mb-3 text-muted-foreground">
             {busca ? 'Nenhum cliente encontrado para essa busca.' : 'Você ainda não cadastrou nenhum cliente.'}
           </p>
@@ -86,7 +86,7 @@ export default function ClientesPage() {
             /* o atraso escalonado faz a lista entrar como lista, não como bloco;
                curto o bastante para não atrasar quem já sabe em quem vai tocar */
             style={i < 8 ? { animationDelay: `${i * 35}ms` } : undefined}
-            className="entra-suave group flex items-center gap-3 rounded-2xl bg-card p-3 transition-colors hover:bg-secondary">
+            className="entra-suave group flex items-center gap-3 rounded-lg bg-card p-3 transition-colors hover:bg-secondary">
             <AvatarInicial nome={c.nome} />
 
             <div className="min-w-0 flex-1">

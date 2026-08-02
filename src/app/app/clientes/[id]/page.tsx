@@ -54,7 +54,7 @@ function ClienteExistente({ id }: { id: string }) {
 
   if (!cliente) {
     return (
-      <div className="rounded-[10px] border p-8 text-center">
+      <div className="rounded-lg border p-8 text-center">
         <p className="mb-3 text-muted-foreground">Cliente não encontrado.</p>
         <Button asChild><Link href="/app/clientes">Voltar para clientes</Link></Button>
       </div>
@@ -90,7 +90,7 @@ function ClienteExistente({ id }: { id: string }) {
         <Button variant="outline" onClick={() => setEditando(true)}><Pencil size={18} /> Editar</Button>
       </div>
 
-      <div className="space-y-2 rounded-[10px] border bg-card p-4">
+      <div className="space-y-2 rounded-lg border bg-card p-4">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Telefone</span>
           <span className="font-medium">{cliente.telefone || '—'}</span>
@@ -123,7 +123,7 @@ function ClienteExistente({ id }: { id: string }) {
         )}
         {(vendas ?? []).map(v => (
           <Link key={v.id} href={`/app/vendas/${v.id}`}
-            className="block rounded-[10px] border bg-card p-3 hover:bg-background">
+            className="block rounded-lg border bg-card p-3 hover:bg-background">
             <div className="flex items-center justify-between">
               <p className="font-medium">{cliente.nome}</p>
               <Badge variant={v.status === 'confirmada' ? 'secondary' : 'outline'}>

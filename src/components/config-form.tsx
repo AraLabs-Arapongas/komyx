@@ -20,7 +20,7 @@ export function Secao({ titulo, apoio, icone: Icone, children }: {
   titulo: string; apoio: string; icone: LucideIcon; children: React.ReactNode
 }) {
   return (
-    <section className="entra-suave space-y-4 rounded-[10px] border bg-card p-4 md:p-5">
+    <section className="entra-suave space-y-4 rounded-lg border bg-card p-4 md:p-5">
       <div className="flex items-start gap-2.5">
         <Icone size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
         <div className="space-y-1">
@@ -200,7 +200,7 @@ export function ConfigForm({ modo, inicial }: {
             const erro = errosFaixas[i]
             const mostrarErro = tocado(f)
             return (
-              <div key={i} className={cn('space-y-3 rounded-[10px] bg-muted/40 p-3',
+              <div key={i} className={cn('space-y-3 rounded-lg bg-muted/40 p-3',
                 mostrarErro && erro && 'ring-1 ring-destructive/50')}>
                 <div className="flex items-center justify-between text-sm font-medium">
                   <span>Faixa {i + 1} — a partir de {formatBRL(minDaFaixa(i))}</span>
@@ -265,7 +265,7 @@ export function ConfigForm({ modo, inicial }: {
           </div>
         </div>
 
-        <div className="space-y-3 rounded-[10px] bg-money-soft p-3 md:p-4">
+        <div className="space-y-3 rounded-lg bg-money-soft p-3 md:p-4">
           <div className="space-y-1">
             <p className="text-sm font-medium">Simule uma venda</p>
             <p className="text-xs text-muted-foreground">Veja a faixa aplicada, a comissão e as parcelas antes de salvar.</p>
@@ -277,7 +277,7 @@ export function ConfigForm({ modo, inicial }: {
             <p className="text-xs text-muted-foreground">Corrija as faixas acima para simular.</p>
           )}
           {resultadoSimulacao && comissaoSimulada && (
-            <div key={valorSimulado} className="entra-suave space-y-3 rounded-[10px] bg-escuro p-4 text-white">
+            <div key={valorSimulado} className="entra-suave space-y-3 rounded-lg bg-escuro p-4 text-white">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-escuro-texto">Faixa aplicada</span>
                 <span className="text-sm font-medium">{formatPercentual(comissaoSimulada.percentual)} de comissão</span>
@@ -320,7 +320,7 @@ export function ConfigForm({ modo, inicial }: {
           {(Object.keys(ROTULOS_ESTORNO) as PoliticaEstorno[]).map(opcao => (
             <label
               key={opcao}
-              className={cn('flex cursor-pointer gap-3 rounded-[10px] border p-3',
+              className={cn('flex cursor-pointer gap-3 rounded-lg border p-3',
                 estorno === opcao ? 'border-foreground/40 bg-background' : 'hover:bg-background')}
             >
               <input

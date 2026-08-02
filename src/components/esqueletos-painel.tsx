@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 /** O bloco escuro do topo, com saudação, valor grande e botão. */
 export function EsqueletoHero() {
   return (
-    <section className="-mx-4 -mt-4 space-y-4 superficie-marca px-5 pb-6 pt-5 md:mx-0 md:mt-0 md:rounded-3xl md:px-8 md:pb-7 md:pt-6">
+    <section className="-mx-4 -mt-4 space-y-4 superficie-marca px-5 pb-6 pt-5 md:mx-0 md:mt-0 md:rounded-lg md:px-8 md:pb-7 md:pt-6">
       <div className="flex items-start justify-between gap-3">
         <Skeleton className="h-4 w-28 bg-white/10" />
         <Skeleton className="h-6 w-28 rounded-full bg-white/10" />
@@ -56,7 +56,7 @@ export function EsqueletoLoteria() {
         <Skeleton className="h-4 w-28" />
         <Skeleton className="h-3 w-32" />
       </div>
-      <div className="divide-y overflow-hidden rounded-2xl bg-card">
+      <div className="divide-y overflow-hidden rounded-lg bg-card">
         {Array.from({ length: 5 }).map((_, i) => (
           /* a altura acompanha a do número de verdade (text-base, e text-lg no
              desktop): com barras mais baixas o cartão encolhia 40px e a lista
@@ -76,7 +76,7 @@ export function EsqueletoLista() {
   return (
     <section className="flex min-w-0 flex-col space-y-2">
       <Skeleton className="h-4 w-32" />
-      <div className="flex flex-1 flex-col divide-y overflow-hidden rounded-2xl bg-card">
+      <div className="flex flex-1 flex-col divide-y overflow-hidden rounded-lg bg-card">
         <div className="space-y-1.5 px-3 py-2.5">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-3 w-36" />

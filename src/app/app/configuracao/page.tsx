@@ -11,7 +11,7 @@ export default async function ConfiguracaoPage() {
     <div className="space-y-6">
       <Voltar href="/app/perfil" />
       <h1 className="text-xl font-semibold">Ajustes</h1>
-      <div className="rounded-[10px] border border-[#F59E0B]/40 bg-[#F59E0B]/10 p-3 text-sm">
+      <div className="rounded-lg border border-[#F59E0B]/40 bg-[#F59E0B]/10 p-3 text-sm">
         Alterações valem para as próximas vendas. O mês em aberto será recalculado
         com as novas regras; meses já fechados não mudam.
       </div>

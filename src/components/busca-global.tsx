@@ -94,7 +94,7 @@ export function BuscaGlobal() {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 p-4 pt-[12vh]"
       onClick={() => setAberto(false)}>
-      <div className="entra w-full max-w-lg overflow-hidden rounded-2xl bg-card shadow-lg"
+      <div className="entra w-full max-w-lg overflow-hidden rounded-lg bg-card shadow-lg"
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center gap-2 border-b px-4">
           <Search size={18} className="shrink-0 text-muted-foreground" />

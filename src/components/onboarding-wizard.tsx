@@ -44,7 +44,7 @@ function Navegacao({ aoVoltar, aoContinuar, rotulo = 'Continuar', carregando = f
           poucos segundos, no topo da tela, longe de onde o dedo acabou de
           tocar — o corretor conclui que o botão não funciona */}
       {erro && (
-        <p role="alert" className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <p role="alert" className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {erro}
         </p>
       )}
@@ -151,7 +151,7 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
   return (
     <div className="mx-auto w-full max-w-lg">
       {passo === 'boas-vindas' && (
-        <div key="boas-vindas" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 relative overflow-hidden rounded-2xl superficie-marca px-6 py-16 text-center text-white">
+        <div key="boas-vindas" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 relative overflow-hidden rounded-lg superficie-marca px-6 py-16 text-center text-white">
           <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
           <CurvaMarca />
           <p className="text-xs font-medium tracking-[0.2em] text-escuro-texto uppercase">Komyx</p>
@@ -177,7 +177,7 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
               const parcelasOk = f.parcelasTxt.trim() !== ''
               const tetoOk = f.semLimite || f.maxTxt.trim() !== ''
               return (
-                <div key={i} className="space-y-3 rounded-2xl border border-border/60 bg-card p-4">
+                <div key={i} className="space-y-3 rounded-lg border border-border/60 bg-card p-4">
                   <div className="flex items-center justify-between text-sm font-medium">
                     <span>A partir de {formatBRL(minDaFaixa(i))}</span>
                     {faixas.length > 1 && (
@@ -262,7 +262,7 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
             {(Object.keys(ROTULOS_ESTORNO) as PoliticaEstorno[]).map(opcao => (
               <label
                 key={opcao}
-                className={cn('flex cursor-pointer gap-3 rounded-2xl border p-4',
+                className={cn('flex cursor-pointer gap-3 rounded-lg border p-4',
                   estorno === opcao ? 'border-money/50 bg-money-soft' : 'border-border/60 hover:bg-muted')}
               >
                 <input
@@ -284,7 +284,7 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
       )}
 
       {passo === 'conclusao' && (
-        <div key="conclusao" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 relative overflow-hidden rounded-2xl superficie-marca px-6 py-16 text-center text-white">
+        <div key="conclusao" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 relative overflow-hidden rounded-lg superficie-marca px-6 py-16 text-center text-white">
           <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
           <CurvaMarca />
           <p className="text-4xl">🎉</p>

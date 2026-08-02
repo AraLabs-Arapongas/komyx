@@ -264,7 +264,7 @@ export function VendaForm({ vendaId, inicial }: {
               )}
 
               {/* a promessa do produto, respondida antes de salvar */}
-              <div className="min-h-[4.5rem] rounded-xl bg-money-soft/60 px-4 py-3">
+              <div className="min-h-[4.5rem] rounded-lg bg-money-soft/60 px-4 py-3">
                 {simulacao ? (
                   <div className="entra-suave space-y-0.5">
                     <p className="text-xs text-money">Sua comissão</p>

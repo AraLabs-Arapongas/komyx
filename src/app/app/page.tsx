@@ -47,7 +47,7 @@ function Numero({ rotulo, centavos, destaque = false, apoio, href }: {
   )
   if (!href) return <div className="py-1">{conteudo}</div>
   return (
-    <Link href={href} className="block rounded-xl py-1 transition-colors hover:bg-card">
+    <Link href={href} className="block rounded-lg py-1 transition-colors hover:bg-card">
       {conteudo}
     </Link>
   )
@@ -66,7 +66,7 @@ function Lista({ titulo, verTudo, rotuloVerTudo, children }: {
        um termina no meio da altura do outro */
     <section className="flex min-w-0 flex-col space-y-2">
       <h2 className="text-sm font-medium text-muted-foreground">{titulo}</h2>
-      <div className="flex flex-1 flex-col divide-y overflow-hidden rounded-2xl bg-card">
+      <div className="flex flex-1 flex-col divide-y overflow-hidden rounded-lg bg-card">
         {children}
         <Link href={verTudo}
           className="mt-auto flex items-center justify-center gap-1 px-3 py-2 text-xs

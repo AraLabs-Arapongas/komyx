@@ -172,14 +172,14 @@ export function BackupSecao() {
         <p className="text-sm text-muted-foreground">
           Por enquanto só conferimos o arquivo — a restauração ainda não está disponível.
         </p>
-        <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-[10px] border px-3 py-1.5 text-sm hover:bg-muted/40">
+        <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm hover:bg-muted/40">
           <Upload size={18} /> Escolher arquivo
           <input type="file" accept="application/json" className="hidden" onChange={lerArquivo} />
         </label>
         {nomeArquivo && <p className="text-xs text-muted-foreground">{nomeArquivo}</p>}
         {erroImportacao && <p className="text-xs text-destructive">{erroImportacao}</p>}
         {resumo && (
-          <div className="entra-suave rounded-[10px] bg-muted/40 p-3 text-sm">
+          <div className="entra-suave rounded-lg bg-muted/40 p-3 text-sm">
             {resumo.vendas} vendas, {resumo.clientes} clientes, {resumo.configuracoes} configuração(ões)
             {resumo.comissoes > 0 && `, ${resumo.comissoes} comissões`}
             {resumo.recebimentos > 0 && `, ${resumo.recebimentos} recebimentos`}.

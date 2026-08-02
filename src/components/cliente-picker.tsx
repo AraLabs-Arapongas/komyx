@@ -146,7 +146,7 @@ export function ClientePicker({ value, nomeSelecionado, onChange }: {
         <ul
           id={listaId}
           role="listbox"
-          className="absolute z-40 mt-1.5 max-h-56 w-full overflow-y-auto rounded-2xl bg-popover
+          className="absolute z-40 mt-1.5 max-h-56 w-full overflow-y-auto rounded-lg bg-popover
                      p-1 shadow-lg ring-1 ring-foreground/10"
         >
           {sugestoes.length === 0 && (
@@ -163,7 +163,7 @@ export function ClientePicker({ value, nomeSelecionado, onChange }: {
                 onMouseDown={e => { e.preventDefault(); escolher(s) }}
                 onMouseEnter={() => setIndice(i)}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm',
+                  'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm',
                   i === foco && 'bg-secondary',
                 )}
               >

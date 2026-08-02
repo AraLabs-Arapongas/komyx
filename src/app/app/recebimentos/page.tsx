@@ -101,12 +101,6 @@ export default function RecebimentosPage() {
     return a.data_prevista.localeCompare(b.data_prevista)
   })
 
-  const grupos = new Map<string, typeof ordenados>()
-  for (const r of ordenados) {
-    const k = r.data_prevista.slice(0, 7)
-    grupos.set(k, [...(grupos.get(k) ?? []), r])
-  }
-
   const carregando = isLoading || carregandoResumo
   const semNenhumRecebimento = !carregando && !buscaNorm && (resumo?.total ?? 0) === 0
   const semResultadoNoFiltro = !carregando && !semNenhumRecebimento && ordenados.length === 0
@@ -119,16 +113,19 @@ export default function RecebimentosPage() {
       {carregando && <Skeleton className="h-24 w-full" />}
 
       {semNenhumRecebimento && (
-        <div className="rounded-[10px] border p-8 text-center text-muted-foreground">
+        <div className="rounded-lg border p-8 text-center text-muted-foreground">
           Nenhum recebimento por aqui ainda. Registre uma venda e as parcelas aparecem automaticamente.
         </div>
       )}
 
       {!carregando && !semNenhumRecebimento && (
         <>
-          {/* Resumo — superfície escura pra separar do restante da tela e dar peso ao dinheiro */}
-          <section className="entra rounded-[10px] bg-escuro p-5 text-white">
-            <div className="grid grid-cols-2 gap-3">
+          {/* Resumo — mesma superfície de marca do resumo de clientes, para as
+              duas telas de lista abrirem do mesmo jeito. Era roxo chapado, e ao
+              lado do outro parecia outro produto. */}
+          <section className="entra superficie-marca-faixa relative overflow-hidden rounded-lg p-5 text-white">
+            <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
+            <div className="relative grid grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-escuro-texto">A receber</p>
                 <Valor centavos={resumo?.aReceberCentavos ?? 0} destaque={false}
@@ -153,22 +150,21 @@ export default function RecebimentosPage() {
           </div>
 
           {semResultadoNoFiltro && (
-            <div className="rounded-[10px] border p-8 text-center text-muted-foreground">
+            <div className="rounded-lg border p-8 text-center text-muted-foreground">
               Nenhum recebimento encontrado com esses filtros.
             </div>
           )}
 
-          {[...grupos.entries()].map(([mesGrupo, linhasDoMes]) => (
-            <section key={mesGrupo} className="space-y-2">
-              <h2 className="text-sm font-medium text-muted-foreground">
-                {formatMesAno(Number(mesGrupo.slice(0, 4)), Number(mesGrupo.slice(5, 7)))}
-              </h2>
-              {linhasDoMes.map(r => {
+          {/* Sem cabeçalho de mês: a data está em cada linha e o filtro de mês
+              fica logo acima. O separador repetia por escrito o que os dois já
+              diziam, e numa lista de três parcelas gerava três títulos. */}
+          <div className="space-y-2">
+            {ordenados.map(r => {
                 const caiu = jaCaiu(r, hoje)
                 const anulada = r.status === 'cancelado' || r.status === 'estornado'
                 return (
                   <Link key={r.id} href={`/app/vendas/${r.comissoes.vendas.id}`}
-                    className="block rounded-[10px] border bg-card p-3 transition-colors hover:border-money/40 md:flex md:items-center md:justify-between md:gap-4">
+                    className="block rounded-lg bg-card p-3 transition-colors hover:bg-secondary md:flex md:items-center md:justify-between md:gap-4">
                     <div className="min-w-0">
                       <p className="font-medium">{rotuloCliente(r.comissoes.vendas.clientes?.nome)}</p>
                       <p className="text-sm text-muted-foreground">
@@ -190,9 +186,8 @@ export default function RecebimentosPage() {
                     </div>
                   </Link>
                 )
-              })}
-            </section>
-          ))}
+            })}
+          </div>
 
           {temMais && (
             <Button variant="outline" className="w-full" disabled={isFetching}

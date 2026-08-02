@@ -48,7 +48,7 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
   // sangra para fora do respiro da página: no celular o bloco escuro encosta
   // na barra de cima, sem faixa clara entre os dois
   return (
-    <section className="entra superficie-marca relative -mx-4 -mt-4 overflow-hidden px-5 pb-6 pt-5 text-white md:mx-0 md:mt-0 md:rounded-3xl md:px-8 md:pb-7 md:pt-6">
+    <section className="entra superficie-marca relative -mx-4 -mt-4 overflow-hidden px-5 pb-6 pt-5 text-white md:mx-0 md:mt-0 md:rounded-lg md:px-8 md:pb-7 md:pt-6">
       {/* mesma luz da landing: o painel do corretor e a página pública são a
           mesma marca */}
       <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
