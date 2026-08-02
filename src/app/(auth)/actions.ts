@@ -1,6 +1,6 @@
 'use server'
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { COOKIE_LEMBRAR } from '@/lib/supabase/sessao'
 
@@ -41,12 +41,37 @@ function voltaAoCadastro(mensagem: string): never {
   redirect('/cadastro?erro=' + encodeURIComponent(mensagem))
 }
 
+/*
+ * O log da função na Vercel é ao vivo e some, então sem isto diagnosticar uma
+ * falha de cadastro exige o corretor reproduzindo na hora. Grava e segue: se a
+ * escrita falhar, o cadastro não pode falhar junto.
+ */
+async function registrarTentativa(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  linha: { email: string; ok: boolean; erro_codigo?: string; erro_status?: number },
+) {
+  try {
+    const aparelho = (await headers()).get('user-agent')
+    await supabase.from('tentativas_cadastro').insert({ ...linha, aparelho })
+  } catch (falha) {
+    console.error('[cadastro] não registrei a tentativa:', falha)
+  }
+}
+
 export async function cadastrar(formData: FormData) {
   const supabase = await createClient()
+  const email = limparEmail(formData.get('email'))
   const { data, error } = await supabase.auth.signUp({
-    email: limparEmail(formData.get('email')),
+    email,
     password: String(formData.get('password')),
     options: { data: { nome: String(formData.get('nome')).trim() } },
+  })
+
+  await registrarTentativa(supabase, {
+    email,
+    ok: !error,
+    erro_codigo: error?.code,
+    erro_status: error?.status,
   })
 
   if (error) {

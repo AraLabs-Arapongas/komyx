@@ -347,6 +347,36 @@ export type Database = {
           },
         ]
       }
+      tentativas_cadastro: {
+        Row: {
+          aparelho: string | null
+          created_at: string
+          email: string
+          erro_codigo: string | null
+          erro_status: number | null
+          id: string
+          ok: boolean
+        }
+        Insert: {
+          aparelho?: string | null
+          created_at?: string
+          email: string
+          erro_codigo?: string | null
+          erro_status?: number | null
+          id?: string
+          ok: boolean
+        }
+        Update: {
+          aparelho?: string | null
+          created_at?: string
+          email?: string
+          erro_codigo?: string | null
+          erro_status?: number | null
+          id?: string
+          ok?: boolean
+        }
+        Relationships: []
+      }
       vendas: {
         Row: {
           administradora: string
