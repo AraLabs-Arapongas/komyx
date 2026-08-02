@@ -7,6 +7,7 @@ import {
 } from '@/components/landing/amostras'
 import { Revela } from '@/components/landing/revela'
 import { CurvaMarca } from '@/components/curva-marca'
+import { INCLUSO, PLANO } from '@/lib/assinatura/plano'
 import {
   Calculator, CalendarClock, Undo2, Search, ShieldCheck, Download,
   EyeOff, Sparkles, Check, X,
@@ -60,14 +61,6 @@ const RECURSOS = [
  * (art. 37 do CDC), e a confiança do corretor é o ativo do produto — não
  * vale queimá-la na porta de entrada.
  */
-const INCLUSO = [
-  'Vendas, comissões e parcelas calculadas pelas regras do seu escritório',
-  'Agenda do que entra e quando, mês a mês',
-  'Faixas retroativas por acumulado — inclusive quando uma venda muda o mês inteiro',
-  'Conferência das cotas contra a Loteria Federal',
-  'Seus dados exportáveis a qualquer momento',
-]
-
 const DEPOIMENTOS = [
   {
     nome: 'Nome do corretor',
@@ -432,14 +425,14 @@ export default function LandingPage() {
             <div className="relative overflow-hidden rounded-[calc(1.5rem-0.375rem)] border border-white/20 bg-white/10 px-6 py-10 text-white backdrop-blur-xl">
               <CurvaMarca />
               <div className="relative text-center">
-                <p className="text-sm text-escuro-texto">Komyx completo</p>
+                <p className="text-sm text-escuro-texto">{PLANO.nome}</p>
                 <p className="mt-2 flex items-baseline justify-center gap-1">
-                  <span className="text-lg">R$</span>
-                  <span className="text-5xl font-bold tracking-tight">19,90</span>
-                  <span className="text-lg text-escuro-texto">/mês</span>
+                  <span className="text-lg">{PLANO.moeda}</span>
+                  <span className="text-5xl font-bold tracking-tight">{PLANO.valor}</span>
+                  <span className="text-lg text-escuro-texto">{PLANO.periodo}</span>
                 </p>
                 <p className="mt-3 text-sm text-escuro-texto">
-                  14 dias grátis. Sem cartão para começar.
+                  {PLANO.diasDeTeste} dias grátis. Sem cartão para começar.
                 </p>
 
                 <ul className="mt-8 space-y-3 text-left text-sm">

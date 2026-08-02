@@ -3,13 +3,39 @@ import { redirect } from 'next/navigation'
 import { Providers } from '@/components/providers'
 import { AppNav } from '@/components/app-nav'
 import { OnboardingWizard } from '@/components/onboarding-wizard'
+import { PortaoAssinatura } from '@/components/portao-assinatura'
+import { AvisoAssinatura } from '@/components/aviso-assinatura'
+import { avaliarAcesso, temAvisoDeAssinatura } from '@/lib/assinatura/acesso'
+import { stripeConfigurado } from '@/lib/stripe/servidor'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
-  const { data: config } = await supabase.from('config_financeira')
-    .select('id').eq('ativa', true).maybeSingle()
+
+  const [{ data: config }, { data: perfil }] = await Promise.all([
+    supabase.from('config_financeira').select('id').eq('ativa', true).maybeSingle(),
+    supabase.from('profiles')
+      .select('trial_termina_em, assinatura_status, assinatura_ate, cancela_no_fim')
+      .eq('id', user.id).maybeSingle(),
+  ])
+
+  const acesso = avaliarAcesso(perfil)
+
+  /*
+   * Sem Stripe configurado o portão não fecha.
+   *
+   * É a escolha entre dar alguns dias de graça e trancar o corretor fora do
+   * app numa tela cujo botão de pagar não funciona. O primeiro custa dinheiro;
+   * o segundo custa o cliente.
+   */
+  if (!acesso.liberado && stripeConfigurado()) {
+    return (
+      <Providers>
+        <PortaoAssinatura motivo={acesso.motivo} />
+      </Providers>
+    )
+  }
 
   /*
    * Sem configuração, o wizard OCUPA a rota em vez de redirecionar para uma
@@ -47,7 +73,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {/* flex-1: sem isto a coluna termina onde o conteúdo termina, e sobrava
             um resto da altura do main embaixo dela — a barra de ação dos
             formulários parava alguns pixels acima do menu */}
-        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col p-4 md:p-6">{children}</div>
+        {/*
+          O atributo avisa o hero do painel que ele não é mais o primeiro
+          elemento da tela. Ele sobe por baixo do cabeçalho transparente com
+          margem negativa, e essa margem passaria por cima da tarja — a regra
+          que desliga isso mora no globals.css, junto das outras da marca.
+        */}
+        <div data-com-aviso={temAvisoDeAssinatura(acesso) || undefined}
+          className="mx-auto flex w-full max-w-3xl flex-1 flex-col p-4 md:p-6">
+          {/* acima do conteúdo, e não dentro de cada tela: o aviso vale para o
+              app inteiro e ele mesmo decide quando não tem nada a dizer */}
+          <AvisoAssinatura acesso={acesso} />
+          {children}
+        </div>
       </main>
     </Providers>
   )

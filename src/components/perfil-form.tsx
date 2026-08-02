@@ -4,12 +4,12 @@ import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { atualizarPerfil, alterarSenha } from '@/lib/actions/perfil'
-import { exportarDados } from '@/lib/actions/backup'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Download, Upload } from 'lucide-react'
+import { Upload } from 'lucide-react'
 import { Secao } from '@/components/config-form'
+import { BotaoBaixarDados } from '@/components/botao-baixar-dados'
 
 export function PerfilForm({ email, nome: nomeInicial, telefone: telefoneInicial }: {
   email: string; nome: string; telefone: string
@@ -116,26 +116,9 @@ function resumoDoArquivo(json: unknown): ResumoBackup | null {
 }
 
 export function BackupSecao() {
-  const [baixando, setBaixando] = useState(false)
   const [nomeArquivo, setNomeArquivo] = useState('')
   const [erroImportacao, setErroImportacao] = useState('')
   const [resumo, setResumo] = useState<ResumoBackup | null>(null)
-
-  async function baixarDados() {
-    setBaixando(true)
-    const r = await exportarDados()
-    setBaixando(false)
-    if (!r.ok) { toast.error(r.erro); return }
-    const hoje = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
-    const blob = new Blob([JSON.stringify(r.dados, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `komyx-${hoje}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-    toast.success('Seus dados foram baixados.')
-  }
 
   async function lerArquivo(e: React.ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0]
@@ -163,9 +146,7 @@ export function BackupSecao() {
             Um arquivo .json com vendas, clientes, comissões, recebimentos e as suas regras de comissão.
           </p>
         </div>
-        <Button type="button" size="toque" className="w-full" onClick={baixarDados} disabled={baixando}>
-          <Download size={18} /> {baixando ? 'Preparando…' : 'Baixar meus dados'}
-        </Button>
+        <BotaoBaixarDados />
       </div>
 
       <div className="space-y-3 border-t pt-5">

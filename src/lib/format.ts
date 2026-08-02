@@ -23,6 +23,18 @@ export function formatDataExtenso(iso: string, comAno = false): string {
   return comAno ? `${base} de ${a}` : base
 }
 
+/**
+ * Instante (timestamptz do banco, ISO com fuso) → dia no fuso de Brasília, no
+ * formato 'YYYY-MM-DD' que o resto do sistema usa para data.
+ *
+ * O 'sv-SE' não é gosto: é a única localidade que o Intl formata exatamente
+ * como ISO, e formatar já resolve o fuso — converter na mão erraria o dia toda
+ * madrugada, quando UTC já virou e São Paulo não.
+ */
+export function diaDoInstante(iso: string): string {
+  return new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
+}
+
 /** "Agosto de 2026". */
 export function formatMesAno(ano: number, mes: number): string {
   const nome = MESES[mes - 1]

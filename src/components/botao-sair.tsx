@@ -32,7 +32,7 @@ export function BotaoSair({ variante = 'icone', className }: {
           <LogOut size={18} />
         </button>
       ) : (
-        <Button type="button" variant="outline" className={cn('w-full', className)}
+        <Button type="button" variant="outline" size="toque" className={cn('w-full', className)}
           onClick={() => setAberto(true)}>
           Sair
         </Button>

@@ -1,6 +1,8 @@
 'use client'
 import Link from 'next/link'
-import { ChevronRight, Settings, User, Download, FlaskConical, type LucideIcon } from 'lucide-react'
+import {
+  ChevronRight, Settings, User, CreditCard, Download, FlaskConical, type LucideIcon,
+} from 'lucide-react'
 
 /**
  * Menu do perfil. É aqui que entram as próximas áreas do produto (relatórios,
@@ -18,6 +20,10 @@ const ITENS: { href: string; icone: LucideIcon; titulo: string; apoio: string }[
   {
     href: '/app/perfil/conta', icone: User, titulo: 'Conta',
     apoio: 'Seus dados de contato e senha',
+  },
+  {
+    href: '/app/perfil/assinatura', icone: CreditCard, titulo: 'Assinatura',
+    apoio: 'Seu plano, cobrança e recibos',
   },
   {
     href: '/app/perfil/backup', icone: Download, titulo: 'Backup',
