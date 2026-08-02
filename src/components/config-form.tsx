@@ -8,6 +8,7 @@ import { configFinanceiraSchema } from '@/lib/domain/schemas'
 import { calcularCompetencia } from '@/lib/engine/calculo'
 import { parseBRLParaCentavos, formatBRL, formatData, formatPercentual } from '@/lib/format'
 import { Button } from '@/components/ui/button'
+import { BarraAcao } from '@/components/ui/barra-acao'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CampoValor, CampoPercentual, CampoInteiro } from '@/components/campos'
@@ -193,7 +194,7 @@ export function ConfigForm({ modo, inicial }: {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5">
+    <form onSubmit={onSubmit} className="flex flex-1 flex-col space-y-5">
       <Secao titulo="Política" apoio="Um nome para você reconhecer essa regra de comissão depois." icone={Building2}>
         <div className="space-y-1">
           <Label>Nome da política</Label>
@@ -348,9 +349,11 @@ export function ConfigForm({ modo, inicial }: {
         </div>
       </Secao>
 
-      <Button type="submit" className="w-full" disabled={salvando || !parseResult.success}>
-        {salvando ? 'Salvando…' : 'Salvar regras'}
-      </Button>
+      <BarraAcao>
+        <Button type="submit" size="toque" className="flex-1" disabled={salvando || !parseResult.success}>
+          {salvando ? 'Salvando…' : 'Salvar regras'}
+        </Button>
+      </BarraAcao>
     </form>
   )
 }
