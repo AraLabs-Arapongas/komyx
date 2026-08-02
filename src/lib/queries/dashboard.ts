@@ -41,6 +41,7 @@ export function useDashboard(ano: number, mes: number) {
         totalVendidoCentavos: 0, nVendas: 0,
         comissaoPrevistaCentavos: 0, comissaoRecebidaCentavos: 0,
         comissaoPendenteCentavos: 0,
+        primeiraParcela: null as { data: string; valorCentavos: number } | null,
         proximos: [] as { id: string; vendaId: string; valor_centavos: number; data_prevista: string; cliente: string; jaCaiu: boolean }[],
         pagamentoDoMes: null as PagamentoDoMes | null,
         ultimasVendas: [] as UltimaVenda[],
@@ -93,6 +94,7 @@ export function useDashboard(ano: number, mes: number) {
       const confirmadas = (vendas ?? []).filter(v => v.status === 'confirmada')
       const total = confirmadas.reduce((s, v) => s + Number(v.valor_carta_centavos), 0)
       let prevista = 0, recebida = 0
+      const aVir: { valor: number; data: string }[] = []
       for (const v of confirmadas) {
         const c = v.comissoes as unknown as {
           valor_centavos: number
@@ -100,11 +102,30 @@ export function useDashboard(ano: number, mes: number) {
         } | null
         if (!c) continue
         prevista += Number(c.valor_centavos)
+        const vivas = c.recebimentos.filter(r => r.status !== 'cancelado' && r.status !== 'estornado')
         // "já recebi" não depende mais de marcação: o escritório paga no dia,
         // então a parcela cuja data chegou já entrou
-        recebida += c.recebimentos
-          .filter(r => r.status !== 'cancelado' && r.status !== 'estornado' && r.data_prevista <= hoje)
+        recebida += vivas
+          .filter(r => r.data_prevista <= hoje)
           .reduce((s, r) => s + Number(r.valor_centavos), 0)
+        for (const r of vivas) {
+          if (r.data_prevista > hoje) aVir.push({ valor: Number(r.valor_centavos), data: r.data_prevista })
+        }
+      }
+
+      /*
+       * Quando é que a produção deste mês começa a pingar.
+       *
+       * A primeira parcela de uma competência nunca cai dentro dela — o
+       * calendário joga a parcela N para N meses depois. Então no mês corrente
+       * "recebido" é sempre zero e "falta receber" é sempre igual à comissão
+       * prevista: dois números que não dizem nada. Este é o que falta.
+       */
+      const proximaData = aVir.reduce<string | null>(
+        (menor, r) => (menor === null || r.data < menor ? r.data : menor), null)
+      const primeiraParcela = proximaData === null ? null : {
+        data: proximaData,
+        valorCentavos: aVir.filter(r => r.data === proximaData).reduce((s, r) => s + r.valor, 0),
       }
 
       return {
@@ -112,6 +133,7 @@ export function useDashboard(ano: number, mes: number) {
         totalVendidoCentavos: total, nVendas: confirmadas.length,
         comissaoPrevistaCentavos: prevista, comissaoRecebidaCentavos: recebida,
         comissaoPendenteCentavos: Math.max(0, prevista - recebida),
+        primeiraParcela,
         ultimasVendas: confirmadas.slice(0, 1).map(v => {
           const c = v.comissoes as unknown as { valor_centavos: number } | null
           return {

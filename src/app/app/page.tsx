@@ -191,10 +191,23 @@ export default function DashboardPage() {
                   apoio={`${d.nVendas} ${pluralizar(d.nVendas, 'venda', 'vendas')}`}
                   href="/app/vendas" />
                 <Numero rotulo="Comissão prevista" centavos={d.comissaoPrevistaCentavos} destaque />
-                <Numero rotulo="Recebido" centavos={d.comissaoRecebidaCentavos} destaque
-                  href="/app/recebimentos" />
-                <Numero rotulo="Falta receber" centavos={d.comissaoPendenteCentavos} destaque
-                  href="/app/recebimentos" />
+                {/*
+                  A primeira parcela de uma competência cai no mês seguinte, no
+                  mínimo. Enquanto nada dela venceu, "Recebido" é zero e "Falta
+                  receber" repete a comissão prevista — dois campos sem
+                  informação. Aí o que interessa é quando o dinheiro começa.
+                */}
+                {d.comissaoRecebidaCentavos === 0 && d.primeiraParcela ? (
+                  <Numero rotulo="Primeira parcela" centavos={d.primeiraParcela.valorCentavos} destaque
+                    apoio={formatDataExtenso(d.primeiraParcela.data)} href="/app/recebimentos" />
+                ) : (
+                  <>
+                    <Numero rotulo="Recebido" centavos={d.comissaoRecebidaCentavos} destaque
+                      href="/app/recebimentos" />
+                    <Numero rotulo="Falta receber" centavos={d.comissaoPendenteCentavos} destaque
+                      href="/app/recebimentos" />
+                  </>
+                )}
               </div>
             </section>
 
