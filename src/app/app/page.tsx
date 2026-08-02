@@ -10,7 +10,7 @@ import { Valor } from '@/components/valor'
 import { HeroDinheiro } from '@/components/hero-dinheiro'
 import { LoteriaFederal } from '@/components/loteria-federal'
 import { ComemoraSorteio } from '@/components/comemora-sorteio'
-import { formatDataExtenso } from '@/lib/format'
+import { formatDataExtenso, rotuloCliente } from '@/lib/format'
 import {
   EsqueletoHero, EsqueletoNumeros, EsqueletoLoteria, EsqueletoLista,
 } from '@/components/esqueletos-painel'
@@ -226,7 +226,7 @@ export default function DashboardPage() {
                 </p>
               ) : d.ultimasVendas.map(v => (
                 <ItemLista key={v.id} href={`/app/vendas/${v.id}`}
-                  titulo={v.cliente || 'Cliente sem nome'}
+                  titulo={rotuloCliente(v.cliente)}
                   apoio={<>Carta <Valor centavos={v.valorCartaCentavos} destaque={false} className="font-normal" /></>}
                   centavos={v.comissaoPrevistaCentavos} />
               ))}
@@ -239,7 +239,7 @@ export default function DashboardPage() {
                 </p>
               ) : d.proximos.map(p => (
                 <ItemLista key={p.id} href={`/app/vendas/${p.vendaId}`}
-                  titulo={p.cliente}
+                  titulo={rotuloCliente(p.cliente)}
                   apoio={formatDataExtenso(p.data_prevista)}
                   centavos={p.valor_centavos} />
               ))}

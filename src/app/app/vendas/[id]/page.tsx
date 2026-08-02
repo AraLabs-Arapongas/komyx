@@ -177,7 +177,6 @@ export default function VendaDetalhePage() {
             dataVenda: venda.data_venda,
             observacoes: venda.observacoes ?? '',
             numeroContrato: venda.numero_contrato ?? '',
-            tags: venda.tags ?? [],
           }}
         />
       </div>

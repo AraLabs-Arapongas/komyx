@@ -79,3 +79,12 @@ export function mascaraPercentual(txt: string): string {
 export function mascaraInteiro(txt: string): string {
   return txt.replace(/\D/g, '')
 }
+
+/**
+ * Como a venda aparece quando ainda não tem cliente — o corretor registrou na
+ * pressa e vai nomear depois (migration 0013). Sem isto a linha da lista sai
+ * com um espaço em branco no lugar do nome, que parece defeito.
+ */
+export function rotuloCliente(nome: string | null | undefined): string {
+  return nome?.trim() || 'Sem cliente'
+}

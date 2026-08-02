@@ -1,4 +1,5 @@
 'use client'
+import { rotuloCliente } from '@/lib/format'
 import { useState } from 'react'
 import Link from 'next/link'
 import { useVendas, type VendaStatusFiltro, type VendaOrdenacao } from '@/lib/queries/vendas'
@@ -125,7 +126,7 @@ export default function VendasPage() {
               style={{ animationDelay: `${Math.min(i, 8) * 30}ms` }}
               className="entra block rounded-[10px] border bg-card p-3 transition-colors hover:bg-background">
               <div className="flex items-center justify-between">
-                <p className="font-medium">{(v.clientes as { nome: string } | null)?.nome}</p>
+                <p className="font-medium">{rotuloCliente((v.clientes as { nome: string } | null)?.nome)}</p>
                 <Badge variant={v.status === 'confirmada' ? 'secondary' : 'outline'}>
                   {statusLabel[v.status]}</Badge>
               </div>

@@ -6,7 +6,8 @@ import { conferirCota } from '@/lib/engine/sorteio'
 
 export type CotaAtiva = {
   vendaId: string
-  cliente: string
+  /** null na venda registrada às pressas, que ainda não tem cliente */
+  cliente: string | null
   grupo: string
   cota: string
   administradora: string
@@ -22,13 +23,15 @@ export function useCotasAtivas() {
   return useQuery({
     queryKey: ['cotas-ativas'],
     queryFn: async (): Promise<CotaAtiva[]> => {
+      // join solto, não `clientes!inner`: com inner, a venda sem cliente sairia
+      // da conferência e o corretor não seria avisado de que ela foi sorteada
       const { data, error } = await createClient().from('vendas')
-        .select('id, grupo, cota, administradora, clientes!inner(nome)')
+        .select('id, grupo, cota, administradora, clientes(nome)')
         .eq('status', 'confirmada')
       if (error) throw error
       return (data ?? []).map(v => ({
         vendaId: v.id,
-        cliente: (v.clientes as unknown as { nome: string }).nome,
+        cliente: (v.clientes as unknown as { nome: string } | null)?.nome ?? null,
         grupo: v.grupo,
         cota: v.cota,
         administradora: v.administradora,

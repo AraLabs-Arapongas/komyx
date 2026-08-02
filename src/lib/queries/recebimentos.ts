@@ -61,10 +61,15 @@ export function useRecebimentos({ mes = '', busca = '', limite = 50 }: {
     queryKey: queryKeys.recebimentos(mes, busca, limite),
     queryFn: async () => {
       const supabase = createClient()
+      /*
+       * O cliente só entra como `!inner` quando há busca por nome — é assim que
+       * o filtro atravessa o join. Sem busca ele fica solto: desde que a venda
+       * pode nascer sem cliente, um inner join apagaria da agenda justamente as
+       * parcelas que o corretor registrou com pressa.
+       */
+      const juncaoCliente = busca ? 'clientes!inner(nome)' : 'clientes(nome)'
       let q = supabase.from('recebimentos')
-        // !inner até o cliente: cliente_id é not null, então nada some, e é o
-        // que permite filtrar por nome através do join
-        .select('id, numero_parcela, valor_centavos, data_prevista, data_recebimento, status, comissoes!inner(n_parcelas, vendas!inner(id, status, clientes!inner(nome)))')
+        .select(`id, numero_parcela, valor_centavos, data_prevista, data_recebimento, status, comissoes!inner(n_parcelas, vendas!inner(id, status, ${juncaoCliente}))`)
         .order('data_prevista', { ascending: true })
         .limit(limite)
 

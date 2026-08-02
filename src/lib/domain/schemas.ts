@@ -49,7 +49,9 @@ export const clienteFormSchema = z.object({
 })
 
 export const vendaFormSchema = z.object({
-  clienteId: z.string().uuid('Selecione um cliente.'),
+  // sem cliente é venda registrada na pressa, para completar depois — ver a
+  // migration 0013
+  clienteId: z.string().uuid('Cliente inválido.').nullable(),
   valorCartaCentavos: z.number().int().positive('Informe o valor da carta.'),
   administradora: z.string().min(1, 'Informe a administradora.'),
   grupo: z.string().min(1, 'Informe o grupo.'),

@@ -2,14 +2,14 @@
 import Link from 'next/link'
 import { useLoteriaFederal } from '@/lib/queries/loteria'
 import { useCotasSorteadas, type CotaAtiva } from '@/lib/queries/sorteio'
-import { formatData } from '@/lib/format'
+import { formatData, rotuloCliente } from '@/lib/format'
 import { EsqueletoLoteria } from '@/components/esqueletos-painel'
 import { Sparkles } from 'lucide-react'
 
 const PREMIOS = ['1º', '2º', '3º', '4º', '5º']
 
 function descrever(cotas: CotaAtiva[]): string {
-  const nomes = cotas.map(c => `${c.cliente} (G${c.grupo} · C${c.cota})`).join(', ')
+  const nomes = cotas.map(c => `${rotuloCliente(c.cliente)} (G${c.grupo} · C${c.cota})`).join(', ')
   return `${nomes} — a regra de sorteio muda por administradora, confirme antes de avisar o cliente.`
 }
 

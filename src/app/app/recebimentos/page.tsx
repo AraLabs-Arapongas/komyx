@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRecebimentos, useResumoAgenda, type RecebimentoLinha } from '@/lib/queries/recebimentos'
 import { Valor } from '@/components/valor'
-import { formatData, formatMesAno } from '@/lib/format'
+import { formatData, formatMesAno, rotuloCliente } from '@/lib/format'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -170,7 +170,7 @@ export default function RecebimentosPage() {
                   <Link key={r.id} href={`/app/vendas/${r.comissoes.vendas.id}`}
                     className="block rounded-[10px] border bg-card p-3 transition-colors hover:border-money/40 md:flex md:items-center md:justify-between md:gap-4">
                     <div className="min-w-0">
-                      <p className="font-medium">{r.comissoes.vendas.clientes?.nome}</p>
+                      <p className="font-medium">{rotuloCliente(r.comissoes.vendas.clientes?.nome)}</p>
                       <p className="text-sm text-muted-foreground">
                         Parcela {r.numero_parcela} de {r.comissoes.n_parcelas} · {formatData(r.data_prevista)}
                       </p>

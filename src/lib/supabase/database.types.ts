@@ -380,7 +380,7 @@ export type Database = {
       vendas: {
         Row: {
           administradora: string
-          cliente_id: string
+          cliente_id: string | null
           competencia_id: string
           corretor_id: string
           cota: string
@@ -398,7 +398,7 @@ export type Database = {
         }
         Insert: {
           administradora: string
-          cliente_id: string
+          cliente_id?: string | null
           competencia_id: string
           corretor_id: string
           cota: string
@@ -416,7 +416,7 @@ export type Database = {
         }
         Update: {
           administradora?: string
-          cliente_id?: string
+          cliente_id?: string | null
           competencia_id?: string
           corretor_id?: string
           cota?: string
