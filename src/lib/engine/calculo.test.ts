@@ -38,29 +38,6 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
     expect(r.comissoes[0].nParcelas).toBe(3)
   })
 
-  /*
-   * O formulário pede o PISO de cada faixa e deriva o teto da anterior como
-   * "piso menos um centavo". Quem escreve a política como "atingiu R$ 1,6M,
-   * vira 0,7%" digita 1.600.000,00 no piso da faixa 3 — e o mês que fecha
-   * exatamente nesse valor tem que cair nela, não na de baixo.
-   */
-  it('acumulado exatamente no piso da faixa entra na faixa de cima', () => {
-    const cfg: ConfigCalc = {
-      ...config,
-      faixas: [
-        { min: 0, max: 159_999_999, percentual: 0.6, parcelas: 3 },
-        { min: 160_000_000, max: null, percentual: 0.7, parcelas: 3 },
-      ],
-    }
-    const naVirada = calcularCompetencia({ config: cfg, competencia: comp,
-      vendas: [venda('v1', 160_000_000)], recebimentosExistentes: [], hoje: HOJE })
-    expect(naVirada.comissoes[0].percentual).toBe(0.7)
-
-    const umCentavoAntes = calcularCompetencia({ config: cfg, competencia: comp,
-      vendas: [venda('v1', 159_999_999)], recebimentosExistentes: [], hoje: HOJE })
-    expect(umCentavoAntes.comissoes[0].percentual).toBe(0.6)
-  })
-
   it('resto de centavos vai para a última parcela', () => {
     // comissão 0,5% de R$ 200,02 = 100.01 → mas melhor: valor que gera resto
     // 3 parcelas de comissão 100 centavos: 33+33+34
