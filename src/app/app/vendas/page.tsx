@@ -2,13 +2,15 @@
 import { rotuloCliente } from '@/lib/format'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useVendas, type VendaStatusFiltro, type VendaOrdenacao } from '@/lib/queries/vendas'
+import { useVendas, useResumoVendas, type VendaStatusFiltro, type VendaOrdenacao } from '@/lib/queries/vendas'
 import { Valor } from '@/components/valor'
+import { AvatarInicial } from '@/components/ui/avatar-inicial'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Seletor } from '@/components/seletor'
+import { LayoutAba, ResumoNumero } from '@/components/ui/layout-aba'
 import { Plus } from 'lucide-react'
 
 const statusLabel: Record<string, string> = {
@@ -51,15 +53,15 @@ function hojeSP(): string {
  * existia) já caiu. Quando não resta nenhuma, a resposta é "já recebeu", não
  * um traço: traço se lê como "nada", e aqui o que houve foi o contrário.
  */
-function receberaEm(comissao: ComissaoResumo, hoje: string): string {
+function quandoCai(comissao: ComissaoResumo, hoje: string): string {
   if (!comissao) return '—'
   const ativos = comissao.recebimentos.filter(r => r.status !== 'cancelado' && r.status !== 'estornado')
   if (ativos.length === 0) return '—'
   const pendentes = ativos.filter(r => r.status === 'previsto' && r.data_prevista > hoje)
   if (pendentes.length === 0) return 'Já recebeu'
   const menor = pendentes.reduce((m, r) => (r.data_prevista < m ? r.data_prevista : m), pendentes[0].data_prevista)
-  const mes = Number(menor.slice(5, 7))
-  return MESES[mes - 1] ?? '—'
+  const mes = MESES[Number(menor.slice(5, 7)) - 1]
+  return mes ? `Cai em ${mes}` : '—'
 }
 
 export default function VendasPage() {
@@ -70,6 +72,7 @@ export default function VendasPage() {
   const [limite, setLimite] = useState(PAGINA)
 
   const { data, isLoading, isFetching } = useVendas({ busca, status, ordenacao, limite })
+  const { data: resumo } = useResumoVendas()
   const vendas = data?.itens ?? []
   const total = data?.total ?? 0
 
@@ -78,11 +81,22 @@ export default function VendasPage() {
   function atualizarOrdenacao(v: VendaOrdenacao) { setOrdenacao(v); setLimite(PAGINA) }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Vendas</h1>
-        <Button asChild><Link href="/app/vendas/nova"><Plus size={18} /> Nova venda</Link></Button>
-      </div>
+    <LayoutAba
+      titulo="Vendas"
+      acao={<Button asChild><Link href="/app/vendas/nova"><Plus size={18} /> Nova venda</Link></Button>}
+      resumo={resumo && resumo.nVendas > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          {/* volume é patrimônio movimentado, não dinheiro do corretor: fica
+              branco. Só a comissão leva o verde. */}
+          <ResumoNumero rotulo="Vendido">
+            <Valor centavos={resumo.volumeCentavos} destaque={false} className="block text-white" />
+          </ResumoNumero>
+          <ResumoNumero rotulo="Comissão prevista">
+            <Valor centavos={resumo.comissaoCentavos} destaque={false} className="block text-money-claro" />
+          </ResumoNumero>
+        </div>
+      )}
+    >
 
       <Input placeholder="Buscar por cliente, grupo, cota, administradora, contrato ou observações…"
         value={busca} onChange={e => atualizarBusca(e.target.value)} />
@@ -125,38 +139,38 @@ export default function VendasPage() {
             <Link key={v.id} href={`/app/vendas/${v.id}`}
               style={{ animationDelay: `${Math.min(i, 8) * 30}ms` }}
               className="entra block rounded-lg bg-card p-3 transition-colors hover:bg-secondary">
-              <div className="flex items-center justify-between">
-                <p className="font-medium">{rotuloCliente((v.clientes as { nome: string } | null)?.nome)}</p>
-                <Badge variant={v.status === 'confirmada' ? 'secondary' : 'outline'}>
-                  {statusLabel[v.status]}</Badge>
-              </div>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {v.administradora} · G{v.grupo} · C{v.cota}
-                {v.numero_contrato ? ` · Contrato ${v.numero_contrato}` : ''}
-              </p>
-              {v.tags && v.tags.length > 0 && (
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {v.tags.map(t => (
-                    <span key={t} className="rounded-full bg-secondary px-2 py-0.5 text-[0.65rem] text-secondary-foreground">
-                      {t}
-                    </span>
-                  ))}
+              <div className="flex items-center gap-3">
+                <AvatarInicial nome={(v.clientes as { nome: string } | null)?.nome ?? null} />
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate font-medium">
+                      {rotuloCliente((v.clientes as { nome: string } | null)?.nome)}
+                    </p>
+                    {/* só o que foge do normal ganha selo: "Confirmada" em toda
+                        linha é ruído, porque é o estado de quase todas elas */}
+                    {v.status !== 'confirmada' && (
+                      <Badge variant="outline" className="shrink-0">{statusLabel[v.status]}</Badge>
+                    )}
+                  </div>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {v.administradora} · G{v.grupo} · C{v.cota}
+                    {v.numero_contrato ? ` · Contrato ${v.numero_contrato}` : ''}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    Carta de <Valor centavos={Number(v.valor_carta_centavos)} destaque={false} />
+                  </p>
                 </div>
-              )}
-              <div className="mt-2 space-y-1 border-t pt-2 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Carta</span>
-                  <Valor centavos={Number(v.valor_carta_centavos)} destaque={false} className="font-medium" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Comissão prevista</span>
+
+                {/* a comissão é o que o corretor procura na lista: fica sozinha
+                    à direita, e a data em que ela cai logo abaixo */}
+                <div className="shrink-0 text-right">
                   {comissao
-                    ? <Valor centavos={Number(comissao.valor_centavos)} />
-                    : <span className="font-medium">—</span>}
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Receberá</span>
-                  <span className="font-medium">{receberaEm(comissao, hoje)}</span>
+                    ? <Valor centavos={Number(comissao.valor_centavos)} destaque className="block text-sm font-medium" />
+                    : <span className="block text-sm font-medium">—</span>}
+                  {/* solto, o nome do mês não diz o que ele é; junto da
+                      comissão, "Cai em Novembro" se lê de uma vez */}
+                  <p className="text-xs text-muted-foreground">{quandoCai(comissao, hoje)}</p>
                 </div>
               </div>
             </Link>
@@ -170,6 +184,6 @@ export default function VendasPage() {
           {isFetching ? 'Carregando…' : 'Carregar mais'}
         </Button>
       )}
-    </div>
+    </LayoutAba>
   )
 }

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Seletor, type Opcao } from '@/components/seletor'
+import { LayoutAba, ResumoNumero } from '@/components/ui/layout-aba'
 
 const PAGINA = 50
 
@@ -106,9 +107,24 @@ export default function RecebimentosPage() {
   const semResultadoNoFiltro = !carregando && !semNenhumRecebimento && ordenados.length === 0
   const temMais = !carregando && (recs?.length ?? 0) >= limite
 
+  const temResumo = !carregando && !semNenhumRecebimento
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Agenda financeira</h1>
+    <LayoutAba
+      titulo="Agenda financeira"
+      resumo={temResumo && (
+        <div className="grid grid-cols-2 gap-3">
+          {/* o que ainda vem é expectativa, fica branco; o que já caiu é
+              dinheiro na conta, e só ele leva o verde */}
+          <ResumoNumero rotulo="A receber">
+            <Valor centavos={resumo?.aReceberCentavos ?? 0} destaque={false} className="block text-white" />
+          </ResumoNumero>
+          <ResumoNumero rotulo="Recebido">
+            <Valor centavos={resumo?.recebidoCentavos ?? 0} destaque={false} className="block text-money-claro" />
+          </ResumoNumero>
+        </div>
+      )}
+    >
 
       {carregando && <Skeleton className="h-24 w-full" />}
 
@@ -120,25 +136,6 @@ export default function RecebimentosPage() {
 
       {!carregando && !semNenhumRecebimento && (
         <>
-          {/* Resumo — mesma superfície de marca do resumo de clientes, para as
-              duas telas de lista abrirem do mesmo jeito. Era roxo chapado, e ao
-              lado do outro parecia outro produto. */}
-          <section className="entra superficie-marca-faixa relative overflow-hidden rounded-lg p-5 text-white">
-            <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
-            <div className="relative grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-xs text-escuro-texto">A receber</p>
-                <Valor centavos={resumo?.aReceberCentavos ?? 0} destaque={false}
-                  className="mt-1 block text-lg text-white md:text-2xl" />
-              </div>
-              <div>
-                <p className="text-xs text-escuro-texto">Recebido</p>
-                <Valor centavos={resumo?.recebidoCentavos ?? 0} destaque={false}
-                  className="mt-1 block text-lg text-money-claro md:text-2xl" />
-              </div>
-            </div>
-          </section>
-
           <Input placeholder="Buscar por cliente…" value={busca}
             onChange={e => { setBusca(e.target.value); setLimite(PAGINA) }} />
 
@@ -197,6 +194,6 @@ export default function RecebimentosPage() {
           )}
         </>
       )}
-    </div>
+    </LayoutAba>
   )
 }

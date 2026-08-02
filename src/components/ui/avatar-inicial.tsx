@@ -34,12 +34,28 @@ function iniciais(nome: string): string {
   return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase()
 }
 
-export function AvatarInicial({ nome, className }: { nome: string; className?: string }) {
+export function AvatarInicial({ nome, className }: {
+  /** null quando ainda não há cliente: a venda registrada às pressas */
+  nome: string | null
+  className?: string
+}) {
+  const base = 'flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold tracking-tight'
+
+  /*
+   * Sem cliente não tem iniciais. Tirá-las do texto "Sem cliente" daria "SC",
+   * que se lê como o nome de alguém — o vazio passaria por pessoa. Um traço em
+   * tom neutro diz o que é: ainda não tem dono.
+   */
+  if (!nome?.trim()) {
+    return (
+      <span aria-hidden className={cn(base, 'bg-muted font-normal text-muted-foreground', className)}>
+        —
+      </span>
+    )
+  }
+
   return (
-    <span aria-hidden className={cn(
-      'flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold tracking-tight',
-      tomDoNome(nome), className,
-    )}>
+    <span aria-hidden className={cn(base, tomDoNome(nome), className)}>
       {iniciais(nome)}
     </span>
   )

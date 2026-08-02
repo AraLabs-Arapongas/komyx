@@ -7,6 +7,7 @@ import { AvatarInicial } from '@/components/ui/avatar-inicial'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { LayoutAba, ResumoNumero } from '@/components/ui/layout-aba'
 import { Plus, ChevronRight, Search, Users } from 'lucide-react'
 
 function pluralizar(n: number, singular: string, plural: string): string {
@@ -21,35 +22,29 @@ export default function ClientesPage() {
   /* o que a carteira inteira já rendeu: o número que justifica a tela existir */
   const comissaoTotal = lista.reduce((s, c) => s + c.comissaoCentavos, 0)
 
+  /*
+   * O resumo some durante a busca — ali o assunto é achar alguém, e um total
+   * filtrado se confundiria com o total real — e some enquanto não rendeu nada:
+   * um painel anunciando R$ 0,00 ocupa a primeira dobra para dizer que ainda
+   * não há notícia.
+   */
+  const mostrarResumo = !isLoading && !busca && comissaoTotal > 0
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Clientes</h1>
-        <Button asChild><Link href="/app/clientes/novo"><Plus size={18} /> Novo cliente</Link></Button>
-      </div>
-
-      {/*
-        Resumo da carteira antes da lista: quem abre esta tela quer saber quanto
-        ela vale, não contar linhas. Some quando a busca está ativa — ali o
-        assunto é achar alguém, e um total filtrado confundiria com o total real.
-
-        Some também enquanto não rendeu nada: um painel anunciando R$ 0,00 não
-        informa, só ocupa a primeira dobra para dizer que ainda não há notícia.
-      */}
-      {!isLoading && !busca && comissaoTotal > 0 && (
-        <section className="entra-suave superficie-marca-faixa relative overflow-hidden rounded-lg px-4 py-3.5 text-white">
-          <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
-          <div className="relative flex items-end justify-between gap-3">
-            <div>
-              <p className="text-xs text-white/75">Sua carteira já rendeu</p>
-              <Valor centavos={comissaoTotal} className="mt-0.5 block text-2xl font-semibold" />
-            </div>
-            <p className="flex items-center gap-1.5 pb-1 text-sm text-white/75">
-              <Users size={15} /> {total} {pluralizar(total, 'cliente', 'clientes')}
-            </p>
-          </div>
-        </section>
+    <LayoutAba
+      titulo="Clientes"
+      acao={<Button asChild><Link href="/app/clientes/novo"><Plus size={18} /> Novo cliente</Link></Button>}
+      resumo={mostrarResumo && (
+        <div className="flex items-end justify-between gap-3">
+          <ResumoNumero rotulo="Sua carteira já rendeu">
+            <Valor centavos={comissaoTotal} className="block" />
+          </ResumoNumero>
+          <p className="flex shrink-0 items-center gap-1.5 pb-1 text-sm text-white/75">
+            <Users size={15} /> {total} {pluralizar(total, 'cliente', 'clientes')}
+          </p>
+        </div>
       )}
+    >
 
       <div className="relative">
         <Search size={17} aria-hidden
@@ -114,6 +109,6 @@ export default function ClientesPage() {
           </Link>
         ))}
       </div>
-    </div>
+    </LayoutAba>
   )
 }

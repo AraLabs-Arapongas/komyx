@@ -153,3 +153,42 @@ export function useClientes(busca = '') {
     },
   })
 }
+
+export type ResumoVendas = {
+  /** soma das cartas confirmadas — patrimônio movimentado, não dinheiro do corretor */
+  volumeCentavos: number
+  /** o que essas vendas geraram de comissão: este sim é dinheiro dele */
+  comissaoCentavos: number
+  nVendas: number
+}
+
+/**
+ * O total da carteira de vendas, para o cartão do topo da aba.
+ *
+ * Deliberadamente ALHEIO aos filtros da lista: a lista é paginada, então somar
+ * o que está carregado daria um número que muda ao rolar a página. E o que o
+ * corretor quer ver ali é o tamanho do que ele já fez, não do recorte atual.
+ *
+ * Só as colunas numéricas viajam. Uma carteira tem centenas de vendas, não
+ * milhões — quando tiver, isto vira uma função no banco.
+ */
+export function useResumoVendas() {
+  return useQuery({
+    queryKey: ['resumo-vendas'] as const,
+    queryFn: async (): Promise<ResumoVendas> => {
+      const { data, error } = await createClient().from('vendas')
+        .select('valor_carta_centavos, comissoes(valor_centavos)')
+        .eq('status', 'confirmada')
+      if (error) throw error
+      const linhas = (data ?? []) as unknown as {
+        valor_carta_centavos: number
+        comissoes: { valor_centavos: number } | null
+      }[]
+      return {
+        nVendas: linhas.length,
+        volumeCentavos: linhas.reduce((s, v) => s + Number(v.valor_carta_centavos), 0),
+        comissaoCentavos: linhas.reduce((s, v) => s + Number(v.comissoes?.valor_centavos ?? 0), 0),
+      }
+    },
+  })
+}
