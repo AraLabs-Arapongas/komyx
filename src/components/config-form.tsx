@@ -16,18 +16,27 @@ import { ROTULOS_ESTORNO, type PoliticaEstorno } from '@/lib/domain/types'
 import { cn } from '@/lib/utils'
 import { Trash2, Plus, Copy, Building2, TrendingUp, CalendarDays, Undo2, type LucideIcon } from 'lucide-react'
 
+/**
+ * Bloco de conteúdo de um formulário longo.
+ *
+ * O cabeçalho é opcional: quando a página inteira trata de um assunto só, o
+ * título já está no h1 dela, e repeti-lo dentro do cartão faz a tela dizer a
+ * mesma palavra duas vezes seguidas.
+ */
 export function Secao({ titulo, apoio, icone: Icone, children }: {
-  titulo: string; apoio: string; icone: LucideIcon; children: React.ReactNode
+  titulo?: string; apoio?: string; icone?: LucideIcon; children: React.ReactNode
 }) {
   return (
     <section className="entra-suave space-y-4 rounded-lg border bg-card p-4 md:p-5">
-      <div className="flex items-start gap-2.5">
-        <Icone size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
-        <div className="space-y-1">
-          <h2 className="font-medium">{titulo}</h2>
-          <p className="text-sm text-muted-foreground">{apoio}</p>
+      {titulo && (
+        <div className="flex items-start gap-2.5">
+          {Icone && <Icone size={18} className="mt-0.5 shrink-0 text-muted-foreground" />}
+          <div className="space-y-1">
+            <h2 className="font-medium">{titulo}</h2>
+            {apoio && <p className="text-sm text-muted-foreground">{apoio}</p>}
+          </div>
         </div>
-      </div>
+      )}
       {children}
     </section>
   )

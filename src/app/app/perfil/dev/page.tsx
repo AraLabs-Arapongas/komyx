@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { MenuDev } from '@/components/menu-dev'
-import { Voltar } from '@/components/voltar'
+import { CabecalhoPagina } from '@/components/ui/cabecalho-pagina'
 
 export default function DevPage() {
   // em produção a rota não existe; as actions recusam de novo do lado do servidor
@@ -8,8 +8,8 @@ export default function DevPage() {
 
   return (
     <div className="space-y-4">
-      <Voltar href="/app/perfil" />
-      <h1 className="text-xl font-semibold">Desenvolvimento</h1>
+      <CabecalhoPagina voltarPara="/app/perfil" titulo="Desenvolvimento"
+        apoio="Refazer o onboarding e pré-visualizar telas sem gravar nada." />
       <MenuDev />
     </div>
   )

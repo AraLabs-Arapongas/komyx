@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { sair } from '@/app/(auth)/actions'
 import { MenuPerfil } from '@/components/menu-perfil'
 import { Button } from '@/components/ui/button'
+import { LayoutAba } from '@/components/ui/layout-aba'
+import { AvatarInicial } from '@/components/ui/avatar-inicial'
 
 /**
  * Índice do perfil: quem é o corretor no topo, e abaixo as áreas que não são
@@ -15,26 +17,27 @@ export default async function PerfilPage() {
     .select('nome').eq('id', user?.id ?? '').single()
 
   const nome = perfil?.nome?.trim() || 'Corretor'
-  const inicial = nome[0]?.toUpperCase() ?? 'C'
 
   return (
-    <div className="space-y-4">
-      <section className="entra flex items-center gap-3 rounded-lg bg-escuro p-5 text-white">
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-full
-                         bg-white/10 text-lg font-semibold">
-          {inicial}
-        </span>
-        <div className="min-w-0">
-          <p className="truncate text-lg font-semibold">{nome}</p>
-          <p className="truncate text-sm text-escuro-texto">{user?.email}</p>
+    <LayoutAba
+      titulo="Perfil"
+      resumo={
+        <div className="flex items-center gap-3">
+          {/* o avatar é o mesmo das listas: o corretor se reconhece do mesmo
+              jeito que reconhece os clientes dele */}
+          <AvatarInicial nome={nome} className="size-11 bg-white/15 text-base text-white" />
+          <div className="min-w-0">
+            <p className="truncate font-semibold">{nome}</p>
+            <p className="truncate text-sm text-white/75">{user?.email}</p>
+          </div>
         </div>
-      </section>
-
+      }
+    >
       <MenuPerfil />
 
       <form action={sair}>
         <Button variant="outline" type="submit" className="w-full">Sair</Button>
       </form>
-    </div>
+    </LayoutAba>
   )
 }

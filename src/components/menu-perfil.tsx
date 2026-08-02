@@ -36,7 +36,7 @@ export function MenuPerfil() {
     <nav className="divide-y overflow-hidden rounded-lg bg-card">
       {ITENS.map(({ href, icone: Icone, titulo, apoio }) => (
         <Link key={href} href={href}
-          className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-background">
+          className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
             <Icone size={18} />
           </span>

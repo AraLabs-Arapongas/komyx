@@ -8,7 +8,7 @@ import { exportarDados } from '@/lib/actions/backup'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Download, Upload, User } from 'lucide-react'
+import { Download, Upload } from 'lucide-react'
 import { Secao } from '@/components/config-form'
 
 export function PerfilForm({ email, nome: nomeInicial, telefone: telefoneInicial }: {
@@ -48,7 +48,7 @@ export function PerfilForm({ email, nome: nomeInicial, telefone: telefoneInicial
   }
 
   return (
-    <Secao titulo="Conta" apoio="Seus dados de acesso e contato." icone={User}>
+    <Secao>
       <form onSubmit={salvarPerfil} className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
@@ -64,13 +64,20 @@ export function PerfilForm({ email, nome: nomeInicial, telefone: telefoneInicial
           <Label>Nome</Label>
           <Input value={nome} onChange={e => setNome(e.target.value)} required />
         </div>
-        <Button type="submit" variant="outline" size="sm" disabled={salvandoPerfil}>
+        <Button type="submit" size="toque" className="w-full" disabled={salvandoPerfil}>
           {salvandoPerfil ? 'Salvando…' : 'Salvar perfil'}
         </Button>
       </form>
 
-      <form onSubmit={trocarSenha} className="space-y-3 border-t pt-4">
-        <p className="text-sm font-medium">Trocar senha</p>
+      {/* separado por linha e subtítulo: são duas ações independentes no mesmo
+          cartão, e sem a divisão o botão de cima parecia valer para os dois */}
+      <form onSubmit={trocarSenha} className="space-y-3 border-t pt-5">
+        <div className="space-y-1">
+          <p className="font-medium">Trocar senha</p>
+          <p className="text-sm text-muted-foreground">
+            Você continua conectado neste aparelho depois de alterar.
+          </p>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1">
             <Label>Nova senha</Label>
@@ -83,7 +90,7 @@ export function PerfilForm({ email, nome: nomeInicial, telefone: telefoneInicial
               minLength={8} required />
           </div>
         </div>
-        <Button type="submit" variant="outline" size="sm" disabled={trocandoSenha}>
+        <Button type="submit" variant="outline" size="toque" className="w-full" disabled={trocandoSenha}>
           {trocandoSenha ? 'Alterando…' : 'Alterar senha'}
         </Button>
       </form>
@@ -148,19 +155,21 @@ export function BackupSecao() {
   }
 
   return (
-    <Secao titulo="Backup" apoio="Seus dados são seus: baixe uma cópia quando quiser." icone={Download}>
-      <div className="space-y-2">
-        <p className="text-sm font-medium">Baixar meus dados</p>
-        <p className="text-sm text-muted-foreground">
-          Um arquivo .json com vendas, clientes, comissões, recebimentos e as suas regras de comissão.
-        </p>
-        <Button type="button" variant="outline" size="sm" onClick={baixarDados} disabled={baixando}>
+    <Secao>
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <p className="font-medium">Baixar meus dados</p>
+          <p className="text-sm text-muted-foreground">
+            Um arquivo .json com vendas, clientes, comissões, recebimentos e as suas regras de comissão.
+          </p>
+        </div>
+        <Button type="button" size="toque" className="w-full" onClick={baixarDados} disabled={baixando}>
           <Download size={18} /> {baixando ? 'Preparando…' : 'Baixar meus dados'}
         </Button>
       </div>
 
-      <div className="space-y-2 border-t pt-4">
-        <p className="text-sm font-medium">Restaurar um backup</p>
+      <div className="space-y-3 border-t pt-5">
+        <p className="font-medium">Restaurar um backup</p>
         {/*
           Só lemos e validamos o arquivo aqui. Escrever de volta no banco fica
           para depois: restaurar exige decidir o que fazer com os dados que já
@@ -172,7 +181,7 @@ export function BackupSecao() {
         <p className="text-sm text-muted-foreground">
           Por enquanto só conferimos o arquivo — a restauração ainda não está disponível.
         </p>
-        <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm hover:bg-muted/40">
+        <label className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border text-sm font-medium transition-colors hover:bg-muted">
           <Upload size={18} /> Escolher arquivo
           <input type="file" accept="application/json" className="hidden" onChange={lerArquivo} />
         </label>

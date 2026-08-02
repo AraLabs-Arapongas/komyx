@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { ConfigForm } from '@/components/config-form'
-import { Voltar } from '@/components/voltar'
+import { CabecalhoPagina } from '@/components/ui/cabecalho-pagina'
 import type { Faixa, PoliticaEstorno } from '@/lib/domain/types'
 
 export default async function ConfiguracaoPage() {
@@ -9,8 +9,8 @@ export default async function ConfiguracaoPage() {
     .select('*').eq('ativa', true).single()
   return (
     <div className="space-y-6">
-      <Voltar href="/app/perfil" />
-      <h1 className="text-xl font-semibold">Ajustes</h1>
+      <CabecalhoPagina voltarPara="/app/perfil" titulo="Ajustes"
+        apoio="Como seu escritório calcula e paga sua comissão." />
       <div className="rounded-lg border border-[#F59E0B]/40 bg-[#F59E0B]/10 p-3 text-sm">
         Alterações valem para as próximas vendas. O mês em aberto será recalculado
         com as novas regras; meses já fechados não mudam.
