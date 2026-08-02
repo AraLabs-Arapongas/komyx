@@ -1,8 +1,15 @@
 'use client'
+import { useState } from 'react'
+import { CalendarDays } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Calendario } from '@/components/ui/calendario'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { mascaraValor, mascaraData, mascaraPercentual, mascaraInteiro } from '@/lib/format'
+import {
+  mascaraValor, mascaraData, mascaraPercentual, mascaraInteiro,
+  dataBRParaISO, formatData,
+} from '@/lib/format'
 
 type Base = {
   value: string
@@ -67,17 +74,45 @@ export function CampoValor({ value, onChange, placeholder = '0,00', className, .
   )
 }
 
-/** Data no formato DD/MM/AAAA. */
+/**
+ * Data no formato DD/MM/AAAA, com calendário ao lado.
+ *
+ * Digitar continua sendo o caminho rápido — quem sabe a data escreve seis
+ * números e segue. O calendário é para quem precisa olhar: "sexta que vem" não
+ * se digita. Um não substitui o outro, então os dois ficam no mesmo campo.
+ */
 export function CampoData({ value, onChange, placeholder = 'DD/MM/AAAA', className, ...rest }: Base) {
+  const [aberto, setAberto] = useState(false)
+  const hoje = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
+
   return (
-    <Input
-      {...rest}
-      inputMode="numeric"
-      value={value}
-      placeholder={placeholder}
-      onChange={e => onChange(mascaraData(e.target.value))}
-      className={cn('tabular-nums', className)}
-    />
+    <div className="relative">
+      <Input
+        {...rest}
+        inputMode="numeric"
+        value={value}
+        placeholder={placeholder}
+        onChange={e => onChange(mascaraData(e.target.value))}
+        className={cn('pr-11 tabular-nums', className)}
+      />
+      <Popover open={aberto} onOpenChange={setAberto}>
+        <PopoverTrigger asChild>
+          <button type="button" aria-label="Escolher no calendário"
+            disabled={rest.disabled}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-muted-foreground
+                       transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none">
+            <CalendarDays size={18} />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end">
+          <Calendario
+            valor={dataBRParaISO(value) || null}
+            hoje={hoje}
+            onEscolher={escolhida => { onChange(formatData(escolhida)); setAberto(false) }}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
   )
 }
 
