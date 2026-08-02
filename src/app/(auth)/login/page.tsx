@@ -20,19 +20,19 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <Label htmlFor="email">E-mail</Label>
           <Input id="email" name="email" type="email" required autoComplete="email"
             inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false}
-            className="h-12" />
+            />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="password">Senha</Label>
           <Input id="password" name="password" type="password" required
-            autoComplete="current-password" className="h-12" />
+            autoComplete="current-password" />
         </div>
         <label htmlFor="lembrar" className="flex cursor-pointer items-center gap-2 py-1 text-sm">
           <input id="lembrar" name="lembrar" type="checkbox" defaultChecked
             className="size-4 cursor-pointer accent-primary" />
           Manter conectado neste dispositivo
         </label>
-        <Button type="submit" size="lg" className="h-12 w-full">
+        <Button type="submit" size="toque" className="w-full">
           Entrar
         </Button>
         <p className="text-center text-sm text-muted-foreground">

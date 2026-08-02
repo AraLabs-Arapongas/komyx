@@ -167,12 +167,12 @@ export default function LandingPage() {
                 escritório calcular.
               </p>
               <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row md:justify-start">
-                <Button asChild size="lg"
-                  className="h-12 w-full bg-money-claro px-8 text-base text-[#0B132B] hover:bg-money-claro/90 sm:w-auto">
+                <Button asChild size="toque"
+                  className="w-full bg-money-claro px-8 text-base text-[#0B132B] hover:bg-money-claro/90 sm:w-auto">
                   <Link href="/cadastro">Criar conta grátis</Link>
                 </Button>
-                <Button asChild variant="ghost" size="lg"
-                  className="h-12 w-full text-escuro-texto hover:bg-white/10 hover:text-white sm:w-auto">
+                <Button asChild variant="ghost" size="toque"
+                  className="w-full text-escuro-texto hover:bg-white/10 hover:text-white sm:w-auto">
                   <Link href="#como-funciona">Ver como funciona</Link>
                 </Button>
               </div>
@@ -448,8 +448,8 @@ export default function LandingPage() {
             Grátis, sem cartão. Configure suas regras e veja sua próxima comissão
             calculada em menos de cinco minutos.
           </p>
-          <Button asChild size="lg"
-            className="mt-8 h-12 bg-money-claro px-8 text-base text-[#0B132B] hover:bg-money-claro/90">
+          <Button asChild size="toque"
+            className="mt-8 bg-money-claro px-8 text-[#0B132B] hover:bg-money-claro/90">
             <Link href="/cadastro">Criar conta grátis</Link>
           </Button>
 

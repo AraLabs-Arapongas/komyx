@@ -5,6 +5,17 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /*
+   * Altura do menu inferior, que é fixo sobre o conteúdo no celular.
+   *
+   * Vive aqui porque três lugares precisam do mesmo número e não podem
+   * discordar: o próprio menu, o espaço que o conteúdo reserva embaixo, e a
+   * barra de ação dos formulários, que gruda logo acima dele. Quando esse
+   * número morava solto, sobrava folga entre o botão e o menu.
+   */
+  --altura-nav: 3.375rem;
+  /* barra superior fixa, pelo mesmo motivo */
+  --altura-cabecalho: 3.1875rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);

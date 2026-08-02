@@ -28,7 +28,7 @@ export function AppNav() {
       {/* barra superior em todas as larguras: esconder valores precisa estar
           a um toque de distância em qualquer tela. No desktop a marca já vive
           na lateral, então aqui sobra só o olho */}
-      <div className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b bg-card px-4 py-2.5 md:justify-end md:pl-48">
+      <div className="sticky top-0 z-30 flex h-[var(--altura-cabecalho)] items-center justify-between gap-2 border-b bg-card px-4 py-2.5 md:justify-end md:pl-48">
         <Logo className="md:hidden" />
         <div className="flex items-center gap-1">
           <BuscaGlobal />
@@ -37,7 +37,7 @@ export function AppNav() {
       </div>
 
       {/* mobile: bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t bg-card md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex h-[var(--altura-nav)] border-t bg-card md:hidden">
         {itens.map(({ href, label, icon: Icon, tambem }) => (
           <Link key={href} href={href}
             className={cn('flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px]',

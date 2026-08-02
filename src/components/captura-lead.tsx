@@ -46,9 +46,9 @@ export function CapturaLead({ origem = 'landing' }: { origem?: string }) {
           onChange={e => setEmail(e.target.value)}
           placeholder="seu@email.com"
           aria-label="Seu e-mail"
-          className="h-11 bg-card sm:flex-1"
+          className="bg-card sm:flex-1"
         />
-        <Button type="submit" size="lg" disabled={enviando} className="h-11">
+        <Button type="submit" size="toque" disabled={enviando}>
           {enviando ? 'Enviando…' : 'Quero saber mais'}
         </Button>
       </div>

@@ -222,7 +222,7 @@ export function VendaForm({ vendaId, inicial }: {
   const mostrar = (p: number) => !emPassos || passo === p
 
   return (
-    <form onSubmit={onSubmit} onKeyDown={onKeyDown} className="entra flex min-h-[70dvh] flex-col">
+    <form onSubmit={onSubmit} onKeyDown={onKeyDown} className="entra flex flex-1 flex-col">
       {emPassos && (
         <div className="mb-6 space-y-2">
           <div className="flex items-baseline justify-between">
@@ -276,7 +276,7 @@ export function VendaForm({ vendaId, inicial }: {
             </div>
 
             <Campo rotulo="Data da venda" htmlFor="data">
-              <CampoData id="data" value={dataTxt} onChange={setDataTxt} required className="h-12" />
+              <CampoData id="data" value={dataTxt} onChange={setDataTxt} required />
             </Campo>
           </section>
         )}
@@ -285,21 +285,21 @@ export function VendaForm({ vendaId, inicial }: {
           <section className="space-y-5">
             <Campo rotulo="Administradora" htmlFor="administradora"
               apoio={veioDaMemoria ? 'Preenchida com a da sua última venda.' : undefined}>
-              <Input id="administradora" value={administradora} required className="h-12"
+              <Input id="administradora" value={administradora} required
                 onChange={e => setAdministradoraDigitada(e.target.value)} />
             </Campo>
 
             <div className="grid grid-cols-2 gap-3">
               <Campo rotulo="Grupo" htmlFor="grupo">
-                <CampoInteiro id="grupo" value={grupo} onChange={setGrupo} required className="h-12" />
+                <CampoInteiro id="grupo" value={grupo} onChange={setGrupo} required />
               </Campo>
               <Campo rotulo="Cota" htmlFor="cota">
-                <CampoInteiro id="cota" value={cota} onChange={setCota} required className="h-12" />
+                <CampoInteiro id="cota" value={cota} onChange={setCota} required />
               </Campo>
             </div>
 
             <Campo rotulo="Número do contrato" htmlFor="contrato" opcional>
-              <Input id="contrato" value={numeroContrato} className="h-12"
+              <Input id="contrato" value={numeroContrato}
                 onChange={e => setNumeroContrato(e.target.value)} />
             </Campo>
           </section>
@@ -316,17 +316,24 @@ export function VendaForm({ vendaId, inicial }: {
             </Campo>
 
             <Campo rotulo="Observações" htmlFor="observacoes" opcional>
-              <Input id="observacoes" value={observacoes} className="h-12"
+              <Input id="observacoes" value={observacoes}
                 onChange={e => setObservacoes(e.target.value)} />
             </Campo>
           </section>
         )}
       </div>
 
-      {/* a ação fica no pé da tela, no alcance do polegar */}
-      <div className="mt-6 flex gap-3">
+      {/*
+        A ação gruda no pé da tela, logo acima do menu — no alcance do polegar e
+        sempre visível, sem depender de o passo ter conteúdo suficiente para
+        empurrá-la até lá. O recuo sai da mesma variável que dimensiona o menu,
+        senão sobra a folga que existia entre os dois.
+      */}
+      <div className="sticky bottom-[var(--altura-nav)] z-20 -mx-4 -mb-4 mt-6 flex gap-3
+                      bg-background px-4 pb-4 pt-3
+                      md:bottom-0 md:-mx-6 md:-mb-6 md:px-6">
         {emPassos && passo > 0 && (
-          <Button type="button" variant="outline" size="lg" className="h-12"
+          <Button type="button" variant="outline" size="toque"
             onClick={() => setPasso(p => p - 1)}>
             <ChevronLeft size={18} /> Voltar
           </Button>
@@ -339,11 +346,11 @@ export function VendaForm({ vendaId, inicial }: {
           cai, e gravar volta a exigir um gesto de quem está usando.
         */}
         {emPassos && passo < ultimo ? (
-          <Button key="continuar" type="button" size="lg" className="h-12 flex-1" onClick={avancar}>
+          <Button key="continuar" type="button" size="toque" className="flex-1" onClick={avancar}>
             Continuar
           </Button>
         ) : (
-          <Button key="salvar" type="submit" size="lg" className="h-12 flex-1" disabled={salvando}>
+          <Button key="salvar" type="submit" size="toque" className="flex-1" disabled={salvando}>
             {salvando ? 'Salvando…' : vendaId ? 'Salvar alterações' : 'Salvar venda'}
           </Button>
         )}

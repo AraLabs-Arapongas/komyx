@@ -103,7 +103,7 @@ export function BuscaGlobal() {
             value={termo}
             onChange={e => setTermo(e.target.value)}
             placeholder="Buscar cliente, grupo, cota, contrato…"
-            className="h-12 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+            className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
           />
           <button type="button" onClick={() => setAberto(false)} aria-label="Fechar"
             className="rounded-md p-1 text-muted-foreground hover:text-foreground">

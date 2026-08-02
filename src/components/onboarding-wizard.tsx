@@ -161,7 +161,7 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
           <p className="max-w-xs text-escuro-texto">
             Me explique uma vez como seu escritório paga. Daqui pra frente eu faço as contas.
           </p>
-          <Button size="lg" className="h-12 gap-2 bg-money-claro px-8 text-escuro hover:bg-money-claro/90" onClick={() => setPasso('faixas')}>
+          <Button size="toque" className="gap-2 bg-money-claro px-8 text-escuro hover:bg-money-claro/90" onClick={() => setPasso('faixas')}>
             Começar <ArrowRight size={18} />
           </Button>
         </div>
@@ -189,7 +189,7 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     <div className="col-span-2 space-y-1 sm:col-span-1">
                       <Label className="text-xs">Até</Label>
-                      <CampoValor value={f.maxTxt} placeholder="Sem limite" disabled={f.semLimite} className="h-12"
+                      <CampoValor value={f.maxTxt} placeholder="Sem limite" disabled={f.semLimite}
                         onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, maxTxt: v } : x))} />
                       <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs text-muted-foreground">
                         <input
@@ -204,12 +204,12 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Comissão</Label>
-                      <CampoPercentual value={f.percentualTxt} className="h-12"
+                      <CampoPercentual value={f.percentualTxt}
                         onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, percentualTxt: v } : x))} />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Parcelas</Label>
-                      <CampoInteiro value={f.parcelasTxt} placeholder="2" className="h-12"
+                      <CampoInteiro value={f.parcelasTxt} placeholder="2"
                         onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, parcelasTxt: v } : x))} />
                     </div>
                   </div>
@@ -240,11 +240,11 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label>Dia do fechamento</Label>
-              <CampoInteiro value={fechamento} onChange={setFechamento} className="h-12" />
+              <CampoInteiro value={fechamento} onChange={setFechamento} />
             </div>
             <div className="space-y-1">
               <Label>Dia do pagamento</Label>
-              <CampoInteiro value={pagamento} onChange={setPagamento} className="h-12" />
+              <CampoInteiro value={pagamento} onChange={setPagamento} />
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
@@ -290,8 +290,8 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
           <p className="text-4xl">🎉</p>
           <h2 className="text-3xl font-semibold sm:text-4xl">Tudo pronto.</h2>
           <p className="max-w-xs text-escuro-texto">Agora é só registrar sua primeira venda.</p>
-          <Button size="lg" disabled={salvando}
-            className="h-12 gap-2 bg-money-claro px-8 text-escuro hover:bg-money-claro/90" onClick={finalizar}>
+          <Button size="toque" disabled={salvando}
+            className="gap-2 bg-money-claro px-8 text-escuro hover:bg-money-claro/90" onClick={finalizar}>
             {salvando ? 'Preparando…' : 'Começar a usar o Komyx'} <ArrowRight size={18} />
           </Button>
           <button type="button" onClick={() => irPara('estorno')} className="text-sm text-escuro-texto underline underline-offset-4">

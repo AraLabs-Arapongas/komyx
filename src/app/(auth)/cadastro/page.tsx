@@ -23,7 +23,7 @@ export default async function CadastroPage(
         )}
         <div className="space-y-1.5">
           <Label htmlFor="nome">Nome</Label>
-          <Input id="nome" name="nome" required autoComplete="name" className="h-12" />
+          <Input id="nome" name="nome" required autoComplete="name" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="email">E-mail</Label>
@@ -31,14 +31,14 @@ export default async function CadastroPage(
               letra e sugere correção, e a sugestão vem com espaço no fim. */}
           <Input id="email" name="email" type="email" required autoComplete="email"
             inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false}
-            className="h-12" />
+            />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="password">Senha</Label>
           <Input id="password" name="password" type="password" required
-            autoComplete="new-password" className="h-12" />
+            autoComplete="new-password" />
         </div>
-        <Button type="submit" size="lg" className="h-12 w-full">
+        <Button type="submit" size="toque" className="w-full">
           Criar conta
         </Button>
         <p className="text-center text-sm text-muted-foreground">

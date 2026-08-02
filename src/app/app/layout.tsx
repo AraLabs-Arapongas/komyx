@@ -37,7 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <Providers>
       <AppNav />
-      <main className="min-h-dvh pb-24 md:pb-8 md:pl-44">
+      <main className="min-h-dvh pb-[calc(var(--altura-nav)+1rem)] md:pb-8 md:pl-44">
         <div className="mx-auto max-w-3xl p-4 md:p-6">{children}</div>
       </main>
     </Providers>

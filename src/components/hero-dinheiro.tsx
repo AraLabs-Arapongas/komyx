@@ -106,12 +106,12 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
         </div>
 
         <div className="mt-5 flex items-center gap-2">
-          <Button asChild size="lg"
+          <Button asChild size="toque"
             className="flex-1 bg-money-claro text-[#0B132B] hover:bg-money-claro/90 md:flex-none">
             <Link href="/app/vendas/nova"><Plus size={18} /> Nova venda</Link>
           </Button>
           {foraDoAtual && (
-            <Button variant="ghost" size="lg" onClick={onHoje}
+            <Button variant="ghost" size="toque" onClick={onHoje}
               className="text-escuro-texto hover:bg-white/10 hover:text-white">
               Voltar para hoje
             </Button>
