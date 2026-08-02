@@ -27,7 +27,11 @@ export default async function CadastroPage(
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="email">E-mail</Label>
-          <Input id="email" name="email" type="email" required autoComplete="email" className="h-12" />
+          {/* autoCapitalize/autoCorrect: no celular o teclado sobe a primeira
+              letra e sugere correção, e a sugestão vem com espaço no fim. */}
+          <Input id="email" name="email" type="email" required autoComplete="email"
+            inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+            className="h-12" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="password">Senha</Label>

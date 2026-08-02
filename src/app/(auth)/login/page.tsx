@@ -18,7 +18,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         )}
         <div className="space-y-1.5">
           <Label htmlFor="email">E-mail</Label>
-          <Input id="email" name="email" type="email" required autoComplete="email" className="h-12" />
+          <Input id="email" name="email" type="email" required autoComplete="email"
+            inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+            className="h-12" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="password">Senha</Label>
