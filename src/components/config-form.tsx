@@ -160,19 +160,45 @@ export function ConfigForm({ modo, inicial }: {
       const eraUltima = indice === fs.length - 1
       const ganhouTeto = fs[indice].maxTxt.trim() === '' && valor.trim() !== ''
       if (!eraUltima || !ganhouTeto) return atualizadas
+      setTentouSeguir(false)
       return [...atualizadas, { maxTxt: '', percentualTxt: '', parcelasTxt: '' }]
+    })
+  }
+
+  /*
+   * Acrescentar faixa apaga a marca de "já tentou seguir".
+   *
+   * Sem isso, quem já tinha clicado em Continuar uma vez via a faixa seguinte
+   * nascer vermelha: a marca ficava ligada para sempre e valia para campos que
+   * ainda não existiam quando a tentativa aconteceu. O formulário mudou de
+   * forma; a tentativa anterior não descreve mais ele.
+   */
+  function acrescentarFaixa(nova: FaixaDraft) {
+    setTentouSeguir(false)
+    setFaixas(fs => [...fs, nova])
+  }
+
+  /**
+   * Apaga uma faixa e conserta o topo.
+   *
+   * O teto de uma faixa só existe para separá-la da que está acima. Ao apagar a
+   * do topo, quem assume o lugar dela fica com um teto que não separa de nada —
+   * e a política passaria a não cobrir os valores acima dele. Então esse número
+   * sai junto.
+   */
+  function removerFaixa(indice: number) {
+    setFaixas(fs => {
+      const restantes = fs.filter((_, j) => j !== indice)
+      if (restantes.length === 0) return fs
+      return restantes.map((f, j) => (j === restantes.length - 1 ? { ...f, maxTxt: '' } : f))
     })
   }
 
   function duplicarUltimaFaixa() {
     // ponto de partida para uma variação da política: copia comissão e
     // parcelas da última faixa em vez de deixar tudo em branco
-    setFaixas(fs => {
-      const ultima = fs[fs.length - 1]
-      // a que era a última passa a precisar de teto — o campo dela aparece
-      // sozinho, vazio, e a validação cobra
-      return [...fs, { maxTxt: '', percentualTxt: ultima.percentualTxt, parcelasTxt: ultima.parcelasTxt }]
-    })
+    const ultima = faixas[faixas.length - 1]
+    acrescentarFaixa({ maxTxt: '', percentualTxt: ultima.percentualTxt, parcelasTxt: ultima.parcelasTxt })
   }
 
   async function salvar() {
@@ -217,7 +243,7 @@ export function ConfigForm({ modo, inicial }: {
         os botões para baixo e obrigava a rolar de novo para adicionar a próxima */}
         <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm"
-        onClick={() => setFaixas(fs => [...fs, { maxTxt: '', percentualTxt: '', parcelasTxt: '' }])}>
+        onClick={() => acrescentarFaixa({ maxTxt: '', percentualTxt: '', parcelasTxt: '' })}>
         <Plus size={18} /> Adicionar faixa
         </Button>
         <Button type="button" variant="outline" size="sm" onClick={duplicarUltimaFaixa}
@@ -245,7 +271,7 @@ export function ConfigForm({ modo, inicial }: {
         <div className="flex items-center justify-between text-sm font-medium">
         <span>Faixa {i + 1} — de {formatBRL(minDaFaixa(i))}{ultima ? ' para cima' : ''}</span>
         {faixas.length > 1 && (
-        <button type="button" onClick={() => setFaixas(fs => fs.filter((_, j) => j !== i))}>
+        <button type="button" onClick={() => removerFaixa(i)}>
         <Trash2 size={18} className="text-muted-foreground" />
         </button>)}
         </div>

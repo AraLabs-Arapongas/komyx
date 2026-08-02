@@ -31,6 +31,12 @@ export const configFinanceiraSchema = z.object({
     const idx = indiceOriginal(f)
     if (f.max !== null && f.max <= f.min)
       ctx.addIssue({ code: 'custom', path: ['faixas', idx, 'max'], message: `O valor final precisa ser maior que ${formatBRL(f.min)}.` })
+    /*
+     * A última faixa precisa ser aberta, senão a política deixa de responder o
+     * que acontece acima do teto dela — e vender mais cairia num vazio.
+     */
+    if (f.max !== null && i === ordenadas.length - 1)
+      ctx.addIssue({ code: 'custom', path: ['faixas', idx, 'max'], message: 'A última faixa não pode ter teto: é ela que vale daqui para cima.' })
     if (f.max === null && i !== ordenadas.length - 1)
       // a mensagem diz o que fazer, não a regra violada: quem lê está com o
       // campo vazio na frente e precisa saber que é ele que falta
