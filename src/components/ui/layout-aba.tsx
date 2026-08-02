@@ -33,9 +33,13 @@ export function LayoutAba({ titulo, acao, resumo, children, className }: {
       {resumo && (
         /* superficie-marca-faixa, e não a original: esta caixa é baixa e larga,
            e a aurora do hero comprime aqui — ver o comentário no globals.css */
-        <section className="entra-suave superficie-marca-faixa relative overflow-hidden rounded-lg px-4 py-3.5 text-white">
+        /* altura fixa: o cartão troca de conteúdo conforme a aba carrega — e um
+           bloco que muda de tamanho embaixo do título faz a lista inteira
+           pular. Também garante que as três abas abram com a mesma silhueta,
+           mesmo que uma delas ganhe uma linha a mais um dia */
+        <section className="entra-suave superficie-marca-faixa relative flex h-[4.625rem] items-center overflow-hidden rounded-lg px-4 text-white">
           <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
-          <div className="relative">{resumo}</div>
+          <div className="relative w-full">{resumo}</div>
         </section>
       )}
 

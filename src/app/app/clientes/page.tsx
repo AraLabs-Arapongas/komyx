@@ -21,6 +21,7 @@ export default function ClientesPage() {
   const total = lista.length
   /* o que a carteira inteira já rendeu: o número que justifica a tela existir */
   const comissaoTotal = lista.reduce((s, c) => s + c.comissaoCentavos, 0)
+  const volumeTotal = lista.reduce((s, c) => s + c.volumeCentavos, 0)
 
   /*
    * O resumo some durante a busca — ali o assunto é achar alguém, e um total
@@ -35,13 +36,15 @@ export default function ClientesPage() {
       titulo="Clientes"
       acao={<Button asChild><Link href="/app/clientes/novo"><Plus size={18} /> Novo cliente</Link></Button>}
       resumo={mostrarResumo && (
-        <div className="flex items-end justify-between gap-3">
-          <ResumoNumero rotulo="Sua carteira já rendeu">
-            <Valor centavos={comissaoTotal} className="block" />
+        <div className="grid grid-cols-2 gap-3">
+          {/* mesma leitura das outras abas: à esquerda o que a carteira
+              movimentou, à direita o que sobrou para o corretor */}
+          <ResumoNumero rotulo="Vendido">
+            <Valor centavos={volumeTotal} destaque={false} className="block text-white" />
           </ResumoNumero>
-          <p className="flex shrink-0 items-center gap-1.5 pb-1 text-sm text-white/75">
-            <Users size={15} /> {total} {pluralizar(total, 'cliente', 'clientes')}
-          </p>
+          <ResumoNumero rotulo="Já rendeu">
+            <Valor centavos={comissaoTotal} destaque={false} className="block text-money-claro" />
+          </ResumoNumero>
         </div>
       )}
     >
@@ -54,9 +57,12 @@ export default function ClientesPage() {
           onChange={e => setBusca(e.target.value)} />
       </div>
 
-      {busca && !isLoading && (
-        <p className="text-sm text-muted-foreground">
-          {total} {pluralizar(total, 'resultado', 'resultados')}
+      {!isLoading && total > 0 && (
+        <p className="flex items-center justify-end gap-1.5 text-sm text-muted-foreground">
+          <Users size={15} />
+          {busca
+            ? `${total} ${pluralizar(total, 'resultado', 'resultados')}`
+            : `${total} ${pluralizar(total, 'cliente', 'clientes')}`}
         </p>
       )}
 
