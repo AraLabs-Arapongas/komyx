@@ -225,7 +225,17 @@ export function ConfigForm({ modo, inicial }: {
         <Copy size={18} /> Duplicar
         </Button>
         </div>
-        {faixas.map((f, i) => {
+        {/*
+          Da última para a primeira: a faixa nova nasce ao preencher o teto da
+          anterior e, na ordem natural, ela aparecia embaixo — fora da tela, sob
+          o dedo que acabou de digitar. Aqui ela surge no topo, empurrando as
+          já preenchidas para baixo.
+
+          O índice continua sendo o real: o `min` de cada faixa, os erros e o
+          botão de apagar dependem da posição de verdade, não da exibida.
+        */}
+        {faixas.map((_, i) => faixas.length - 1 - i).map(i => {
+        const f = faixas[i]
         const erro = errosFaixas[i]
         const mostrarErro = tentouSeguir
         const ultima = i === faixas.length - 1
