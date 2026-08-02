@@ -51,7 +51,7 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
     /* sobe por trás do cabeçalho, que no painel é transparente: a aurora
        começa no topo da tela em vez de depois de uma faixa branca. O respiro
        de cima compensa o que a barra ocupa por cima dela. */
-    <section className="entra superficie-marca relative -mx-4 -mt-[calc(var(--altura-cabecalho-painel)+1rem)] overflow-hidden px-5 pb-12 pt-[calc(var(--altura-cabecalho-painel)+1rem)] text-white md:mx-0 md:mt-0 md:rounded-lg md:px-8 md:pb-12 md:pt-6">
+    <section className="entra superficie-marca relative -mx-4 -mt-[calc(var(--altura-cabecalho-painel)+1rem)] overflow-hidden px-5 pb-12 pt-[calc(var(--altura-cabecalho-painel)+1rem)] text-white [clip-path:url(#recorte-onda-hero)] md:mx-0 md:mt-0 md:rounded-lg md:px-8 md:pb-12 md:pt-6">
       {/* mesma luz da landing: o painel do corretor e a página pública são a
           mesma marca */}
       <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
@@ -122,17 +122,19 @@ export function HeroDinheiro({ nome, competencia, pagamento, hoje, foraDoAtual, 
         </div>
       </div>
       {/*
-        A borda de baixo é uma onda, não um corte reto.
-        A curva ascendente é a assinatura da marca — a mesma que aparece no
-        hero, na landing e nas telas de entrada. Repeti-la aqui faz a aurora
-        terminar como um gesto do produto, em vez de um bloco cortado com
-        régua. Fica na cor do fundo da página, então é a página subindo por
-        cima da aurora.
+        A borda de baixo é uma onda porque o PRÓPRIO elemento é recortado em
+        onda, via clip-path. A primeira versão desenhava uma onda por cima da
+        borda reta, e qualquer desencontro de subpixel entre as duas deixava
+        uma linha fininha de aurora aparecendo — o recorte elimina a borda
+        reta, então não existe onde a linha nascer. As coordenadas são fração
+        do tamanho do bloco (objectBoundingBox), acompanhando qualquer largura.
       */}
-      <svg aria-hidden viewBox="0 0 1440 80" preserveAspectRatio="none"
-        className="pointer-events-none absolute inset-x-0 bottom-[-1px] h-8 w-full text-background md:h-10">
-        <path fill="currentColor"
-          d="M0 80 L0 40 C 180 76, 400 78, 660 52 S 1120 6, 1440 24 L1440 80 Z" />
+      <svg aria-hidden width="0" height="0" className="absolute">
+        <defs>
+          <clipPath id="recorte-onda-hero" clipPathUnits="objectBoundingBox">
+            <path d="M0,0 H1 V0.955 C0.86,1.002 0.62,1.005 0.44,0.972 C0.27,0.942 0.1,0.945 0,0.975 Z" />
+          </clipPath>
+        </defs>
       </svg>
     </section>
   )

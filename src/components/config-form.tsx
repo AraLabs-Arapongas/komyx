@@ -7,7 +7,7 @@ import { salvarConfig } from '@/lib/actions/config'
 import { configFinanceiraSchema } from '@/lib/domain/schemas'
 import { parseBRLParaCentavos, formatBRL } from '@/lib/format'
 import { Button } from '@/components/ui/button'
-import { Passos, type Passo as PassoConfig } from '@/components/ui/passos'
+import { Passos, BlocoRevisao, type Passo as PassoConfig } from '@/components/ui/passos'
 import { Label } from '@/components/ui/label'
 import { CampoValor, CampoPercentual, CampoInteiro, CampoFatia } from '@/components/campos'
 import { ROTULOS_ESTORNO, type PoliticaEstorno } from '@/lib/domain/types'
@@ -100,6 +100,7 @@ export function ConfigForm({ modo, inicial }: {
   const [pagamento, setPagamento] = useState(String(inicial?.diaPrimeiroPagamento ?? 10))
   const [estorno, setEstorno] = useState<PoliticaEstorno>(inicial?.politicaEstorno ?? 'perguntar')
   const [salvando, setSalvando] = useState(false)
+  const [passoAtual, setPassoAtual] = useState(0)
 
   function minDaFaixa(i: number): number {
     if (i === 0) return 0
@@ -465,6 +466,31 @@ export function ConfigForm({ modo, inicial }: {
         </Secao>
       ),
     },
+    {
+      titulo: 'Confira antes de salvar',
+      conteudo: (
+        <div className="space-y-3">
+          {/* um bloco por passo, na ordem em que se preencheu: revisar é
+              reler o que se respondeu, não reabrir o formulário inteiro */}
+          <BlocoRevisao titulo="Faixas de comissão" aoEditar={() => setPassoAtual(0)}>
+            {faixas.map((f, i) => (
+              <p key={i}>
+                De {formatBRL(minDaFaixa(i))} {f.maxTxt.trim() ? `até R$ ${f.maxTxt}` : 'para cima'} —{' '}
+                {f.percentualTxt || '?'}% em {f.parcelasTxt || '?'}x
+                {f.fatiasTxt.some(x => x.trim()) && ` (parcelas de ${f.fatiasTxt.map(x => x || '0').join('% / ')}%)`}
+              </p>
+            ))}
+          </BlocoRevisao>
+          <BlocoRevisao titulo="Calendário" aoEditar={() => setPassoAtual(1)}>
+            <p>Vendas entram no mês até o dia {fechamento || '?'}.</p>
+            <p>Primeira parcela cai no dia {pagamento || '?'} do mês seguinte.</p>
+          </BlocoRevisao>
+          <BlocoRevisao titulo="Estorno" aoEditar={() => setPassoAtual(2)}>
+            <p>{ROTULOS_ESTORNO[estorno].titulo} — {ROTULOS_ESTORNO[estorno].apoio}</p>
+          </BlocoRevisao>
+        </div>
+      ),
+    },
   ]
 
   /** Erro que impede sair de cada passo — o schema já apontou onde. */
@@ -478,6 +504,8 @@ export function ConfigForm({ modo, inicial }: {
   return (
     <Passos
       passos={PASSOS}
+      passo={passoAtual}
+      onPasso={setPassoAtual}
       rotuloFinal="Salvar regras"
       ocupado={salvando}
       podeAvancar={passoValido}

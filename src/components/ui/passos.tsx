@@ -22,7 +22,7 @@ export type Passo = {
  * sabe qual campo ficou faltando, e é lá que o erro precisa pintar de vermelho.
  * Devolver `false` segura o passo sem dizer nada aqui.
  */
-export function Passos({ passos, rotuloFinal, aoConcluir, podeAvancar, ocupado, onKeyDownExtra }: {
+export function Passos({ passos, rotuloFinal, aoConcluir, podeAvancar, ocupado, onKeyDownExtra, passo: passoControlado, onPasso }: {
   passos: Passo[]
   rotuloFinal: string
   aoConcluir: () => void
@@ -30,13 +30,22 @@ export function Passos({ passos, rotuloFinal, aoConcluir, podeAvancar, ocupado, 
   podeAvancar?: (indice: number) => boolean
   ocupado?: boolean
   onKeyDownExtra?: (e: React.KeyboardEvent<HTMLFormElement>) => void
+  /*
+   * Controle externo do passo, para quando o conteúdo precisa navegar — o
+   * "Editar" de um passo de revisão pula de volta para o passo dele. Sem os
+   * dois, o componente cuida do estado sozinho, como sempre.
+   */
+  passo?: number
+  onPasso?: (p: number) => void
 }) {
-  const [passo, setPasso] = useState(0)
+  const [passoInterno, setPassoInterno] = useState(0)
+  const passo = passoControlado ?? passoInterno
+  const setPasso = onPasso ?? setPassoInterno
   const ultimo = passos.length - 1
 
   function avancar() {
     if (podeAvancar && !podeAvancar(passo)) return
-    setPasso(p => Math.min(p + 1, ultimo))
+    setPasso(Math.min(passo + 1, ultimo))
   }
 
   function concluir() {
@@ -93,7 +102,7 @@ export function Passos({ passos, rotuloFinal, aoConcluir, podeAvancar, ocupado, 
 
       <BarraAcao>
         {passo > 0 && (
-          <Button type="button" variant="outline" size="toque" onClick={() => setPasso(p => p - 1)}>
+          <Button type="button" variant="outline" size="toque" onClick={() => setPasso(passo - 1)}>
             <ChevronLeft size={18} /> Voltar
           </Button>
         )}
@@ -113,5 +122,29 @@ export function Passos({ passos, rotuloFinal, aoConcluir, podeAvancar, ocupado, 
         )}
       </BarraAcao>
     </form>
+  )
+}
+
+/**
+ * Um bloco do passo de revisão: o resumo de um passo anterior, com o atalho
+ * para voltar lá. O botão diz "Editar" e leva ao passo, não a um campo — quem
+ * revisa pensa por assunto, do jeito que preencheu.
+ */
+export function BlocoRevisao({ titulo, aoEditar, children }: {
+  titulo: string
+  aoEditar: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <section className="space-y-2 rounded-lg bg-card p-4">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-sm font-medium">{titulo}</h3>
+        <button type="button" onClick={aoEditar}
+          className="text-sm font-medium text-primary underline-offset-2 hover:underline">
+          Editar
+        </button>
+      </div>
+      <div className="space-y-1 text-sm text-muted-foreground">{children}</div>
+    </section>
   )
 }
