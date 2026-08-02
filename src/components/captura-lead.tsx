@@ -12,7 +12,15 @@ import { Check } from 'lucide-react'
  * caminho principal da página. Este formulário atende o visitante que só está
  * olhando — sem ele, essa pessoa vai embora sem deixar rastro.
  */
-export function CapturaLead({ origem = 'landing' }: { origem?: string }) {
+export function CapturaLead({ origem = 'landing', empilhado = false }: {
+  origem?: string
+  /*
+   * Campo e botão um sobre o outro. O `sm:` do padrão olha a largura da tela,
+   * não a da caixa: dentro de um cartão estreito num desktop largo ele vira
+   * linha do mesmo jeito, e o e-mail chega a aparecer cortado no meio.
+   */
+  empilhado?: boolean
+}) {
   const [email, setEmail] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [pronto, setPronto] = useState(false)
@@ -38,7 +46,7 @@ export function CapturaLead({ origem = 'landing' }: { origem?: string }) {
 
   return (
     <form onSubmit={enviar} className="mx-auto w-full max-w-md space-y-2">
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className={empilhado ? 'flex flex-col gap-2' : 'flex flex-col gap-2 sm:flex-row'}>
         <Input
           type="email"
           required
@@ -46,9 +54,9 @@ export function CapturaLead({ origem = 'landing' }: { origem?: string }) {
           onChange={e => setEmail(e.target.value)}
           placeholder="seu@email.com"
           aria-label="Seu e-mail"
-          className="bg-card sm:flex-1"
+          className={empilhado ? 'bg-card' : 'bg-card sm:flex-1'}
         />
-        <Button type="submit" size="toque" disabled={enviando}>
+        <Button type="submit" size="toque" disabled={enviando} className={empilhado ? 'w-full' : undefined}>
           {enviando ? 'Enviando…' : 'Quero saber mais'}
         </Button>
       </div>

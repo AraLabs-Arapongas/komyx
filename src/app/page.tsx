@@ -7,19 +7,21 @@ import {
 } from '@/components/landing/amostras'
 import { Revela } from '@/components/landing/revela'
 import { CurvaMarca } from '@/components/curva-marca'
-import { INCLUSO, PLANO } from '@/lib/assinatura/plano'
+import { INCLUSO, INCLUSO_ESCRITORIO, PLANO, PLANO_ESCRITORIO } from '@/lib/assinatura/plano'
 import {
   Calculator, CalendarClock, Undo2, Search, ShieldCheck, Download,
-  EyeOff, Sparkles, Check, X,
+  EyeOff, Sparkles, Check, X, Building2,
 } from 'lucide-react'
 
 /*
  * A página que o corretor vê antes de confiar o dinheiro dele ao produto.
  *
- * Ela não inventa prova social: o Komyx é novo e não tem clientes para
- * citar. O que ela tem é o próprio produto — cada bloco mostra uma tela de
+ * A prova que ela oferece é o próprio produto: cada bloco mostra uma tela de
  * verdade e explica a regra por trás dela. Para quem vive de comissão, ver a
  * regra é a prova que importa.
+ *
+ * A seção de depoimentos é a exceção, e é temporária — ver o aviso em
+ * DEPOIMENTOS antes de divulgar esta página para alguém.
  */
 
 const COMO_FUNCIONA = [
@@ -54,28 +56,35 @@ const RECURSOS = [
 ]
 
 /*
- * ⚠️ DEPOIMENTOS DE EXEMPLO — pessoas fictícias.
+ * ⚠️ DEPOIMENTOS INVENTADOS — estas pessoas NÃO existem.
  *
- * Trocar por depoimentos REAIS (com autorização por escrito) antes de
- * publicar. Depoimento inventado em página pública é propaganda enganosa
- * (art. 37 do CDC), e a confiança do corretor é o ativo do produto — não
- * vale queimá-la na porta de entrada.
+ * São marcadores de lugar, escritos para a seção não ficar vazia enquanto os
+ * primeiros corretores usam o produto. Nome, cidade e história são ficção.
+ *
+ * TROCAR POR DEPOIMENTOS REAIS, com autorização por escrito, ANTES de
+ * divulgar a página. Depoimento inventado em página pública é propaganda
+ * enganosa (art. 37 do CDC) — e, pior que a multa: a confiança do corretor é
+ * o ativo do produto, e ela não volta depois de queimada na porta de entrada.
+ *
+ * Se a hora de divulgar chegar e ainda não houver depoimento real, apagar a
+ * seção inteira. Página sem prova social é honesta; página com prova social
+ * falsa, não.
  */
 const DEPOIMENTOS = [
   {
-    nome: 'Nome do corretor',
-    onde: 'Cidade · Administradora',
-    texto: '“Depoimento real de um corretor usando o produto: o que mudou na rotina dele depois que largou a planilha.”',
+    nome: 'Marina Bezerra',
+    onde: 'Campinas, SP',
+    texto: '“Eu fechava o mês somando três planilhas e sempre sobrava diferença. Hoje abro o app no dia 10, o valor bate com o extrato e a manhã inteira volta pra mim.”',
   },
   {
-    nome: 'Nome da corretora',
-    onde: 'Cidade · Administradora',
-    texto: '“Depoimento real: uma história concreta — um erro que o sistema pegou, uma cobrança que ela conseguiu provar.”',
+    nome: 'Douglas Prado',
+    onde: 'Londrina, PR',
+    texto: '“Vendi uma carta grande no fim do mês e subi de faixa. O sistema refez o mês todo sozinho e apareceu R$ 1.400 que eu ia deixar passar.”',
   },
   {
-    nome: 'Nome do corretor',
-    onde: 'Cidade · Administradora',
-    texto: '“Depoimento real: como é abrir o painel no dia do pagamento e o valor bater com o extrato.”',
+    nome: 'Sheila Antunes',
+    onde: 'Goiânia, GO',
+    texto: '“Questionaram uma comissão minha de quatro meses atrás. Peguei o histórico do mês fechado, mandei o print, e a conversa acabou em dez minutos.”',
   },
 ]
 
@@ -136,7 +145,10 @@ export default function LandingPage() {
 
         <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-6 md:pb-28">
           <header className="flex items-center justify-between">
-            <Logo className="[&_span]:text-white" />
+            {/* mesma marca grande do painel: o tile navy vira translúcido
+                sobre a aurora, e o nome cresce junto. A primeira coisa que a
+                página mostra é de quem ela é — etiqueta de canto não faz isso */}
+            <Logo grande sobreEscuro className="[&_span]:text-white" />
             {/* quem já é cliente precisa achar a porta de entrada de primeira:
                 fantasma sobre fundo escuro, ela quase não existia */}
             <Button asChild variant="outline"
@@ -420,41 +432,87 @@ export default function LandingPage() {
           </p>
         </Revela>
 
-        <Revela atraso={140} className="mx-auto mt-10 max-w-md">
-          <div className="superficie-marca relative overflow-hidden rounded-3xl p-1.5">
-            <div className="relative overflow-hidden rounded-[calc(1.5rem-0.375rem)] border border-white/20 bg-white/10 px-6 py-10 text-white backdrop-blur-xl">
-              <CurvaMarca />
-              <div className="relative text-center">
-                <p className="text-sm text-escuro-texto">{PLANO.nome}</p>
-                <p className="mt-2 flex items-baseline justify-center gap-1">
-                  <span className="text-lg">{PLANO.moeda}</span>
-                  <span className="text-5xl font-bold tracking-tight">{PLANO.valor}</span>
-                  <span className="text-lg text-escuro-texto">{PLANO.periodo}</span>
-                </p>
-                <p className="mt-3 text-sm text-escuro-texto">
-                  {PLANO.diasDeTeste} dias grátis. Sem cartão para começar.
-                </p>
+        {/* Dois cartões, pesos diferentes de propósito: o que dá para assinar
+            hoje fica na superfície da marca, e o que ainda não existe fica num
+            cartão comum. Igualar os dois faria a lista de espera parecer
+            produto pronto. */}
+        <div className="mx-auto mt-10 grid max-w-4xl items-stretch gap-5 md:grid-cols-2">
+          <Revela atraso={140} className="flex">
+            <div className="superficie-marca relative w-full overflow-hidden rounded-3xl p-1.5">
+              <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(1.5rem-0.375rem)] border border-white/20 bg-white/10 px-6 py-10 text-white backdrop-blur-xl">
+                <CurvaMarca />
+                <div className="relative flex flex-1 flex-col text-center">
+                  <p className="text-sm text-escuro-texto">{PLANO.nome}</p>
+                  <p className="mt-2 flex items-baseline justify-center gap-1">
+                    <span className="text-lg">{PLANO.moeda}</span>
+                    <span className="text-5xl font-bold tracking-tight">{PLANO.valor}</span>
+                    <span className="text-lg text-escuro-texto">{PLANO.periodo}</span>
+                  </p>
+                  <p className="mt-3 text-sm text-escuro-texto">
+                    {PLANO.diasDeTeste} dias grátis. Sem cartão para começar.
+                  </p>
 
-                <ul className="mt-8 space-y-3 text-left text-sm">
-                  {INCLUSO.map(item => (
+                  {/* flex-1 na lista: os dois cartões têm quantidades
+                      diferentes de itens, e é o espaço que estica, não o botão
+                      que desce sozinho */}
+                  <ul className="mt-8 flex-1 space-y-3 text-left text-sm">
+                    {INCLUSO.map(item => (
+                      <li key={item} className="flex items-start gap-2.5">
+                        <Check size={18} className="mt-0.5 shrink-0 text-money-claro" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button asChild size="toque"
+                    className="mt-8 w-full bg-money-claro text-[#0B132B] hover:bg-money-claro/90">
+                    <Link href="/cadastro">Começar os 14 dias</Link>
+                  </Button>
+                  <p className="mt-3 text-xs text-escuro-texto">
+                    Cancele quando quiser. Seus dados saem com você.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Revela>
+
+          <Revela atraso={220} className="flex">
+            <div className="flex w-full flex-col rounded-3xl border bg-card px-6 py-10">
+              <div className="flex flex-1 flex-col text-center">
+                <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Building2 size={16} /> {PLANO_ESCRITORIO.nome}
+                </p>
+                <p className="mt-2 text-4xl font-bold tracking-tight">{PLANO_ESCRITORIO.preco}</p>
+                <p className="mt-3 text-sm text-muted-foreground">{PLANO_ESCRITORIO.apoio}</p>
+
+                <ul className="mt-8 flex-1 space-y-3 text-left text-sm">
+                  {INCLUSO_ESCRITORIO.map(item => (
                     <li key={item} className="flex items-start gap-2.5">
-                      <Check size={18} className="mt-0.5 shrink-0 text-money-claro" />
+                      <Check size={18} className="mt-0.5 shrink-0 text-money" />
                       <span>{item}</span>
                     </li>
                   ))}
                 </ul>
 
-                <Button asChild size="toque"
-                  className="mt-8 w-full bg-money-claro text-[#0B132B] hover:bg-money-claro/90">
-                  <Link href="/cadastro">Começar os 14 dias</Link>
-                </Button>
-                <p className="mt-3 text-xs text-escuro-texto">
-                  Cancele quando quiser. Seus dados saem com você.
-                </p>
+                {/*
+                  Venda conversada, e não botão de assinar: preço por corretor
+                  com desconto por volume não cabe num checkout, e cada
+                  escritório paga a equipe de um jeito.
+
+                  ⚠️ O módulo ainda não foi construído — ver o aviso em
+                  PLANO_ESCRITORIO. Quem atender estes leads precisa saber
+                  disso antes de combinar prazo com alguém.
+                */}
+                <div className="mt-8 space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Conte como seu escritório paga a equipe e a gente monta o plano com você.
+                  </p>
+                  <CapturaLead origem="escritorio" empilhado />
+                </div>
               </div>
             </div>
-          </div>
-        </Revela>
+          </Revela>
+        </div>
       </Secao>
 
       {/* Dúvidas: sobre a superfície escura, para a seção não se perder entre

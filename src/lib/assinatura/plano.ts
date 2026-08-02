@@ -27,3 +27,38 @@ export const INCLUSO = [
   'Conferência das cotas contra a Loteria Federal',
   'Seus dados exportáveis a qualquer momento',
 ]
+
+/**
+ * O plano do outro lado do balcão.
+ *
+ * O Komyx individual responde "quanto EU recebo". O escritório tem a pergunta
+ * inversa — quanto a equipe produziu, quanto sai de repasse, quem está perto
+ * de virar de faixa — e ela não cabe numa conta de corretor.
+ *
+ * ⚠️ NÃO EXISTE AINDA. Nenhuma linha deste módulo foi escrita. A landing fala
+ * dele como lista de espera, e é assim que precisa continuar até existir:
+ * vender data de entrega de software que ainda não começou é a promessa mais
+ * fácil de quebrar. Enquanto `precoAte` for nulo, nada de preço na página.
+ */
+export const PLANO_ESCRITORIO = {
+  nome: 'Komyx Enterprise',
+  chamada: 'Para o escritório e a equipe dele',
+  /** sem preço enquanto não houver produto para cobrar */
+  preco: 'Sob medida',
+  /*
+   * Não é o individual multiplicado por corretor: é mais caro, e o que
+   * justifica está na frase — o dono passa a enxergar a produção de cada um
+   * direto no painel dele, que é exatamente o que a conta individual não
+   * entrega a ninguém.
+   */
+  apoio: 'O escritório inteiro num painel só, com os números de cada corretor.',
+} as const
+
+export const INCLUSO_ESCRITORIO = [
+  'Tudo do plano individual, para cada corretor da equipe',
+  'Painel do escritório: produção do mês por corretor, administradora e produto',
+  'Uma política de comissão só, aplicada a todo mundo — e o repasse de cada um calculado por ela',
+  'Contas com permissão: o corretor vê as vendas dele, o dono vê o negócio inteiro',
+  'Metas por corretor e o acumulado que faz o escritório subir de faixa',
+  'Entrada e saída de gente sem perder o histórico de quem saiu',
+]
