@@ -150,6 +150,20 @@ export function ConfigForm({ modo, inicial }: {
   const [tentouSeguir, setTentouSeguir] = useState(false)
 
 
+  /**
+   * Escreve o teto de uma faixa. Preencher o da última cria a próxima, vazia:
+   * é assim que a escada cresce de baixo para cima, sem passar pelo botão.
+   */
+  function encostarTeto(indice: number, valor: string) {
+    setFaixas(fs => {
+      const atualizadas = fs.map((x, j) => (j === indice ? { ...x, maxTxt: valor } : x))
+      const eraUltima = indice === fs.length - 1
+      const ganhouTeto = fs[indice].maxTxt.trim() === '' && valor.trim() !== ''
+      if (!eraUltima || !ganhouTeto) return atualizadas
+      return [...atualizadas, { maxTxt: '', percentualTxt: '', parcelasTxt: '' }]
+    })
+  }
+
   function duplicarUltimaFaixa() {
     // ponto de partida para uma variação da política: copia comissão e
     // parcelas da última faixa em vez de deixar tudo em branco
@@ -230,26 +244,26 @@ export function ConfigForm({ modo, inicial }: {
         o valor ocupa a linha inteira e os dois curtos dividem a de baixo */}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {/*
-          A última faixa não tem campo de teto porque não tem teto: ela é a
-          última. Havia aqui uma caixa "Sem limite" e, ao lado, um campo
-          desativado escrito "Sem limite" — duas coisas dizendo o mesmo, e uma
-          delas pedindo que a pessoa confirmasse um fato da estrutura. Duas
-          pessoas testando travaram exatamente aqui.
+          O teto da ÚLTIMA faixa também é editável, e preenchê-lo cria a próxima
+          sozinho.
+          
+          O escritório descreve a política de baixo para cima — "até 500 mil é
+          0,5%, daí até 1,5 milhão é 0,6%, acima disso 0,7%" — e antes era preciso
+          clicar em "adicionar" para só então poder digitar o teto da primeira.
+          Escrever a escada começava pelo degrau de cima. Agora não: vazio
+          significa "é a última, sem teto", e digitar um valor abre o degrau
+          seguinte.
         */}
         <div className="col-span-2 space-y-1 sm:col-span-1">
         <Label className="text-xs">Vendido até</Label>
-        {ultima ? (
-        <p className="flex h-12 items-center text-sm text-muted-foreground">
-        Sem teto
-        </p>
-        ) : (
-        <>
-        <CampoValor value={f.maxTxt}
+        <CampoValor value={f.maxTxt} placeholder={ultima ? 'Sem teto' : undefined}
         className={mostrarErro && erro?.max ? 'border-destructive' : undefined}
-        onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, maxTxt: v } : x))} />
-        {mostrarErro && erro?.max && <p className="text-xs text-destructive">{erro.max}</p>}
-        </>
-        )}
+        onChange={v => encostarTeto(i, v)} />
+        {mostrarErro && erro?.max
+        ? <p className="text-xs text-destructive">{erro.max}</p>
+        : ultima && <p className="text-xs text-muted-foreground">
+        Em branco, esta faixa vale daqui para cima.
+        </p>}
         </div>
         <div className="space-y-1"><Label className="text-xs">Comissão</Label>
         <CampoPercentual value={f.percentualTxt} required
