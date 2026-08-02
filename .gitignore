@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# o exemplo é a lista do que o app precisa para subir, sem valor nenhum dentro
+!.env.example
 
 # vercel
 .vercel
