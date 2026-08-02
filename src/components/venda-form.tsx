@@ -14,6 +14,7 @@ import { Campo, CampoValor, CampoData, CampoInteiro } from '@/components/campos'
 import { Valor } from '@/components/valor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
@@ -327,7 +328,8 @@ export function VendaForm({ vendaId, inicial }: {
             </Campo>
 
             <Campo rotulo="Observações" htmlFor="observacoes" opcional>
-              <Input id="observacoes" value={observacoes}
+              <Textarea id="observacoes" value={observacoes} rows={4}
+                placeholder="Condições combinadas, quem indicou, o que lembrar depois…"
                 onChange={e => setObservacoes(e.target.value)} />
             </Campo>
           </section>
