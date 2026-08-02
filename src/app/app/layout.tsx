@@ -37,8 +37,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <Providers>
       <AppNav />
-      <main className="min-h-dvh pb-[calc(var(--altura-nav)+1rem)] md:pb-8 md:pl-44">
-        <div className="mx-auto max-w-3xl p-4 md:p-6">{children}</div>
+      {/* só a altura do menu: o respiro de 1rem vem do p-4 do container abaixo.
+          Somar os dois deixava 16px sobrando embaixo da barra de ação, que
+          então não encostava no menu quando o formulário era longo. */}
+      {/* desconta o cabeçalho: ele é sticky mas ocupa lugar no fluxo, então
+            100dvh aqui deixava a página sempre 51px mais alta que a tela — a
+            rolagem existia mesmo sem nada para rolar */}
+      <main className="flex min-h-[calc(100dvh-var(--altura-cabecalho))] flex-col pb-[var(--altura-nav)] md:pb-8 md:pl-44">
+        {/* flex-1: sem isto a coluna termina onde o conteúdo termina, e sobrava
+            um resto da altura do main embaixo dela — a barra de ação dos
+            formulários parava alguns pixels acima do menu */}
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col p-4 md:p-6">{children}</div>
       </main>
     </Providers>
   )

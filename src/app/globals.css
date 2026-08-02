@@ -175,7 +175,10 @@
 @utility coluna-formulario {
   display: flex;
   flex-direction: column;
-  min-height: calc(100dvh - var(--altura-cabecalho) - var(--altura-nav) - 2rem);
+  /* o main já tem a altura certa e o container é flex-1: basta esticar dentro
+     dele. Antes isto recalculava a conta por fora e discordava por alguns
+     pixels, que apareciam como folga embaixo da barra de ação. */
+  flex: 1 1 auto;
 }
 
 @utility entra {

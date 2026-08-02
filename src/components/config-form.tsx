@@ -5,13 +5,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { salvarConfig } from '@/lib/actions/config'
 import { configFinanceiraSchema } from '@/lib/domain/schemas'
-import { calcularCompetencia } from '@/lib/engine/calculo'
-import { parseBRLParaCentavos, formatBRL, formatData, formatPercentual } from '@/lib/format'
+import { parseBRLParaCentavos, formatBRL } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Passos, type Passo as PassoConfig } from '@/components/ui/passos'
 import { Label } from '@/components/ui/label'
 import { CampoValor, CampoPercentual, CampoInteiro } from '@/components/campos'
-import { Valor } from '@/components/valor'
 import { ROTULOS_ESTORNO, type PoliticaEstorno } from '@/lib/domain/types'
 import { cn } from '@/lib/utils'
 import { Trash2, Plus, Copy, TrendingUp, CalendarDays, Undo2, type LucideIcon } from 'lucide-react'
@@ -42,7 +40,12 @@ export function Secao({ titulo, apoio, icone: Icone, children }: {
   )
 }
 
-type FaixaDraft = { maxTxt: string; percentualTxt: string; parcelasTxt: string; semLimite: boolean }
+/*
+ * Sem `semLimite`: ser a última faixa JÁ significa não ter teto, e manter as
+ * duas coisas separadas permitia estados que não existem — a última marcada
+ * como limitada, ou uma do meio marcada como aberta, deixando um buraco acima.
+ */
+type FaixaDraft = { maxTxt: string; percentualTxt: string; parcelasTxt: string }
 type ErroFaixa = { max?: string; percentual?: string; parcelas?: string; geral?: string }
 type Issue = { path: (string | number)[]; message: string }
 
@@ -87,13 +90,11 @@ export function ConfigForm({ modo, inicial }: {
       // assim que o corretor tocasse no campo
       percentualTxt: f.percentual.toFixed(2).replace('.', ','),
       parcelasTxt: String(f.parcelas),
-      semLimite: f.max === null,
-    })) ?? [{ maxTxt: '', percentualTxt: '', parcelasTxt: '', semLimite: true }])
+    })) ?? [{ maxTxt: '', percentualTxt: '', parcelasTxt: '' }])
   const [fechamento, setFechamento] = useState(String(inicial?.diaFechamento ?? 25))
   const [pagamento, setPagamento] = useState(String(inicial?.diaPrimeiroPagamento ?? 10))
   const [estorno, setEstorno] = useState<PoliticaEstorno>(inicial?.politicaEstorno ?? 'perguntar')
   const [salvando, setSalvando] = useState(false)
-  const [valorSimulado, setValorSimulado] = useState('')
 
   function minDaFaixa(i: number): number {
     if (i === 0) return 0
@@ -109,7 +110,9 @@ export function ConfigForm({ modo, inicial }: {
     const { itens: listaFaixas } = faixas.reduce<{ acumulado: number; itens: { min: number; max: number | null; percentual: number; parcelas: number }[] }>(
       (estado, f) => {
         const min = estado.acumulado
-        const max = f.semLimite || f.maxTxt.trim() === '' ? null : parseBRLParaCentavos(f.maxTxt)
+        // a última faixa vai até o infinito; as outras precisam do teto digitado
+        const ultima = estado.itens.length === faixas.length - 1
+        const max = ultima || f.maxTxt.trim() === '' ? null : parseBRLParaCentavos(f.maxTxt)
         return {
           acumulado: max !== null ? max + 1 : estado.acumulado,
           itens: [...estado.itens, {
@@ -144,33 +147,15 @@ export function ConfigForm({ modo, inicial }: {
     return modo === 'edicao' || f.maxTxt.trim() !== '' || f.percentualTxt.trim() !== '' || f.parcelasTxt.trim() !== ''
   }
 
-  const resultadoSimulacao = useMemo(() => {
-    if (!parseResult.success) return null
-    const centavos = parseBRLParaCentavos(valorSimulado)
-    if (centavos <= 0) return null
-    const hoje = new Date()
-    return calcularCompetencia({
-      config: {
-        faixas: parseResult.data.faixas,
-        calendario: { diaFechamento: parseResult.data.diaFechamento, diaPrimeiroPagamento: parseResult.data.diaPrimeiroPagamento },
-      },
-      competencia: { ano: hoje.getFullYear(), mes: hoje.getMonth() + 1 },
-      vendas: [{ id: 'simulacao', valorCartaCentavos: centavos, status: 'confirmada' }],
-      recebimentosExistentes: [],
-      hoje: new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }),
-    })
-  }, [parseResult, valorSimulado])
-  const comissaoSimulada = resultadoSimulacao?.comissoes[0]
 
   function duplicarUltimaFaixa() {
     // ponto de partida para uma variação da política: copia comissão e
     // parcelas da última faixa em vez de deixar tudo em branco
     setFaixas(fs => {
       const ultima = fs[fs.length - 1]
-      return [
-        ...fs.map(x => ({ ...x, semLimite: false })),
-        { maxTxt: '', percentualTxt: ultima.percentualTxt, parcelasTxt: ultima.parcelasTxt, semLimite: true },
-      ]
+      // a que era a última passa a precisar de teto — o campo dela aparece
+      // sozinho, vazio, e a validação cobra
+      return [...fs, { maxTxt: '', percentualTxt: ultima.percentualTxt, parcelasTxt: ultima.parcelasTxt }]
     })
   }
 
@@ -192,7 +177,9 @@ export function ConfigForm({ modo, inicial }: {
       window.location.assign('/app')
     } else {
       toast.success('Regras salvas. O mês atual foi recalculado com as novas regras.')
-      router.refresh()
+      // volta para o perfil: salvar é o fim do que se veio fazer aqui, e ficar
+      // no formulário depois de gravar deixa a dúvida de se foi mesmo
+      router.push('/app/perfil')
     }
   }
 
@@ -208,16 +195,17 @@ export function ConfigForm({ modo, inicial }: {
     {
       titulo: 'Faixas de comissão',
       conteudo: (
-        <Secao titulo="Faixas" apoio="Comissão calculada pelo total vendido no mês. Deixe o “vendido até” da última faixa em branco." icone={TrendingUp}>
+        <Secao titulo="Faixas" apoio="Comissão calculada pelo total vendido no mês. A última faixa vale de seu início para cima." icone={TrendingUp}>
         <div className="space-y-3">
         {faixas.map((f, i) => {
         const erro = errosFaixas[i]
         const mostrarErro = tocado(f)
+        const ultima = i === faixas.length - 1
         return (
         <div key={i} className={cn('space-y-3 rounded-lg bg-muted/40 p-3',
         mostrarErro && erro && 'ring-1 ring-destructive/50')}>
         <div className="flex items-center justify-between text-sm font-medium">
-        <span>Faixa {i + 1} — a partir de {formatBRL(minDaFaixa(i))}</span>
+        <span>Faixa {i + 1} — de {formatBRL(minDaFaixa(i))}{ultima ? ' para cima' : ''}</span>
         {faixas.length > 1 && (
         <button type="button" onClick={() => setFaixas(fs => fs.filter((_, j) => j !== i))}>
         <Trash2 size={18} className="text-muted-foreground" />
@@ -227,24 +215,27 @@ export function ConfigForm({ modo, inicial }: {
         {/* no celular os três campos lado a lado truncam o "Sem limite":
         o valor ocupa a linha inteira e os dois curtos dividem a de baixo */}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {/*
+          A última faixa não tem campo de teto porque não tem teto: ela é a
+          última. Havia aqui uma caixa "Sem limite" e, ao lado, um campo
+          desativado escrito "Sem limite" — duas coisas dizendo o mesmo, e uma
+          delas pedindo que a pessoa confirmasse um fato da estrutura. Duas
+          pessoas testando travaram exatamente aqui.
+        */}
         <div className="col-span-2 space-y-1 sm:col-span-1">
         <Label className="text-xs">Vendido até</Label>
-        <CampoValor value={f.maxTxt} placeholder="Sem limite" disabled={f.semLimite}
+        {ultima ? (
+        <p className="flex h-12 items-center text-sm text-muted-foreground">
+        Sem teto
+        </p>
+        ) : (
+        <>
+        <CampoValor value={f.maxTxt}
         className={mostrarErro && erro?.max ? 'border-destructive' : undefined}
         onChange={v => setFaixas(fs => fs.map((x, j) => j === i ? { ...x, maxTxt: v } : x))} />
-        <label className="flex cursor-pointer items-center gap-2 pt-1 text-xs text-muted-foreground">
-        <input
-        type="checkbox"
-        className="size-3.5 cursor-pointer accent-foreground"
-        checked={f.semLimite}
-        onChange={e => setFaixas(fs => fs.map((x, j) =>
-        // limpa o valor ao marcar: guardar um teto que não vale
-        // mais só criaria dúvida na próxima edição
-        j === i ? { ...x, semLimite: e.target.checked, maxTxt: e.target.checked ? '' : x.maxTxt } : x))}
-        />
-        Sem limite
-        </label>
         {mostrarErro && erro?.max && <p className="text-xs text-destructive">{erro.max}</p>}
+        </>
+        )}
         </div>
         <div className="space-y-1"><Label className="text-xs">Comissão</Label>
         <CampoPercentual value={f.percentualTxt} required
@@ -264,12 +255,9 @@ export function ConfigForm({ modo, inicial }: {
         })}
         <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm"
-        // só a última faixa pode ficar aberta: a que era a última passa a
-        // precisar de um teto
-        onClick={() => setFaixas(fs => [
-        ...fs.map(x => ({ ...x, semLimite: false })),
-        { maxTxt: '', percentualTxt: '', parcelasTxt: '', semLimite: true },
-        ])}>
+        // a que era a última passa a precisar de teto: o campo dela aparece
+        // sozinho, vazio, e a validação cobra
+        onClick={() => setFaixas(fs => [...fs, { maxTxt: '', percentualTxt: '', parcelasTxt: '' }])}>
         <Plus size={18} /> Adicionar faixa
         </Button>
         <Button type="button" variant="outline" size="sm" onClick={duplicarUltimaFaixa}
@@ -279,39 +267,6 @@ export function ConfigForm({ modo, inicial }: {
         </div>
         </div>
 
-        <div className="space-y-3 rounded-lg bg-money-soft p-3 md:p-4">
-        <div className="space-y-1">
-        <p className="text-sm font-medium">Simule uma venda</p>
-        <p className="text-xs text-muted-foreground">Veja a faixa aplicada, a comissão e as parcelas antes de salvar.</p>
-        </div>
-        <div className="max-w-[220px]">
-        <CampoValor value={valorSimulado} onChange={setValorSimulado} placeholder="Valor da carta" />
-        </div>
-        {!parseResult.success && valorSimulado.trim() !== '' && (
-        <p className="text-xs text-muted-foreground">Corrija as faixas acima para simular.</p>
-        )}
-        {resultadoSimulacao && comissaoSimulada && (
-        <div key={valorSimulado} className="entra-suave space-y-3 rounded-lg bg-escuro p-4 text-white">
-        <div className="flex items-center justify-between">
-        <span className="text-sm text-escuro-texto">Faixa aplicada</span>
-        <span className="text-sm font-medium">{formatPercentual(comissaoSimulada.percentual)} de comissão</span>
-        </div>
-        <div className="flex items-center justify-between">
-        <span className="text-sm text-escuro-texto">Comissão total</span>
-        <Valor centavos={comissaoSimulada.valorCentavos} className="text-money-claro" />
-        </div>
-        <div className="space-y-1.5 border-t border-white/10 pt-3">
-        <span className="text-sm text-escuro-texto">Parcelas previstas</span>
-        {resultadoSimulacao.recebimentosPrevistos.map(r => (
-        <div key={r.numeroParcela} className="flex items-center justify-between text-sm">
-        <span>{r.numeroParcela}ª parcela — {formatData(r.dataPrevista)}</span>
-        <Valor centavos={r.valorCentavos} className="text-money-claro" />
-        </div>
-        ))}
-        </div>
-        </div>
-        )}
-        </div>
         </Secao>
       ),
     },
