@@ -9,13 +9,12 @@ import { calcularCompetencia } from '@/lib/engine/calculo'
 import { parseBRLParaCentavos, formatBRL, formatData, formatPercentual } from '@/lib/format'
 import { Button } from '@/components/ui/button'
 import { Passos, type Passo as PassoConfig } from '@/components/ui/passos'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CampoValor, CampoPercentual, CampoInteiro } from '@/components/campos'
 import { Valor } from '@/components/valor'
 import { ROTULOS_ESTORNO, type PoliticaEstorno } from '@/lib/domain/types'
 import { cn } from '@/lib/utils'
-import { Trash2, Plus, Copy, Building2, TrendingUp, CalendarDays, Undo2, type LucideIcon } from 'lucide-react'
+import { Trash2, Plus, Copy, TrendingUp, CalendarDays, Undo2, type LucideIcon } from 'lucide-react'
 
 /**
  * Bloco de conteúdo de um formulário longo.
@@ -74,7 +73,13 @@ export function ConfigForm({ modo, inicial }: {
 }) {
   const router = useRouter()
   const qc = useQueryClient()
-  const [nome, setNome] = useState(inicial?.nomePolitica ?? 'Política do escritório')
+  /*
+   * O nome da política não é campo: o corretor tem uma política só, a do
+   * escritório dele, e batizá-la era uma pergunta sem consequência — nada no
+   * produto mostra esse nome. Um valor já salvo é preservado; o resto nasce com
+   * o padrão.
+   */
+  const nome = inicial?.nomePolitica?.trim() || 'Política do escritório'
   const [faixas, setFaixas] = useState<FaixaDraft[]>(
     inicial?.faixas.map(f => ({
       maxTxt: f.max === null ? '' : (f.max / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
@@ -129,7 +134,6 @@ export function ConfigForm({ modo, inicial }: {
   const parseResult = useMemo(() => configFinanceiraSchema.safeParse(payload), [payload])
   const issues = useMemo<Issue[]>(() => parseResult.success ? [] : (parseResult.error.issues as Issue[]), [parseResult])
   const errosFaixas = useMemo(() => mapearErrosFaixas(issues), [issues])
-  const erroNome = issues.find(i => i.path[0] === 'nomePolitica')?.message
   const erroFechamento = issues.find(i => i.path[0] === 'diaFechamento')?.message
   const erroPagamento = issues.find(i => i.path[0] === 'diaPrimeiroPagamento')?.message
 
@@ -201,19 +205,6 @@ export function ConfigForm({ modo, inicial }: {
    * passo que ainda tem erro, e o erro já pinta embaixo do campo.
    */
   const PASSOS: PassoConfig[] = [
-    {
-      titulo: 'Nome da política',
-      conteudo: (
-        <Secao titulo="Política" apoio="Um nome para você reconhecer essa regra de comissão depois." icone={Building2}>
-        <div className="space-y-1">
-        <Label>Nome da política</Label>
-        <Input value={nome} onChange={e => setNome(e.target.value)} required
-        className={erroNome ? 'border-destructive' : undefined} />
-        {erroNome && <p className="text-xs text-destructive">{erroNome}</p>}
-        </div>
-        </Secao>
-      ),
-    },
     {
       titulo: 'Faixas de comissão',
       conteudo: (
@@ -375,9 +366,8 @@ export function ConfigForm({ modo, inicial }: {
 
   /** Erro que impede sair de cada passo — o schema já apontou onde. */
   function passoValido(indice: number): boolean {
-    if (indice === 0) return !erroNome
-    if (indice === 1) return Object.keys(errosFaixas).length === 0
-    if (indice === 2) return !erroFechamento && !erroPagamento
+    if (indice === 0) return Object.keys(errosFaixas).length === 0
+    if (indice === 1) return !erroFechamento && !erroPagamento
     return true
   }
 
