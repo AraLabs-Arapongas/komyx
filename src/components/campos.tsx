@@ -1,5 +1,6 @@
 'use client'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { mascaraValor, mascaraData, mascaraPercentual, mascaraInteiro } from '@/lib/format'
 
@@ -12,6 +13,39 @@ type Base = {
   id?: string
   autoFocus?: boolean
   disabled?: boolean
+  /* o Input já sabe se pintar de vermelho quando isto é verdadeiro; os campos
+     com máscara só precisavam deixar a marca passar */
+  'aria-invalid'?: boolean
+  'aria-describedby'?: string
+}
+
+/**
+ * Rótulo, marca de opcional, apoio e erro em volta de um campo.
+ *
+ * O erro fica embaixo do campo que ele descreve, não só num toast: o aviso que
+ * some sozinho obriga a adivinhar qual dos campos estava errado. O toast serve
+ * para o que aconteceu longe da tela; erro de preenchimento é aqui.
+ */
+export function Campo({ rotulo, htmlFor, opcional, apoio, erro, children }: {
+  rotulo: string
+  htmlFor: string
+  opcional?: boolean
+  apoio?: string
+  erro?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <Label htmlFor={htmlFor} className={cn(erro && 'text-destructive')}>{rotulo}</Label>
+        {opcional && <span className="text-xs text-muted-foreground">opcional</span>}
+      </div>
+      {children}
+      {erro
+        ? <p id={`${htmlFor}-erro`} role="alert" className="text-xs text-destructive">{erro}</p>
+        : apoio && <p className="text-xs text-muted-foreground">{apoio}</p>}
+    </div>
+  )
 }
 
 /** Valor em reais: digita-se só números e a máscara monta a partir dos centavos. */

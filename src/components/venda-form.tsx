@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useSimulacaoVenda } from '@/lib/queries/simulacao'
 import { PrimeiraComissao } from '@/components/primeira-comissao'
 import { ClientePicker } from './cliente-picker'
-import { CampoValor, CampoData, CampoInteiro } from '@/components/campos'
+import { Campo, CampoValor, CampoData, CampoInteiro } from '@/components/campos'
 import { Valor } from '@/components/valor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -73,23 +73,10 @@ async function celebrarSePrimeira(vendaId: string): Promise<Celebracao | null> {
   return { valorCentavos: Number(data.valor_centavos), dataPrevista: primeira }
 }
 
-/** Rótulo acima do campo, com a marca de opcional quando for o caso. */
-function Campo({ rotulo, htmlFor, opcional, apoio, children }: {
-  rotulo: string; htmlFor: string; opcional?: boolean; apoio?: string; children: React.ReactNode
-}) {
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-baseline justify-between gap-2">
-        <Label htmlFor={htmlFor}>{rotulo}</Label>
-        {opcional && <span className="text-xs text-muted-foreground">opcional</span>}
-      </div>
-      {children}
-      {apoio && <p className="text-xs text-muted-foreground">{apoio}</p>}
-    </div>
-  )
-}
-
 const TITULOS = ['Quanto foi a venda', 'Qual é a cota', 'De quem é'] as const
+
+/** Campos que a validação sabe apontar, na ordem em que aparecem. */
+type CampoComErro = 'valor' | 'data' | 'administradora' | 'grupo' | 'cota'
 
 export function VendaForm({ vendaId, inicial }: {
   vendaId?: string
@@ -135,30 +122,45 @@ export function VendaForm({ vendaId, inicial }: {
   })
 
   /** O que falta para sair deste passo — null quando pode seguir. */
-  function pendencia(p: number): string | null {
+  function pendencia(p: number): { campo: CampoComErro; mensagem: string } | null {
     if (p === 0) {
-      if (valorCentavos <= 0) return 'Informe o valor da carta.'
-      if (!dataVendaISO) return 'Informe uma data válida.'
+      if (valorCentavos <= 0) return { campo: 'valor', mensagem: 'Informe o valor da carta.' }
+      if (!dataVendaISO) return { campo: 'data', mensagem: 'Informe uma data válida.' }
     }
     if (p === 1) {
-      if (!administradora.trim()) return 'Informe a administradora.'
-      if (!grupo.trim()) return 'Informe o grupo.'
-      if (!cota.trim()) return 'Informe a cota.'
+      if (!administradora.trim()) return { campo: 'administradora', mensagem: 'Informe a administradora.' }
+      if (!grupo.trim()) return { campo: 'grupo', mensagem: 'Informe o grupo.' }
+      if (!cota.trim()) return { campo: 'cota', mensagem: 'Informe a cota.' }
     }
     return null
   }
 
+  /*
+   * Só aparece depois de uma tentativa de seguir em frente: pintar o campo de
+   * vermelho enquanto o corretor ainda está digitando seria acusá-lo de um erro
+   * que ele nem cometeu ainda. E some sozinho quando o campo apontado muda.
+   */
+  const [erro, setErro] = useState<{ campo: CampoComErro; mensagem: string } | null>(null)
+  const erroDe = (campo: CampoComErro) => (erro?.campo === campo ? erro.mensagem : undefined)
+  function corrigindo(campo: CampoComErro) {
+    if (erro?.campo === campo) setErro(null)
+  }
+
   function avancar() {
     const falta = pendencia(passo)
-    if (falta) { toast.error(falta); return }
+    if (falta) { setErro(falta); return }
+    setErro(null)
     setPasso(p => Math.min(p + 1, ultimo))
   }
 
   async function salvar() {
     for (let p = 0; p <= ultimo; p++) {
       const falta = pendencia(p)
-      if (falta) { toast.error(falta); if (emPassos) setPasso(p); return }
+      // no passo em que o campo está visível o vermelho basta; se a falha ficou
+      // num passo que o corretor não está vendo, a tela vai até ela
+      if (falta) { setErro(falta); if (emPassos) setPasso(p); return }
     }
+    setErro(null)
     setSalvando(true)
     const payload = {
       clienteId, valorCartaCentavos: valorCentavos,
@@ -244,8 +246,13 @@ export function VendaForm({ vendaId, inicial }: {
           <section className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="valor" className="text-sm text-muted-foreground">Valor da carta</Label>
-              <CampoValor id="valor" value={valorTxt} onChange={setValorTxt} required autoFocus
+              <CampoValor id="valor" value={valorTxt} required autoFocus
+                onChange={v => { setValorTxt(v); corrigindo('valor') }}
+                aria-invalid={!!erroDe('valor')}
                 className="h-16 !text-3xl font-semibold tracking-tight" />
+              {erroDe('valor') && (
+                <p role="alert" className="text-xs text-destructive">{erroDe('valor')}</p>
+              )}
 
               {/* a promessa do produto, respondida antes de salvar */}
               <div className="min-h-[4.5rem] rounded-xl bg-money-soft/60 px-4 py-3">
@@ -275,26 +282,30 @@ export function VendaForm({ vendaId, inicial }: {
               </div>
             </div>
 
-            <Campo rotulo="Data da venda" htmlFor="data">
-              <CampoData id="data" value={dataTxt} onChange={setDataTxt} required />
+            <Campo rotulo="Data da venda" htmlFor="data" erro={erroDe('data')}>
+              <CampoData id="data" value={dataTxt} required aria-invalid={!!erroDe('data')}
+                onChange={v => { setDataTxt(v); corrigindo('data') }} />
             </Campo>
           </section>
         )}
 
         {mostrar(1) && (
           <section className="space-y-5">
-            <Campo rotulo="Administradora" htmlFor="administradora"
+            <Campo rotulo="Administradora" htmlFor="administradora" erro={erroDe('administradora')}
               apoio={veioDaMemoria ? 'Preenchida com a da sua última venda.' : undefined}>
               <Input id="administradora" value={administradora} required
-                onChange={e => setAdministradoraDigitada(e.target.value)} />
+                aria-invalid={!!erroDe('administradora')}
+                onChange={e => { setAdministradoraDigitada(e.target.value); corrigindo('administradora') }} />
             </Campo>
 
             <div className="grid grid-cols-2 gap-3">
-              <Campo rotulo="Grupo" htmlFor="grupo">
-                <CampoInteiro id="grupo" value={grupo} onChange={setGrupo} required />
+              <Campo rotulo="Grupo" htmlFor="grupo" erro={erroDe('grupo')}>
+                <CampoInteiro id="grupo" value={grupo} required aria-invalid={!!erroDe('grupo')}
+                  onChange={v => { setGrupo(v); corrigindo('grupo') }} />
               </Campo>
-              <Campo rotulo="Cota" htmlFor="cota">
-                <CampoInteiro id="cota" value={cota} onChange={setCota} required />
+              <Campo rotulo="Cota" htmlFor="cota" erro={erroDe('cota')}>
+                <CampoInteiro id="cota" value={cota} required aria-invalid={!!erroDe('cota')}
+                  onChange={v => { setCota(v); corrigindo('cota') }} />
               </Campo>
             </div>
 
