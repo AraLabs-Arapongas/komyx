@@ -252,7 +252,8 @@ export function VendaForm({ vendaId, inicial }: {
           <section className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="valor" className="text-sm text-muted-foreground">
-                Valor da carta<span aria-hidden className="ml-0.5 text-destructive">*</span>
+                {/* um filho só, senão o gap-2 do Label afasta o asterisco */}
+                <span>Valor da carta<span aria-hidden className="ml-1 text-destructive">*</span></span>
               </Label>
               <CampoValor id="valor" value={valorTxt} required autoFocus
                 onChange={v => { setValorTxt(v); corrigindo('valor') }}

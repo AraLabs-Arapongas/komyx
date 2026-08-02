@@ -49,10 +49,18 @@ export function Campo({ rotulo, htmlFor, obrigatorio, apoio, erro, children }: {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={htmlFor} className={cn(erro && 'text-destructive')}>
-        {rotulo}
-        {/* o asterisco é decoração: quem usa leitor de tela ouve "obrigatório"
-            do próprio campo, que continua com o atributo required */}
-        {obrigatorio && <span aria-hidden className="ml-0.5 text-destructive">*</span>}
+        {/*
+          Texto e asterisco no MESMO filho: o Label é flex com gap-2, então dois
+          filhos separados nasceriam com oito pixels entre eles — o asterisco
+          parecia de outro campo.
+
+          E ele é decoração: quem usa leitor de tela ouve "obrigatório" do
+          próprio campo, que continua com o atributo required.
+        */}
+        <span>
+          {rotulo}
+          {obrigatorio && <span aria-hidden className="ml-1 text-destructive">*</span>}
+        </span>
       </Label>
       {children}
       {erro
