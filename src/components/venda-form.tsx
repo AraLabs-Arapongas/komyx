@@ -15,6 +15,7 @@ import { Valor } from '@/components/valor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { BarraAcao } from '@/components/ui/barra-acao'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 
@@ -224,8 +225,12 @@ export function VendaForm({ vendaId, inicial }: {
 
   const mostrar = (p: number) => !emPassos || passo === p
 
+  /*
+   * noValidate: quem aponta o campo errado é a nossa validação, não o balão do
+   * navegador — ver o comentário em pendencia().
+   */
   return (
-    <form onSubmit={onSubmit} onKeyDown={onKeyDown} className="entra flex flex-1 flex-col">
+    <form onSubmit={onSubmit} onKeyDown={onKeyDown} noValidate className="entra flex flex-1 flex-col">
       {emPassos && (
         <div className="mb-6 space-y-2">
           <div className="flex items-baseline justify-between">
@@ -246,7 +251,9 @@ export function VendaForm({ vendaId, inicial }: {
         {mostrar(0) && (
           <section className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="valor" className="text-sm text-muted-foreground">Valor da carta</Label>
+              <Label htmlFor="valor" className="text-sm text-muted-foreground">
+                Valor da carta<span aria-hidden className="ml-0.5 text-destructive">*</span>
+              </Label>
               <CampoValor id="valor" value={valorTxt} required autoFocus
                 onChange={v => { setValorTxt(v); corrigindo('valor') }}
                 aria-invalid={!!erroDe('valor')}
@@ -283,7 +290,7 @@ export function VendaForm({ vendaId, inicial }: {
               </div>
             </div>
 
-            <Campo rotulo="Data da venda" htmlFor="data" erro={erroDe('data')}>
+            <Campo rotulo="Data da venda" htmlFor="data" obrigatorio erro={erroDe('data')}>
               <CampoData id="data" value={dataTxt} required aria-invalid={!!erroDe('data')}
                 onChange={v => { setDataTxt(v); corrigindo('data') }} />
             </Campo>
@@ -292,7 +299,7 @@ export function VendaForm({ vendaId, inicial }: {
 
         {mostrar(1) && (
           <section className="space-y-5">
-            <Campo rotulo="Administradora" htmlFor="administradora" erro={erroDe('administradora')}
+            <Campo rotulo="Administradora" htmlFor="administradora" obrigatorio erro={erroDe('administradora')}
               apoio={veioDaMemoria ? 'Preenchida com a da sua última venda.' : undefined}>
               <Input id="administradora" value={administradora} required
                 aria-invalid={!!erroDe('administradora')}
@@ -300,17 +307,17 @@ export function VendaForm({ vendaId, inicial }: {
             </Campo>
 
             <div className="grid grid-cols-2 gap-3">
-              <Campo rotulo="Grupo" htmlFor="grupo" erro={erroDe('grupo')}>
+              <Campo rotulo="Grupo" htmlFor="grupo" obrigatorio erro={erroDe('grupo')}>
                 <CampoInteiro id="grupo" value={grupo} required aria-invalid={!!erroDe('grupo')}
                   onChange={v => { setGrupo(v); corrigindo('grupo') }} />
               </Campo>
-              <Campo rotulo="Cota" htmlFor="cota" erro={erroDe('cota')}>
+              <Campo rotulo="Cota" htmlFor="cota" obrigatorio erro={erroDe('cota')}>
                 <CampoInteiro id="cota" value={cota} required aria-invalid={!!erroDe('cota')}
                   onChange={v => { setCota(v); corrigindo('cota') }} />
               </Campo>
             </div>
 
-            <Campo rotulo="Número do contrato" htmlFor="contrato" opcional>
+            <Campo rotulo="Número do contrato" htmlFor="contrato">
               <Input id="contrato" value={numeroContrato}
                 onChange={e => setNumeroContrato(e.target.value)} />
             </Campo>
@@ -321,13 +328,13 @@ export function VendaForm({ vendaId, inicial }: {
           <section className="space-y-5">
             {/* opcional desde a migration 0013: quem fecha na rua registra agora
                 e nomeia depois, em vez de inventar cadastro para conseguir salvar */}
-            <Campo rotulo="Cliente" htmlFor="cliente" opcional
+            <Campo rotulo="Cliente" htmlFor="cliente"
               apoio={clienteId ? undefined : 'Dá para registrar agora e dizer de quem é depois.'}>
               <ClientePicker value={clienteId} nomeSelecionado={clienteNome}
                 onChange={(id, nome) => { setClienteId(id); setClienteNome(nome) }} />
             </Campo>
 
-            <Campo rotulo="Observações" htmlFor="observacoes" opcional>
+            <Campo rotulo="Observações" htmlFor="observacoes">
               <Textarea id="observacoes" value={observacoes} rows={4}
                 placeholder="Condições combinadas, quem indicou, o que lembrar depois…"
                 onChange={e => setObservacoes(e.target.value)} />
@@ -336,15 +343,7 @@ export function VendaForm({ vendaId, inicial }: {
         )}
       </div>
 
-      {/*
-        A ação gruda no pé da tela, logo acima do menu — no alcance do polegar e
-        sempre visível, sem depender de o passo ter conteúdo suficiente para
-        empurrá-la até lá. O recuo sai da mesma variável que dimensiona o menu,
-        senão sobra a folga que existia entre os dois.
-      */}
-      <div className="sticky bottom-[var(--altura-nav)] z-20 -mx-4 -mb-4 mt-6 flex gap-3
-                      bg-background px-4 pb-4 pt-3
-                      md:bottom-0 md:-mx-6 md:-mb-6 md:px-6">
+      <BarraAcao>
         {emPassos && passo > 0 && (
           <Button type="button" variant="outline" size="toque"
             onClick={() => setPasso(p => p - 1)}>
@@ -367,7 +366,7 @@ export function VendaForm({ vendaId, inicial }: {
             {salvando ? 'Salvando…' : vendaId ? 'Salvar alterações' : 'Salvar venda'}
           </Button>
         )}
-      </div>
+      </BarraAcao>
     </form>
   )
 }

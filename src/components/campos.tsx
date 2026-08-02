@@ -27,26 +27,33 @@ type Base = {
 }
 
 /**
- * Rótulo, marca de opcional, apoio e erro em volta de um campo.
+ * Rótulo, marca de obrigatório, apoio e erro em volta de um campo.
+ *
+ * Marca-se o que é obrigatório com asterisco, não o que é opcional com a
+ * palavra. Nos formulários daqui a maioria dos campos é opcional, então a
+ * marca de opcional aparecia em quase todas as linhas — muito ruído para
+ * dizer o que já era o normal.
  *
  * O erro fica embaixo do campo que ele descreve, não só num toast: o aviso que
  * some sozinho obriga a adivinhar qual dos campos estava errado. O toast serve
  * para o que aconteceu longe da tela; erro de preenchimento é aqui.
  */
-export function Campo({ rotulo, htmlFor, opcional, apoio, erro, children }: {
+export function Campo({ rotulo, htmlFor, obrigatorio, apoio, erro, children }: {
   rotulo: string
   htmlFor: string
-  opcional?: boolean
+  obrigatorio?: boolean
   apoio?: string
   erro?: string
   children: React.ReactNode
 }) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-baseline justify-between gap-2">
-        <Label htmlFor={htmlFor} className={cn(erro && 'text-destructive')}>{rotulo}</Label>
-        {opcional && <span className="text-xs text-muted-foreground">opcional</span>}
-      </div>
+      <Label htmlFor={htmlFor} className={cn(erro && 'text-destructive')}>
+        {rotulo}
+        {/* o asterisco é decoração: quem usa leitor de tela ouve "obrigatório"
+            do próprio campo, que continua com o atributo required */}
+        {obrigatorio && <span aria-hidden className="ml-0.5 text-destructive">*</span>}
+      </Label>
       {children}
       {erro
         ? <p id={`${htmlFor}-erro`} role="alert" className="text-xs text-destructive">{erro}</p>

@@ -39,9 +39,7 @@ function NovaVendaConteudo() {
 
 export default function NovaVendaPage() {
   return (
-    /* a coluna ocupa a tela inteira para a barra de ação do formulário
-       encostar no menu mesmo quando o passo é curto */
-    <div className="flex min-h-[calc(100dvh-var(--altura-cabecalho)-var(--altura-nav)-2rem)] flex-col space-y-4 md:min-h-0">
+    <div className="coluna-formulario space-y-4 md:min-h-0">
       <Voltar href="/app/vendas" />
       <h1 className="text-xl font-semibold">Nova venda</h1>
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>

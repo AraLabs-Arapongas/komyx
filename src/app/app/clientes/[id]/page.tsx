@@ -27,7 +27,7 @@ export default function ClienteDetalhePage() {
   // ponto único de criação e edição do cadastro
   if (id === 'novo') {
     return (
-      <div className="space-y-4">
+      <div className="coluna-formulario space-y-4 md:min-h-0">
         <Voltar href="/app/clientes" />
         <h1 className="text-xl font-semibold">Novo cliente</h1>
         <ClienteForm />
@@ -63,7 +63,7 @@ function ClienteExistente({ id }: { id: string }) {
 
   if (editando) {
     return (
-      <div className="space-y-4">
+      <div className="coluna-formulario space-y-4 md:min-h-0">
         <Voltar rotulo="Cancelar edição" aoVoltar={() => setEditando(false)} />
         <h1 className="text-xl font-semibold">Editar cliente</h1>
         <ClienteForm
