@@ -3,7 +3,7 @@ import { useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { ChevronDown } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { criarVenda, editarVenda } from '@/lib/actions/vendas'
 import { parseBRLParaCentavos, dataBRParaISO, formatData, formatDataExtenso, formatPercentual } from '@/lib/format'
 import { createClient } from '@/lib/supabase/client'
@@ -15,6 +15,7 @@ import { Valor } from '@/components/valor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 function hojeSP(): string {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
@@ -88,6 +89,8 @@ function Campo({ rotulo, htmlFor, opcional, apoio, children }: {
   )
 }
 
+const TITULOS = ['Quanto foi a venda', 'Qual é a cota', 'De quem é'] as const
+
 export function VendaForm({ vendaId, inicial }: {
   vendaId?: string
   inicial?: {
@@ -106,10 +109,17 @@ export function VendaForm({ vendaId, inicial }: {
   const [dataTxt, setDataTxt] = useState(formatData(inicial?.dataVenda ?? hojeSP()))
   const [numeroContrato, setNumeroContrato] = useState(inicial?.numeroContrato ?? '')
   const [observacoes, setObservacoes] = useState(inicial?.observacoes ?? '')
-  const [mostrarDetalhes, setMostrarDetalhes] = useState(
-    !!inicial?.observacoes || !!inicial?.numeroContrato)
   const [salvando, setSalvando] = useState(false)
   const [celebracao, setCelebracao] = useState<Celebracao | null>(null)
+
+  /*
+   * Editar não é preencher: quem entra aqui vem trocar UM campo, e obrigá-lo a
+   * atravessar três passos para chegar nele seria pior que a tela apertada de
+   * antes. Os passos existem só no cadastro.
+   */
+  const emPassos = !vendaId
+  const [passo, setPasso] = useState(0)
+  const ultimo = TITULOS.length - 1
 
   // null = o corretor ainda não tocou no campo, então vale a lembrada
   const lembrada = useSyncExternalStore(assinar, lerDoAparelho, lerNoServidor)
@@ -124,14 +134,35 @@ export function VendaForm({ vendaId, inicial }: {
     valorCentavos, dataVenda: dataVendaISO || null, ignorarVendaId: vendaId,
   })
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const dataVenda = dataBRParaISO(dataTxt)
-    if (!dataVenda) { toast.error('Informe uma data válida.'); return }
+  /** O que falta para sair deste passo — null quando pode seguir. */
+  function pendencia(p: number): string | null {
+    if (p === 0) {
+      if (valorCentavos <= 0) return 'Informe o valor da carta.'
+      if (!dataVendaISO) return 'Informe uma data válida.'
+    }
+    if (p === 1) {
+      if (!administradora.trim()) return 'Informe a administradora.'
+      if (!grupo.trim()) return 'Informe o grupo.'
+      if (!cota.trim()) return 'Informe a cota.'
+    }
+    return null
+  }
+
+  function avancar() {
+    const falta = pendencia(passo)
+    if (falta) { toast.error(falta); return }
+    setPasso(p => Math.min(p + 1, ultimo))
+  }
+
+  async function salvar() {
+    for (let p = 0; p <= ultimo; p++) {
+      const falta = pendencia(p)
+      if (falta) { toast.error(falta); if (emPassos) setPasso(p); return }
+    }
     setSalvando(true)
     const payload = {
       clienteId, valorCartaCentavos: valorCentavos,
-      administradora, grupo, cota, dataVenda, observacoes, numeroContrato,
+      administradora, grupo, cota, dataVenda: dataVendaISO, observacoes, numeroContrato,
     }
     const r = vendaId ? await editarVenda(vendaId, payload) : await criarVenda(payload)
     setSalvando(false)
@@ -151,6 +182,14 @@ export function VendaForm({ vendaId, inicial }: {
     router.push('/app/vendas')
   }
 
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    // Enter no meio do formulário significa "próximo", não "salvar": em passos,
+    // só o último passo grava
+    if (emPassos && passo < ultimo) { avancar(); return }
+    void salvar()
+  }
+
   if (celebracao) {
     return (
       <PrimeiraComissao
@@ -161,99 +200,128 @@ export function VendaForm({ vendaId, inicial }: {
     )
   }
 
+  const mostrar = (p: number) => !emPassos || passo === p
+
   return (
-    <form onSubmit={onSubmit} className="entra space-y-7">
-      {/*
-        O valor da carta manda na tela porque é dele que sai tudo: é o único
-        campo, junto da data, que o motor precisa para calcular. Vinha do mesmo
-        tamanho de "Tags", competindo com sete irmãos por atenção.
-      */}
-      <section className="space-y-2">
-        <Label htmlFor="valor" className="text-sm text-muted-foreground">Valor da carta</Label>
-        <CampoValor id="valor" value={valorTxt} onChange={setValorTxt} required autoFocus
-          className="h-16 !text-3xl font-semibold tracking-tight" />
+    <form onSubmit={onSubmit} className="entra flex min-h-[70dvh] flex-col">
+      {emPassos && (
+        <div className="mb-6 space-y-2">
+          <div className="flex items-baseline justify-between">
+            <p className="text-sm font-medium">{TITULOS[passo]}</p>
+            <p className="text-xs text-muted-foreground">Passo {passo + 1} de {TITULOS.length}</p>
+          </div>
+          {/* barra fina em vez de bolinhas: ocupa menos e diz a mesma coisa */}
+          <div className="flex gap-1">
+            {TITULOS.map((_, i) => (
+              <span key={i} className={cn('h-1 flex-1 rounded-full transition-colors',
+                i <= passo ? 'bg-primary' : 'bg-border')} />
+            ))}
+          </div>
+        </div>
+      )}
 
-        {/* a promessa do produto, respondida antes de salvar */}
-        <div className="min-h-[4.5rem] rounded-xl bg-money-soft/60 px-4 py-3">
-          {simulacao ? (
-            <div className="entra-suave space-y-0.5">
-              <p className="text-xs text-money">Sua comissão</p>
-              <Valor centavos={simulacao.comissaoCentavos} destaque className="block text-2xl" />
-              <p className="text-xs text-muted-foreground">
-                {formatPercentual(simulacao.percentual)} · {simulacao.nParcelas}
-                {simulacao.nParcelas === 1 ? ' parcela de ' : ' parcelas de '}
-                <Valor centavos={simulacao.parcelaCentavos} />
-                {simulacao.primeiraParcela && ` · a partir de ${formatDataExtenso(simulacao.primeiraParcela)}`}
-              </p>
-              {/* a faixa é retroativa: esta venda pode mexer nas outras do mês */}
-              {simulacao.mudouFaixa && (
-                <p className="pt-1 text-xs font-medium text-money">
-                  Esta venda muda a faixa do mês: suas outras vendas ganham{' '}
-                  <Valor centavos={Math.abs(simulacao.efeitoNasOutrasCentavos)} /> a mais.
-                </p>
-              )}
+      <div className="flex-1 space-y-5">
+        {mostrar(0) && (
+          <section className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="valor" className="text-sm text-muted-foreground">Valor da carta</Label>
+              <CampoValor id="valor" value={valorTxt} onChange={setValorTxt} required autoFocus
+                className="h-16 !text-3xl font-semibold tracking-tight" />
+
+              {/* a promessa do produto, respondida antes de salvar */}
+              <div className="min-h-[4.5rem] rounded-xl bg-money-soft/60 px-4 py-3">
+                {simulacao ? (
+                  <div className="entra-suave space-y-0.5">
+                    <p className="text-xs text-money">Sua comissão</p>
+                    <Valor centavos={simulacao.comissaoCentavos} destaque className="block text-2xl" />
+                    <p className="text-xs text-muted-foreground">
+                      {formatPercentual(simulacao.percentual)} · {simulacao.nParcelas}
+                      {simulacao.nParcelas === 1 ? ' parcela de ' : ' parcelas de '}
+                      <Valor centavos={simulacao.parcelaCentavos} />
+                      {simulacao.primeiraParcela && ` · a partir de ${formatDataExtenso(simulacao.primeiraParcela)}`}
+                    </p>
+                    {/* a faixa é retroativa: esta venda pode mexer nas outras do mês */}
+                    {simulacao.mudouFaixa && (
+                      <p className="pt-1 text-xs font-medium text-money">
+                        Esta venda muda a faixa do mês: suas outras vendas ganham{' '}
+                        <Valor centavos={Math.abs(simulacao.efeitoNasOutrasCentavos)} /> a mais.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Digite o valor e eu mostro sua comissão antes de salvar.
+                  </p>
+                )}
+              </div>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Digite o valor e eu mostro sua comissão antes de salvar.
-            </p>
-          )}
-        </div>
-      </section>
 
-      <section className="space-y-4">
-        <Campo rotulo="Data da venda" htmlFor="data">
-          <CampoData id="data" value={dataTxt} onChange={setDataTxt} required className="h-12" />
-        </Campo>
+            <Campo rotulo="Data da venda" htmlFor="data">
+              <CampoData id="data" value={dataTxt} onChange={setDataTxt} required className="h-12" />
+            </Campo>
+          </section>
+        )}
 
-        <Campo rotulo="Administradora" htmlFor="administradora"
-          apoio={veioDaMemoria ? 'Preenchida com a da sua última venda.' : undefined}>
-          <Input id="administradora" value={administradora} required className="h-12"
-            onChange={e => setAdministradoraDigitada(e.target.value)} />
-        </Campo>
+        {mostrar(1) && (
+          <section className="space-y-5">
+            <Campo rotulo="Administradora" htmlFor="administradora"
+              apoio={veioDaMemoria ? 'Preenchida com a da sua última venda.' : undefined}>
+              <Input id="administradora" value={administradora} required className="h-12"
+                onChange={e => setAdministradoraDigitada(e.target.value)} />
+            </Campo>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Campo rotulo="Grupo" htmlFor="grupo">
-            <CampoInteiro id="grupo" value={grupo} onChange={setGrupo} required className="h-12" />
-          </Campo>
-          <Campo rotulo="Cota" htmlFor="cota">
-            <CampoInteiro id="cota" value={cota} onChange={setCota} required className="h-12" />
-          </Campo>
-        </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Campo rotulo="Grupo" htmlFor="grupo">
+                <CampoInteiro id="grupo" value={grupo} onChange={setGrupo} required className="h-12" />
+              </Campo>
+              <Campo rotulo="Cota" htmlFor="cota">
+                <CampoInteiro id="cota" value={cota} onChange={setCota} required className="h-12" />
+              </Campo>
+            </div>
 
-        {/* opcional desde a migration 0013: quem fecha na rua registra agora e
-            nomeia depois, em vez de inventar cadastro para conseguir salvar */}
-        <Campo rotulo="Cliente" htmlFor="cliente" opcional
-          apoio={clienteId ? undefined : 'Dá para registrar agora e dizer de quem é depois.'}>
-          <ClientePicker value={clienteId} nomeSelecionado={clienteNome}
-            onChange={(id, nome) => { setClienteId(id); setClienteNome(nome) }} />
-        </Campo>
-      </section>
-
-      <section className="space-y-4">
-        <button type="button" onClick={() => setMostrarDetalhes(v => !v)}
-          className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground">
-          Mais detalhes
-          <ChevronDown size={16} className={mostrarDetalhes ? 'rotate-180 transition-transform' : 'transition-transform'} />
-        </button>
-
-        {mostrarDetalhes && (
-          <div className="entra-suave space-y-4">
             <Campo rotulo="Número do contrato" htmlFor="contrato" opcional>
               <Input id="contrato" value={numeroContrato} className="h-12"
                 onChange={e => setNumeroContrato(e.target.value)} />
             </Campo>
+          </section>
+        )}
+
+        {mostrar(2) && (
+          <section className="space-y-5">
+            {/* opcional desde a migration 0013: quem fecha na rua registra agora
+                e nomeia depois, em vez de inventar cadastro para conseguir salvar */}
+            <Campo rotulo="Cliente" htmlFor="cliente" opcional
+              apoio={clienteId ? undefined : 'Dá para registrar agora e dizer de quem é depois.'}>
+              <ClientePicker value={clienteId} nomeSelecionado={clienteNome}
+                onChange={(id, nome) => { setClienteId(id); setClienteNome(nome) }} />
+            </Campo>
+
             <Campo rotulo="Observações" htmlFor="observacoes" opcional>
               <Input id="observacoes" value={observacoes} className="h-12"
                 onChange={e => setObservacoes(e.target.value)} />
             </Campo>
-          </div>
+          </section>
         )}
-      </section>
+      </div>
 
-      <Button type="submit" size="lg" className="h-12 w-full" disabled={salvando}>
-        {salvando ? 'Salvando…' : vendaId ? 'Salvar alterações' : 'Salvar venda'}
-      </Button>
+      {/* a ação fica no pé da tela, no alcance do polegar */}
+      <div className="mt-6 flex gap-3">
+        {emPassos && passo > 0 && (
+          <Button type="button" variant="outline" size="lg" className="h-12"
+            onClick={() => setPasso(p => p - 1)}>
+            <ChevronLeft size={18} /> Voltar
+          </Button>
+        )}
+        {emPassos && passo < ultimo ? (
+          <Button type="button" size="lg" className="h-12 flex-1" onClick={avancar}>
+            Continuar
+          </Button>
+        ) : (
+          <Button type="submit" size="lg" className="h-12 flex-1" disabled={salvando}>
+            {salvando ? 'Salvando…' : vendaId ? 'Salvar alterações' : 'Salvar venda'}
+          </Button>
+        )}
+      </div>
     </form>
   )
 }
