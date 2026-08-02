@@ -198,6 +198,23 @@
     radial-gradient(60% 60% at 25% 95%, #5A2FD0 0%, transparent 70%);
 }
 
+/* A mesma aurora, recomposta para caixa baixa e larga.
+   As manchas da versão acima são medidas em porcentagem do elemento: num bloco
+   alto elas respiram, numa faixa de 78px comprimem e a emenda entre as cores
+   aparece. Aqui os raios verticais passam de 100% — as manchas são mais altas
+   que a caixa, então a faixa mostra só o miolo delas — e a cor caminha pela
+   largura, que é onde a caixa tem espaço: roxo à esquerda, azul no meio, ciano
+   à direita, na mesma ordem da marca. */
+@utility superficie-marca-faixa {
+  background-color: #5B3FD8;
+  background-image:
+    radial-gradient(115% 320% at 0% 45%, #7B5CFF 0%, transparent 58%),
+    radial-gradient(85% 280% at 52% 130%, #4E7BFF 0%, transparent 62%),
+    radial-gradient(75% 260% at 100% 35%, #00C8FF 0%, transparent 60%),
+    radial-gradient(60% 240% at 22% 120%, #5A2FD0 0%, transparent 66%);
+  background-repeat: no-repeat;
+}
+
 /* Luz por cima da aurora: dá volume sem acender a cena. */
 @utility brilho-marca {
   background-image:

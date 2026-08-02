@@ -37,7 +37,7 @@ export default function ClientesPage() {
         informa, só ocupa a primeira dobra para dizer que ainda não há notícia.
       */}
       {!isLoading && !busca && comissaoTotal > 0 && (
-        <section className="entra-suave superficie-marca relative overflow-hidden rounded-2xl px-4 py-3.5 text-white">
+        <section className="entra-suave superficie-marca-faixa relative overflow-hidden rounded-2xl px-4 py-3.5 text-white">
           <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
           <div className="relative flex items-end justify-between gap-3">
             <div>
