@@ -241,7 +241,7 @@ export function PainelDoCorretor() {
               ))}
             </Lista>
 
-            <Lista titulo="Próximos recebimentos" verTudo="/app/recebimentos" rotuloVerTudo="Ver agenda">
+            <Lista titulo="Próximos recebimentos" verTudo="/app/recebimentos" rotuloVerTudo="Ver todos">
               {d.proximos.length === 0 ? (
                 <p className="px-4 py-6 text-center text-sm text-muted-foreground">
                   Nada previsto neste mês.

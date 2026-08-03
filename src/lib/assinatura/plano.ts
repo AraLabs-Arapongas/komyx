@@ -22,7 +22,7 @@ export const PLANO = {
 /** o que entra na assinatura, na ordem em que o corretor liga para elas */
 export const INCLUSO = [
   'Vendas, comissões e parcelas calculadas pelas regras do seu escritório',
-  'Agenda do que entra e quando, mês a mês',
+  'Recebimentos: o que entra e quando, mês a mês',
   'Faixas retroativas por acumulado — inclusive quando uma venda muda o mês inteiro',
   'Conferência das cotas contra a Loteria Federal',
   'Seus dados exportáveis a qualquer momento',

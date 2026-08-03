@@ -135,7 +135,7 @@ export function MolduraCelular() {
           {[
             { rotulo: 'Início', Icone: LayoutDashboard, ativo: true },
             { rotulo: 'Vendas', Icone: ShoppingBag, ativo: false },
-            { rotulo: 'Agenda', Icone: Wallet, ativo: false },
+            { rotulo: 'Recebimentos', Icone: Wallet, ativo: false },
             { rotulo: 'Clientes', Icone: Users, ativo: false },
             { rotulo: 'Perfil', Icone: CircleUser, ativo: false },
           ].map(({ rotulo, Icone, ativo }) => (
@@ -176,7 +176,7 @@ const PARCELAS = [
 ]
 
 /** A agenda: cada venda vira parcelas com data. */
-export function AmostraAgenda() {
+export function AmostraRecebimentos() {
   return (
     <div className="overflow-hidden rounded-2xl border bg-card">
       <div className="border-b px-4 py-3">

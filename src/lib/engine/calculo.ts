@@ -40,7 +40,7 @@ function localizarFaixa(faixas: Faixa[], volume: number): Faixa {
  *
  * Sem `distribuicao`, divide igual. Com ela, cada parcela leva a fatia que a
  * política do escritório manda — [40, 40, 20] não é o mesmo que três iguais, e
- * supor que fosse mostrava na agenda uma data com valor que não era o dela.
+ * supor que fosse mostrava nos recebimentos uma data com valor que não era o dela.
  *
  * O resto da divisão vai sempre para a ÚLTIMA parcela pendente: centavo que
  * sobra tem que cair em algum lugar, e cair no fim é o que mantém a soma das

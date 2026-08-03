@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/logo'
 import { CapturaLead } from '@/components/captura-lead'
 import {
-  MolduraCelular, AmostraAgenda, AmostraFaixas, AmostraLoteria,
+  MolduraCelular, AmostraRecebimentos, AmostraFaixas, AmostraLoteria,
 } from '@/components/landing/amostras'
 import { Revela } from '@/components/landing/revela'
 import { EntradaHeader } from '@/components/landing/entrada-header'
@@ -47,7 +47,7 @@ const COMO_FUNCIONA = [
    função faz pela vida dele, não a função */
 const RECURSOS = [
   { icon: Calculator, titulo: 'Faixa retroativa', texto: 'Subiu de faixa? Nenhum real fica para trás.' },
-  { icon: CalendarClock, titulo: 'Agenda de recebimentos', texto: 'Você nunca mais esquece um pagamento.' },
+  { icon: CalendarClock, titulo: 'Recebimentos com data', texto: 'Você nunca mais esquece um pagamento.' },
   { icon: Undo2, titulo: 'Desistência tratada', texto: 'Estorno certo, sem refazer conta nenhuma.' },
   { icon: Search, titulo: 'Busca total', texto: 'Qualquer venda em dois toques.' },
   { icon: ShieldCheck, titulo: 'Histórico protegido', texto: 'Questionaram uma comissão? Está tudo registrado.' },
@@ -93,7 +93,7 @@ const E_NAO_E = {
   e: [
     'Controle da sua comissão, do cálculo ao recebimento',
     'Previsão de quanto entra nos próximos meses',
-    'Agenda financeira das parcelas, por cliente e por mês',
+    'Os recebimentos parcela a parcela, por cliente e por mês',
     'Histórico fechado mês a mês, com as regras de cada um',
   ],
   naoE: [
@@ -281,14 +281,14 @@ export default function LandingPage() {
       <div className="bg-card/60 py-20 md:py-24">
         <Secao>
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
-            <Revela atraso={150}><AmostraAgenda /></Revela>
+            <Revela atraso={150}><AmostraRecebimentos /></Revela>
             <Revela className="md:order-first">
-              <p className="text-sm font-medium text-money">Agenda financeira</p>
+              <p className="text-sm font-medium text-money">Recebimentos</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">
                 Saiba hoje o que entra em novembro.
               </h2>
               <p className="mt-4 text-muted-foreground">
-                Toda venda vira parcelas com data e valor. A agenda mostra o que já caiu,
+                Toda venda vira parcelas com data e valor. A tela mostra o que já caiu,
                 o que ainda vem e de qual cliente é cada real — filtrando por mês ou
                 buscando pelo nome.
               </p>

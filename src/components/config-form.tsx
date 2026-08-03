@@ -383,7 +383,7 @@ export function ConfigForm({ modo, inicial, salvarComo, aposSalvar }: {
         {/*
           Repartir diferente é exceção: a maioria dos escritórios divide igual, e
           quem divide igual não deve nem ver esses campos. Quem não divide
-          precisa deles, porque supor divisão igual mostrava na agenda uma data
+          precisa deles, porque supor divisão igual mostrava nos recebimentos uma data
           com valor que não era o dela.
         */}
         {nParcelas(f) > 1 && (

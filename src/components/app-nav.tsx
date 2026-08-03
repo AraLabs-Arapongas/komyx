@@ -14,7 +14,13 @@ import { BotaoSair } from '@/components/botao-sair'
 const itens = [
   { href: '/app', label: 'Início', icon: LayoutDashboard },
   { href: '/app/vendas', label: 'Vendas', icon: ShoppingBag },
-  { href: '/app/recebimentos', label: 'Agenda', icon: Wallet },
+  /*
+   * "Recebimentos", e não "Agenda": a palavra agenda fica reservada para os
+   * compromissos — ligar para o cliente, ir ao escritório. Duas telas com o
+   * mesmo nome, uma de dinheiro e outra de tarefas, seria o pior lugar
+   * possível para o corretor errar o toque.
+   */
+  { href: '/app/recebimentos', label: 'Recebimentos', icon: Wallet },
   { href: '/app/clientes', label: 'Clientes', icon: Users },
   // Ajustes mora dentro do perfil: a aba segue acesa quando o corretor está lá,
   // senão ele fica sem referência de onde está na navegação

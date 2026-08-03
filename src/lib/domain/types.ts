@@ -7,7 +7,7 @@ export type Faixa = {
    * Quanto da comissão cai em cada parcela, em pontos percentuais que somam
    * 100 — [40, 40, 20] paga quase metade nas duas primeiras e o resto na
    * última. Nem todo escritório divide igual, e supor divisão igual fazia o
-   * corretor ver na agenda uma data com valor que não era o dela.
+   * corretor ver nos recebimentos uma data com valor que não era o dela.
    *
    * `null` mantém a divisão igual: é o que as configurações salvas antes desta
    * opção significam, e continua sendo o padrão de quem não quer pensar nisso.
