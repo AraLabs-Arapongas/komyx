@@ -22,8 +22,14 @@ export function Voltar({ href, rotulo = 'Voltar', aoVoltar }: {
         if (typeof window !== 'undefined' && window.history.length > 1) router.back()
         else if (href) router.push(href)
       }}
-      className="-ml-1 inline-flex items-center gap-0.5 rounded-full py-1 pl-1 pr-2.5 text-sm
-                 text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+      /* self-start e w-fit: dentro de um container `flex-col` o botão é um
+         item de flex, e o alinhamento padrão do eixo cruzado é `stretch` — ele
+         esticava até a largura da página e o realce do hover pintava a linha
+         inteira. Fica no componente porque a chamada não tem como saber em que
+         tipo de container ela vai cair. */
+      className="-ml-1 inline-flex w-fit items-center gap-0.5 self-start rounded-full py-1 pl-1
+                 pr-2.5 text-sm text-muted-foreground transition-colors hover:bg-card
+                 hover:text-foreground"
     >
       <ChevronLeft size={18} />
       {rotulo}
