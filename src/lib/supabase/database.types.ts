@@ -132,29 +132,42 @@ export type Database = {
       competencias: {
         Row: {
           ano: number
+          config_aplicada: string | null
           config_snapshot: Json | null
           corretor_id: string
           id: string
           mes: number
           status: string
+          volume_externo_aplicado: number
         }
         Insert: {
           ano: number
+          config_aplicada?: string | null
           config_snapshot?: Json | null
           corretor_id: string
           id?: string
           mes: number
           status?: string
+          volume_externo_aplicado?: number
         }
         Update: {
           ano?: number
+          config_aplicada?: string | null
           config_snapshot?: Json | null
           corretor_id?: string
           id?: string
           mes?: number
           status?: string
+          volume_externo_aplicado?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "competencias_config_aplicada_fkey"
+            columns: ["config_aplicada"]
+            isOneToOne: false
+            referencedRelation: "config_financeira"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "competencias_corretor_id_fkey"
             columns: ["corretor_id"]
@@ -166,11 +179,14 @@ export type Database = {
       }
       config_financeira: {
         Row: {
+          aplica_a: string | null
           ativa: boolean
-          corretor_id: string
+          corretor_id: string | null
           created_at: string
           dia_fechamento: number
           dia_primeiro_pagamento: number
+          escritorio_id: string | null
+          faixa_por_escritorio: boolean
           faixas: Json
           id: string
           nome_politica: string
@@ -178,11 +194,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          aplica_a?: string | null
           ativa?: boolean
-          corretor_id: string
+          corretor_id?: string | null
           created_at?: string
           dia_fechamento: number
           dia_primeiro_pagamento: number
+          escritorio_id?: string | null
+          faixa_por_escritorio?: boolean
           faixas: Json
           id?: string
           nome_politica?: string
@@ -190,11 +209,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          aplica_a?: string | null
           ativa?: boolean
-          corretor_id?: string
+          corretor_id?: string | null
           created_at?: string
           dia_fechamento?: number
           dia_primeiro_pagamento?: number
+          escritorio_id?: string | null
+          faixa_por_escritorio?: boolean
           faixas?: Json
           id?: string
           nome_politica?: string
@@ -203,10 +225,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "config_financeira_aplica_a_fkey"
+            columns: ["aplica_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "config_financeira_corretor_id_fkey"
             columns: ["corretor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "config_financeira_escritorio_id_fkey"
+            columns: ["escritorio_id"]
+            isOneToOne: false
+            referencedRelation: "escritorios"
             referencedColumns: ["id"]
           },
         ]
@@ -433,6 +469,51 @@ export type Database = {
           },
         ]
       }
+      metas_escritorio: {
+        Row: {
+          ano: number
+          corretor_id: string | null
+          criado_em: string
+          escritorio_id: string
+          id: string
+          mes: number
+          valor_centavos: number
+        }
+        Insert: {
+          ano: number
+          corretor_id?: string | null
+          criado_em?: string
+          escritorio_id: string
+          id?: string
+          mes: number
+          valor_centavos: number
+        }
+        Update: {
+          ano?: number
+          corretor_id?: string | null
+          criado_em?: string
+          escritorio_id?: string
+          id?: string
+          mes?: number
+          valor_centavos?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_escritorio_corretor_id_fkey"
+            columns: ["corretor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "metas_escritorio_escritorio_id_fkey"
+            columns: ["escritorio_id"]
+            isOneToOne: false
+            referencedRelation: "escritorios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           assinatura_ate: string | null
@@ -642,6 +723,30 @@ export type Database = {
         Args: { p_competencia_id: string; p_resultado: Json }
         Returns: undefined
       }
+      config_efetiva: {
+        Args: never
+        Returns: {
+          aplica_a: string | null
+          ativa: boolean
+          corretor_id: string | null
+          created_at: string
+          dia_fechamento: number
+          dia_primeiro_pagamento: number
+          escritorio_id: string | null
+          faixa_por_escritorio: boolean
+          faixas: Json
+          id: string
+          nome_politica: string
+          politica_estorno: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "config_financeira"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       criar_escritorio: { Args: { p_nome: string }; Returns: string }
       desmarcar_recebido: {
         Args: { p_recebimento_id: string }
@@ -691,6 +796,10 @@ export type Database = {
       }
       sair_do_escritorio: { Args: never; Returns: undefined }
       ver_convite: { Args: { p_token: string }; Returns: Json }
+      volume_do_escritorio: {
+        Args: { p_ano: number; p_mes: number }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
