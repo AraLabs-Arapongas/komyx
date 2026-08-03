@@ -117,6 +117,15 @@ O dono lê a produção dos membros por políticas adicionais de RLS com corte
 temporal: só vendas com data dentro do período do vínculo. Quem sai leva os
 dados (são do corretor); o painel dos meses do vínculo continua batendo.
 
+O dono também define **políticas de comissão** (uma geral ou por corretor —
+`config_efetiva()` resolve: específica > geral > própria), **metas** por mês,
+e pode ligar a **faixa pelo acumulado do escritório**: o total da equipe
+empurra a faixa de cada um, com a comissão sempre sobre as vendas próprias.
+Os números dos membros atualizam por reconciliação preguiçosa
+(`reconciliarCompetencias`, chamada pelo layout): o dono não tem como
+recalcular a conta de ninguém — RLS e RPCs escrevem com `auth.uid()` — então
+cada app corrige a si mesmo na primeira abertura depois da mudança.
+
 ## Convenções
 
 Estão em [AGENTS.md](AGENTS.md): código e comentários em português, interface

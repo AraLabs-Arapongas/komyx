@@ -35,10 +35,9 @@ export const INCLUSO = [
  * inversa — quanto a equipe produziu, quanto sai de repasse, quem está perto
  * de virar de faixa — e ela não cabe numa conta de corretor.
  *
- * ⚠️ NÃO EXISTE AINDA. Nenhuma linha deste módulo foi escrita. A landing fala
- * dele como lista de espera, e é assim que precisa continuar até existir:
- * vender data de entrega de software que ainda não começou é a promessa mais
- * fácil de quebrar. Enquanto `precoAte` for nulo, nada de preço na página.
+ * O módulo existe (escritório, equipe, políticas, metas, faixa por acumulado
+ * da equipe), mas a venda continua conversada: sem preço público e sem
+ * checkout, a ativação é manual — ver a seção Enterprise do README.
  */
 export const PLANO_ESCRITORIO = {
   nome: 'Komyx Enterprise',
