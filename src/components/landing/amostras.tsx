@@ -1,7 +1,9 @@
 import {
   Sparkles, LayoutDashboard, ShoppingBag, Wallet, Users, CircleUser,
+  Search, Eye, LogOut,
 } from 'lucide-react'
 import { NumeroAnimado } from '@/components/numero-animado'
+import { LogoSimbolo } from '@/components/logo'
 
 /*
  * Amostras do produto para a landing.
@@ -24,35 +26,70 @@ export function MolduraCelular() {
     <div className="mx-auto w-[350px] rounded-[2.8rem] border border-white/15 bg-[#070D1F] p-2.5 shadow-[0_40px_90px_-20px_rgba(0,0,0,0.65)] md:w-[410px]">
       {/* proporção de aparelho de verdade: o que passar disso fica cortado,
           como ficaria na tela do corretor antes de ele rolar */}
-      <div className="flex aspect-[9/19.5] flex-col overflow-hidden rounded-[2.1rem] bg-background">
-        {/* barra do app */}
-        <div className="flex items-center justify-between border-b bg-card px-4 pb-2.5 pt-4">
-          <span className="text-sm font-semibold">Komyx</span>
-          <span className="text-xs text-muted-foreground">●●</span>
-        </div>
+      {/*
+        `text-foreground` explícito: o aparelho é desenhado dentro do hero da
+        landing, que é `text-white`, e a tela dele é clara. Quem não trazia cor
+        própria saía branco sobre branco — era o caso de "R$ 1,2 mi", que
+        simplesmente não existia para quem olhava a página.
+      */}
+      <div className="flex aspect-[9/19.5] flex-col overflow-hidden rounded-[2.1rem] bg-background text-foreground">
+        {/*
+          O bloco da marca começa no topo do aparelho e termina em onda, como
+          no painel de verdade: lá o cabeçalho é transparente e flutua sobre a
+          aurora, em vez de cortá-la com uma faixa branca.
+        */}
+        <div className="superficie-marca relative px-4 pb-8 pt-3 text-white
+                        [clip-path:url(#recorte-onda-amostra)]">
+          <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
 
-        {/* hero: o número que ele abre o app para ver */}
-        <div className="superficie-marca px-4 pb-5 pt-4 text-white">
-          <p className="text-[0.7rem] text-escuro-texto">
-            Olá, <span className="font-semibold text-white">Marcos</span> 👋
-          </p>
-          <p className="mt-3 text-[0.7rem] text-escuro-texto">Você receberá</p>
-          <p className="mt-0.5 text-[2.2rem] font-bold leading-none tracking-tight tabular-nums text-money-claro">
-            <NumeroAnimado ateCentavos={840000} />
-          </p>
-          <p className="mt-1.5 text-[0.65rem] text-escuro-texto">
-            em 6 dias <span className="text-white/40">· 10 de setembro</span>
-          </p>
-          <div className="mt-4 rounded-lg bg-money-claro py-2 text-center text-xs font-medium text-[#0B132B]">
-            + Nova venda
+          {/* cabeçalho: marca à esquerda, as três ações à direita */}
+          <div className="relative flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <LogoSimbolo sobreEscuro />
+              {/* a palavra acompanha a escala do desenho, que é menor que a do
+                  app — o resto do aparelho está todo em 0,7rem */}
+              <span className="text-[0.95rem] font-bold tracking-tight">komyx</span>
+            </span>
+            <span className="flex items-center gap-2 text-white/90">
+              <Search size={14} /><Eye size={14} /><LogOut size={14} />
+            </span>
           </div>
+
+          <div className="relative mt-4">
+            <p className="text-[0.7rem] text-escuro-texto">
+              Olá, <span className="font-semibold text-white">Marcos</span> 👋
+            </p>
+            <p className="mt-3 text-[0.7rem] text-escuro-texto">Você receberá</p>
+            <p className="mt-0.5 text-[2.2rem] font-bold leading-none tracking-tight tabular-nums text-money-claro">
+              <NumeroAnimado ateCentavos={840000} />
+            </p>
+            <p className="mt-1.5 text-[0.65rem] text-escuro-texto">
+              em 6 dias <span className="text-white/40">· 10 de setembro</span>
+            </p>
+            <div className="mt-4 rounded-lg bg-money-claro py-2 text-center text-xs font-medium text-[#0B132B]">
+              + Nova venda
+            </div>
+          </div>
+
+          {/*
+            Recorte próprio, com id próprio: o do painel mora dentro do
+            HeroDinheiro, que não roda nesta página, e dois clipPath com o mesmo
+            id no mesmo documento se atropelam. O traçado é o mesmo.
+          */}
+          <svg aria-hidden width="0" height="0" className="absolute">
+            <defs>
+              <clipPath id="recorte-onda-amostra" clipPathUnits="objectBoundingBox">
+                <path d="M0,0 H1 V0.955 C0.86,1.002 0.62,1.005 0.44,0.972 C0.27,0.942 0.1,0.945 0,0.975 Z" />
+              </clipPath>
+            </defs>
+          </svg>
         </div>
 
         {/* números do mês e o sorteio, lado a lado como no produto */}
         <div className="flex-1 space-y-4 p-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <p className="text-[0.6rem] text-muted-foreground">Setembro em números</p>
+              <p className="text-[0.6rem] text-muted-foreground">Agosto em números</p>
               {[['Vendido', 'R$ 1,2 mi'], ['Comissão', 'R$ 8.400'], ['Falta receber', 'R$ 5.300']].map(([r, v], i) => (
                 <div key={r}>
                   <p className="text-[0.55rem] text-muted-foreground">{r}</p>
