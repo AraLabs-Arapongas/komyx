@@ -136,6 +136,38 @@ export type PainelDoDono = {
   }[]
 }
 
+/* ---------------- metas, do lado do corretor ---------------- */
+
+export type MinhasMetas = {
+  escritorio: string
+  /** nulas quando o escritório ainda não definiu meta para este mês */
+  minhaMetaCentavos: number | null
+  minhaVigenteDe: string | null
+  metaCasaCentavos: number | null
+  metaCasaVigenteDe: string | null
+  meuTotalCentavos: number
+  totalEscritorioCentavos: number
+}
+
+/**
+ * As metas que o escritório definiu para mim e para a casa.
+ *
+ * Devolve nulo para quem não está em escritório nenhum — é assim que a tela
+ * sabe não desenhar nada, sem precisar perguntar o vínculo por fora.
+ */
+export function useMinhasMetas(ano: number, mes: number) {
+  return useQuery({
+    queryKey: queryKeys.minhasMetas(ano, mes),
+    enabled: ano > 0 && mes > 0,
+    queryFn: async (): Promise<MinhasMetas | null> => {
+      const supabase = createClient()
+      const { data, error } = await supabase.rpc('minhas_metas', { p_ano: ano, p_mes: mes })
+      if (error) throw error
+      return (data as unknown as MinhasMetas | null) ?? null
+    },
+  })
+}
+
 /**
  * A tela do dono inteira numa chamada.
  *

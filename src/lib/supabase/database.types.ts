@@ -800,6 +800,7 @@ export type Database = {
       }
       meu_escritorio: { Args: never; Returns: Json }
       meu_escritorio_como_dono: { Args: never; Returns: string }
+      minhas_metas: { Args: { p_ano: number; p_mes: number }; Returns: Json }
       painel_do_dono: {
         Args: { p_ano: number; p_mes: number; p_meses_historico?: number }
         Returns: Json

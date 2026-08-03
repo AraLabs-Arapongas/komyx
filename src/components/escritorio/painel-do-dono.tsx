@@ -12,7 +12,7 @@ import { Valor } from '@/components/valor'
 import { AvatarInicial } from '@/components/ui/avatar-inicial'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CurvaMarca } from '@/components/curva-marca'
+import { BarraMeta } from '@/components/ui/barra-meta'
 import { GraficoMeses, GraficoLinhas, GraficoComposicao } from '@/components/ui/graficos'
 import { cn } from '@/lib/utils'
 
@@ -114,7 +114,6 @@ function Conteudo({ dados, ref_ }: { dados: PainelDoDono; ref_: { ano: number; m
   const projecao = decorridos >= DIAS_PARA_PROJETAR && decorridos < diasNoMes
     ? Math.round(dados.total.totalCentavos / decorridos * diasNoMes)
     : null
-  const falta = Math.max(0, meta - dados.total.totalCentavos)
   const cartaMedia = dados.total.nVendas > 0
     ? dados.total.totalCentavos / dados.total.nVendas : 0
 
@@ -145,36 +144,16 @@ function Conteudo({ dados, ref_ }: { dados: PainelDoDono; ref_: { ano: number; m
 
       {/* 2. a meta, e o que falta para chegar nela */}
       {meta > 0 && (
-        <section className="superficie-marca-faixa relative overflow-hidden rounded-lg p-4 text-white">
-          <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
-          <CurvaMarca />
-          <div className="relative space-y-2">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <Valor centavos={dados.total.totalCentavos} destaque={false}
-                className="text-2xl text-white md:text-3xl" />
-              <p className="text-sm text-white/80">
-                {falta > 0
-                  ? <>faltam <Valor centavos={falta} destaque={false} className="font-semibold text-white" />
-                      {cartaMedia > 0 && ` · cerca de ${Math.ceil(falta / cartaMedia)} cota${Math.ceil(falta / cartaMedia) === 1 ? '' : 's'}`}</>
-                  : 'meta batida'}
-              </p>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-white/20">
-              <div className="h-full rounded-full bg-money-claro transition-all"
-                style={{ width: `${Math.min(100, pct ?? 0)}%` }} />
-            </div>
-            <p className="text-xs text-white/75">
-              {projecao !== null
-                ? <>No ritmo atual, o mês fecha em {formatBRL(projecao)}
-                    {meta > 0 && ` (${Math.round(projecao / meta * 100)}% da meta)`} · dia {decorridos} de {diasNoMes}</>
-                : decorridos === 0
-                  ? 'Mês ainda não começou'
-                  : decorridos >= diasNoMes
-                    ? 'Mês encerrado'
-                    : `Dia ${decorridos} de ${diasNoMes} — cedo demais para projetar o fechamento`}
-            </p>
-          </div>
-        </section>
+        <BarraMeta realizadoCentavos={dados.total.totalCentavos} metaCentavos={meta}
+          cartaMediaCentavos={cartaMedia} mostrarAlvo={false}
+          rodape={projecao !== null
+            ? <>No ritmo atual, o mês fecha em {formatBRL(projecao)}
+                {` (${Math.round(projecao / meta * 100)}% da meta)`} · dia {decorridos} de {diasNoMes}</>
+            : decorridos === 0
+              ? 'Mês ainda não começou'
+              : decorridos >= diasNoMes
+                ? 'Mês encerrado'
+                : `Dia ${decorridos} de ${diasNoMes} — cedo demais para projetar o fechamento`} />
       )}
 
       {/* 3. os corretores — o centro da tela */}

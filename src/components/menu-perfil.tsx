@@ -12,8 +12,18 @@ import {
  * uma função: não atravessa a fronteira servidor → cliente. Passar `icone={X}`
  * de uma página server quebra em runtime sem o typecheck acusar.
  */
-const ITENS: { href: string; icone: LucideIcon; titulo: string; apoio: string }[] = [
-  {
+const itens = (politicaDoEscritorio: boolean): { href: string; icone: LucideIcon; titulo: string; apoio: string }[] => [
+  /*
+   * O primeiro item muda de nome conforme quem manda na política.
+   *
+   * Sob política de escritório a página não ajusta nada — mostra as regras e
+   * as metas que a casa definiu. Chamá-la de "Ajustes" prometeria um botão de
+   * salvar que não existe do outro lado do toque.
+   */
+  politicaDoEscritorio ? {
+    href: '/app/configuracao', icone: Settings, titulo: 'Suas regras',
+    apoio: 'Metas e comissão definidas pelo escritório',
+  } : {
     href: '/app/configuracao', icone: Settings, titulo: 'Ajustes',
     apoio: 'Faixas de comissão, competência e estorno',
   },
@@ -43,10 +53,10 @@ const ITENS: { href: string; icone: LucideIcon; titulo: string; apoio: string }[
   }] : []),
 ]
 
-export function MenuPerfil() {
+export function MenuPerfil({ politicaDoEscritorio = false }: { politicaDoEscritorio?: boolean }) {
   return (
     <nav className="divide-y overflow-hidden rounded-lg bg-card">
-      {ITENS.map(({ href, icone: Icone, titulo, apoio }) => (
+      {itens(politicaDoEscritorio).map(({ href, icone: Icone, titulo, apoio }) => (
         <Link key={href} href={href}
           className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
