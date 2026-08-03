@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { cn } from '@/lib/utils'
 import { redirect } from 'next/navigation'
 import { Providers } from '@/components/providers'
 import { AppNav } from '@/components/app-nav'
@@ -29,9 +30,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     supabase.rpc('meu_escritorio'),
   ])
 
-  const acesso = avaliarAcesso(perfil
-    ? { ...perfil, escritorio: escritorio as AssinaturaEscritorio | null }
-    : null)
+  const vinculo = escritorio as (AssinaturaEscritorio & { papel?: string }) | null
+  const ehDono = vinculo?.papel === 'dono'
+  const acesso = avaliarAcesso(perfil ? { ...perfil, escritorio: vinculo } : null)
 
   /*
    * Sem Stripe configurado o portão não fecha.
@@ -90,7 +91,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <Providers>
-      <AppNav ehDono={(escritorio as AssinaturaEscritorio & { papel?: string } | null)?.papel === 'dono'} />
+      <AppNav ehDono={ehDono} />
       {/* só a altura do menu: o respiro de 1rem vem do p-4 do container abaixo.
           Somar os dois deixava 16px sobrando embaixo da barra de ação, que
           então não encostava no menu quando o formulário era longo. */}
@@ -101,7 +102,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {/* flex-1: sem isto a coluna termina onde o conteúdo termina, e sobrava
             um resto da altura do main embaixo dela — a barra de ação dos
             formulários parava alguns pixels acima do menu */}
-        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col p-4 md:p-6">
+        {/*
+          O dono usa o app no desktop e a tela dele é um dashboard: coluna de
+          768px desperdiçaria metade do monitor, e gráfico espremido não se lê.
+          Ele ganha a largura toda; o corretor continua na coluna estreita, que
+          é a medida certa para ler no celular entre uma visita e outra.
+        */}
+        <div className={cn('mx-auto flex w-full flex-1 flex-col p-4 md:p-6',
+          ehDono ? 'max-w-[1600px]' : 'max-w-3xl')}>
           {/* acima do conteúdo, e não dentro de cada tela: o aviso vale para o
               app inteiro e ele mesmo decide quando não tem nada a dizer */}
           <AvisoAssinatura acesso={acesso} />

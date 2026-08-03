@@ -90,3 +90,68 @@ export function useEquipe() {
     },
   })
 }
+
+/* ---------------- painel do dono ---------------- */
+
+export type MesRef = { ano: number; mes: number }
+
+export type TotalMes = { totalCentavos: number; comissaoCentavos: number; nVendas: number }
+
+export type CorretorDoPainel = {
+  corretorId: string
+  nome: string
+  papel: 'dono' | 'corretor'
+  ativo: boolean
+  totalCentavos: number
+  comissaoCentavos: number
+  nVendas: number
+  anteriorCentavos: number
+  metaCentavos: number | null
+  /** dias desde a última venda; nulo se nunca vendeu */
+  diasSemVender: number | null
+  mediaMensalCentavos: number
+}
+
+export type PainelDoDono = {
+  mes: MesRef
+  total: TotalMes
+  anterior: TotalMes
+  metaCasaCentavos: number | null
+  perdas: { nVendas: number; totalCentavos: number }
+  convitesPendentes: number
+  corretores: CorretorDoPainel[]
+  historico: (MesRef & TotalMes)[]
+  historicoPorCorretor: {
+    corretorId: string
+    nome: string
+    serie: (MesRef & { totalCentavos: number })[]
+  }[]
+  previsto: (MesRef & { centavos: number })[]
+  porAdministradora: { rotulo: string; nVendas: number; totalCentavos: number }[]
+  porProduto: { rotulo: string; nVendas: number; totalCentavos: number }[]
+  ultimasVendas: {
+    nome: string; cliente: string | null; centavos: number; quando: string
+  }[]
+}
+
+/**
+ * A tela do dono inteira numa chamada.
+ *
+ * Histórico de seis meses cruzado com metas e com a agenda de recebimentos da
+ * equipe: nada disso se monta no navegador sem baixar as vendas de todo mundo.
+ */
+export function usePainelDoDono(ano: number, mes: number) {
+  return useQuery({
+    queryKey: queryKeys.painelDoDono(ano, mes),
+    enabled: ano > 0 && mes > 0,
+    queryFn: async (): Promise<PainelDoDono> => {
+      const supabase = createClient()
+      const { data, error } = await supabase.rpc('painel_do_dono', {
+        p_ano: ano, p_mes: mes, p_meses_historico: 6,
+      })
+      if (error) throw error
+      return data as unknown as PainelDoDono
+    },
+  })
+}
+

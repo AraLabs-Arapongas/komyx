@@ -764,6 +764,17 @@ export type Database = {
         Args: { p_hoje: string; p_snapshot: Json }
         Returns: undefined
       }
+      historico_escritorio: {
+        Args: { p_meses?: number }
+        Returns: {
+          ano: number
+          comissao_centavos: number
+          corretor_id: string
+          mes: number
+          n_vendas: number
+          total_centavos: number
+        }[]
+      }
       marcar_recebido: {
         Args: { p_data: string; p_recebimento_id: string }
         Returns: undefined
@@ -785,6 +796,10 @@ export type Database = {
       }
       meu_escritorio: { Args: never; Returns: Json }
       meu_escritorio_como_dono: { Args: never; Returns: string }
+      painel_do_dono: {
+        Args: { p_ano: number; p_mes: number; p_meses_historico?: number }
+        Returns: Json
+      }
       painel_escritorio: {
         Args: { p_ano: number; p_mes: number }
         Returns: Json

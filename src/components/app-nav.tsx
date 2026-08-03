@@ -22,22 +22,31 @@ const itens = [
 ]
 
 /*
- * A área do escritório, para quem é dono. No desktop vira uma seção própria
- * da lateral; no celular não entra na barra de baixo — cinco itens é o limite
- * do polegar — e o caminho continua sendo Perfil → Escritório, com os
- * subitens dentro da própria área.
+ * A lateral do dono tem outra prioridade: o escritório em cima, a carteira
+ * pessoal dele agrupada embaixo. Ele quase não vende — abrir o app é olhar a
+ * equipe, e o menu tem que dizer isso antes de qualquer clique.
+ *
+ * No celular a barra de baixo continua a mesma para todos: cinco itens é o
+ * limite do polegar, e o painel do dono já leva aos atalhos que ele precisa.
  */
 const itensEscritorio = [
-  { href: '/app/escritorio', label: 'Painel', icon: Building2, exato: true },
+  { href: '/app', label: 'Painel', icon: Building2, exato: true },
   { href: '/app/escritorio/equipe', label: 'Equipe', icon: UsersRound },
-  { href: '/app/escritorio/politicas', label: 'Políticas', icon: SlidersHorizontal },
   { href: '/app/escritorio/metas', label: 'Metas', icon: Target },
+  { href: '/app/escritorio/politicas', label: 'Políticas', icon: SlidersHorizontal },
 ]
+
+/** A carteira do dono: as telas que ele usa só se também vender. */
+const itensPessoais = itens.filter(i => i.href !== '/app')
 
 export function AppNav({ ehDono = false }: { ehDono?: boolean }) {
   const path = usePathname()
-  // só o painel tem a aurora encostando no topo
-  const noPainel = path === '/app'
+  /*
+   * A aurora encosta no topo só no painel do corretor. O do dono é um
+   * dashboard de blocos claros — cabeçalho transparente ali deixaria os ícones
+   * brancos sobre fundo branco, que foi o mesmo defeito da busca global.
+   */
+  const noPainel = path === '/app' && !ehDono
   const ativo = (href: string, tambem: string[] = []) =>
     href === '/app'
       ? path === '/app'
@@ -80,19 +89,8 @@ export function AppNav({ ehDono = false }: { ehDono?: boolean }) {
       {/* desktop: sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-44 flex-col border-r bg-card p-3 md:flex">
         <Logo className="mb-6 px-2" />
-        {itens.map(({ href, label, icon: Icon, tambem }) => (
-          <Link key={href} href={href}
-            className={cn('flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm',
-              ativo(href, tambem) ? 'bg-background font-medium' : 'text-muted-foreground hover:text-foreground')}>
-            <Icon size={18} />{label}
-          </Link>
-        ))}
-
-        {ehDono && (
+        {ehDono ? (
           <>
-            <p className="mb-1 mt-6 px-2.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              Escritório
-            </p>
             {itensEscritorio.map(({ href, label, icon: Icon, exato }) => (
               <Link key={href} href={href}
                 className={cn('flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm',
@@ -101,7 +99,25 @@ export function AppNav({ ehDono = false }: { ehDono?: boolean }) {
                 <Icon size={18} />{label}
               </Link>
             ))}
+            <p className="mb-1 mt-6 px-2.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Minha carteira
+            </p>
+            {itensPessoais.map(({ href, label, icon: Icon, tambem }) => (
+              <Link key={href} href={href}
+                className={cn('flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm',
+                  ativo(href, tambem) ? 'bg-background font-medium' : 'text-muted-foreground hover:text-foreground')}>
+                <Icon size={18} />{label}
+              </Link>
+            ))}
           </>
+        ) : (
+          itens.map(({ href, label, icon: Icon, tambem }) => (
+            <Link key={href} href={href}
+              className={cn('flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm',
+                ativo(href, tambem) ? 'bg-background font-medium' : 'text-muted-foreground hover:text-foreground')}>
+              <Icon size={18} />{label}
+            </Link>
+          ))
         )}
       </aside>
     </>
