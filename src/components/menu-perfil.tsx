@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import {
-  ChevronRight, Settings, User, CreditCard, Download, FlaskConical, type LucideIcon,
+  ChevronRight, Settings, User, CreditCard, Building2, Download, FlaskConical, type LucideIcon,
 } from 'lucide-react'
 
 /**
@@ -24,6 +24,12 @@ const ITENS: { href: string; icone: LucideIcon; titulo: string; apoio: string }[
   {
     href: '/app/perfil/assinatura', icone: CreditCard, titulo: 'Assinatura',
     apoio: 'Seu plano, cobrança e recibos',
+  },
+  // sempre visível, mesmo para quem não tem equipe: a própria página vira o
+  // convite para criar uma
+  {
+    href: '/app/escritorio', icone: Building2, titulo: 'Escritório',
+    apoio: 'Sua equipe num painel só',
   },
   {
     href: '/app/perfil/backup', icone: Download, titulo: 'Backup',
