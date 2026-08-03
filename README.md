@@ -97,6 +97,26 @@ Sem isso, um PATCH direto no PostgREST trocando `assinatura_status` para
 nasce protegida por essa regra** — o grant lista o que é liberado, não o que é
 proibido, então esquecer é o caminho seguro.
 
+## Enterprise (escritórios)
+
+A venda é conversada — não há checkout. O dono cria o escritório pelo app
+(Perfil → Escritório), monta a equipe por link de convite, e o admin ativa a
+assinatura depois do acerto comercial:
+
+```sql
+update escritorios set assinatura_status = 'ativa',
+  assinatura_ate = now() + interval '1 month 3 days'
+where nome = '<nome>';
+```
+
+Enquanto o escritório está `ativa`, os membros não pagam o plano individual
+(`avaliarAcesso`, motivo `escritorio`). Encerrar é trocar o status para
+`encerrada` — cada corretor volta na hora para o próprio teste ou assinatura.
+
+O dono lê a produção dos membros por políticas adicionais de RLS com corte
+temporal: só vendas com data dentro do período do vínculo. Quem sai leva os
+dados (são do corretor); o painel dos meses do vínculo continua batendo.
+
 ## Convenções
 
 Estão em [AGENTS.md](AGENTS.md): código e comentários em português, interface
