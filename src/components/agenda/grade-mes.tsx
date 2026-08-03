@@ -1,5 +1,5 @@
 'use client'
-import { AvatarInicial } from '@/components/ui/avatar-inicial'
+import { tomDoNome } from '@/components/ui/avatar-inicial'
 import { horaCurta } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Compromisso } from '@/lib/queries/compromissos'
@@ -101,33 +101,47 @@ export function GradeMes({
               </span>
 
               <span className="flex min-w-0 flex-col gap-0.5">
-                {cabem.map(c => (
-                  <span
-                    key={c.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={e => { e.stopPropagation(); aoAbrir(c) }}
-                    onKeyDown={e => {
-                      if (e.key !== 'Enter' && e.key !== ' ') return
-                      e.preventDefault(); e.stopPropagation(); aoAbrir(c)
-                    }}
-                    className={cn(
-                      'flex min-w-0 items-center gap-1 rounded px-1 py-0.5 text-[11px] leading-tight',
-                      c.concluidoEm
-                        ? 'bg-muted text-muted-foreground line-through'
-                        : c.data < hoje
-                          ? 'bg-destructive/10 text-destructive'
-                          : 'bg-primary/10 text-primary',
-                    )}
-                  >
-                    {c.hora && <span className="shrink-0 tabular-nums">{horaCurta(c.hora)}</span>}
-                    <span className="truncate">{c.titulo}</span>
-                    {c.corretorId !== euId && nomePorId.get(c.corretorId) && (
-                      <AvatarInicial nome={nomePorId.get(c.corretorId)!}
-                        className="ml-auto size-3.5 shrink-0 text-[7px]" />
-                    )}
-                  </span>
-                ))}
+                {cabem.map(c => {
+                  const dono = c.corretorId === euId ? null : nomePorId.get(c.corretorId) ?? null
+                  return (
+                    <span
+                      key={c.id}
+                      role="button"
+                      tabIndex={0}
+                      // o nome por extenso no hover: a cor diz de quem é, mas
+                      // cor sozinha não se lê em voz alta nem se decora no
+                      // primeiro dia
+                      title={dono ? `${dono} — ${c.titulo}` : c.titulo}
+                      onClick={e => { e.stopPropagation(); aoAbrir(c) }}
+                      onKeyDown={e => {
+                        if (e.key !== 'Enter' && e.key !== ' ') return
+                        e.preventDefault(); e.stopPropagation(); aoAbrir(c)
+                      }}
+                      className={cn(
+                        'flex min-w-0 items-center gap-1 rounded border-l-2 px-1 py-0.5 text-[11px] leading-tight',
+                        /*
+                          A COR é de quem, a BORDA é do estado.
+
+                          Eram a mesma coisa antes — roxo/vermelho/cinza para
+                          futuro/atrasado/feito — e aí a linha do colega saía
+                          idêntica à minha, com a diferença espremida num
+                          avatar de sete pixels que ninguém consegue ler. Cor
+                          para pessoa e borda para estado deixa as duas
+                          perguntas respondidas ao mesmo tempo.
+                        */
+                        dono ? tomDoNome(dono) : 'bg-primary/10 text-primary',
+                        c.concluidoEm
+                          ? 'border-transparent line-through opacity-60'
+                          : c.data < hoje
+                            ? 'border-destructive'
+                            : 'border-transparent',
+                      )}
+                    >
+                      {c.hora && <span className="shrink-0 tabular-nums">{horaCurta(c.hora)}</span>}
+                      <span className="truncate">{c.titulo}</span>
+                    </span>
+                  )
+                })}
                 {doDia.length > cabem.length && (
                   <span className="px-1 text-[11px] text-muted-foreground">
                     +{doDia.length - cabem.length}
