@@ -76,18 +76,35 @@ export function AppNav({ ehDono = false }: { ehDono?: boolean }) {
           bloco de marca é a maior superfície do produto, e uma faixa branca
           cortando o topo dele desperdiçava justamente a parte que se reconhece
           de longe. Nas outras telas, onde não há aurora atrás, ela volta a ter
-          fundo — texto escuro sobre transparente sumiria. */}
+          fundo — texto escuro sobre transparente sumiria.
+
+          E SÓ NO CELULAR. No desktop a aurora não passa por trás do
+          cabeçalho: ela é um cartão arredondado dentro da coluna de conteúdo,
+          com o fundo claro da página em volta. Os ícones brancos ficavam
+          invisíveis ali — o mesmo defeito que a busca global já teve, agora
+          pela diferença de largura. A partir de `md` o cabeçalho volta a ser
+          o de sempre. */}
       <div className={cn(
         'sticky top-0 z-30 flex items-center justify-between gap-2 px-4 md:justify-end md:pl-48',
-        noPainel ? 'h-[var(--altura-cabecalho-painel)]' : 'h-[var(--altura-cabecalho)] py-2.5',
-        noPainel ? 'border-b border-transparent bg-transparent text-white' : 'border-b bg-card',
+        noPainel
+          ? 'h-[var(--altura-cabecalho-painel)] md:h-[var(--altura-cabecalho)] md:py-2.5'
+          : 'h-[var(--altura-cabecalho)] py-2.5',
+        noPainel
+          ? 'border-b border-transparent bg-transparent text-white md:border-border md:bg-card md:text-foreground'
+          : 'border-b bg-card',
       )}>
         <Logo className="md:hidden" sobreEscuro={noPainel} tamanho={noPainel ? 'grande' : 'padrao'} />
         <div className="flex items-center gap-1">
-          <BuscaGlobal className={noPainel ? 'text-white hover:bg-white/15 hover:text-white' : undefined} />
+          <BuscaGlobal className={noPainel
+            ? 'text-white hover:bg-white/15 hover:text-white md:text-muted-foreground md:hover:bg-muted md:hover:text-foreground'
+            : undefined} />
           <BotaoPrivacidade className={cn('rounded-md p-1.5 transition-colors',
-            noPainel ? 'text-white hover:bg-white/15' : 'text-muted-foreground hover:bg-muted hover:text-foreground')} />
-          <BotaoSair className={noPainel ? 'text-white hover:bg-white/15 hover:text-white' : undefined} />
+            noPainel
+              ? 'text-white hover:bg-white/15 md:text-muted-foreground md:hover:bg-muted md:hover:text-foreground'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground')} />
+          <BotaoSair className={noPainel
+            ? 'text-white hover:bg-white/15 hover:text-white md:text-muted-foreground md:hover:bg-muted md:hover:text-foreground'
+            : undefined} />
         </div>
       </div>
 

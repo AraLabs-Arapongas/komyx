@@ -61,20 +61,32 @@ export function GraficoMeses({ pontos, metaCentavos, className }: {
           /* h-full: sem base, a altura percentual da barra resolve para zero e
              o gráfico desenha só os rótulos */
           <div key={`${p.ano}-${p.mes}`} className="group relative flex h-full flex-1 flex-col justify-end">
-            {/* o valor só aparece no hover: doze rótulos permanentes viram
-                ruído e o gráfico deixa de ser lido pela forma */}
-            <span className="pointer-events-none absolute -top-5 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap
-                             rounded bg-foreground px-1.5 py-0.5 text-[10px] font-medium text-background
-                             opacity-0 transition-opacity group-hover:opacity-100">
-              {mostrar(p.centavos)}
-            </span>
             {/* teto de largura: com dois ou três meses na série, barras
                 elásticas viram blocos que ocupam meia tela e o gráfico deixa
                 de parecer gráfico */}
             <div
-              className={cn('mx-auto w-full max-w-14 rounded-t transition-colors',
+              className={cn('relative mx-auto w-full max-w-14 rounded-t transition-colors',
                 i === ultimo ? 'bg-primary' : 'bg-primary/30 group-hover:bg-primary/50')}
-              style={{ height: `${Math.max(p.centavos / teto * 100, p.centavos > 0 ? 2 : 0)}%` }} />
+              style={{ height: `${Math.max(p.centavos / teto * 100, p.centavos > 0 ? 2 : 0)}%` }}
+            >
+              {/*
+                O valor mora em cima DA BARRA, não do gráfico.
+
+                Estava ancorado no topo do container: num mês fraco, o número
+                aparecia lá em cima, a meia tela de distância da barra que ele
+                descreve — e quem passava o mouse concluía que não havia nada
+                para ver. Preso à barra, ele sobe e desce junto.
+
+                Só no hover: seis rótulos permanentes viram ruído e o gráfico
+                deixa de ser lido pela forma.
+              */}
+              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2
+                               whitespace-nowrap rounded bg-foreground px-1.5 py-0.5 text-[10px]
+                               font-medium text-background opacity-0 transition-opacity
+                               group-hover:opacity-100">
+                {mostrar(p.centavos)}
+              </span>
+            </div>
           </div>
         ))}
       </div>
@@ -103,6 +115,7 @@ export function GraficoLinhas({ series, meses, className }: {
   className?: string
 }) {
   const id = useId()
+  const mostrar = useValorVisivel()
   // 8% de folga no topo: sem ela o pico encosta na borda e a linha parece
   // vazar do cartão
   const teto = Math.max(...series.flatMap(s => s.pontos.map(p => p.centavos)), 1) * 1.08
@@ -123,16 +136,60 @@ export function GraficoLinhas({ series, meses, className }: {
 
   return (
     <div className={cn('space-y-2', className)}>
-      <svg viewBox={`0 0 ${largura} ${altura}`} preserveAspectRatio="none"
-        className="h-36 w-full" role="img"
-        aria-label="Produção de cada corretor nos últimos meses">
-        {series.map((s, i) => (
-          <path key={`${id}-${s.nome}`} d={caminho(s.pontos)} fill="none"
-            stroke={CORES[i % CORES.length]} strokeWidth="1.2"
-            strokeLinecap="round" strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke" />
-        ))}
-      </svg>
+      {/*
+        As linhas contam direção; o hover conta o número.
+
+        Antes não havia hover nenhum aqui: quem via um corretor despencando em
+        junho não tinha como saber de quanto para quanto sem sair da tela.
+        Cada mês ganha uma faixa invisível que, sob o cursor, acende a coluna e
+        abre a lista de todos os corretores naquele mês — comparar é a razão de
+        as linhas estarem juntas, então o cartão mostra todas de uma vez.
+      */}
+      <div className="relative h-36">
+        <svg viewBox={`0 0 ${largura} ${altura}`} preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full" role="img"
+          aria-label="Produção de cada corretor nos últimos meses">
+          {series.map((s, i) => (
+            <path key={`${id}-${s.nome}`} d={caminho(s.pontos)} fill="none"
+              stroke={CORES[i % CORES.length]} strokeWidth="1.2"
+              strokeLinecap="round" strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke" />
+          ))}
+        </svg>
+
+        <div className="absolute inset-0 flex">
+          {meses.map((m, mi) => (
+            <div key={`${m.ano}-${m.mes}`} className="group relative flex-1">
+              {/* a régua vertical que diz qual mês está sendo lido */}
+              <span aria-hidden
+                className="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2
+                           bg-foreground/15 opacity-0 transition-opacity group-hover:opacity-100" />
+              {/* o cartão foge da borda: nos meses da ponta ele sairia do
+                  cartão do gráfico e ficaria cortado pela metade */}
+              <div className={cn(
+                'pointer-events-none absolute top-1 z-20 w-max min-w-32 rounded-lg border bg-card p-2',
+                'text-left shadow-lg opacity-0 transition-opacity group-hover:opacity-100',
+                mi === 0 ? 'left-0' : mi === meses.length - 1 ? 'right-0' : 'left-1/2 -translate-x-1/2',
+              )}>
+                <p className="mb-1 text-[10px] font-medium text-muted-foreground">{rotuloMes(m)}</p>
+                {series.map((s, i) => (
+                  <p key={s.nome} className="flex items-center justify-between gap-3 text-[11px] leading-relaxed">
+                    <span className="flex items-center gap-1.5 text-muted-foreground">
+                      <span className="size-2 shrink-0 rounded-full"
+                        style={{ background: CORES[i % CORES.length] }} />
+                      {s.nome.split(' ')[0]}
+                    </span>
+                    <span className="font-medium tabular-nums">
+                      {mostrar(s.pontos[mi]?.centavos ?? 0)}
+                    </span>
+                  </p>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="flex gap-1.5">
         {meses.map(m => (
           <span key={`${m.ano}-${m.mes}`} className="flex-1 text-center text-[10px] text-muted-foreground">
