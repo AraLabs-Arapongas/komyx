@@ -20,6 +20,16 @@ const inputVariants = cva(
         // 16px de texto também evita o zoom automático do Safari no iPhone
         toque: "h-12 px-3 py-2 text-base",
         denso: "h-8 px-2.5 py-1 text-base md:text-sm",
+        /*
+         * Sem moldura, para o campo que JÁ está dentro de uma. É o caso da
+         * busca: a caixa é o painel inteiro, e uma borda em volta do campo
+         * desenharia uma segunda caixa dentro da primeira.
+         *
+         * A altura é maior que a do `toque` porque aqui o campo é a tela toda,
+         * não uma linha de formulário — e era exatamente isso que faltava
+         * quando a busca parecia apertada.
+         */
+        nu: "h-14 border-transparent bg-transparent px-0 text-base focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent",
       },
     },
     defaultVariants: { tamanho: "toque" },

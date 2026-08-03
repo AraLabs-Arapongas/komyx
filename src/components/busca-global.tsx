@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { Valor } from '@/components/valor'
+import { Input } from '@/components/ui/input'
 import { formatData } from '@/lib/format'
 import { Search, X } from 'lucide-react'
 
@@ -93,32 +94,43 @@ export function BuscaGlobal({ className }: { className?: string } = {}) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 p-4 pt-[12vh]"
+    /* longe do topo: colada no cabeçalho a busca parecia parte dele, e o
+       escurecido atrás nem aparecia. O recuo é maior no celular, onde a tela
+       inteira é a caixa. */
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4 pt-24 md:pt-[14vh]"
       onClick={() => setAberto(false)}>
-      <div className="entra w-full max-w-lg overflow-hidden rounded-lg bg-card shadow-lg"
+      {/*
+        `text-foreground` explícito: no painel o cabeçalho é branco sobre a
+        aurora, e a busca nasce dentro dele. `fixed` tira do fluxo, não da
+        herança — o painel abria com título, campo e tudo em branco sobre o
+        cartão branco, invisível só nessa tela.
+      */}
+      <div className="entra w-full max-w-xl overflow-hidden rounded-lg bg-card text-foreground shadow-xl"
         onClick={e => e.stopPropagation()}>
-        <div className="flex items-center gap-2 border-b px-4">
-          <Search size={18} className="shrink-0 text-muted-foreground" />
-          <input
+        {/* a altura vem do campo (`nu`, 56px), e não de padding aqui: assim a
+            linha do cursor fica no centro da faixa, e não empurrada por cima */}
+        <div className="flex items-center gap-3 border-b px-4">
+          <Search size={20} className="shrink-0 text-muted-foreground" />
+          <Input
             ref={campoRef}
+            tamanho="nu"
             value={termo}
             onChange={e => setTermo(e.target.value)}
             placeholder="Buscar cliente, grupo, cota, contrato…"
-            className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
           />
           <button type="button" onClick={() => setAberto(false)} aria-label="Fechar"
-            className="rounded-md p-1 text-muted-foreground hover:text-foreground">
+            className="-mr-1.5 shrink-0 rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
             <X size={18} />
           </button>
         </div>
 
-        <div className="max-h-[50vh] overflow-y-auto">
+        <div className="max-h-[60vh] overflow-y-auto">
           {busca.length < 2 ? (
-            <p className="px-4 py-6 text-sm text-muted-foreground">
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">
               Digite ao menos duas letras para buscar.
             </p>
           ) : resultados.length === 0 ? (
-            <p className="px-4 py-6 text-sm text-muted-foreground">
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">
               Nada encontrado para “{termo}”.
             </p>
           ) : (
@@ -126,7 +138,7 @@ export function BuscaGlobal({ className }: { className?: string } = {}) {
               {resultados.map(r => (
                 <li key={`${r.tipo}-${r.id}`}>
                   <button type="button" onClick={() => abrir(r)}
-                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-background">
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-background">
                     <span className="min-w-0">
                       <span className="block truncate font-medium">{r.titulo}</span>
                       <span className="block truncate text-xs text-muted-foreground">{r.apoio}</span>
