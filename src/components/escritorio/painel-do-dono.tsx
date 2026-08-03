@@ -118,6 +118,12 @@ function Conteudo({ dados, ref_ }: { dados: PainelDoDono; ref_: { ano: number; m
   const cartaMedia = dados.total.nVendas > 0
     ? dados.total.totalCentavos / dados.total.nVendas : 0
 
+  /*
+   * Mês que ainda não começou não se compara com nada: tudo é zero, e a
+   * variação sairia "-100%" com seta vermelha em todo KPI — alarme sobre um
+   * mês que nem chegou.
+   */
+  const comparar = decorridos > 0
   const historicoMeses = dados.historico.map(h => ({ ano: h.ano, mes: h.mes, centavos: h.totalCentavos }))
   const emAlerta = dados.corretores.filter(c => c.ativo && alertaDe(c) !== null)
 
@@ -126,14 +132,15 @@ function Conteudo({ dados, ref_ }: { dados: PainelDoDono; ref_: { ano: number; m
       {/* 1. os números do mês */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi rotulo="Vendido" centavos={dados.total.totalCentavos}
-          variacao={variacao(dados.total.totalCentavos, dados.anterior.totalCentavos)} />
+          variacao={comparar ? variacao(dados.total.totalCentavos, dados.anterior.totalCentavos) : null} />
         <Kpi rotulo="Cotas" numero={dados.total.nVendas}
-          variacao={variacao(dados.total.nVendas, dados.anterior.nVendas)} />
+          variacao={comparar ? variacao(dados.total.nVendas, dados.anterior.nVendas) : null} />
         {/* é o repasse: o que sai do escritório para a equipe */}
         <Kpi rotulo="Comissão da equipe" centavos={dados.total.comissaoCentavos}
-          variacao={variacao(dados.total.comissaoCentavos, dados.anterior.comissaoCentavos)} />
+          variacao={comparar ? variacao(dados.total.comissaoCentavos, dados.anterior.comissaoCentavos) : null} />
         <Kpi rotulo="Meta do mês" texto={pct === null ? 'sem meta' : `${pct}%`}
-          apoio={meta > 0 ? formatBRL(meta) : 'defina em Metas'} />
+          apoio={meta > 0 ? formatBRL(meta) : 'defina em Metas'}
+          href="/app/escritorio/metas" />
       </div>
 
       {/* 2. a meta, e o que falta para chegar nela */}
@@ -190,7 +197,7 @@ function Conteudo({ dados, ref_ }: { dados: PainelDoDono; ref_: { ano: number; m
         </div>
         <div className="divide-y overflow-hidden rounded-lg bg-card">
           {dados.corretores.map(c => (
-            <LinhaCorretorPainel key={c.corretorId} c={c}
+            <LinhaCorretorPainel key={c.corretorId} c={c} comparar={comparar}
               teto={Math.max(...dados.corretores.map(x => x.totalCentavos), 1)} />
           ))}
         </div>
@@ -324,8 +331,10 @@ function alertaDe(c: CorretorDoPainel): { tom: string; texto: string } | null {
   return null
 }
 
-function LinhaCorretorPainel({ c, teto }: { c: CorretorDoPainel; teto: number }) {
-  const v = variacao(c.totalCentavos, c.anteriorCentavos)
+function LinhaCorretorPainel({ c, teto, comparar }: {
+  c: CorretorDoPainel; teto: number; comparar: boolean
+}) {
+  const v = comparar ? variacao(c.totalCentavos, c.anteriorCentavos) : null
   const pctMeta = c.metaCentavos ? Math.round(c.totalCentavos / c.metaCentavos * 100) : null
 
   return (
@@ -369,16 +378,20 @@ function Tendencia({ pct }: { pct: number }) {
   )
 }
 
-function Kpi({ rotulo, centavos, numero, texto, apoio, variacao: v }: {
+function Kpi({ rotulo, centavos, numero, texto, apoio, variacao: v, href }: {
   rotulo: string
   centavos?: number
   numero?: number
   texto?: string
   apoio?: string
   variacao?: number | null
+  /** quando o número leva a algum lugar — "sem meta" leva a definir uma */
+  href?: string
 }) {
-  return (
-    <div className="space-y-1 rounded-lg bg-card p-4">
+  const classe = cn('space-y-1 rounded-lg bg-card p-4',
+    href && 'transition-colors hover:bg-secondary')
+  const conteudo = (
+    <>
       <p className="truncate text-xs text-muted-foreground">{rotulo}</p>
       <div className="flex items-baseline gap-2">
         {centavos !== undefined
@@ -387,8 +400,11 @@ function Kpi({ rotulo, centavos, numero, texto, apoio, variacao: v }: {
         {v !== null && v !== undefined && <Tendencia pct={v} />}
       </div>
       {apoio && <p className="truncate text-xs text-muted-foreground">{apoio}</p>}
-    </div>
+    </>
   )
+  return href
+    ? <Link href={href} className={classe}>{conteudo}</Link>
+    : <div className={classe}>{conteudo}</div>
 }
 
 function Bloco({ titulo, apoio, children }: {

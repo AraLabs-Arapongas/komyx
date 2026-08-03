@@ -117,6 +117,8 @@ export type PainelDoDono = {
   total: TotalMes
   anterior: TotalMes
   metaCasaCentavos: number | null
+  /** desde quando a meta da casa vale; nula quando não há meta */
+  metaCasaVigenteDe: string | null
   perdas: { nVendas: number; totalCentavos: number }
   convitesPendentes: number
   corretores: CorretorDoPainel[]

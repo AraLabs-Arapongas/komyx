@@ -5,7 +5,6 @@ export type Json =
   | null
   | { [key: string]: Json | undefined }
   | Json[]
-
 export type Database = {
   graphql_public: {
     Tables: {
@@ -471,31 +470,28 @@ export type Database = {
       }
       metas_escritorio: {
         Row: {
-          ano: number
           corretor_id: string | null
           criado_em: string
           escritorio_id: string
           id: string
-          mes: number
           valor_centavos: number
+          vigente_de: string
         }
         Insert: {
-          ano: number
           corretor_id?: string | null
           criado_em?: string
           escritorio_id: string
           id?: string
-          mes: number
           valor_centavos: number
+          vigente_de: string
         }
         Update: {
-          ano?: number
           corretor_id?: string | null
           criado_em?: string
           escritorio_id?: string
           id?: string
-          mes?: number
           valor_centavos?: number
+          vigente_de?: string
         }
         Relationships: [
           {
@@ -794,6 +790,14 @@ export type Database = {
           saiu_em: string
         }[]
       }
+      metas_vigentes: {
+        Args: { p_ano: number; p_escritorio: string; p_mes: number }
+        Returns: {
+          corretor_id: string
+          valor_centavos: number
+          vigente_de: string
+        }[]
+      }
       meu_escritorio: { Args: never; Returns: Json }
       meu_escritorio_como_dono: { Args: never; Returns: string }
       painel_do_dono: {
@@ -824,11 +828,8 @@ export type Database = {
     }
   }
 }
-
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
-
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
@@ -857,7 +858,6 @@ export type Tables<
       ? R
       : never
     : never
-
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
@@ -882,7 +882,6 @@ export type TablesInsert<
       ? I
       : never
     : never
-
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
@@ -907,7 +906,6 @@ export type TablesUpdate<
       ? U
       : never
     : never
-
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
@@ -924,7 +922,6 @@ export type Enums<
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
-
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
@@ -941,7 +938,6 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
 export const Constants = {
   graphql_public: {
     Enums: {},

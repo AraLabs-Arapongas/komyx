@@ -198,9 +198,15 @@ export async function removerPoliticaEscritorio(aplicaA: string | null): Promise
 }
 
 /**
- * Metas do mês: a da casa (corretorId nulo) e as por corretor, numa gravação
- * só. Apagar e reinserir em vez de upsert linha a linha — o formulário manda
- * o mês inteiro, e meta zerada/apagada é linha que deixa de existir.
+ * Salva as metas com vigência a partir de um mês.
+ *
+ * Não é cadastro mensal: o que entra aqui vale daquele mês em diante, até
+ * alguém salvar outra coisa. O dono mexe quando muda, não todo dia primeiro —
+ * e o passado fica intacto, então "bateu a meta em julho" continua sendo
+ * medido pela meta que valia em julho.
+ *
+ * Apaga e reinsere a linha DAQUELE mês: salvar duas vezes no mesmo mês é
+ * corrigir, não empilhar versão.
  */
 export async function salvarMetas(
   ano: number, mes: number,
@@ -213,15 +219,17 @@ export async function salvarMetas(
     const { data: escritorioId } = await supabase.rpc('meu_escritorio_como_dono')
     if (!escritorioId) return { ok: false, erro: ERROS.nao_e_dono }
 
+    const vigenteDe = `${ano}-${String(mes).padStart(2, '0')}-01`
+
     const { error: e1 } = await supabase.from('metas_escritorio')
-      .delete().eq('escritorio_id', escritorioId).eq('ano', ano).eq('mes', mes)
+      .delete().eq('escritorio_id', escritorioId).eq('vigente_de', vigenteDe)
     if (e1) return { ok: false, erro: 'Não foi possível salvar as metas.' }
 
     const linhas = metas
       .filter(m => Number.isInteger(m.valorCentavos) && m.valorCentavos > 0)
       .map(m => ({
         escritorio_id: escritorioId, corretor_id: m.corretorId,
-        ano, mes, valor_centavos: m.valorCentavos,
+        vigente_de: vigenteDe, valor_centavos: m.valorCentavos,
       }))
     if (linhas.length > 0) {
       const { error: e2 } = await supabase.from('metas_escritorio').insert(linhas)
@@ -233,3 +241,21 @@ export async function salvarMetas(
   }
 }
 
+/**
+ * Encerra as metas que começavam num mês. Quem dependia delas volta para a
+ * vigência anterior — ou fica sem meta, se não houver nenhuma antes.
+ */
+export async function removerMetasDoMes(ano: number, mes: number): Promise<Resultado> {
+  try {
+    const supabase = await createClient()
+    const { data: escritorioId } = await supabase.rpc('meu_escritorio_como_dono')
+    if (!escritorioId) return { ok: false, erro: ERROS.nao_e_dono }
+    const { error } = await supabase.from('metas_escritorio').delete()
+      .eq('escritorio_id', escritorioId)
+      .eq('vigente_de', `${ano}-${String(mes).padStart(2, '0')}-01`)
+    if (error) return { ok: false, erro: 'Não foi possível remover as metas.' }
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
+  }
+}
