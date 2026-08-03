@@ -17,6 +17,18 @@ function limparEmail(bruto: FormDataEntryValue | null): string {
   return String(bruto ?? '').trim().toLowerCase()
 }
 
+/*
+ * Para onde ir depois de entrar. O padrão é /app; um `volta` só é aceito se
+ * for caminho interno — começando com uma barra e não com duas, porque
+ * "//outro-site.com" é URL absoluta para o navegador e viraria open redirect
+ * num formulário de senha.
+ */
+function destinoAposEntrar(formData: FormData): string {
+  const volta = String(formData.get('volta') ?? '')
+  if (volta.startsWith('/') && !volta.startsWith('//')) return volta
+  return '/app'
+}
+
 export async function login(formData: FormData) {
   const lembrar = formData.get('lembrar') === 'on'
   // gravado antes do login para que os cookies da sessão já nasçam com a
@@ -34,11 +46,14 @@ export async function login(formData: FormData) {
     password: String(formData.get('password')),
   })
   if (error) redirect('/login?erro=' + encodeURIComponent('E-mail ou senha incorretos.'))
-  redirect('/app')
+  redirect(destinoAposEntrar(formData))
 }
 
-function voltaAoCadastro(mensagem: string): never {
-  redirect('/cadastro?erro=' + encodeURIComponent(mensagem))
+function voltaAoCadastro(mensagem: string, volta?: string): never {
+  const destino = '/cadastro?erro=' + encodeURIComponent(mensagem)
+  // o erro não pode engolir o destino: quem errou a senha vindo de um convite
+  // ainda precisa cair no convite depois de acertar
+  redirect(volta ? `${destino}&volta=${encodeURIComponent(volta)}` : destino)
 }
 
 /*
@@ -61,6 +76,7 @@ async function registrarTentativa(
 export async function cadastrar(formData: FormData) {
   const supabase = await createClient()
   const email = limparEmail(formData.get('email'))
+  const volta = String(formData.get('volta') ?? '') || undefined
   const { data, error } = await supabase.auth.signUp({
     email,
     password: String(formData.get('password')),
@@ -80,14 +96,14 @@ export async function cadastrar(formData: FormData) {
     // real só vai para o log do servidor.
     console.error('[cadastro] o Supabase recusou:', error.status, error.code, error.message)
     if (error.code === 'over_email_send_rate_limit') {
-      voltaAoCadastro('Muitas tentativas seguidas. Espere alguns minutos e tente de novo.')
+      voltaAoCadastro('Muitas tentativas seguidas. Espere alguns minutos e tente de novo.', volta)
     }
     if (error.code === 'weak_password') {
-      voltaAoCadastro('A senha precisa de pelo menos 6 caracteres.')
+      voltaAoCadastro('A senha precisa de pelo menos 6 caracteres.', volta)
     }
     // Sem confirmar que o e-mail existe — só apontar a saída para quem já tem
     // conta e esqueceu.
-    voltaAoCadastro('Não foi possível criar a conta. Se você já tem cadastro, entre pelo login.')
+    voltaAoCadastro('Não foi possível criar a conta. Se você já tem cadastro, entre pelo login.', volta)
   }
 
   /*
@@ -100,7 +116,7 @@ export async function cadastrar(formData: FormData) {
       'Conta criada. Confirme o e-mail que enviamos para poder entrar.'))
   }
 
-  redirect('/app')
+  redirect(destinoAposEntrar(formData))
 }
 
 export async function sair() {
