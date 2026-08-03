@@ -94,6 +94,20 @@ export const vendaFormSchema = z.object({
   observacoes: z.string().optional().default(''),
 })
 
+export const compromissoFormSchema = z.object({
+  titulo: z.string().trim().min(1, 'Escreva o que precisa ser feito.').max(200),
+  data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida.'),
+  /*
+   * Vazio vira nulo: é compromisso do dia, sem hora marcada. "Ligar pro João
+   * hoje" não tem horário, e exigir um faria o corretor inventar um que não
+   * vai cumprir — o que transforma a agenda numa lista de mentiras.
+   */
+  hora: z.string().regex(/^\d{2}:\d{2}$/, 'Hora inválida.').nullable().optional(),
+  clienteId: z.string().uuid('Cliente inválido.').nullable().optional(),
+  nota: z.string().max(2000).optional().default(''),
+})
+
 export type ConfigFinanceiraForm = z.infer<typeof configFinanceiraSchema>
 export type VendaForm = z.infer<typeof vendaFormSchema>
 export type ClienteForm = z.infer<typeof clienteFormSchema>
+export type CompromissoForm = z.infer<typeof compromissoFormSchema>

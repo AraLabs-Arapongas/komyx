@@ -176,6 +176,57 @@ export type Database = {
           },
         ]
       }
+      compromissos: {
+        Row: {
+          cliente_id: string | null
+          concluido_em: string | null
+          corretor_id: string
+          created_at: string
+          data: string
+          hora: string | null
+          id: string
+          nota: string
+          titulo: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          concluido_em?: string | null
+          corretor_id: string
+          created_at?: string
+          data: string
+          hora?: string | null
+          id?: string
+          nota?: string
+          titulo: string
+        }
+        Update: {
+          cliente_id?: string | null
+          concluido_em?: string | null
+          corretor_id?: string
+          created_at?: string
+          data?: string
+          hora?: string | null
+          id?: string
+          nota?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compromissos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compromissos_corretor_id_fkey"
+            columns: ["corretor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       config_financeira: {
         Row: {
           aplica_a: string | null

@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, ShoppingBag, Wallet, Users, CircleUser,
+  LayoutDashboard, ShoppingBag, Wallet, Users, CircleUser, CalendarCheck,
   Building2, UsersRound, SlidersHorizontal, Target,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -11,16 +11,25 @@ import { BotaoPrivacidade } from '@/components/privacidade'
 import { BuscaGlobal } from '@/components/busca-global'
 import { BotaoSair } from '@/components/botao-sair'
 
+/*
+ * `curto` existe por causa da barra de baixo.
+ *
+ * São seis itens em 375px — 62px por célula — e "Recebimentos" não cabe nisso.
+ * Encolher o texto no celular é melhor que tirar uma tela da barra: quem não
+ * tem porta na navegação não descobre a tela, e "A receber" diz a mesma coisa
+ * para quem está com o polegar em cima do ícone de carteira.
+ */
 const itens = [
   { href: '/app', label: 'Início', icon: LayoutDashboard },
   { href: '/app/vendas', label: 'Vendas', icon: ShoppingBag },
+  { href: '/app/agenda', label: 'Agenda', icon: CalendarCheck },
   /*
-   * "Recebimentos", e não "Agenda": a palavra agenda fica reservada para os
-   * compromissos — ligar para o cliente, ir ao escritório. Duas telas com o
-   * mesmo nome, uma de dinheiro e outra de tarefas, seria o pior lugar
-   * possível para o corretor errar o toque.
+   * "Recebimentos", e não "Agenda": a palavra agenda é dos compromissos —
+   * ligar para o cliente, ir ao escritório. Duas telas com o mesmo nome, uma
+   * de dinheiro e outra de tarefas, seria o pior lugar possível para o
+   * corretor errar o toque.
    */
-  { href: '/app/recebimentos', label: 'Recebimentos', icon: Wallet },
+  { href: '/app/recebimentos', label: 'Recebimentos', curto: 'A receber', icon: Wallet },
   { href: '/app/clientes', label: 'Clientes', icon: Users },
   // Ajustes mora dentro do perfil: a aba segue acesa quando o corretor está lá,
   // senão ele fica sem referência de onde está na navegação
@@ -84,11 +93,11 @@ export function AppNav({ ehDono = false }: { ehDono?: boolean }) {
 
       {/* mobile: bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex h-[var(--altura-nav)] border-t bg-card md:hidden">
-        {itens.map(({ href, label, icon: Icon, tambem }) => (
+        {itens.map(({ href, label, curto, icon: Icon, tambem }) => (
           <Link key={href} href={href}
-            className={cn('flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px]',
+            className={cn('flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px]',
               ativo(href, tambem) ? 'text-foreground font-medium' : 'text-muted-foreground')}>
-            <Icon size={18} />{label}
+            <Icon size={18} />{curto ?? label}
           </Link>
         ))}
       </nav>

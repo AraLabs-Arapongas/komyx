@@ -93,6 +93,27 @@ export function mascaraInteiro(txt: string): string {
 }
 
 /**
+ * Hora do compromisso: HH:MM, com os dois pontos aparecendo sozinhos.
+ *
+ * Corrige na digitação em vez de reclamar depois — "9" vira "09" ao completar,
+ * e quem digita 75 nos minutos vê 59. Um campo de hora que aceita 99:99 e só
+ * acusa no salvar faz a pessoa voltar dois passos para consertar um dígito.
+ */
+export function mascaraHora(txt: string): string {
+  const d = txt.replace(/\D/g, '').slice(0, 4)
+  if (d.length <= 2) return d
+  const h = Math.min(23, parseInt(d.slice(0, 2), 10))
+  const m = Math.min(59, parseInt(d.slice(2), 10) || 0)
+  const mm = d.length === 3 ? d.slice(2) : String(m).padStart(2, '0')
+  return `${String(h).padStart(2, '0')}:${mm}`
+}
+
+/** "14:30" a partir de "14:30:00" — o Postgres devolve os segundos. */
+export function horaCurta(hora: string | null): string {
+  return hora ? hora.slice(0, 5) : ''
+}
+
+/**
  * Como a venda aparece quando ainda não tem cliente — o corretor registrou na
  * pressa e vai nomear depois (migration 0013). Sem isto a linha da lista sai
  * com um espaço em branco no lugar do nome, que parece defeito.
