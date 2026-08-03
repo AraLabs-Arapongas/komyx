@@ -9,14 +9,17 @@ import { fecharCompetenciasVencidas, garantirCompetencia, recalcularCompetencia 
  * Zod compartilhado — tratadas aqui como opcionais e validadas na mão, sem
  * mexer em `domain/schemas.ts`.
  */
-type VendaFormInput = VendaForm & { numeroContrato?: string; tags?: string[] }
+type VendaFormInput = VendaForm & { numeroContrato?: string; produto?: string; tags?: string[] }
 
 function camposExtras(input: VendaFormInput) {
   const numeroContrato = typeof input.numeroContrato === 'string' ? input.numeroContrato.trim() : ''
+  // opcional como o contrato: o painel do escritório agrupa por produto, e o
+  // que vier vazio cai em "Sem produto" lá — não aqui, no caminho de salvar
+  const produto = typeof input.produto === 'string' ? input.produto.trim() : ''
   const tags = Array.isArray(input.tags)
     ? Array.from(new Set(input.tags.map(t => (typeof t === 'string' ? t.trim() : '')).filter(Boolean)))
     : []
-  return { numero_contrato: numeroContrato || null, tags }
+  return { numero_contrato: numeroContrato || null, produto, tags }
 }
 
 async function contexto() {

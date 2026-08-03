@@ -86,6 +86,7 @@ export function VendaForm({ vendaId, inicial }: {
     clienteId: string | null; clienteNome: string; valorTxt: string; administradora: string
     grupo: string; cota: string; dataVenda?: string; observacoes: string
     numeroContrato?: string
+    produto?: string
   }
 }) {
   const router = useRouter()
@@ -97,6 +98,7 @@ export function VendaForm({ vendaId, inicial }: {
   const [cota, setCota] = useState(inicial?.cota ?? '')
   const [dataTxt, setDataTxt] = useState(formatData(inicial?.dataVenda ?? hojeSP()))
   const [numeroContrato, setNumeroContrato] = useState(inicial?.numeroContrato ?? '')
+  const [produto, setProduto] = useState(inicial?.produto ?? '')
   const [observacoes, setObservacoes] = useState(inicial?.observacoes ?? '')
   const [salvando, setSalvando] = useState(false)
   const [celebracao, setCelebracao] = useState<Celebracao | null>(null)
@@ -166,7 +168,7 @@ export function VendaForm({ vendaId, inicial }: {
     setSalvando(true)
     const payload = {
       clienteId, valorCartaCentavos: valorCentavos,
-      administradora, grupo, cota, dataVenda: dataVendaISO, observacoes, numeroContrato,
+      administradora, grupo, cota, dataVenda: dataVendaISO, observacoes, numeroContrato, produto,
     }
     const r = vendaId ? await editarVenda(vendaId, payload) : await criarVenda(payload)
     setSalvando(false)
@@ -318,10 +320,19 @@ export function VendaForm({ vendaId, inicial }: {
               </Campo>
             </div>
 
-            <Campo rotulo="Número do contrato" htmlFor="contrato">
-              <Input id="contrato" value={numeroContrato}
-                onChange={e => setNumeroContrato(e.target.value)} />
-            </Campo>
+            <div className="grid grid-cols-2 gap-3">
+              <Campo rotulo="Número do contrato" htmlFor="contrato">
+                <Input id="contrato" value={numeroContrato}
+                  onChange={e => setNumeroContrato(e.target.value)} />
+              </Campo>
+              {/* livre, não select: cada administradora nomeia os produtos do
+                  seu jeito (imóvel, auto, pesados, serviços...) e uma lista
+                  fixa erraria para metade delas */}
+              <Campo rotulo="Produto" htmlFor="produto">
+                <Input id="produto" value={produto} placeholder="Imóvel, auto…"
+                  onChange={e => setProduto(e.target.value)} />
+              </Campo>
+            </div>
           </section>
         )}
 

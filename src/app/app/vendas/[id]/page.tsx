@@ -177,6 +177,7 @@ export default function VendaDetalhePage() {
             dataVenda: venda.data_venda,
             observacoes: venda.observacoes ?? '',
             numeroContrato: venda.numero_contrato ?? '',
+            produto: venda.produto ?? '',
           }}
         />
       </div>
@@ -220,6 +221,12 @@ export default function VendaDetalhePage() {
           <div className="flex items-center justify-between border-b border-border/60 py-2">
             <span className="text-muted-foreground">Número do contrato</span>
             <span className="font-medium">{venda.numero_contrato}</span>
+          </div>
+        )}
+        {venda.produto && (
+          <div className="flex items-center justify-between border-b border-border/60 py-2">
+            <span className="text-muted-foreground">Produto</span>
+            <span className="font-medium">{venda.produto}</span>
           </div>
         )}
         <div className="flex items-center justify-between border-b border-border/60 py-2">
