@@ -72,6 +72,8 @@ function useDispensa(chave: string) {
  */
 export function AvisoAssinatura({ acesso }: { acesso: Acesso }) {
   const pathname = usePathname()
+  // mesma conta do AppNav, que decide ali se o cabeçalho é transparente
+  const noPainel = pathname === '/app'
   const cobrancaFalhou = acesso.liberado && acesso.motivo === 'cobranca_falhou'
   const dias = acesso.liberado && acesso.motivo === 'teste' ? acesso.diasRestantes : 0
 
@@ -94,45 +96,60 @@ export function AvisoAssinatura({ acesso }: { acesso: Acesso }) {
 
   const Icone = cobrancaFalhou ? CreditCard : Clock
 
-  return (
-    /* o link cobre a mensagem e o X fica de fora dele: um botão dentro de uma
-       âncora é o tipo de aninhamento que o leitor de tela anuncia errado e que
-       o toque acerta pela metade */
-    /* o atributo é o que o hero do painel enxerga para deixar de sangrar por
-       baixo do cabeçalho — ver a regra no globals.css. Fica aqui, e não no
-       layout do servidor, porque só este componente sabe se a tarja foi
-       dispensada neste aparelho */
-    <div data-aviso-assinatura
-      className="entra-suave mb-4 flex items-center gap-1 rounded-lg border border-[#F59E0B]/40
-                 bg-[#F59E0B]/10 pr-1.5 text-sm">
+  /* o link cobre a mensagem e o X fica de fora dele: um botão dentro de uma
+     âncora é o tipo de aninhamento que o leitor de tela anuncia errado e que o
+     toque acerta pela metade */
+  const cartao = (
+    <div className="flex items-center gap-1 rounded-lg border border-[#F59E0B]/50 bg-card
+                    pr-1.5 text-sm shadow-lg shadow-black/10">
       <Link href={DESTINO}
-        className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[#F59E0B]/15">
+        className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-[#F59E0B]/10">
         <Icone size={18} className="shrink-0 text-[#B45309]" />
-        <span className="min-w-0 flex-1">
-          {cobrancaFalhou ? (
-            <>
-              <span className="font-medium">Não conseguimos cobrar seu cartão.</span>{' '}
-              <span className="text-muted-foreground">Atualize os dados para não perder o acesso.</span>
-            </>
-          ) : (
-            <>
-              <span className="font-medium">
-                {/* "1 dia" pode ser 2 horas ou 23: dizer as horas evita prometer
-                    um dia inteiro que não existe */}
-                {dias === 1 ? 'Seu teste acaba em menos de 24 horas.' : `Seu teste acaba em ${dias} dias.`}
-              </span>{' '}
-              <span className="text-muted-foreground">Assine para continuar sem interrupção.</span>
-            </>
-          )}
+        {/*
+          Uma linha, e curta. Flutuando sobre a tela, cada linha a mais tapa
+          conteúdo — a versão de três linhas cobria a manchete do painel. O que
+          fazer a respeito está do outro lado do toque, que é para onde a seta
+          aponta.
+        */}
+        <span className="min-w-0 flex-1 truncate font-medium">
+          {cobrancaFalhou
+            ? 'Não conseguimos cobrar seu cartão'
+            /* "1 dia" pode ser 2 horas ou 23: nem "hoje" nem "amanhã" estão
+               garantidos, e as horas não prometem um dia que talvez não exista */
+            : dias === 1 ? 'Seu teste acaba em menos de 24h' : `Seu teste acaba em ${dias} dias`}
         </span>
         <ChevronRight size={18} className="shrink-0 text-muted-foreground" />
       </Link>
 
       <button type="button" onClick={dispensar} aria-label="Fechar aviso"
         className="shrink-0 rounded-full p-2 text-muted-foreground transition-colors
-                   hover:bg-[#F59E0B]/20 hover:text-foreground">
+                   hover:bg-muted hover:text-foreground">
         <X size={16} />
       </button>
+    </div>
+  )
+
+  /*
+   * Fora do painel ela entra na fila e desce o conteúdo alguns pixels.
+   *
+   * Ali não há hero para flutuar sobre: logo abaixo do cabeçalho vêm o título
+   * da página e o botão de ação, e uma tarja fixa tapava exatamente os dois.
+   */
+  if (!noPainel) return <div data-aviso-assinatura className="entra-suave mb-4">{cartao}</div>
+
+  /*
+   * No painel ela flutua. O cabeçalho é transparente e a aurora começa no topo
+   * da tela; uma tarja no fluxo empurrava tudo para baixo e matava a abertura
+   * de marca por causa de um aviso de uma linha.
+   *
+   * Os recuos repetem os do `main` e do container de conteúdo, para o cartão
+   * nascer alinhado com a coluna que ele interrompe em vez de flutuar torto
+   * alguns pixels para fora dela.
+   */
+  return (
+    <div data-aviso-assinatura
+      className="entra fixed inset-x-0 top-[calc(var(--altura-cabecalho-painel)+0.5rem)] z-40 px-4 md:pl-44 md:pr-0">
+      <div className="mx-auto max-w-3xl md:px-6">{cartao}</div>
     </div>
   )
 }

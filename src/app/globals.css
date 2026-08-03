@@ -221,19 +221,6 @@
   background-repeat: no-repeat;
 }
 
-/* O hero do painel sobe por baixo do cabeçalho transparente com margem
-   negativa. Quando existe uma tarja de aviso acima dele, essa margem passa a
-   puxá-lo por cima da tarja — que continua no DOM, visível para o leitor de
-   tela, e invisível para quem precisa lê-la.
-   O seletor olha a tarja em si, e não um atributo posto pelo servidor: ela
-   pode ter sido dispensada neste aparelho, e aí o hero volta a sangrar.
-   Com aviso, o hero vira um cartão comum: é o mesmo comportamento que ele já
-   tem no desktop, onde não há o que sangrar. */
-[data-aviso-assinatura] ~ * .hero-painel {
-  margin-top: 0;
-  padding-top: 1.5rem;
-}
-
 /* Luz por cima da aurora: dá volume sem acender a cena. */
 @utility brilho-marca {
   background-image:
