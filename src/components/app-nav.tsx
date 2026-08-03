@@ -42,7 +42,7 @@ export function AppNav() {
         noPainel ? 'h-[var(--altura-cabecalho-painel)]' : 'h-[var(--altura-cabecalho)] py-2.5',
         noPainel ? 'border-b border-transparent bg-transparent text-white' : 'border-b bg-card',
       )}>
-        <Logo className="md:hidden" sobreEscuro={noPainel} grande={noPainel} />
+        <Logo className="md:hidden" sobreEscuro={noPainel} tamanho={noPainel ? 'grande' : 'padrao'} />
         <div className="flex items-center gap-1">
           <BuscaGlobal className={noPainel ? 'text-white hover:bg-white/15 hover:text-white' : undefined} />
           <BotaoPrivacidade className={cn('rounded-md p-1.5 transition-colors',

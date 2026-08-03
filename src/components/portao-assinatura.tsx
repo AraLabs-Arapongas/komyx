@@ -25,7 +25,7 @@ export function PortaoAssinatura({ motivo }: { motivo: 'teste_acabou' | 'assinat
         <header className="space-y-3 text-center">
           {/* inline-flex dentro de um bloco com text-center: centraliza sem
               precisar de mais uma camada de flex */}
-          <Logo grande />
+          <Logo tamanho="grande" />
           <h1 className="text-2xl font-bold tracking-tight">
             {acabouOTeste
               ? `Seus ${PLANO.diasDeTeste} dias terminaram`

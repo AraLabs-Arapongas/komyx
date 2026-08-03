@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { CampoValor, CampoPercentual, CampoInteiro } from '@/components/campos'
 import { CurvaMarca } from '@/components/curva-marca'
+import { Logo, LogoSimbolo } from '@/components/logo'
 import { salvarConfig } from '@/lib/actions/config'
 import { parseBRLParaCentavos, formatBRL } from '@/lib/format'
 import { ROTULOS_ESTORNO, type PoliticaEstorno } from '@/lib/domain/types'
@@ -19,11 +20,21 @@ const NUMERO_DO_PASSO: Record<Passo, number> = {
   'boas-vindas': 0, faixas: 1, calendario: 2, estorno: 3, conclusao: 4,
 }
 
-/** Trilha de progresso simples: "Passo X de 4". Não aparece nas telas de bordas (boas-vindas). */
+/**
+ * Trilha de progresso simples: "Passo X de 4". Não aparece nas telas de bordas
+ * (boas-vindas), que já são a marca inteira.
+ *
+ * A marca vem junto porque estes passos rodam antes de o app existir: não há
+ * menu, não há cabeçalho, e sem ela o corretor passa quatro telas num
+ * formulário branco sem nada dizendo onde ele está.
+ */
 function Progresso({ passo }: { passo: Passo }) {
   const atual = NUMERO_DO_PASSO[passo]
   return (
     <div className="space-y-2">
+      <div className="mb-5 flex justify-center">
+        <Logo />
+      </div>
       <div className="flex gap-1.5">
         {Array.from({ length: TOTAL_PASSOS }).map((_, i) => (
           <div key={i} className={cn('h-1 flex-1 rounded-full transition-colors', i < atual ? 'bg-money' : 'bg-border')} />
@@ -154,7 +165,9 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
         <div key="boas-vindas" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 relative overflow-hidden rounded-lg superficie-marca px-6 py-16 text-center text-white">
           <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
           <CurvaMarca />
-          <p className="text-xs font-medium tracking-[0.2em] text-escuro-texto uppercase">Komyx</p>
+          {/* a marca abre a tela, do tamanho de quem se apresenta: antes disto
+              era a palavra "Komyx" em letra espaçada, que some no meio do roxo */}
+          <Logo tamanho="gigante" empilhado sobreEscuro className="[&_span]:text-white" />
           <h1 className="text-3xl leading-tight font-semibold sm:text-4xl">
             Nunca mais calcule<br />comissão no Excel.
           </h1>
@@ -287,7 +300,9 @@ export function OnboardingWizard({ passoInicial = 'boas-vindas', preview = false
         <div key="conclusao" className="entra flex min-h-[calc(100dvh-2rem)] flex-col items-center justify-center gap-6 relative overflow-hidden rounded-lg superficie-marca px-6 py-16 text-center text-white">
           <div aria-hidden className="brilho-marca pointer-events-none absolute inset-0" />
           <CurvaMarca />
-          <p className="text-4xl">🎉</p>
+          {/* a marca, e não um emoji de festa: é a primeira vez que o corretor
+              vê o Komyx com a configuração dele pronta, e quem fez isso tem nome */}
+          <LogoSimbolo tamanho="gigante" sobreEscuro />
           <h2 className="text-3xl font-semibold sm:text-4xl">Tudo pronto.</h2>
           <p className="max-w-xs text-escuro-texto">Agora é só registrar sua primeira venda.</p>
           <Button size="toque" disabled={salvando}

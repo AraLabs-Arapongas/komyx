@@ -6,6 +6,7 @@ import {
   MolduraCelular, AmostraAgenda, AmostraFaixas, AmostraLoteria,
 } from '@/components/landing/amostras'
 import { Revela } from '@/components/landing/revela'
+import { EntradaHeader } from '@/components/landing/entrada-header'
 import { CurvaMarca } from '@/components/curva-marca'
 import { INCLUSO, INCLUSO_ESCRITORIO, PLANO, PLANO_ESCRITORIO } from '@/lib/assinatura/plano'
 import {
@@ -148,13 +149,8 @@ export default function LandingPage() {
             {/* mesma marca grande do painel: o tile navy vira translúcido
                 sobre a aurora, e o nome cresce junto. A primeira coisa que a
                 página mostra é de quem ela é — etiqueta de canto não faz isso */}
-            <Logo grande sobreEscuro className="[&_span]:text-white" />
-            {/* quem já é cliente precisa achar a porta de entrada de primeira:
-                fantasma sobre fundo escuro, ela quase não existia */}
-            <Button asChild variant="outline"
-              className="border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-              <Link href="/login">Entrar</Link>
-            </Button>
+            <Logo tamanho="grande" sobreEscuro className="[&_span]:text-white" />
+            <EntradaHeader />
           </header>
 
           {/* texto e produto compõem uma coisa só: o aparelho encosta na coluna

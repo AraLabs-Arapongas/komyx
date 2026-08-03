@@ -57,7 +57,7 @@ export const PLANO_ESCRITORIO = {
 export const INCLUSO_ESCRITORIO = [
   'Tudo do plano individual, para cada corretor da equipe',
   'Painel do escritório: produção do mês por corretor, administradora e produto',
-  'Uma política de comissão só, aplicada a todo mundo — e o repasse de cada um calculado por ela',
+  'As políticas de comissão configuradas pelo escritório: uma para todos ou uma para cada corretor',
   'Contas com permissão: o corretor vê as vendas dele, o dono vê o negócio inteiro',
   'Metas por corretor e o acumulado que faz o escritório subir de faixa',
   'Entrada e saída de gente sem perder o histórico de quem saiu',
