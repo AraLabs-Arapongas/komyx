@@ -47,7 +47,11 @@ export function Secao({ titulo, apoio, icone: Icone, children }: {
  */
 type FaixaDraft = {
   maxTxt: string; percentualTxt: string; parcelasTxt: string
-  /** vazio = divide igual; um texto por parcela quando o escritório reparte diferente */
+  /**
+   * Vazio = divide igual. Preenchido, cada texto é o que aquela parcela paga
+   * EM PONTOS DA CARTA, somando a comissão da faixa: 3% em três vezes vira
+   * "1", "1", "1". É como o escritório enuncia a regra.
+   */
   fatiasTxt: string[]
 }
 type ErroFaixa = { max?: string; percentual?: string; parcelas?: string; distribuicao?: string; geral?: string }
@@ -216,38 +220,73 @@ export function ConfigForm({ modo, inicial, salvarComo, aposSalvar }: {
     return parseInt(f.parcelasTxt) || 0
   }
 
-  function fechaEmCem(f: FaixaDraft): boolean {
-    const soma = f.fatiasTxt.reduce((s, x) => s + (parseFloat(x.replace(',', '.')) || 0), 0)
-    return Math.round(soma * 100) / 100 === 100
+  /** A comissão da faixa: o alvo que as fatias precisam somar. */
+  function comissaoDa(f: FaixaDraft): number {
+    return Math.round((parseFloat(f.percentualTxt.replace(',', '.')) || 0) * 100) / 100
+  }
+
+  /**
+   * A divisão igual da comissão, em pontos da carta.
+   *
+   * O resto vai na última: 0,5% em três não divide em duas casas, e o campo
+   * tem que abrir somando certo — quem vê erro antes de digitar qualquer
+   * coisa conclui que a tela está quebrada.
+   */
+  function divisaoIgual(f: FaixaDraft): string[] {
+    const n = parseInt(f.parcelasTxt) || 0
+    const total = comissaoDa(f)
+    if (n < 1 || total <= 0) return []
+    const igual = Math.round((total / n) * 100) / 100
+    const fatias = Array.from({ length: n }, () => String(igual).replace('.', ','))
+    const resto = Math.round((total - igual * n) * 100) / 100
+    if (resto !== 0) {
+      fatias[n - 1] = String(Math.round((igual + resto) * 100) / 100).replace('.', ',')
+    }
+    return fatias
+  }
+
+  /*
+   * O que os campos mostram: o que foi digitado, ou a divisão igual.
+   *
+   * `fatiasTxt` vazio continua significando "divide igual" e é o que se
+   * grava (distribuicao nula) — mas a tela não esconde mais os números atrás
+   * de um link. Quem abre a política vê o parcelamento inteiro de uma vez, e
+   * quem quer mudar já tem o campo na frente, com o valor de partida certo.
+   */
+  function fatiasVisiveis(f: FaixaDraft): string[] {
+    const n = parseInt(f.parcelasTxt) || 0
+    if (f.fatiasTxt.length === n && n > 0) return f.fatiasTxt
+    return divisaoIgual(f)
+  }
+
+  /** Escreve numa fatia; a primeira edição materializa as outras como estão. */
+  function mudarFatia(indice: number, k: number, valor: string) {
+    setFaixas(fs => fs.map((x, j) => (j === indice
+      ? { ...x, fatiasTxt: fatiasVisiveis(x).map((y, m) => (m === k ? valor : y)) }
+      : x)))
+  }
+
+  /** Sim: mexeu nas fatias. É o que decide mostrar o botão de voltar ao igual. */
+  function fatiasEditadas(f: FaixaDraft): boolean {
+    return f.fatiasTxt.length > 0
+  }
+
+  function fechaNaComissao(f: FaixaDraft): boolean {
+    const soma = fatiasVisiveis(f).reduce((s, x) => s + (parseFloat(x.replace(',', '.')) || 0), 0)
+    const alvo = comissaoDa(f)
+    return alvo > 0 && Math.round(soma * 100) / 100 === alvo
   }
 
   function somaFatias(f: FaixaDraft): string {
-    const soma = f.fatiasTxt.reduce((s, x) => s + (parseFloat(x.replace(',', '.')) || 0), 0)
+    const soma = fatiasVisiveis(f).reduce((s, x) => s + (parseFloat(x.replace(',', '.')) || 0), 0)
     return (Math.round(soma * 100) / 100).toLocaleString('pt-BR')
   }
 
-  /** Abre as fatias já preenchidas com a divisão igual, que é de onde se parte. */
-  function abrirFatias(indice: number) {
-    setFaixas(fs => fs.map((f, j) => {
-      if (j !== indice) return f
-      const n = parseInt(f.parcelasTxt) || 0
-      if (n < 2) return f
-      const igual = Math.round((100 / n) * 100) / 100
-      const fatias = Array.from({ length: n }, () => String(igual).replace('.', ','))
-      // o resto da divisão vai na última, para o campo já abrir somando 100
-      const resto = Math.round((100 - igual * n) * 100) / 100
-      if (resto !== 0) {
-        fatias[n - 1] = String(Math.round((igual + resto) * 100) / 100).replace('.', ',')
-      }
-      return { ...f, fatiasTxt: fatias }
-    }))
-  }
-
-  function fecharFatias(indice: number) {
+  function voltarAoIgual(indice: number) {
     setFaixas(fs => fs.map((f, j) => (j === indice ? { ...f, fatiasTxt: [] } : f)))
   }
 
-  /** Mudar o número de parcelas com fatias abertas as reajusta ao novo tamanho. */
+  /** Mudar o número de parcelas com fatias digitadas as reajusta ao novo tamanho. */
   function mudarParcelas(indice: number, valor: string) {
     setFaixas(fs => fs.map((f, j) => {
       if (j !== indice) return f
@@ -381,45 +420,54 @@ export function ConfigForm({ modo, inicial, salvarComo, aposSalvar }: {
         </div>
 
         {/*
-          Repartir diferente é exceção: a maioria dos escritórios divide igual, e
-          quem divide igual não deve nem ver esses campos. Quem não divide
-          precisa deles, porque supor divisão igual mostrava nos recebimentos uma data
-          com valor que não era o dela.
+          O parcelamento fica sempre à mostra.
+
+          Antes era um link — "As parcelas não são iguais?" — e o que estava
+          atrás dele não era uma opção avançada: era o número que o corretor
+          vai ver cair na conta dele. Escondido, ninguém conferia; e quem
+          divide igual também merece ver quanto cai em cada mês, sem clicar
+          para descobrir que o produto sabia disso o tempo todo.
         */}
-        {nParcelas(f) > 1 && (
-        f.fatiasTxt.length === 0 ? (
-        <button type="button" onClick={() => abrirFatias(i)}
-        className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
-        As parcelas não são iguais?
-        </button>
-        ) : (
+        {nParcelas(f) > 1 && comissaoDa(f) > 0 && (
         <div className="space-y-2 rounded-lg bg-card p-3">
         <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
         <p className="text-xs font-medium">Quanto cai em cada parcela</p>
-        <button type="button" onClick={() => fecharFatias(i)}
-        className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
+        {/* diz a unidade antes de a pessoa digitar: "1" num campo de
+        porcentagem é ambíguo entre 1% da carta e 1% da comissão, e a
+        diferença entre os dois é o salário do mês */}
+        <p className="text-xs text-muted-foreground">
+        Em pontos da carta, somando os {comissaoDa(f).toLocaleString('pt-BR')}% da faixa.
+        </p>
+        </div>
+        {/* só depois de mexer: oferecer "dividir igual" para quem já está na
+        divisão igual é um botão que não faz nada */}
+        {fatiasEditadas(f) && (
+        <button type="button" onClick={() => voltarAoIgual(i)}
+        className="shrink-0 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
         Dividir igual
         </button>
+        )}
         </div>
         <div className="grid grid-cols-3 gap-2">
-        {f.fatiasTxt.map((fatia, k) => (
+        {fatiasVisiveis(f).map((fatia, k) => (
         <div key={k} className="space-y-1">
         <Label className="text-xs text-muted-foreground">{k + 1}ª</Label>
-        <CampoFatia value={fatia}
-        onChange={v => setFaixas(fs => fs.map((x, j) => j === i
-        ? { ...x, fatiasTxt: x.fatiasTxt.map((y, m) => (m === k ? v : y)) } : x))} />
+        <CampoFatia value={fatia} onChange={v => mudarFatia(i, k, v)} />
         </div>
         ))}
         </div>
-        {/* cobra só enquanto não fecha: repetir "precisa dar 100%" com a soma
-        já em 100 faz o certo parecer errado */}
+        {/* cobra só enquanto não fecha: repetir o alvo com a soma já certa
+        faz o certo parecer errado */}
         {mostrarErro && erro?.distribuicao
         ? <p className="text-xs text-destructive">{erro.distribuicao}</p>
-        : fechaEmCem(f)
-        ? <p className="text-xs text-money">Somam 100%.</p>
-        : <p className="text-xs text-muted-foreground">Somam {somaFatias(f)}% — precisa dar 100%.</p>}
+        : fechaNaComissao(f)
+        ? <p className="text-xs text-money">Somam {somaFatias(f)}%, a comissão da faixa.</p>
+        : <p className="text-xs text-muted-foreground">
+        Somam {somaFatias(f)}% — precisa dar {comissaoDa(f).toLocaleString('pt-BR')}%.
+        </p>}
         </div>
-        ))}
+        )}
         </div>
         )
         })}

@@ -54,9 +54,22 @@ function repartir(restante: number, pendentes: number[], faixa: Faixa): number[]
     && dist.length === faixa.parcelas
     && dist.every(p => typeof p === 'number' && p >= 0)
 
-  const pesos = usarDistribuicao
+  /*
+   * Os pesos viram inteiros (centésimos) ANTES de qualquer divisão.
+   *
+   * Com decimais, `6000 * 0.4 / 0.6` dá 3999.9999999999995 em ponto
+   * flutuante: o floor come um centavo da segunda parcela, que reaparece na
+   * última. A soma total continuava certa, então nada acusava — só o corretor
+   * veria R$ 39,99 onde a política manda R$ 40,00.
+   *
+   * Inteiros tornam a conta exata: 6000 * 40 / 60 é 4000, sem resto de
+   * representação. As fatias têm duas casas por regra do schema, então nada
+   * se perde no arredondamento.
+   */
+  const pesos = (usarDistribuicao
     ? pendentes.map(n => dist![n - 1] ?? 0)
     : pendentes.map(() => 1)
+  ).map(p => Math.round(p * 100))
   const somaPesos = pesos.reduce((s, p) => s + p, 0)
   // peso zerado (ou distribuição inválida) volta para a divisão igual: melhor
   // repartir do que devolver parcelas de zero e "perder" dinheiro na tela

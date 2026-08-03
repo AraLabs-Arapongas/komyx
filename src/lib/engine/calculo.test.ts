@@ -38,23 +38,38 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
     expect(r.comissoes[0].nParcelas).toBe(3)
   })
 
+  /*
+   * A distribuição é escrita em PONTOS DA CARTA e soma o percentual da faixa:
+   * 1% em três vezes é 0,4 / 0,4 / 0,2. O engine, porém, usa os números como
+   * peso — e é o que garante que as políticas salvas na unidade antiga (que
+   * somava 100) continuem produzindo as mesmas parcelas.
+   */
   describe('distribuição desigual entre as parcelas', () => {
     const cfg = (distribuicao: number[] | null): ConfigCalc => ({
       ...config,
       faixas: [{ min: 0, max: null, percentual: 1, parcelas: 3, distribuicao }],
     })
 
-    it('40/40/20 paga cada parcela conforme a política, não em três iguais', () => {
+    it('0,4/0,4/0,2 paga cada parcela conforme a política, não em três iguais', () => {
       // comissão 1% de R$ 10.000 = R$ 100,00
-      const r = calcularCompetencia({ config: cfg([40, 40, 20]), competencia: comp,
+      const r = calcularCompetencia({ config: cfg([0.4, 0.4, 0.2]), competencia: comp,
         vendas: [venda('v1', 1_000_000)], recebimentosExistentes: [], hoje: HOJE })
       expect(r.comissoes[0].valorCentavos).toBe(10_000)
       expect(r.recebimentosPrevistos.map(p => p.valorCentavos)).toEqual([4_000, 4_000, 2_000])
     })
 
+    it('a unidade antiga (somando 100) dá exatamente as mesmas parcelas', () => {
+      const novo = calcularCompetencia({ config: cfg([0.4, 0.4, 0.2]), competencia: comp,
+        vendas: [venda('v1', 1_000_000)], recebimentosExistentes: [], hoje: HOJE })
+      const antigo = calcularCompetencia({ config: cfg([40, 40, 20]), competencia: comp,
+        vendas: [venda('v1', 1_000_000)], recebimentosExistentes: [], hoje: HOJE })
+      expect(antigo.recebimentosPrevistos.map(p => p.valorCentavos))
+        .toEqual(novo.recebimentosPrevistos.map(p => p.valorCentavos))
+    })
+
     it('o que a divisão não fecha sobra na última parcela, nunca some', () => {
       // 1% de R$ 100,01 = 100 centavos; 33/33/34 em vez de 33/33/33
-      const r = calcularCompetencia({ config: cfg([33.33, 33.33, 33.34]), competencia: comp,
+      const r = calcularCompetencia({ config: cfg([0.33, 0.33, 0.34]), competencia: comp,
         vendas: [venda('v1', 10_001)], recebimentosExistentes: [], hoje: HOJE })
       const total = r.recebimentosPrevistos.reduce((s, p) => s + p.valorCentavos, 0)
       expect(total).toBe(r.comissoes[0].valorCentavos)
@@ -67,8 +82,8 @@ describe('calcularCompetencia — faixa por acumulado retroativo', () => {
     })
 
     it('parcela já recebida não é reescrita; o resto respeita a distribuição', () => {
-      // 40/40/20 de R$ 100,00: 40 + 40 + 20. A primeira já caiu.
-      const r = calcularCompetencia({ config: cfg([40, 40, 20]), competencia: comp,
+      // 0,4/0,4/0,2 de R$ 100,00: 40 + 40 + 20. A primeira já caiu.
+      const r = calcularCompetencia({ config: cfg([0.4, 0.4, 0.2]), competencia: comp,
         vendas: [venda('v1', 1_000_000)],
         recebimentosExistentes: [
           { id: 'r1', vendaId: 'v1', numeroParcela: 1, valorCentavos: 4_000, status: 'recebido', dataPrevista: '2026-08-10' },

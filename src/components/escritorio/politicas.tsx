@@ -4,7 +4,11 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { SlidersHorizontal, TrendingUp, Trash2 } from 'lucide-react'
 import { ConfigForm } from '@/components/config-form'
+import { ResumoPolitica } from '@/components/escritorio/resumo-politica'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog'
 import { AvatarInicial } from '@/components/ui/avatar-inicial'
 import { Voltar } from '@/components/voltar'
 import { salvarPoliticaEscritorio, removerPoliticaEscritorio } from '@/lib/actions/escritorio'
@@ -45,7 +49,16 @@ export function PoliticasEscritorio({ politicas, membros }: {
   const GERAL = '__geral__'
   const [editando, setEditando] = useState<string | null>(null)
   const [faixaEquipe, setFaixaEquipe] = useState(false)
-  const [removendo, setRemovendo] = useState<string | null>(null)
+  /*
+   * Apagar política pede confirmação, como remover alguém da equipe.
+   *
+   * Um clique num ícone de lixeira desfazia a regra de pagamento de uma equipe
+   * inteira, sem pergunta e sem volta — e o alvo do dedo fica a milímetros do
+   * botão de editar. `null` = ninguém em risco; guarda o escopo e o rótulo
+   * para o diálogo saber o que está prestes a sumir.
+   */
+  const [aConfirmar, setAConfirmar] = useState<{ escopo: string; rotulo: string } | null>(null)
+  const [removendo, setRemovendo] = useState(false)
 
   const geral = politicas.find(p => p.aplicaA === null) ?? null
   const especificas = new Map(politicas.filter(p => p.aplicaA).map(p => [p.aplicaA!, p]))
@@ -56,10 +69,12 @@ export function PoliticasEscritorio({ politicas, membros }: {
     setEditando(escopo)
   }
 
-  async function remover(escopo: string) {
-    setRemovendo(escopo)
-    const r = await removerPoliticaEscritorio(escopo === GERAL ? null : escopo)
-    setRemovendo(null)
+  async function confirmarRemocao() {
+    if (!aConfirmar) return
+    setRemovendo(true)
+    const r = await removerPoliticaEscritorio(aConfirmar.escopo === GERAL ? null : aConfirmar.escopo)
+    setRemovendo(false)
+    setAConfirmar(null)
     if (!r.ok) { toast.error(r.erro); return }
     toast.success('Política removida. Cada corretor volta para a regra seguinte da fila.')
     router.refresh()
@@ -126,22 +141,31 @@ export function PoliticasEscritorio({ politicas, membros }: {
             <h2 className="font-medium">Regra geral</h2>
             <p className="text-sm text-muted-foreground">
               {geral
-                ? `Definida${geral.faixaPorEscritorio ? ' · faixa pelo acumulado do escritório' : ''}. Vale para todos os corretores sem política específica.`
+                ? `Vale para todos os corretores sem política específica${geral.faixaPorEscritorio ? ', com a faixa pelo acumulado do escritório' : ''}.`
                 : 'Ainda não definida: cada corretor segue as próprias regras.'}
             </p>
+            {/* a regra à mostra: "Definida" não dizia o que estava definido, e
+                conferir exigia entrar no formulário — de onde se sai salvando
+                sem querer */}
+            {geral && <ResumoPolitica inicial={geral.inicial} className="pt-1" />}
           </div>
-          {geral && (
-            <button type="button" onClick={() => remover(GERAL)} disabled={removendo !== null}
-              aria-label="Remover regra geral"
-              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive">
-              <Trash2 size={16} />
-            </button>
-          )}
+          {/* as ações onde as ações moram, do mesmo tamanho das da lista de
+              corretores: a faixa roxa atravessando o cartão inteiro pesava
+              como se apagar a regra da casa fosse a ação principal da tela */}
+          <div className="flex shrink-0 items-center gap-1">
+            {geral && (
+              <button type="button" onClick={() => setAConfirmar({ escopo: GERAL, rotulo: 'a regra geral' })}
+                aria-label="Remover regra geral"
+                className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive">
+                <Trash2 size={16} />
+              </button>
+            )}
+            <Button type="button" variant={geral ? 'outline' : 'default'} size="sm"
+              onClick={() => abrirEdicao(GERAL)}>
+              {geral ? 'Editar' : 'Definir'}
+            </Button>
+          </div>
         </div>
-        <Button type="button" size="toque" className="w-full"
-          variant={geral ? 'outline' : 'default'} onClick={() => abrirEdicao(GERAL)}>
-          {geral ? 'Editar regra geral' : 'Definir regra geral'}
-        </Button>
       </section>
 
       {/* por corretor */}
@@ -158,9 +182,14 @@ export function PoliticasEscritorio({ politicas, membros }: {
                   <span className="block text-xs text-muted-foreground">
                     {p ? 'Política específica' : geral ? 'Segue a regra geral' : 'Segue as próprias regras'}
                   </span>
+                  {/* quem tem regra própria mostra qual é: sem isso, comparar
+                      a exceção com a geral obrigava a abrir as duas de
+                      memória, uma de cada vez */}
+                  {p && <ResumoPolitica inicial={p.inicial} className="pt-1.5" />}
                 </span>
                 {p && (
-                  <button type="button" onClick={() => remover(m.corretorId)} disabled={removendo !== null}
+                  <button type="button"
+                    onClick={() => setAConfirmar({ escopo: m.corretorId, rotulo: `a política de ${m.nome}` })}
                     aria-label={`Remover política de ${m.nome}`}
                     className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive">
                     <Trash2 size={16} />
@@ -174,6 +203,28 @@ export function PoliticasEscritorio({ politicas, membros }: {
           })}
         </div>
       </div>
+
+      <Dialog open={aConfirmar !== null} onOpenChange={aberto => { if (!aberto) setAConfirmar(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remover {aConfirmar?.rotulo}?</DialogTitle>
+            <DialogDescription>
+              Quem seguia esta regra passa a seguir a próxima da fila — a geral
+              do escritório, ou as regras próprias do corretor. O mês em aberto
+              é recalculado na próxima vez que cada um abrir o app; os meses
+              fechados não mudam.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" size="toque" onClick={() => setAConfirmar(null)}>
+              Cancelar
+            </Button>
+            <Button type="button" size="toque" disabled={removendo} onClick={confirmarRemocao}>
+              {removendo ? 'Removendo…' : 'Remover'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

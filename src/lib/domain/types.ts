@@ -4,10 +4,18 @@ export type Faixa = {
   percentual: number     // pontos percentuais: 0.5 = 0,5%
   parcelas: number
   /**
-   * Quanto da comissão cai em cada parcela, em pontos percentuais que somam
-   * 100 — [40, 40, 20] paga quase metade nas duas primeiras e o resto na
-   * última. Nem todo escritório divide igual, e supor divisão igual fazia o
-   * corretor ver nos recebimentos uma data com valor que não era o dela.
+   * Quanto cai em cada parcela, **em pontos percentuais da carta**, somando o
+   * `percentual` da faixa. Comissão de 3% em três vezes é `[1, 1, 1]`; quem
+   * paga menos na frente escreve `[0.5, 1, 1.5]`.
+   *
+   * É assim que o escritório enuncia a política — "pago 1% no mês seguinte,
+   * 1% no outro" — e não em fração da comissão. Antes isto era proporção
+   * somando 100, e obrigava o corretor a converter de cabeça o que ele já
+   * sabia de cor.
+   *
+   * O engine usa estes números como PESO, normalizando pela soma: por isso
+   * uma configuração antiga (somando 100) continua produzindo exatamente as
+   * mesmas parcelas.
    *
    * `null` mantém a divisão igual: é o que as configurações salvas antes desta
    * opção significam, e continua sendo o padrão de quem não quer pensar nisso.
