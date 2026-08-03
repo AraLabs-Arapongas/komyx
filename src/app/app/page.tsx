@@ -105,10 +105,12 @@ export default function DashboardPage() {
   const { data: config } = useQuery({
     queryKey: queryKeys.config,
     queryFn: async () => {
-      const { data, error } = await createClient().from('config_financeira')
-        .select('*').eq('ativa', true).single()
+      // a efetiva: num escritório, o calendário que vale é o da política dele
+      const { data, error } = await createClient().rpc('config_efetiva')
       if (error) throw error
-      return data
+      const linha = (data ?? [])[0]
+      if (!linha) throw new Error('sem config')
+      return linha
     },
   })
   const hoje = hojeSP()

@@ -38,6 +38,8 @@ type ContextoMes = {
   faixas: Faixa[]
   diaFechamento: number
   diaPrimeiroPagamento: number
+  /** vendas dos colegas do escritório, quando a faixa é pelo acumulado da equipe */
+  volumeExterno: number
   competencia: { ano: number; mes: number }
   outras: { id: string; valorCartaCentavos: number; status: 'confirmada' }[]
 }
@@ -53,11 +55,19 @@ function useContextoDoMes(dataVenda: string | null, ignorarVendaId?: string) {
     enabled: dataVenda !== null,
     queryFn: async (): Promise<ContextoMes | null> => {
       const supabase = createClient()
-      const { data: cfg } = await supabase.from('config_financeira')
-        .select('faixas, dia_fechamento, dia_primeiro_pagamento').eq('ativa', true).maybeSingle()
+      const { data: cfgs } = await supabase.rpc('config_efetiva')
+      const cfg = (cfgs ?? [])[0]
       if (!cfg) return null
 
       const competencia = competenciaDaVenda(dataVenda!, cfg.dia_fechamento)
+      /*
+       * Com faixa pelo acumulado do escritório, a prévia precisa do volume da
+       * equipe — senão ela promete uma faixa e o salvamento aplica outra, e a
+       * "comissão antes de salvar" viraria mentira de vitrine.
+       */
+      const { data: vol } = cfg.faixa_por_escritorio
+        ? await supabase.rpc('volume_do_escritorio', { p_ano: competencia.ano, p_mes: competencia.mes })
+        : { data: 0 }
       const { data: vendas } = await supabase.from('vendas')
         .select('id, valor_carta_centavos, status, competencias!inner(ano, mes)')
         .eq('competencias.ano', competencia.ano)
@@ -68,6 +78,7 @@ function useContextoDoMes(dataVenda: string | null, ignorarVendaId?: string) {
         faixas: cfg.faixas as unknown as Faixa[],
         diaFechamento: cfg.dia_fechamento,
         diaPrimeiroPagamento: cfg.dia_primeiro_pagamento,
+        volumeExterno: Number(vol ?? 0),
         competencia,
         outras: (vendas ?? [])
           .filter(v => v.id !== ignorarVendaId)
@@ -91,7 +102,10 @@ export function useSimulacaoVenda(
     faixas: ctx.faixas,
     calendario: { diaFechamento: ctx.diaFechamento, diaPrimeiroPagamento: ctx.diaPrimeiroPagamento },
   }
-  const base = { config, competencia: ctx.competencia, recebimentosExistentes: [], hoje: hojeSP() }
+  const base = {
+    config, competencia: ctx.competencia, recebimentosExistentes: [],
+    hoje: hojeSP(), volumeExterno: ctx.volumeExterno,
+  }
 
   const com = calcularCompetencia({
     ...base,

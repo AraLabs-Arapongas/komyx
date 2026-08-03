@@ -2,7 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { vendaFormSchema, type VendaForm } from '@/lib/domain/schemas'
 import { competenciaDaVenda } from '@/lib/engine/calendario'
-import { fecharCompetenciasVencidas, garantirCompetencia, recalcularCompetencia } from './recalcular'
+import { configEfetiva, fecharCompetenciasVencidas, garantirCompetencia, recalcularCompetencia } from './recalcular'
 
 /**
  * `numeroContrato`/`tags` são colunas novas que ainda não entraram no schema
@@ -26,8 +26,9 @@ async function contexto() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Sessão expirada. Entre novamente.')
-  const { data: config } = await supabase.from('config_financeira')
-    .select('dia_fechamento').eq('ativa', true).single()
+  // a efetiva, não a própria: num escritório, o fechamento que vale é o da
+  // política que o escritório definiu
+  const config = await configEfetiva(supabase)
   if (!config) throw new Error('Configure como seu escritório paga comissão antes de registrar vendas.')
   return { supabase, user, diaFechamento: config.dia_fechamento }
 }

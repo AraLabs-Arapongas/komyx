@@ -1,7 +1,10 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ShoppingBag, Wallet, Users, CircleUser } from 'lucide-react'
+import {
+  LayoutDashboard, ShoppingBag, Wallet, Users, CircleUser,
+  Building2, UsersRound, SlidersHorizontal, Target,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/logo'
 import { BotaoPrivacidade } from '@/components/privacidade'
@@ -18,7 +21,20 @@ const itens = [
   { href: '/app/perfil', label: 'Perfil', icon: CircleUser, tambem: ['/app/configuracao'] },
 ]
 
-export function AppNav() {
+/*
+ * A área do escritório, para quem é dono. No desktop vira uma seção própria
+ * da lateral; no celular não entra na barra de baixo — cinco itens é o limite
+ * do polegar — e o caminho continua sendo Perfil → Escritório, com os
+ * subitens dentro da própria área.
+ */
+const itensEscritorio = [
+  { href: '/app/escritorio', label: 'Painel', icon: Building2, exato: true },
+  { href: '/app/escritorio/equipe', label: 'Equipe', icon: UsersRound },
+  { href: '/app/escritorio/politicas', label: 'Políticas', icon: SlidersHorizontal },
+  { href: '/app/escritorio/metas', label: 'Metas', icon: Target },
+]
+
+export function AppNav({ ehDono = false }: { ehDono?: boolean }) {
   const path = usePathname()
   // só o painel tem a aurora encostando no topo
   const noPainel = path === '/app'
@@ -71,6 +87,22 @@ export function AppNav() {
             <Icon size={18} />{label}
           </Link>
         ))}
+
+        {ehDono && (
+          <>
+            <p className="mb-1 mt-6 px-2.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Escritório
+            </p>
+            {itensEscritorio.map(({ href, label, icon: Icon, exato }) => (
+              <Link key={href} href={href}
+                className={cn('flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm',
+                  (exato ? path === href : path.startsWith(href))
+                    ? 'bg-background font-medium' : 'text-muted-foreground hover:text-foreground')}>
+                <Icon size={18} />{label}
+              </Link>
+            ))}
+          </>
+        )}
       </aside>
     </>
   )

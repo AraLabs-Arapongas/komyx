@@ -7,14 +7,20 @@ import { PortaoAssinatura } from '@/components/portao-assinatura'
 import { AvisoAssinatura } from '@/components/aviso-assinatura'
 import { avaliarAcesso, type AssinaturaEscritorio } from '@/lib/assinatura/acesso'
 import { stripeConfigurado } from '@/lib/stripe/servidor'
+import { configEfetiva, reconciliarCompetencias } from '@/lib/actions/recalcular'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: config }, { data: perfil }, { data: escritorio }] = await Promise.all([
-    supabase.from('config_financeira').select('id').eq('ativa', true).maybeSingle(),
+  /*
+   * A EFETIVA, não a própria: quem entra por convite num escritório que já
+   * definiu a política de comissão não tem nada para configurar — o wizard de
+   * onboarding não deve nem aparecer, porque as respostas dele já existem.
+   */
+  const [config, { data: perfil }, { data: escritorio }] = await Promise.all([
+    configEfetiva(supabase),
     supabase.from('profiles')
       .select('trial_termina_em, assinatura_status, assinatura_ate, cancela_no_fim')
       .eq('id', user.id).maybeSingle(),
@@ -71,9 +77,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     )
   }
 
+  /*
+   * O dono muda a política do escritório e não tem como recalcular os números
+   * de ninguém — RLS e RPCs escrevem com auth.uid(). A correção acontece
+   * aqui, no app de cada membro, na primeira abertura depois da mudança. No
+   * caso comum não recalcula nada e custa uma consulta indexada; o erro é
+   * engolido de propósito, porque um recálculo adiado não pode derrubar o app.
+   */
+  await reconciliarCompetencias(supabase).catch(e =>
+    console.error('[reconciliar] fica para a próxima abertura:', e))
+
   return (
     <Providers>
-      <AppNav />
+      <AppNav ehDono={(escritorio as AssinaturaEscritorio & { papel?: string } | null)?.papel === 'dono'} />
       {/* só a altura do menu: o respiro de 1rem vem do p-4 do container abaixo.
           Somar os dois deixava 16px sobrando embaixo da barra de ação, que
           então não encostava no menu quando o formulário era longo. */}
