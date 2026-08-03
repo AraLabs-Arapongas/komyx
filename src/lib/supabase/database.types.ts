@@ -5,12 +5,8 @@ export type Json =
   | null
   | { [key: string]: Json | undefined }
   | Json[]
+
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.15"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -215,6 +211,92 @@ export type Database = {
           },
         ]
       }
+      convites_escritorio: {
+        Row: {
+          aceito_em: string | null
+          aceito_por: string | null
+          criado_em: string
+          email: string
+          escritorio_id: string
+          expira_em: string
+          id: string
+          status: string
+          token: string
+        }
+        Insert: {
+          aceito_em?: string | null
+          aceito_por?: string | null
+          criado_em?: string
+          email: string
+          escritorio_id: string
+          expira_em?: string
+          id?: string
+          status?: string
+          token?: string
+        }
+        Update: {
+          aceito_em?: string | null
+          aceito_por?: string | null
+          criado_em?: string
+          email?: string
+          escritorio_id?: string
+          expira_em?: string
+          id?: string
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convites_escritorio_aceito_por_fkey"
+            columns: ["aceito_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "convites_escritorio_escritorio_id_fkey"
+            columns: ["escritorio_id"]
+            isOneToOne: false
+            referencedRelation: "escritorios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escritorios: {
+        Row: {
+          assinatura_ate: string | null
+          assinatura_status: string | null
+          criado_em: string
+          dono_id: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          assinatura_ate?: string | null
+          assinatura_status?: string | null
+          criado_em?: string
+          dono_id: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          assinatura_ate?: string | null
+          assinatura_status?: string | null
+          criado_em?: string
+          dono_id?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escritorios_dono_id_fkey"
+            columns: ["dono_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eventos: {
         Row: {
           acao: string
@@ -308,6 +390,48 @@ export type Database = {
           origem?: string
         }
         Relationships: []
+      }
+      membros_escritorio: {
+        Row: {
+          corretor_id: string
+          entrou_em: string
+          escritorio_id: string
+          id: string
+          papel: string
+          saiu_em: string | null
+        }
+        Insert: {
+          corretor_id: string
+          entrou_em?: string
+          escritorio_id: string
+          id?: string
+          papel?: string
+          saiu_em?: string | null
+        }
+        Update: {
+          corretor_id?: string
+          entrou_em?: string
+          escritorio_id?: string
+          id?: string
+          papel?: string
+          saiu_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membros_escritorio_corretor_id_fkey"
+            columns: ["corretor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membros_escritorio_escritorio_id_fkey"
+            columns: ["escritorio_id"]
+            isOneToOne: false
+            referencedRelation: "escritorios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -440,6 +564,7 @@ export type Database = {
           motivo_cancelamento: string | null
           numero_contrato: string | null
           observacoes: string | null
+          produto: string
           status: string
           tags: string[]
           updated_at: string
@@ -458,6 +583,7 @@ export type Database = {
           motivo_cancelamento?: string | null
           numero_contrato?: string | null
           observacoes?: string | null
+          produto?: string
           status?: string
           tags?: string[]
           updated_at?: string
@@ -476,6 +602,7 @@ export type Database = {
           motivo_cancelamento?: string | null
           numero_contrato?: string | null
           observacoes?: string | null
+          produto?: string
           status?: string
           tags?: string[]
           updated_at?: string
@@ -510,10 +637,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      aceitar_convite: { Args: { p_token: string }; Returns: Json }
       aplicar_resultado: {
         Args: { p_competencia_id: string; p_resultado: Json }
         Returns: undefined
       }
+      criar_escritorio: { Args: { p_nome: string }; Returns: string }
       desmarcar_recebido: {
         Args: { p_recebimento_id: string }
         Returns: undefined
@@ -538,10 +667,30 @@ export type Database = {
         Args: { p_ate: string; p_data: string }
         Returns: number
       }
+      membros_do_escritorio: {
+        Args: never
+        Returns: {
+          corretor_id: string
+          entrou_em: string
+          membro_id: string
+          nome: string
+          papel: string
+          saiu_em: string
+        }[]
+      }
+      meu_escritorio: { Args: never; Returns: Json }
+      meu_escritorio_como_dono: { Args: never; Returns: string }
+      painel_escritorio: {
+        Args: { p_ano: number; p_mes: number }
+        Returns: Json
+      }
+      remover_membro: { Args: { p_membro_id: string }; Returns: undefined }
       resumo_agenda: {
         Args: { p_busca?: string; p_hoje: string }
         Returns: Json
       }
+      sair_do_escritorio: { Args: never; Returns: undefined }
+      ver_convite: { Args: { p_token: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
@@ -551,8 +700,11 @@ export type Database = {
     }
   }
 }
+
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
@@ -581,6 +733,7 @@ export type Tables<
       ? R
       : never
     : never
+
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
@@ -605,6 +758,7 @@ export type TablesInsert<
       ? I
       : never
     : never
+
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
@@ -629,6 +783,7 @@ export type TablesUpdate<
       ? U
       : never
     : never
+
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
@@ -645,6 +800,7 @@ export type Enums<
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
+
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
@@ -661,6 +817,7 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
 export const Constants = {
   graphql_public: {
     Enums: {},
