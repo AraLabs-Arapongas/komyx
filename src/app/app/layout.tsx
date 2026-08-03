@@ -5,7 +5,7 @@ import { AppNav } from '@/components/app-nav'
 import { OnboardingWizard } from '@/components/onboarding-wizard'
 import { PortaoAssinatura } from '@/components/portao-assinatura'
 import { AvisoAssinatura } from '@/components/aviso-assinatura'
-import { avaliarAcesso } from '@/lib/assinatura/acesso'
+import { avaliarAcesso, type AssinaturaEscritorio } from '@/lib/assinatura/acesso'
 import { stripeConfigurado } from '@/lib/stripe/servidor'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -13,14 +13,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: config }, { data: perfil }] = await Promise.all([
+  const [{ data: config }, { data: perfil }, { data: escritorio }] = await Promise.all([
     supabase.from('config_financeira').select('id').eq('ativa', true).maybeSingle(),
     supabase.from('profiles')
       .select('trial_termina_em, assinatura_status, assinatura_ate, cancela_no_fim')
       .eq('id', user.id).maybeSingle(),
+    // o vínculo com escritório, se houver: membro de escritório ativo não paga
+    // plano individual. Vai no mesmo Promise.all para continuar 1 round-trip.
+    supabase.rpc('meu_escritorio'),
   ])
 
-  const acesso = avaliarAcesso(perfil)
+  const acesso = avaliarAcesso(perfil
+    ? { ...perfil, escritorio: escritorio as AssinaturaEscritorio | null }
+    : null)
 
   /*
    * Sem Stripe configurado o portão não fecha.
