@@ -84,8 +84,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
    * caso comum não recalcula nada e custa uma consulta indexada; o erro é
    * engolido de propósito, porque um recálculo adiado não pode derrubar o app.
    */
-  await reconciliarCompetencias(supabase).catch(e =>
-    console.error('[reconciliar] fica para a próxima abertura:', e))
+  await reconciliarCompetencias(supabase, user.id).catch(e =>
+    console.error('[reconciliar] fica para a próxima abertura:',
+      e instanceof Error ? e.message : JSON.stringify(e)))
 
   return (
     <Providers>

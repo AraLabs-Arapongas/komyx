@@ -140,6 +140,8 @@ export async function salvarPoliticaEscritorio(
       return { ok: false, erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' }
 
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { ok: false, erro: ERROS.sem_sessao }
     const { data: escritorioId } = await supabase.rpc('meu_escritorio_como_dono')
     if (!escritorioId) return { ok: false, erro: ERROS.nao_e_dono }
 
@@ -163,7 +165,7 @@ export async function salvarPoliticaEscritorio(
     })
     if (e2) return { ok: false, erro: 'Não foi possível salvar a política.' }
 
-    await reconciliarCompetencias(supabase)
+    await reconciliarCompetencias(supabase, user.id)
     return { ok: true }
   } catch (e) {
     return { ok: false, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
@@ -177,6 +179,8 @@ export async function salvarPoliticaEscritorio(
 export async function removerPoliticaEscritorio(aplicaA: string | null): Promise<Resultado> {
   try {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { ok: false, erro: ERROS.sem_sessao }
     const { data: escritorioId } = await supabase.rpc('meu_escritorio_como_dono')
     if (!escritorioId) return { ok: false, erro: ERROS.nao_e_dono }
 
@@ -186,7 +190,7 @@ export async function removerPoliticaEscritorio(aplicaA: string | null): Promise
     const { error } = await q
     if (error) return { ok: false, erro: 'Não foi possível remover a política.' }
 
-    await reconciliarCompetencias(supabase)
+    await reconciliarCompetencias(supabase, user.id)
     return { ok: true }
   } catch (e) {
     return { ok: false, erro: e instanceof Error ? e.message : 'Erro inesperado.' }

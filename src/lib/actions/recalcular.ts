@@ -128,13 +128,19 @@ export async function recalcularCompetencia(supabase: SB, competenciaId: string)
  * próprio corretor, na primeira abertura depois da mudança. Roda no layout a
  * cada request; no caso comum — nada mudou — custa uma consulta indexada.
  */
-export async function reconciliarCompetencias(supabase: SB): Promise<void> {
+export async function reconciliarCompetencias(supabase: SB, userId: string): Promise<void> {
   const cfg = await configEfetiva(supabase)
   if (!cfg) return
 
+  /*
+   * SÓ as competências do próprio corretor. O dono de escritório enxerga as
+   * dos membros pela policy de leitura — sem este filtro, a reconciliação
+   * dele tentava recalcular a competência de um membro e estourava no RLS de
+   * escrita, a cada request.
+   */
   const { data: abertas } = await supabase.from('competencias')
     .select('id, ano, mes, config_aplicada, volume_externo_aplicado')
-    .eq('status', 'aberta')
+    .eq('status', 'aberta').eq('corretor_id', userId)
 
   for (const comp of abertas ?? []) {
     let desatualizada = comp.config_aplicada !== cfg.id

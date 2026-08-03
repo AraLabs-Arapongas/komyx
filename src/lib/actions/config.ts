@@ -28,7 +28,10 @@ export async function salvarConfig(input: ConfigFinanceiraForm) {
   if (error) return { ok: false as const, erro: 'Não foi possível salvar. Tente novamente.' }
 
   // recalcula competências abertas com as novas regras (retroativo no mês corrente)
-  const { data: abertas } = await supabase.from('competencias').select('id').eq('status', 'aberta')
+  // as DELE: o dono de escritório enxerga as competências dos membros pela
+  // policy de leitura, e recalcular a de outro corretor estoura no RLS
+  const { data: abertas } = await supabase.from('competencias')
+    .select('id').eq('status', 'aberta').eq('corretor_id', user.id)
   for (const c of abertas ?? []) await recalcularCompetencia(supabase, c.id)
   return { ok: true as const }
 }
