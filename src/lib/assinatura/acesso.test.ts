@@ -80,6 +80,60 @@ describe('avaliarAcesso', () => {
   })
 })
 
+describe('avaliarAcesso com escritório', () => {
+  const ativo = { assinatura_status: 'ativa', assinatura_ate: null }
+
+  it('escritório ativo cobre membro com teste vencido', () => {
+    const a = avaliarAcesso(estado({ trial_termina_em: '2026-07-01T12:00:00Z', escritorio: ativo }), AGORA)
+    expect(a).toEqual({ liberado: true, motivo: 'escritorio' })
+  })
+
+  it('escritório ativo cobre até quem teve assinatura individual cancelada', () => {
+    const a = avaliarAcesso(estado({ assinatura_status: 'canceled', escritorio: ativo }), AGORA)
+    expect(a).toEqual({ liberado: true, motivo: 'escritorio' })
+  })
+
+  it('escritório vence a assinatura individual ativa — ordem cravada', () => {
+    // importa para a tela de assinatura dizer "coberto pelo escritório" e não
+    // oferecer renovação individual a quem não precisa dela
+    const a = avaliarAcesso(estado({ assinatura_status: 'active', escritorio: ativo }), AGORA)
+    expect(a).toEqual({ liberado: true, motivo: 'escritorio' })
+  })
+
+  it('assinatura_ate futura mantém coberto; passada devolve ao fluxo individual', () => {
+    expect(avaliarAcesso(estado({
+      trial_termina_em: '2026-08-08T12:00:00Z',
+      escritorio: { assinatura_status: 'ativa', assinatura_ate: '2026-09-01T00:00:00Z' },
+    }), AGORA)).toEqual({ liberado: true, motivo: 'escritorio' })
+
+    // escritório venceu: o corretor volta para o teste que ainda tinha
+    expect(avaliarAcesso(estado({
+      trial_termina_em: '2026-08-08T12:00:00Z',
+      escritorio: { assinatura_status: 'ativa', assinatura_ate: '2026-07-01T00:00:00Z' },
+    }), AGORA)).toEqual({ liberado: true, motivo: 'teste', diasRestantes: 7 })
+  })
+
+  it('escritório encerrado ou aguardando ativação não cobre ninguém', () => {
+    for (const status of [null, 'encerrada']) {
+      const a = avaliarAcesso(estado({
+        trial_termina_em: '2026-07-01T12:00:00Z',
+        escritorio: { assinatura_status: status, assinatura_ate: null },
+      }), AGORA)
+      expect(a).toEqual({ liberado: false, motivo: 'teste_acabou' })
+    }
+  })
+
+  it('sem vínculo, tudo continua exatamente como antes', () => {
+    const a = avaliarAcesso(estado({ trial_termina_em: '2026-08-08T12:00:00Z', escritorio: null }), AGORA)
+    expect(a).toEqual({ liberado: true, motivo: 'teste', diasRestantes: 7 })
+  })
+
+  it('coberto pelo escritório não vê tarja nenhuma', () => {
+    expect(temAvisoDeAssinatura({ liberado: true, motivo: 'escritorio' })).toBe(false)
+    expect(deveAvisarDoTeste({ liberado: true, motivo: 'escritorio' })).toBe(false)
+  })
+})
+
 describe('deveAvisarDoTeste', () => {
   it('avisa só na reta final', () => {
     expect(deveAvisarDoTeste({ liberado: true, motivo: 'teste', diasRestantes: 14 })).toBe(false)

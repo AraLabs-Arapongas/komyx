@@ -65,7 +65,7 @@ export function useDashboard(ano: number, mes: number) {
           jaCaiu: primeiraData <= hoje,
         }
         // um por lista: o painel dá a amostra, a lista inteira mora na tela
-        // própria, a um toque de "Ver agenda"
+        // própria, a um toque de "Ver todos"
         vazio.proximos = parcelas.slice(0, 1).map(p => {
           const venda = (p.comissoes as unknown as {
             vendas: { id: string; clientes: { nome: string } | null }

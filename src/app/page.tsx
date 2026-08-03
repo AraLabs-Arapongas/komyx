@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/logo'
 import { CapturaLead } from '@/components/captura-lead'
 import {
-  MolduraCelular, AmostraAgenda, AmostraFaixas, AmostraLoteria,
+  MolduraCelular, AmostraRecebimentos, AmostraFaixas, AmostraLoteria,
 } from '@/components/landing/amostras'
 import { Revela } from '@/components/landing/revela'
 import { EntradaHeader } from '@/components/landing/entrada-header'
@@ -47,7 +47,7 @@ const COMO_FUNCIONA = [
    função faz pela vida dele, não a função */
 const RECURSOS = [
   { icon: Calculator, titulo: 'Faixa retroativa', texto: 'Subiu de faixa? Nenhum real fica para trás.' },
-  { icon: CalendarClock, titulo: 'Agenda de recebimentos', texto: 'Você nunca mais esquece um pagamento.' },
+  { icon: CalendarClock, titulo: 'Recebimentos com data', texto: 'Você nunca mais esquece um pagamento.' },
   { icon: Undo2, titulo: 'Desistência tratada', texto: 'Estorno certo, sem refazer conta nenhuma.' },
   { icon: Search, titulo: 'Busca total', texto: 'Qualquer venda em dois toques.' },
   { icon: ShieldCheck, titulo: 'Histórico protegido', texto: 'Questionaram uma comissão? Está tudo registrado.' },
@@ -93,7 +93,7 @@ const E_NAO_E = {
   e: [
     'Controle da sua comissão, do cálculo ao recebimento',
     'Previsão de quanto entra nos próximos meses',
-    'Agenda financeira das parcelas, por cliente e por mês',
+    'Os recebimentos parcela a parcela, por cliente e por mês',
     'Histórico fechado mês a mês, com as regras de cada um',
   ],
   naoE: [
@@ -281,14 +281,14 @@ export default function LandingPage() {
       <div className="bg-card/60 py-20 md:py-24">
         <Secao>
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-14">
-            <Revela atraso={150}><AmostraAgenda /></Revela>
+            <Revela atraso={150}><AmostraRecebimentos /></Revela>
             <Revela className="md:order-first">
-              <p className="text-sm font-medium text-money">Agenda financeira</p>
+              <p className="text-sm font-medium text-money">Recebimentos</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">
                 Saiba hoje o que entra em novembro.
               </h2>
               <p className="mt-4 text-muted-foreground">
-                Toda venda vira parcelas com data e valor. A agenda mostra o que já caiu,
+                Toda venda vira parcelas com data e valor. A tela mostra o que já caiu,
                 o que ainda vem e de qual cliente é cada real — filtrando por mês ou
                 buscando pelo nome.
               </p>
@@ -478,8 +478,17 @@ export default function LandingPage() {
                 <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Building2 size={16} /> {PLANO_ESCRITORIO.nome}
                 </p>
-                <p className="mt-2 text-4xl font-bold tracking-tight">{PLANO_ESCRITORIO.preco}</p>
-                <p className="mt-3 text-sm text-muted-foreground">{PLANO_ESCRITORIO.apoio}</p>
+                {/* mesma composição do cartão individual: os dois preços ficam
+                    lado a lado e precisam ser comparáveis de relance */}
+                <p className="mt-2 flex items-baseline justify-center gap-1">
+                  <span className="text-lg text-muted-foreground">{PLANO_ESCRITORIO.moeda}</span>
+                  <span className="text-5xl font-bold tracking-tight">{PLANO_ESCRITORIO.valor}</span>
+                  <span className="text-lg text-muted-foreground">{PLANO_ESCRITORIO.periodo}</span>
+                </p>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Para até {PLANO_ESCRITORIO.corretoresInclusos} corretores.
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{PLANO_ESCRITORIO.apoio}</p>
 
                 <ul className="mt-8 flex-1 space-y-3 text-left text-sm">
                   {INCLUSO_ESCRITORIO.map(item => (
@@ -491,19 +500,17 @@ export default function LandingPage() {
                 </ul>
 
                 {/*
-                  Venda conversada, e não botão de assinar: preço por corretor
-                  com desconto por volume não cabe num checkout, e cada
-                  escritório paga a equipe de um jeito.
-
-                  ⚠️ O módulo ainda não foi construído — ver o aviso em
-                  PLANO_ESCRITORIO. Quem atender estes leads precisa saber
-                  disso antes de combinar prazo com alguém.
+                  Preço fechado, mas sem botão de assinar: o escritório é criado
+                  pelo admin depois da conversa, com a equipe montada junto (ver
+                  README, seção Enterprise). Um checkout aqui entregaria um
+                  painel vazio para alguém que ainda não sabe convidar ninguém.
                 */}
                 <div className="mt-8 space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Conte como seu escritório paga a equipe e a gente monta o plano com você.
+                    Deixe seu contato: a gente monta o escritório com você e ativa tudo junto.
                   </p>
-                  <CapturaLead origem="escritorio" empilhado />
+                  <CapturaLead origem="escritorio" empilhado
+                    rotulo="Quero o Enterprise" />
                 </div>
               </div>
             </div>

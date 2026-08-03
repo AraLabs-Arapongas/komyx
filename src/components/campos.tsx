@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays, Clock } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calendario } from '@/components/ui/calendario'
@@ -8,7 +8,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { cn } from '@/lib/utils'
 import {
   mascaraValor, mascaraData, mascaraPercentual, mascaraInteiro, mascaraPorcentagem,
-  dataBRParaISO, formatData,
+  mascaraHora, dataBRParaISO, formatData,
 } from '@/lib/format'
 
 type Base = {
@@ -127,6 +127,31 @@ export function CampoData({ value, onChange, placeholder = 'DD/MM/AAAA', classNa
           />
         </PopoverContent>
       </Popover>
+    </div>
+  )
+}
+
+/**
+ * Hora, opcional por natureza.
+ *
+ * O placeholder diz o que o vazio significa: sem hora o compromisso é do dia,
+ * e um campo de hora em branco sem explicação parece esquecimento. O relógio à
+ * direita não abre nada — é só o ícone que diz de que campo se trata, no mesmo
+ * lugar onde o de data tem o calendário.
+ */
+export function CampoHora({ value, onChange, placeholder = 'Sem hora', className, ...rest }: Base) {
+  return (
+    <div className="relative">
+      <Input
+        {...rest}
+        inputMode="numeric"
+        value={value}
+        placeholder={placeholder}
+        onChange={e => onChange(mascaraHora(e.target.value))}
+        className={cn('pr-10 tabular-nums', className)}
+      />
+      <Clock size={18} aria-hidden
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
     </div>
   )
 }

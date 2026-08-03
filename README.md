@@ -97,6 +97,67 @@ Sem isso, um PATCH direto no PostgREST trocando `assinatura_status` para
 nasce protegida por essa regra** — o grant lista o que é liberado, não o que é
 proibido, então esquecer é o caminho seguro.
 
+## Enterprise (escritórios)
+
+**R$ 300/mês para até 10 corretores.** O dono não ocupa vaga: ele é membro
+(papel `dono`) para que `meu_escritorio()` o encontre, mas quem conta contra o
+plano são os corretores.
+
+A venda é conversada — não há checkout, e **ninguém cria escritório sozinho**.
+No app, Perfil → Escritório mostra o preço e recolhe o contato
+(`leads`, `origem = 'escritorio'`). Depois do acerto, o admin cria com a
+service_role:
+
+```sql
+-- e-mail do dono, nome, meses pagos, corretores contratados
+select criar_escritorio_para('dono@email.com', 'Consórcios Silva', 1, 10);
+```
+
+Nasce `ativa`, com o dono já como membro. A partir daí ele monta a equipe
+sozinho, por link de convite.
+
+Vender mais vagas é um update — o limite mora na linha do escritório, não no
+código:
+
+```sql
+update escritorios set limite_corretores = 20 where nome = '<nome>';
+```
+
+O limite é defendido nas duas pontas: um trigger barra o convite que não cabe
+e `aceitar_convite` recheca na hora do clique, porque o link vale catorze dias
+e a vaga pode ter sumido nesse meio-tempo. **Convite pendente ocupa vaga** —
+senão o dono dispara quinze links e o erro cai em quem não pode resolvê-lo.
+
+Isso é um portão de verdade e não só um botão escondido: `criar_escritorio`
+não tem execute para `authenticated`. Antes tinha, o painel do dono abria
+inteiro com a assinatura pendente, e dava para usar o Enterprise sem pagar.
+
+Renovar é estender a data; encerrar é trocar o status:
+
+```sql
+update escritorios set assinatura_ate = now() + interval '1 month 3 days'
+where nome = '<nome>';
+
+update escritorios set assinatura_status = 'encerrada' where nome = '<nome>';
+```
+
+Enquanto o escritório está `ativa`, os membros não pagam o plano individual
+(`avaliarAcesso`, motivo `escritorio`). Encerrado, cada corretor volta na hora
+para o próprio teste ou assinatura.
+
+O dono lê a produção dos membros por políticas adicionais de RLS com corte
+temporal: só vendas com data dentro do período do vínculo. Quem sai leva os
+dados (são do corretor); o painel dos meses do vínculo continua batendo.
+
+O dono também define **políticas de comissão** (uma geral ou por corretor —
+`config_efetiva()` resolve: específica > geral > própria), **metas** por mês,
+e pode ligar a **faixa pelo acumulado do escritório**: o total da equipe
+empurra a faixa de cada um, com a comissão sempre sobre as vendas próprias.
+Os números dos membros atualizam por reconciliação preguiçosa
+(`reconciliarCompetencias`, chamada pelo layout): o dono não tem como
+recalcular a conta de ninguém — RLS e RPCs escrevem com `auth.uid()` — então
+cada app corrige a si mesmo na primeira abertura depois da mudança.
+
 ## Convenções
 
 Estão em [AGENTS.md](AGENTS.md): código e comentários em português, interface

@@ -12,8 +12,16 @@ import { Check } from 'lucide-react'
  * caminho principal da página. Este formulário atende o visitante que só está
  * olhando — sem ele, essa pessoa vai embora sem deixar rastro.
  */
-export function CapturaLead({ origem = 'landing', empilhado = false }: {
+export function CapturaLead({ origem = 'landing', empilhado = false, emailInicial = '', rotulo = 'Quero saber mais' }: {
   origem?: string
+  /**
+   * Já preenchido. Dentro do app quem pede contato está logado: fazê-lo
+   * digitar o e-mail que o produto já conhece é pedir de novo o que já foi
+   * dado, e um erro de digitação aqui manda a resposta para o vazio.
+   */
+  emailInicial?: string
+  /** o que o botão promete — muda com o que está sendo pedido */
+  rotulo?: string
   /*
    * Campo e botão um sobre o outro. O `sm:` do padrão olha a largura da tela,
    * não a da caixa: dentro de um cartão estreito num desktop largo ele vira
@@ -21,7 +29,7 @@ export function CapturaLead({ origem = 'landing', empilhado = false }: {
    */
   empilhado?: boolean
 }) {
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(emailInicial)
   const [enviando, setEnviando] = useState(false)
   const [pronto, setPronto] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -57,7 +65,7 @@ export function CapturaLead({ origem = 'landing', empilhado = false }: {
           className={empilhado ? 'bg-card' : 'bg-card sm:flex-1'}
         />
         <Button type="submit" size="toque" disabled={enviando} className={empilhado ? 'w-full' : undefined}>
-          {enviando ? 'Enviando…' : 'Quero saber mais'}
+          {enviando ? 'Enviando…' : rotulo}
         </Button>
       </div>
       {erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}

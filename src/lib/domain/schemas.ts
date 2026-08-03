@@ -20,11 +20,19 @@ export const faixaSchema = z.object({
       message: 'Informe a fatia de cada parcela.' })
     return
   }
-  // duas casas: o corretor digita 33,33 e a soma tem que fechar mesmo assim
+  /*
+   * As fatias somam a COMISSÃO da faixa, não 100.
+   *
+   * São pontos da carta, do jeito que o escritório fala: 3% em três vezes é
+   * 1, 1 e 1. Somar 100 obrigava a converter para fração da comissão — e um
+   * corretor que digitasse "1, 1, 1" numa faixa de 3% via a tela reclamar que
+   * faltavam 97.
+   */
   const soma = Math.round(f.distribuicao.reduce((s, p) => s + p, 0) * 100) / 100
-  if (soma !== 100) {
+  const alvo = Math.round(f.percentual * 100) / 100
+  if (soma !== alvo) {
     ctx.addIssue({ code: 'custom', path: ['distribuicao'],
-      message: `As parcelas somam ${soma.toLocaleString('pt-BR')}%. Precisa dar 100%.` })
+      message: `As parcelas somam ${soma.toLocaleString('pt-BR')}%. Precisa dar ${alvo.toLocaleString('pt-BR')}%, que é a comissão desta faixa.` })
   }
 })
 
@@ -86,6 +94,20 @@ export const vendaFormSchema = z.object({
   observacoes: z.string().optional().default(''),
 })
 
+export const compromissoFormSchema = z.object({
+  titulo: z.string().trim().min(1, 'Escreva o que precisa ser feito.').max(200),
+  data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida.'),
+  /*
+   * Vazio vira nulo: é compromisso do dia, sem hora marcada. "Ligar pro João
+   * hoje" não tem horário, e exigir um faria o corretor inventar um que não
+   * vai cumprir — o que transforma a agenda numa lista de mentiras.
+   */
+  hora: z.string().regex(/^\d{2}:\d{2}$/, 'Hora inválida.').nullable().optional(),
+  clienteId: z.string().uuid('Cliente inválido.').nullable().optional(),
+  nota: z.string().max(2000).optional().default(''),
+})
+
 export type ConfigFinanceiraForm = z.infer<typeof configFinanceiraSchema>
 export type VendaForm = z.infer<typeof vendaFormSchema>
 export type ClienteForm = z.infer<typeof clienteFormSchema>
+export type CompromissoForm = z.infer<typeof compromissoFormSchema>

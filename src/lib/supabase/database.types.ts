@@ -6,11 +6,6 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.15"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -136,29 +131,42 @@ export type Database = {
       competencias: {
         Row: {
           ano: number
+          config_aplicada: string | null
           config_snapshot: Json | null
           corretor_id: string
           id: string
           mes: number
           status: string
+          volume_externo_aplicado: number
         }
         Insert: {
           ano: number
+          config_aplicada?: string | null
           config_snapshot?: Json | null
           corretor_id: string
           id?: string
           mes: number
           status?: string
+          volume_externo_aplicado?: number
         }
         Update: {
           ano?: number
+          config_aplicada?: string | null
           config_snapshot?: Json | null
           corretor_id?: string
           id?: string
           mes?: number
           status?: string
+          volume_externo_aplicado?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "competencias_config_aplicada_fkey"
+            columns: ["config_aplicada"]
+            isOneToOne: false
+            referencedRelation: "config_financeira"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "competencias_corretor_id_fkey"
             columns: ["corretor_id"]
@@ -168,13 +176,67 @@ export type Database = {
           },
         ]
       }
+      compromissos: {
+        Row: {
+          cliente_id: string | null
+          concluido_em: string | null
+          corretor_id: string
+          created_at: string
+          data: string
+          hora: string | null
+          id: string
+          nota: string
+          titulo: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          concluido_em?: string | null
+          corretor_id: string
+          created_at?: string
+          data: string
+          hora?: string | null
+          id?: string
+          nota?: string
+          titulo: string
+        }
+        Update: {
+          cliente_id?: string | null
+          concluido_em?: string | null
+          corretor_id?: string
+          created_at?: string
+          data?: string
+          hora?: string | null
+          id?: string
+          nota?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compromissos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compromissos_corretor_id_fkey"
+            columns: ["corretor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       config_financeira: {
         Row: {
+          aplica_a: string | null
           ativa: boolean
-          corretor_id: string
+          corretor_id: string | null
           created_at: string
           dia_fechamento: number
           dia_primeiro_pagamento: number
+          escritorio_id: string | null
+          faixa_por_escritorio: boolean
           faixas: Json
           id: string
           nome_politica: string
@@ -182,11 +244,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          aplica_a?: string | null
           ativa?: boolean
-          corretor_id: string
+          corretor_id?: string | null
           created_at?: string
           dia_fechamento: number
           dia_primeiro_pagamento: number
+          escritorio_id?: string | null
+          faixa_por_escritorio?: boolean
           faixas: Json
           id?: string
           nome_politica?: string
@@ -194,11 +259,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          aplica_a?: string | null
           ativa?: boolean
-          corretor_id?: string
+          corretor_id?: string | null
           created_at?: string
           dia_fechamento?: number
           dia_primeiro_pagamento?: number
+          escritorio_id?: string | null
+          faixa_por_escritorio?: boolean
           faixas?: Json
           id?: string
           nome_politica?: string
@@ -207,8 +275,111 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "config_financeira_aplica_a_fkey"
+            columns: ["aplica_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "config_financeira_corretor_id_fkey"
             columns: ["corretor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "config_financeira_escritorio_id_fkey"
+            columns: ["escritorio_id"]
+            isOneToOne: false
+            referencedRelation: "escritorios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      convites_escritorio: {
+        Row: {
+          aceito_em: string | null
+          aceito_por: string | null
+          criado_em: string
+          email: string
+          escritorio_id: string
+          expira_em: string
+          id: string
+          status: string
+          token: string
+        }
+        Insert: {
+          aceito_em?: string | null
+          aceito_por?: string | null
+          criado_em?: string
+          email: string
+          escritorio_id: string
+          expira_em?: string
+          id?: string
+          status?: string
+          token?: string
+        }
+        Update: {
+          aceito_em?: string | null
+          aceito_por?: string | null
+          criado_em?: string
+          email?: string
+          escritorio_id?: string
+          expira_em?: string
+          id?: string
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convites_escritorio_aceito_por_fkey"
+            columns: ["aceito_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "convites_escritorio_escritorio_id_fkey"
+            columns: ["escritorio_id"]
+            isOneToOne: false
+            referencedRelation: "escritorios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escritorios: {
+        Row: {
+          assinatura_ate: string | null
+          assinatura_status: string | null
+          criado_em: string
+          dono_id: string
+          id: string
+          limite_corretores: number
+          nome: string
+        }
+        Insert: {
+          assinatura_ate?: string | null
+          assinatura_status?: string | null
+          criado_em?: string
+          dono_id: string
+          id?: string
+          limite_corretores?: number
+          nome: string
+        }
+        Update: {
+          assinatura_ate?: string | null
+          assinatura_status?: string | null
+          criado_em?: string
+          dono_id?: string
+          id?: string
+          limite_corretores?: number
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escritorios_dono_id_fkey"
+            columns: ["dono_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -308,6 +479,90 @@ export type Database = {
           origem?: string
         }
         Relationships: []
+      }
+      membros_escritorio: {
+        Row: {
+          corretor_id: string
+          entrou_em: string
+          escritorio_id: string
+          id: string
+          papel: string
+          saiu_em: string | null
+        }
+        Insert: {
+          corretor_id: string
+          entrou_em?: string
+          escritorio_id: string
+          id?: string
+          papel?: string
+          saiu_em?: string | null
+        }
+        Update: {
+          corretor_id?: string
+          entrou_em?: string
+          escritorio_id?: string
+          id?: string
+          papel?: string
+          saiu_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membros_escritorio_corretor_id_fkey"
+            columns: ["corretor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "membros_escritorio_escritorio_id_fkey"
+            columns: ["escritorio_id"]
+            isOneToOne: false
+            referencedRelation: "escritorios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metas_escritorio: {
+        Row: {
+          corretor_id: string | null
+          criado_em: string
+          escritorio_id: string
+          id: string
+          valor_centavos: number
+          vigente_de: string
+        }
+        Insert: {
+          corretor_id?: string | null
+          criado_em?: string
+          escritorio_id: string
+          id?: string
+          valor_centavos: number
+          vigente_de: string
+        }
+        Update: {
+          corretor_id?: string | null
+          criado_em?: string
+          escritorio_id?: string
+          id?: string
+          valor_centavos?: number
+          vigente_de?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_escritorio_corretor_id_fkey"
+            columns: ["corretor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "metas_escritorio_escritorio_id_fkey"
+            columns: ["escritorio_id"]
+            isOneToOne: false
+            referencedRelation: "escritorios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -440,6 +695,7 @@ export type Database = {
           motivo_cancelamento: string | null
           numero_contrato: string | null
           observacoes: string | null
+          produto: string
           status: string
           tags: string[]
           updated_at: string
@@ -458,6 +714,7 @@ export type Database = {
           motivo_cancelamento?: string | null
           numero_contrato?: string | null
           observacoes?: string | null
+          produto?: string
           status?: string
           tags?: string[]
           updated_at?: string
@@ -476,6 +733,7 @@ export type Database = {
           motivo_cancelamento?: string | null
           numero_contrato?: string | null
           observacoes?: string | null
+          produto?: string
           status?: string
           tags?: string[]
           updated_at?: string
@@ -510,9 +768,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      aceitar_convite: { Args: { p_token: string }; Returns: Json }
       aplicar_resultado: {
         Args: { p_competencia_id: string; p_resultado: Json }
         Returns: undefined
+      }
+      config_efetiva: {
+        Args: never
+        Returns: {
+          aplica_a: string | null
+          ativa: boolean
+          corretor_id: string | null
+          created_at: string
+          dia_fechamento: number
+          dia_primeiro_pagamento: number
+          escritorio_id: string | null
+          faixa_por_escritorio: boolean
+          faixas: Json
+          id: string
+          nome_politica: string
+          politica_estorno: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "config_financeira"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      criar_escritorio: { Args: { p_nome: string }; Returns: string }
+      criar_escritorio_para: {
+        Args: {
+          p_corretores?: number
+          p_email: string
+          p_meses?: number
+          p_nome: string
+        }
+        Returns: string
       }
       desmarcar_recebido: {
         Args: { p_recebimento_id: string }
@@ -530,6 +823,17 @@ export type Database = {
         Args: { p_hoje: string; p_snapshot: Json }
         Returns: undefined
       }
+      historico_escritorio: {
+        Args: { p_meses?: number }
+        Returns: {
+          ano: number
+          comissao_centavos: number
+          corretor_id: string
+          mes: number
+          n_vendas: number
+          total_centavos: number
+        }[]
+      }
       marcar_recebido: {
         Args: { p_data: string; p_recebimento_id: string }
         Returns: undefined
@@ -538,9 +842,47 @@ export type Database = {
         Args: { p_ate: string; p_data: string }
         Returns: number
       }
+      membros_do_escritorio: {
+        Args: never
+        Returns: {
+          corretor_id: string
+          entrou_em: string
+          membro_id: string
+          nome: string
+          papel: string
+          saiu_em: string
+        }[]
+      }
+      metas_vigentes: {
+        Args: { p_ano: number; p_escritorio: string; p_mes: number }
+        Returns: {
+          corretor_id: string
+          valor_centavos: number
+          vigente_de: string
+        }[]
+      }
+      meu_escritorio: { Args: never; Returns: Json }
+      meu_escritorio_como_dono: { Args: never; Returns: string }
+      minhas_metas: { Args: { p_ano: number; p_mes: number }; Returns: Json }
+      painel_do_dono: {
+        Args: { p_ano: number; p_mes: number; p_meses_historico?: number }
+        Returns: Json
+      }
+      painel_escritorio: {
+        Args: { p_ano: number; p_mes: number }
+        Returns: Json
+      }
+      remover_membro: { Args: { p_membro_id: string }; Returns: undefined }
       resumo_agenda: {
         Args: { p_busca?: string; p_hoje: string }
         Returns: Json
+      }
+      sair_do_escritorio: { Args: never; Returns: undefined }
+      vagas_ocupadas: { Args: { p_escritorio: string }; Returns: number }
+      ver_convite: { Args: { p_token: string }; Returns: Json }
+      volume_do_escritorio: {
+        Args: { p_ano: number; p_mes: number }
+        Returns: number
       }
     }
     Enums: {

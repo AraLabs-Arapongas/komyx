@@ -7,6 +7,13 @@
  * em que alguém atrasa o cartão.
  */
 
+/** o que a assinatura do escritório informa sobre o membro (rpc meu_escritorio) */
+export type AssinaturaEscritorio = {
+  /** 'ativa' | 'encerrada' | null (aguardando ativação) — gerido pelo admin */
+  assinatura_status: string | null
+  assinatura_ate: string | null
+}
+
 /** o que o banco guarda sobre a assinatura do corretor */
 export type EstadoAssinatura = {
   /** fim do teste de 14 dias, contado do cadastro */
@@ -15,9 +22,13 @@ export type EstadoAssinatura = {
   assinatura_status: string | null
   assinatura_ate: string | null
   cancela_no_fim?: boolean | null
+  /** vínculo ativo com escritório, se houver */
+  escritorio?: AssinaturaEscritorio | null
 }
 
 export type Acesso =
+  /** coberto pelo escritório onde trabalha: não paga plano individual */
+  | { liberado: true; motivo: 'escritorio' }
   | { liberado: true; motivo: 'assinatura' }
   | { liberado: true; motivo: 'teste'; diasRestantes: number }
   | { liberado: true; motivo: 'cobranca_falhou' }
@@ -43,6 +54,22 @@ const STATUS_LIBERADOS = new Set(['active', 'trialing', 'past_due'])
  * sempre `new Date()`
  */
 export function avaliarAcesso(estado: EstadoAssinatura | null, agora: Date = new Date()): Acesso {
+  /*
+   * Escritório ativo vence tudo, inclusive assinatura individual.
+   *
+   * É o contrato do Enterprise: enquanto o escritório paga, o membro não
+   * paga — nem vê aviso de teste, nem portão. `assinatura_ate` nula é "sem
+   * prazo definido" (admin ativou sem data), não é vencida; a data só fecha
+   * quando existe e já passou, e aí o corretor cai no fluxo individual dele
+   * (o teste que tinha, ou a assinatura própria).
+   */
+  const escritorio = estado?.escritorio
+  if (escritorio?.assinatura_status === 'ativa') {
+    const ate = escritorio.assinatura_ate ? new Date(escritorio.assinatura_ate) : null
+    const vigente = !ate || Number.isNaN(ate.getTime()) || ate.getTime() > agora.getTime()
+    if (vigente) return { liberado: true, motivo: 'escritorio' }
+  }
+
   const status = estado?.assinatura_status ?? null
 
   if (status && STATUS_LIBERADOS.has(status)) {

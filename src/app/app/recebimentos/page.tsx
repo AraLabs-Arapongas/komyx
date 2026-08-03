@@ -111,7 +111,7 @@ export default function RecebimentosPage() {
 
   return (
     <LayoutAba
-      titulo="Agenda financeira"
+      titulo="Recebimentos"
       resumo={temResumo && (
         <div className="grid grid-cols-2 gap-3">
           {/* o que ainda vem é expectativa, fica branco; o que já caiu é

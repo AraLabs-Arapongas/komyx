@@ -90,10 +90,11 @@ export default function VendaDetalhePage() {
   const { data: config } = useQuery({
     queryKey: queryKeys.config,
     queryFn: async () => {
-      const { data, error } = await createClient().from('config_financeira')
-        .select('politica_estorno').eq('ativa', true).single()
+      const { data, error } = await createClient().rpc('config_efetiva')
       if (error) throw error
-      return data
+      const linha = (data ?? [])[0]
+      if (!linha) throw new Error('sem config')
+      return linha
     },
   })
 
@@ -177,6 +178,7 @@ export default function VendaDetalhePage() {
             dataVenda: venda.data_venda,
             observacoes: venda.observacoes ?? '',
             numeroContrato: venda.numero_contrato ?? '',
+            produto: venda.produto ?? '',
           }}
         />
       </div>
@@ -220,6 +222,12 @@ export default function VendaDetalhePage() {
           <div className="flex items-center justify-between border-b border-border/60 py-2">
             <span className="text-muted-foreground">Número do contrato</span>
             <span className="font-medium">{venda.numero_contrato}</span>
+          </div>
+        )}
+        {venda.produto && (
+          <div className="flex items-center justify-between border-b border-border/60 py-2">
+            <span className="text-muted-foreground">Produto</span>
+            <span className="font-medium">{venda.produto}</span>
           </div>
         )}
         <div className="flex items-center justify-between border-b border-border/60 py-2">

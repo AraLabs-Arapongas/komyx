@@ -108,3 +108,59 @@ export async function simularAssinatura(estado: EstadoSimulado) {
     return { ok: false as const, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
   }
 }
+
+/** Uma conta do banco local, para o atalho de login em desenvolvimento. */
+export type ContaDeTeste = {
+  email: string
+  nome: string
+  /** 'dono' | 'corretor' quando faz parte de um escritório */
+  papel: string | null
+  escritorio: string | null
+}
+
+/**
+ * As contas do banco local, para não precisar decorar e-mail de teste.
+ *
+ * Não exige sessão — quem chama está justamente na tela de login. O que
+ * protege é o `foraDeDesenvolvimento` logo abaixo: em produção esta função
+ * devolve lista vazia antes de tocar no banco, e a chave de serviço nunca
+ * chega perto de um cliente de verdade.
+ *
+ * Devolve e-mail e papel, nunca senha: o atalho preenche o e-mail e a senha
+ * padrão do seed, e quem tiver outra digita.
+ */
+export async function contasDeTeste(): Promise<ContaDeTeste[]> {
+  if (foraDeDesenvolvimento()) return []
+  try {
+    const admin = createAdminClient()
+    const { data, error } = await admin.auth.admin.listUsers({ perPage: 50 })
+    if (error) return []
+
+    const ids = data.users.map(u => u.id)
+    const [{ data: perfis }, { data: vinculos }] = await Promise.all([
+      admin.from('profiles').select('id, nome').in('id', ids),
+      admin.from('membros_escritorio')
+        .select('corretor_id, papel, escritorios(nome)').is('saiu_em', null),
+    ])
+
+    const nomes = new Map((perfis ?? []).map(p => [p.id, p.nome]))
+    const equipe = new Map((vinculos ?? []).map(v => [v.corretor_id, {
+      papel: v.papel,
+      escritorio: (v.escritorios as { nome: string } | null)?.nome ?? null,
+    }]))
+
+    return data.users
+      .filter(u => u.email)
+      .map(u => ({
+        email: u.email!,
+        nome: nomes.get(u.id)?.trim() || u.email!.split('@')[0],
+        papel: equipe.get(u.id)?.papel ?? null,
+        escritorio: equipe.get(u.id)?.escritorio ?? null,
+      }))
+      // dono primeiro: é a conta que se quer testar mais vezes
+      .sort((a, b) => (a.papel === 'dono' ? -1 : b.papel === 'dono' ? 1 : 0))
+  } catch {
+    return []
+  }
+}
+

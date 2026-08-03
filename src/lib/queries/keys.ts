@@ -7,4 +7,9 @@ export const queryKeys = {
     ['recebimentos', mes, busca, limite] as const,
   resumoAgenda: (busca = '') => ['resumo-agenda', busca] as const,
   clientes: (busca = '') => ['clientes', busca] as const,
+  painelEscritorio: (ano: number, mes: number) => ['painel-escritorio', ano, mes] as const,
+  painelDoDono: (ano: number, mes: number) => ['painel-do-dono', ano, mes] as const,
+  minhasMetas: (ano: number, mes: number) => ['minhas-metas', ano, mes] as const,
+  compromissos: (de: string, ate: string) => ['compromissos', de, ate] as const,
+  equipe: ['equipe'] as const,
 }

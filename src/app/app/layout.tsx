@@ -1,26 +1,38 @@
 import { createClient } from '@/lib/supabase/server'
+import { cn } from '@/lib/utils'
 import { redirect } from 'next/navigation'
 import { Providers } from '@/components/providers'
 import { AppNav } from '@/components/app-nav'
 import { OnboardingWizard } from '@/components/onboarding-wizard'
 import { PortaoAssinatura } from '@/components/portao-assinatura'
 import { AvisoAssinatura } from '@/components/aviso-assinatura'
-import { avaliarAcesso } from '@/lib/assinatura/acesso'
+import { avaliarAcesso, type AssinaturaEscritorio } from '@/lib/assinatura/acesso'
 import { stripeConfigurado } from '@/lib/stripe/servidor'
+import { configEfetiva, reconciliarCompetencias } from '@/lib/actions/recalcular'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: config }, { data: perfil }] = await Promise.all([
-    supabase.from('config_financeira').select('id').eq('ativa', true).maybeSingle(),
+  /*
+   * A EFETIVA, não a própria: quem entra por convite num escritório que já
+   * definiu a política de comissão não tem nada para configurar — o wizard de
+   * onboarding não deve nem aparecer, porque as respostas dele já existem.
+   */
+  const [config, { data: perfil }, { data: escritorio }] = await Promise.all([
+    configEfetiva(supabase),
     supabase.from('profiles')
       .select('trial_termina_em, assinatura_status, assinatura_ate, cancela_no_fim')
       .eq('id', user.id).maybeSingle(),
+    // o vínculo com escritório, se houver: membro de escritório ativo não paga
+    // plano individual. Vai no mesmo Promise.all para continuar 1 round-trip.
+    supabase.rpc('meu_escritorio'),
   ])
 
-  const acesso = avaliarAcesso(perfil)
+  const vinculo = escritorio as (AssinaturaEscritorio & { papel?: string }) | null
+  const ehDono = vinculo?.papel === 'dono'
+  const acesso = avaliarAcesso(perfil ? { ...perfil, escritorio: vinculo } : null)
 
   /*
    * Sem Stripe configurado o portão não fecha.
@@ -66,9 +78,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     )
   }
 
+  /*
+   * O dono muda a política do escritório e não tem como recalcular os números
+   * de ninguém — RLS e RPCs escrevem com auth.uid(). A correção acontece
+   * aqui, no app de cada membro, na primeira abertura depois da mudança. No
+   * caso comum não recalcula nada e custa uma consulta indexada; o erro é
+   * engolido de propósito, porque um recálculo adiado não pode derrubar o app.
+   */
+  await reconciliarCompetencias(supabase, user.id).catch(e =>
+    console.error('[reconciliar] fica para a próxima abertura:',
+      e instanceof Error ? e.message : JSON.stringify(e)))
+
   return (
     <Providers>
-      <AppNav />
+      <AppNav ehDono={ehDono} />
       {/* só a altura do menu: o respiro de 1rem vem do p-4 do container abaixo.
           Somar os dois deixava 16px sobrando embaixo da barra de ação, que
           então não encostava no menu quando o formulário era longo. */}
@@ -79,7 +102,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {/* flex-1: sem isto a coluna termina onde o conteúdo termina, e sobrava
             um resto da altura do main embaixo dela — a barra de ação dos
             formulários parava alguns pixels acima do menu */}
-        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col p-4 md:p-6">
+        {/*
+          O dono usa o app no desktop e a tela dele é um dashboard: coluna de
+          768px desperdiçaria metade do monitor, e gráfico espremido não se lê.
+          Ele ganha a largura toda; o corretor continua na coluna estreita, que
+          é a medida certa para ler no celular entre uma visita e outra.
+        */}
+        <div className={cn('mx-auto flex w-full flex-1 flex-col p-4 md:p-6',
+          ehDono ? 'max-w-[1600px]' : 'max-w-3xl')}>
           {/* acima do conteúdo, e não dentro de cada tela: o aviso vale para o
               app inteiro e ele mesmo decide quando não tem nada a dizer */}
           <AvisoAssinatura acesso={acesso} />

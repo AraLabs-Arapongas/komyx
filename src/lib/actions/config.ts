@@ -16,7 +16,10 @@ export async function salvarConfig(input: ConfigFinanceiraForm) {
   // fecha competências vencidas com a config ANTIGA ainda ativa, antes de trocar a política
   // (meses já fechados não podem ser recalculados retroativamente com a nova config)
   await fecharCompetenciasVencidas(supabase)
-  await supabase.from('config_financeira').update({ ativa: false }).eq('ativa', true)
+  // só a PESSOAL: o dono de escritório enxerga também as políticas da equipe,
+  // e sem o filtro este update desativaria a política do escritório inteiro
+  await supabase.from('config_financeira').update({ ativa: false })
+    .eq('ativa', true).is('escritorio_id', null)
   const { error } = await supabase.from('config_financeira').insert({
     corretor_id: user.id, nome_politica: d.nomePolitica, faixas: d.faixas,
     dia_fechamento: d.diaFechamento, dia_primeiro_pagamento: d.diaPrimeiroPagamento,
@@ -25,7 +28,10 @@ export async function salvarConfig(input: ConfigFinanceiraForm) {
   if (error) return { ok: false as const, erro: 'Não foi possível salvar. Tente novamente.' }
 
   // recalcula competências abertas com as novas regras (retroativo no mês corrente)
-  const { data: abertas } = await supabase.from('competencias').select('id').eq('status', 'aberta')
+  // as DELE: o dono de escritório enxerga as competências dos membros pela
+  // policy de leitura, e recalcular a de outro corretor estoura no RLS
+  const { data: abertas } = await supabase.from('competencias')
+    .select('id').eq('status', 'aberta').eq('corretor_id', user.id)
   for (const c of abertas ?? []) await recalcularCompetencia(supabase, c.id)
   return { ok: true as const }
 }
