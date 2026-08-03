@@ -1,39 +1,21 @@
-'use client'
-import { useState } from 'react'
-import { toast } from 'sonner'
 import { Check, Building2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { criarEscritorio } from '@/lib/actions/escritorio'
+import { CapturaLead } from '@/components/captura-lead'
 import { PLANO_ESCRITORIO, INCLUSO_ESCRITORIO } from '@/lib/assinatura/plano'
 
 /**
  * O que aparece para quem ainda não tem escritório.
  *
- * O mesmo argumento da landing, com uma saída a mais: criar o escritório
- * agora. Criar não custa nada e não liga cobrança nenhuma — o texto deixa
- * claro que a ativação é conversada, porque um botão que parece contratar
- * algo "sob medida" sem falar com ninguém gera desconfiança, não conversão.
+ * O mesmo argumento da landing, terminando num pedido de contato — não num
+ * botão de criar.
+ *
+ * Criar era livre e o painel do dono abria inteiro com a assinatura pendente:
+ * dava para montar a equipe e usar o Enterprise sem passar por cobrança
+ * nenhuma. Tapar isso trancando o painel depois de criado seria pior — a
+ * pessoa faz o trabalho de cadastrar a equipe para encontrar uma porta
+ * fechada no fim. O escritório passa a nascer do acerto comercial: a gente
+ * cria e ativa junto, e ninguém monta nada para depois descobrir o preço.
  */
-export function PitchEscritorio() {
-  const [nome, setNome] = useState('')
-  const [criando, setCriando] = useState(false)
-  const [abriuForm, setAbriuForm] = useState(false)
-
-  async function criar(e: React.FormEvent) {
-    e.preventDefault()
-    setCriando(true)
-    const r = await criarEscritorio(nome)
-    if (!r.ok) {
-      toast.error(r.erro)
-      setCriando(false)
-      return
-    }
-    // recarrega: a página é server component e decide a tela pelo vínculo
-    window.location.assign('/app/escritorio')
-  }
-
+export function PitchEscritorio({ email }: { email?: string }) {
   return (
     <div className="space-y-4">
       <section className="entra-suave space-y-4 rounded-lg border bg-card p-4 md:p-5">
@@ -56,28 +38,13 @@ export function PitchEscritorio() {
       </section>
 
       <section className="entra-suave space-y-3 rounded-lg border bg-card p-4 md:p-5">
-        {abriuForm ? (
-          <form onSubmit={criar} className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="nome-escritorio">Nome do escritório</Label>
-              <Input id="nome-escritorio" value={nome} onChange={e => setNome(e.target.value)}
-                placeholder="Consórcios Silva" required />
-            </div>
-            <Button type="submit" size="toque" className="w-full" disabled={criando}>
-              {criando ? 'Criando…' : 'Criar escritório'}
-            </Button>
-          </form>
-        ) : (
-          <>
-            <p className="text-sm text-muted-foreground">
-              Crie o seu escritório agora e monte a equipe. O plano é sob medida:
-              a gente conversa antes de qualquer cobrança, e nada é cobrado até lá.
-            </p>
-            <Button type="button" size="toque" className="w-full" onClick={() => setAbriuForm(true)}>
-              Criar meu escritório
-            </Button>
-          </>
-        )}
+        <p className="text-sm text-muted-foreground">
+          O plano é sob medida: o preço depende do tamanho da equipe. Deixe seu
+          contato que a gente conversa, monta o escritório com você e ativa
+          tudo junto.
+        </p>
+        <CapturaLead origem="escritorio" empilhado emailInicial={email}
+          rotulo="Quero falar sobre o Enterprise" />
       </section>
     </div>
   )

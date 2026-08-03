@@ -39,16 +39,12 @@ type Resultado<T = undefined> =
   | (T extends undefined ? { ok: true } : { ok: true; dados: T })
   | { ok: false; erro: string }
 
-export async function criarEscritorio(nome: string): Promise<Resultado> {
-  try {
-    const supabase = await createClient()
-    const { error } = await supabase.rpc('criar_escritorio', { p_nome: nome })
-    if (error) return { ok: false, erro: traduzir(error.message, 'Não foi possível criar o escritório.') }
-    return { ok: true }
-  } catch (e) {
-    return { ok: false, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
-  }
-}
+/*
+ * Não existe `criarEscritorio` aqui, e não é esquecimento: escritório nasce do
+ * acerto comercial, criado pelo admin com `criar_escritorio_para` (README,
+ * seção Enterprise). O `criar_escritorio` do banco continua no lugar, mas sem
+ * execute para `authenticated` — a porta fechada é a do banco, não a da tela.
+ */
 
 export async function convidar(email: string): Promise<Resultado<{ token: string }>> {
   try {

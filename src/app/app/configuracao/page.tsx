@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { configEfetiva } from '@/lib/actions/recalcular'
 import { ConfigForm } from '@/components/config-form'
 import { CabecalhoPagina } from '@/components/ui/cabecalho-pagina'
-import { MetasDoCorretor } from '@/components/escritorio/metas-do-corretor'
 import { RegrasVigentes } from '@/components/escritorio/regras-vigentes'
 import type { Faixa, PoliticaEstorno } from '@/lib/domain/types'
 
@@ -64,7 +63,6 @@ export default async function ConfiguracaoPage() {
             )}
           </span>
         </div>
-        <MetasDoCorretor />
         <RegrasVigentes
           faixas={efetiva.faixas as Faixa[]}
           diaFechamento={efetiva.dia_fechamento}

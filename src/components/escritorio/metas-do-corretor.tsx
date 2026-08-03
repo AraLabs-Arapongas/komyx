@@ -25,13 +25,22 @@ export function MetasDoCorretor() {
 
   const minha = data.minhaMetaCentavos ?? 0
   const casa = data.metaCasaCentavos ?? 0
-  if (minha <= 0 && casa <= 0) return null
 
   return (
     <section className="space-y-3">
+      {/* só o mês: a página já se chama Metas, e repetir a palavra a dois
+          centímetros do título faz a tela gaguejar */}
       <h2 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-        <Target size={16} /> Metas de {formatMesAno(ano, mes)}
+        <Target size={16} /> {formatMesAno(ano, mes)}
       </h2>
+
+      {/* mês sem meta é o estado normal de quem entrou agora, não um erro:
+          a tela diz de quem é a decisão e para por aí */}
+      {minha <= 0 && casa <= 0 && (
+        <p className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
+          O {data.escritorio} ainda não definiu metas para este mês.
+        </p>
+      )}
 
       {minha > 0 && (
         <BarraMeta titulo="Sua meta" realizadoCentavos={data.meuTotalCentavos} metaCentavos={minha}

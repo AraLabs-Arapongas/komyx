@@ -22,12 +22,14 @@ export default async function PerfilPage() {
    * sem nada a ajustar: um escritório sem política definida ainda deixa cada
    * corretor com as regras dele.
    */
-  const [{ data: perfil }, efetiva] = await Promise.all([
+  const [{ data: perfil }, efetiva, { data: vinculo }] = await Promise.all([
     supabase.from('profiles').select('nome').eq('id', user?.id ?? '').single(),
     configEfetiva(supabase),
+    supabase.rpc('meu_escritorio'),
   ])
 
   const nome = perfil?.nome?.trim() || 'Corretor'
+  const papel = (vinculo as { papel?: string } | null)?.papel
 
   return (
     <LayoutAba
@@ -44,7 +46,8 @@ export default async function PerfilPage() {
         </div>
       }
     >
-      <MenuPerfil politicaDoEscritorio={efetiva?.escritorio_id != null} />
+      <MenuPerfil politicaDoEscritorio={efetiva?.escritorio_id != null}
+        ehMembro={papel === 'corretor'} />
 
       {/* mesma confirmação do ícone da barra superior: dois caminhos para a
           mesma saída, uma pergunta só */}

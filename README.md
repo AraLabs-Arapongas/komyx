@@ -99,19 +99,34 @@ proibido, então esquecer é o caminho seguro.
 
 ## Enterprise (escritórios)
 
-A venda é conversada — não há checkout. O dono cria o escritório pelo app
-(Perfil → Escritório), monta a equipe por link de convite, e o admin ativa a
-assinatura depois do acerto comercial:
+A venda é conversada — não há checkout, e **ninguém cria escritório sozinho**.
+No app, Perfil → Escritório mostra o argumento e recolhe o contato
+(`leads`, `origem = 'escritorio'`). Depois do acerto, o admin cria com a
+service_role:
 
 ```sql
-update escritorios set assinatura_status = 'ativa',
-  assinatura_ate = now() + interval '1 month 3 days'
+select criar_escritorio_para('dono@email.com', 'Consórcios Silva', 1);
+```
+
+Nasce `ativa`, com o dono já como membro. A partir daí ele monta a equipe
+sozinho, por link de convite.
+
+Isso é um portão de verdade e não só um botão escondido: `criar_escritorio`
+não tem execute para `authenticated`. Antes tinha, o painel do dono abria
+inteiro com a assinatura pendente, e dava para usar o Enterprise sem pagar.
+
+Renovar é estender a data; encerrar é trocar o status:
+
+```sql
+update escritorios set assinatura_ate = now() + interval '1 month 3 days'
 where nome = '<nome>';
+
+update escritorios set assinatura_status = 'encerrada' where nome = '<nome>';
 ```
 
 Enquanto o escritório está `ativa`, os membros não pagam o plano individual
-(`avaliarAcesso`, motivo `escritorio`). Encerrar é trocar o status para
-`encerrada` — cada corretor volta na hora para o próprio teste ou assinatura.
+(`avaliarAcesso`, motivo `escritorio`). Encerrado, cada corretor volta na hora
+para o próprio teste ou assinatura.
 
 O dono lê a produção dos membros por políticas adicionais de RLS com corte
 temporal: só vendas com data dentro do período do vínculo. Quem sai leva os

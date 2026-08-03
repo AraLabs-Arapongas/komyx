@@ -744,6 +744,10 @@ export type Database = {
         }
       }
       criar_escritorio: { Args: { p_nome: string }; Returns: string }
+      criar_escritorio_para: {
+        Args: { p_email: string; p_meses?: number; p_nome: string }
+        Returns: string
+      }
       desmarcar_recebido: {
         Args: { p_recebimento_id: string }
         Returns: undefined
