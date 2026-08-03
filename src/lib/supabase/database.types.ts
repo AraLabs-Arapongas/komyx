@@ -304,6 +304,7 @@ export type Database = {
           criado_em: string
           dono_id: string
           id: string
+          limite_corretores: number
           nome: string
         }
         Insert: {
@@ -312,6 +313,7 @@ export type Database = {
           criado_em?: string
           dono_id: string
           id?: string
+          limite_corretores?: number
           nome: string
         }
         Update: {
@@ -320,6 +322,7 @@ export type Database = {
           criado_em?: string
           dono_id?: string
           id?: string
+          limite_corretores?: number
           nome?: string
         }
         Relationships: [
@@ -745,7 +748,12 @@ export type Database = {
       }
       criar_escritorio: { Args: { p_nome: string }; Returns: string }
       criar_escritorio_para: {
-        Args: { p_email: string; p_meses?: number; p_nome: string }
+        Args: {
+          p_corretores?: number
+          p_email: string
+          p_meses?: number
+          p_nome: string
+        }
         Returns: string
       }
       desmarcar_recebido: {
@@ -819,6 +827,7 @@ export type Database = {
         Returns: Json
       }
       sair_do_escritorio: { Args: never; Returns: undefined }
+      vagas_ocupadas: { Args: { p_escritorio: string }; Returns: number }
       ver_convite: { Args: { p_token: string }; Returns: Json }
       volume_do_escritorio: {
         Args: { p_ano: number; p_mes: number }

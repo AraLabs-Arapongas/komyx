@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Copy, MessageCircle, Trash2, UserPlus } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useEquipe, type Membro } from '@/lib/queries/escritorio'
 import { queryKeys } from '@/lib/queries/keys'
 import { convidar, revogarConvite, removerMembro } from '@/lib/actions/escritorio'
@@ -85,29 +86,54 @@ export function Equipe() {
   const ativos = data?.membros.filter(m => !m.saiu_em) ?? []
   const antigos = data?.membros.filter(m => m.saiu_em) ?? []
 
+  /*
+   * As vagas do plano. Mesma conta de `vagas_ocupadas` no banco: o dono não
+   * ocupa vaga, e convite pendente ocupa — ele vira corretor a um clique de
+   * distância, e não contá-lo deixaria o dono estourar o plano sem saber.
+   */
+  const limite = data?.limiteCorretores ?? null
+  const ocupadas = ativos.filter(m => m.papel === 'corretor').length + (data?.convites.length ?? 0)
+  const lotado = limite !== null && ocupadas >= limite
+
   return (
     <div className="space-y-4">
       {/* convidar */}
       <section className="entra-suave space-y-3 rounded-lg border bg-card p-4 md:p-5">
         <div className="flex items-start gap-2.5">
           <UserPlus size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
-          <div className="space-y-1">
+          <div className="min-w-0 flex-1 space-y-1">
             <h2 className="font-medium">Convidar corretor</h2>
             <p className="text-sm text-muted-foreground">
               Você recebe um link para mandar pelo WhatsApp. Quem abrir entra na equipe.
             </p>
           </div>
+          {/* as vagas ficam junto do título, não escondidas numa mensagem de
+              erro depois do envio: convite pendente ocupa vaga, e quem não vê
+              isso dispara três links achando que só um contava */}
+          {limite !== null && (
+            <p className={cn('shrink-0 text-xs font-medium',
+              lotado ? 'text-destructive' : 'text-muted-foreground')}>
+              {ocupadas} de {limite} vagas
+            </p>
+          )}
         </div>
         <form onSubmit={enviarConvite} className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="email-convite">E-mail do corretor</Label>
             <Input id="email-convite" type="email" required value={email}
               onChange={e => setEmail(e.target.value)} placeholder="corretor@email.com"
-              inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
+              inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+              disabled={lotado} />
           </div>
-          <Button type="submit" size="toque" className="w-full" disabled={convidando}>
+          <Button type="submit" size="toque" className="w-full" disabled={convidando || lotado}>
             {convidando ? 'Criando…' : 'Criar convite'}
           </Button>
+          {lotado && (
+            <p className="text-sm text-muted-foreground">
+              O plano está cheio. Remova alguém da equipe, revogue um convite
+              pendente, ou fale com a gente para abrir mais vagas.
+            </p>
+          )}
         </form>
       </section>
 

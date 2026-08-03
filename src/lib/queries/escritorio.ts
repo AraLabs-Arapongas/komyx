@@ -74,18 +74,22 @@ export function useEquipe() {
     queryKey: queryKeys.equipe,
     queryFn: async () => {
       const supabase = createClient()
-      const [membros, convites] = await Promise.all([
+      const [membros, convites, plano] = await Promise.all([
         supabase.rpc('membros_do_escritorio'),
         supabase.from('convites_escritorio')
           .select('id, email, token, status, criado_em, expira_em')
           .eq('status', 'pendente')
           .order('criado_em', { ascending: false }),
+        // o tamanho contratado: a tela de equipe precisa dizer quantas vagas
+        // sobraram antes de o dono digitar o e-mail e levar um erro
+        supabase.from('escritorios').select('limite_corretores').maybeSingle(),
       ])
       if (membros.error) throw membros.error
       if (convites.error) throw convites.error
       return {
         membros: (membros.data ?? []) as Membro[],
         convites: (convites.data ?? []) as Convite[],
+        limiteCorretores: plano.data?.limite_corretores ?? null,
       }
     },
   })

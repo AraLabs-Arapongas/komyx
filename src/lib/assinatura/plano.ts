@@ -35,15 +35,21 @@ export const INCLUSO = [
  * inversa — quanto a equipe produziu, quanto sai de repasse, quem está perto
  * de virar de faixa — e ela não cabe numa conta de corretor.
  *
- * O módulo existe (escritório, equipe, políticas, metas, faixa por acumulado
- * da equipe), mas a venda continua conversada: sem preço público e sem
- * checkout, a ativação é manual — ver a seção Enterprise do README.
+ * Preço fechado, sem checkout: o escritório nasce do acerto comercial (README,
+ * seção Enterprise). O limite de corretores é do banco, não deste arquivo —
+ * `escritorios.limite_corretores` — porque quem vende pode combinar outro,
+ * e um número escrito aqui não seguraria nada de qualquer jeito.
  */
 export const PLANO_ESCRITORIO = {
   nome: 'Komyx Enterprise',
   chamada: 'Para o escritório e a equipe dele',
-  /** sem preço enquanto não houver produto para cobrar */
-  preco: 'Sob medida',
+  precoCentavos: 30000,
+  moeda: 'R$',
+  valor: '300',
+  periodo: '/mês',
+  /** o padrão de `escritorios.limite_corretores`; o dono não ocupa vaga */
+  corretoresInclusos: 10,
+  preco: 'R$ 300/mês',
   /*
    * Não é o individual multiplicado por corretor: é mais caro, e o que
    * justifica está na frase — o dono passa a enxergar a produção de cada um
@@ -54,6 +60,7 @@ export const PLANO_ESCRITORIO = {
 } as const
 
 export const INCLUSO_ESCRITORIO = [
+  'O dono não ocupa vaga: as 10 são todas de corretor',
   'Tudo do plano individual, para cada corretor da equipe',
   'Painel do escritório: produção do mês por corretor, administradora e produto',
   'As políticas de comissão configuradas pelo escritório: uma para todos ou uma para cada corretor',

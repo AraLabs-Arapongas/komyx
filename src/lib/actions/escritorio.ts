@@ -24,6 +24,7 @@ const ERROS: Record<string, string> = {
   dono_nao_sai: 'O dono não pode sair do próprio escritório.',
   nao_e_dono: 'Só o dono do escritório pode ver isto.',
   sem_vinculo: 'Você não faz parte de nenhum escritório.',
+  limite_de_corretores: 'Seu plano já está cheio. Remova alguém da equipe ou fale com a gente para abrir mais vagas.',
   nome_obrigatorio: 'Dê um nome ao escritório.',
   sem_sessao: 'Sessão expirada. Entre novamente.',
 }

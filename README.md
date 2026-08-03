@@ -99,17 +99,34 @@ proibido, então esquecer é o caminho seguro.
 
 ## Enterprise (escritórios)
 
+**R$ 300/mês para até 10 corretores.** O dono não ocupa vaga: ele é membro
+(papel `dono`) para que `meu_escritorio()` o encontre, mas quem conta contra o
+plano são os corretores.
+
 A venda é conversada — não há checkout, e **ninguém cria escritório sozinho**.
-No app, Perfil → Escritório mostra o argumento e recolhe o contato
+No app, Perfil → Escritório mostra o preço e recolhe o contato
 (`leads`, `origem = 'escritorio'`). Depois do acerto, o admin cria com a
 service_role:
 
 ```sql
-select criar_escritorio_para('dono@email.com', 'Consórcios Silva', 1);
+-- e-mail do dono, nome, meses pagos, corretores contratados
+select criar_escritorio_para('dono@email.com', 'Consórcios Silva', 1, 10);
 ```
 
 Nasce `ativa`, com o dono já como membro. A partir daí ele monta a equipe
 sozinho, por link de convite.
+
+Vender mais vagas é um update — o limite mora na linha do escritório, não no
+código:
+
+```sql
+update escritorios set limite_corretores = 20 where nome = '<nome>';
+```
+
+O limite é defendido nas duas pontas: um trigger barra o convite que não cabe
+e `aceitar_convite` recheca na hora do clique, porque o link vale catorze dias
+e a vaga pode ter sumido nesse meio-tempo. **Convite pendente ocupa vaga** —
+senão o dono dispara quinze links e o erro cai em quem não pode resolvê-lo.
 
 Isso é um portão de verdade e não só um botão escondido: `criar_escritorio`
 não tem execute para `authenticated`. Antes tinha, o painel do dono abria

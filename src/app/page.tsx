@@ -478,8 +478,17 @@ export default function LandingPage() {
                 <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Building2 size={16} /> {PLANO_ESCRITORIO.nome}
                 </p>
-                <p className="mt-2 text-4xl font-bold tracking-tight">{PLANO_ESCRITORIO.preco}</p>
-                <p className="mt-3 text-sm text-muted-foreground">{PLANO_ESCRITORIO.apoio}</p>
+                {/* mesma composição do cartão individual: os dois preços ficam
+                    lado a lado e precisam ser comparáveis de relance */}
+                <p className="mt-2 flex items-baseline justify-center gap-1">
+                  <span className="text-lg text-muted-foreground">{PLANO_ESCRITORIO.moeda}</span>
+                  <span className="text-5xl font-bold tracking-tight">{PLANO_ESCRITORIO.valor}</span>
+                  <span className="text-lg text-muted-foreground">{PLANO_ESCRITORIO.periodo}</span>
+                </p>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Para até {PLANO_ESCRITORIO.corretoresInclusos} corretores.
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{PLANO_ESCRITORIO.apoio}</p>
 
                 <ul className="mt-8 flex-1 space-y-3 text-left text-sm">
                   {INCLUSO_ESCRITORIO.map(item => (
@@ -491,19 +500,17 @@ export default function LandingPage() {
                 </ul>
 
                 {/*
-                  Venda conversada, e não botão de assinar: preço por corretor
-                  com desconto por volume não cabe num checkout, e cada
-                  escritório paga a equipe de um jeito.
-
-                  ⚠️ O módulo ainda não foi construído — ver o aviso em
-                  PLANO_ESCRITORIO. Quem atender estes leads precisa saber
-                  disso antes de combinar prazo com alguém.
+                  Preço fechado, mas sem botão de assinar: o escritório é criado
+                  pelo admin depois da conversa, com a equipe montada junto (ver
+                  README, seção Enterprise). Um checkout aqui entregaria um
+                  painel vazio para alguém que ainda não sabe convidar ninguém.
                 */}
                 <div className="mt-8 space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    Conte como seu escritório paga a equipe e a gente monta o plano com você.
+                    Deixe seu contato: a gente monta o escritório com você e ativa tudo junto.
                   </p>
-                  <CapturaLead origem="escritorio" empilhado />
+                  <CapturaLead origem="escritorio" empilhado
+                    rotulo="Quero o Enterprise" />
                 </div>
               </div>
             </div>
