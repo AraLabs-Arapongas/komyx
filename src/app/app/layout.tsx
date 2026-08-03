@@ -28,8 +28,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
    * É a escolha entre dar alguns dias de graça e trancar o corretor fora do
    * app numa tela cujo botão de pagar não funciona. O primeiro custa dinheiro;
    * o segundo custa o cliente.
+   *
+   * Em desenvolvimento ele fecha de qualquer jeito, senão a tela não teria
+   * como ser testada antes de existirem chaves. A volta é o botão de bastidor
+   * dentro do próprio portão — sem ele, simular o fim do teste trancaria o
+   * menu que criou a situação.
    */
-  if (!acesso.liberado && stripeConfigurado()) {
+  const portaoVale = stripeConfigurado() || process.env.NODE_ENV !== 'production'
+  if (!acesso.liberado && portaoVale) {
     return (
       <Providers>
         <PortaoAssinatura motivo={acesso.motivo} />

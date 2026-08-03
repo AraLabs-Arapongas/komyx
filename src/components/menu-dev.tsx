@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { refazerOnboarding } from '@/lib/actions/dev'
 import { OnboardingWizard } from '@/components/onboarding-wizard'
 import { Confete } from '@/components/confete'
+import { SimuladorAssinatura } from '@/components/dev-assinatura'
 import { Button } from '@/components/ui/button'
 
 type Preview = 'boas-vindas' | 'conclusao' | null
@@ -78,6 +79,8 @@ export function MenuDev() {
           </Button>
         </div>
       </div>
+
+      <SimuladorAssinatura />
 
       <div className="space-y-2 border-t pt-3">
         <p className="text-sm font-medium">Refazer onboarding</p>

@@ -3,6 +3,7 @@ import { CartaoPlano } from '@/components/cartao-plano'
 import { BotaoAssinar } from '@/components/botoes-assinatura'
 import { BotaoBaixarDados } from '@/components/botao-baixar-dados'
 import { BotaoSair } from '@/components/botao-sair'
+import { BotaoVoltarAoTeste } from '@/components/dev-assinatura'
 import { PLANO } from '@/lib/assinatura/plano'
 
 /**
@@ -48,6 +49,9 @@ export function PortaoAssinatura({ motivo }: { motivo: 'teste_acabou' | 'assinat
               assinar precisa dos dados dele hoje, não depois de insistir */}
           <BotaoBaixarDados variant="outline" />
           <BotaoSair variante="botao" />
+          {/* NODE_ENV é substituído em tempo de build: em produção este trecho
+              nem chega ao pacote */}
+          {process.env.NODE_ENV !== 'production' && <BotaoVoltarAoTeste />}
         </div>
       </div>
     </main>
