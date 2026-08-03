@@ -94,7 +94,7 @@ export default async function AssinaturaPage({ searchParams }: {
 
 /** A frase que resume onde a conta está, com o ícone que dá o tom. */
 function EstadoAtual({ motivo, diasRestantes, cancelaNoFim, ate, fimDoTeste }: {
-  motivo: 'assinatura' | 'teste' | 'cobranca_falhou' | 'teste_acabou' | 'assinatura_acabou'
+  motivo: 'assinatura' | 'teste' | 'cobranca_falhou' | 'indefinido' | 'teste_acabou' | 'assinatura_acabou'
   diasRestantes: number
   cancelaNoFim: boolean
   ate: string | null
@@ -125,6 +125,13 @@ function EstadoAtual({ motivo, diasRestantes, cancelaNoFim, ate, fimDoTeste }: {
       icone: TriangleAlert, tom: 'text-[#B45309]',
       titulo: 'Não conseguimos cobrar seu cartão',
       apoio: 'Vamos tentar de novo nos próximos dias. Atualize os dados no portal para não perder o acesso.',
+    },
+    /* leitura do perfil falhou, ou é conta anterior ao teste existir. Não
+       inventa prazo nem cobrança: diz que está liberada, que é o que se sabe */
+    indefinido: {
+      icone: CheckCircle2, tom: 'text-money',
+      titulo: 'Sua conta está liberada',
+      apoio: 'Nenhuma cobrança em aberto.',
     },
     teste_acabou: {
       icone: TriangleAlert, tom: 'text-[#B45309]',

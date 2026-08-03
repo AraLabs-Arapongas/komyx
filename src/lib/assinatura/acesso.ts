@@ -21,6 +21,8 @@ export type Acesso =
   | { liberado: true; motivo: 'assinatura' }
   | { liberado: true; motivo: 'teste'; diasRestantes: number }
   | { liberado: true; motivo: 'cobranca_falhou' }
+  /** não deu para saber; libera e não afirma nada */
+  | { liberado: true; motivo: 'indefinido' }
   | { liberado: false; motivo: 'teste_acabou' }
   | { liberado: false; motivo: 'assinatura_acabou' }
 
@@ -60,9 +62,15 @@ export function avaliarAcesso(estado: EstadoAssinatura | null, agora: Date = new
 
   const fimDoTeste = estado?.trial_termina_em ? new Date(estado.trial_termina_em) : null
   if (!fimDoTeste || Number.isNaN(fimDoTeste.getTime())) {
-    // Perfil antigo, de antes da coluna existir. Liberar: o portão não pode
-    // ser a primeira coisa que um dado faltando quebra.
-    return { liberado: true, motivo: 'teste', diasRestantes: 0 }
+    /*
+     * Sem data de teste não há o que afirmar: pode ser um perfil de antes da
+     * coluna existir, ou a leitura do perfil ter falhado. Libera e cala.
+     *
+     * O caso importa: tratar isto como "teste com 0 dias restantes" acendia a
+     * tarja de aviso em todas as telas, dizendo a quem está pagando que o
+     * teste dele acabou. Dado que falta não vira alarme.
+     */
+    return { liberado: true, motivo: 'indefinido' }
   }
 
   const restante = fimDoTeste.getTime() - agora.getTime()

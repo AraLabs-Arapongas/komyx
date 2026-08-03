@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { avaliarAcesso, deveAvisarDoTeste, type EstadoAssinatura } from './acesso'
+import { avaliarAcesso, deveAvisarDoTeste, temAvisoDeAssinatura, type EstadoAssinatura } from './acesso'
 
 const AGORA = new Date('2026-08-01T12:00:00Z')
 
@@ -71,9 +71,12 @@ describe('avaliarAcesso', () => {
     expect(a.liberado).toBe(true)
   })
 
-  it('libera perfil sem nenhum dado de assinatura', () => {
-    expect(avaliarAcesso(null, AGORA).liberado).toBe(true)
-    expect(avaliarAcesso(estado({}), AGORA).liberado).toBe(true)
+  it('libera perfil sem nenhum dado de assinatura, e sem alarme', () => {
+    // a leitura do perfil pode ter falhado; dizer "seu teste acabou" para quem
+    // está pagando é o pior palpite possível
+    for (const entrada of [null, estado({}), estado({ trial_termina_em: 'lixo' })]) {
+      expect(avaliarAcesso(entrada, AGORA)).toEqual({ liberado: true, motivo: 'indefinido' })
+    }
   })
 })
 
@@ -86,5 +89,10 @@ describe('deveAvisarDoTeste', () => {
 
   it('não avisa quem já assinou', () => {
     expect(deveAvisarDoTeste({ liberado: true, motivo: 'assinatura' })).toBe(false)
+  })
+
+  it('não avisa quando não se sabe', () => {
+    expect(deveAvisarDoTeste({ liberado: true, motivo: 'indefinido' })).toBe(false)
+    expect(temAvisoDeAssinatura({ liberado: true, motivo: 'indefinido' })).toBe(false)
   })
 })
