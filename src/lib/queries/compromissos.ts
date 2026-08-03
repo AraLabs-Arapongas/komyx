@@ -49,20 +49,24 @@ function daLinha(l: Linha): Compromisso {
 }
 
 /**
- * Tudo que está em aberto, mais os concluídos recentes.
+ * Os compromissos de um intervalo de dias.
  *
- * Feito some da lista? Não: quem acabou de marcar precisa ver que marcou, e
- * quem abre o app depois quer saber o que já resolveu esta semana. O que sai
- * de cena é o histórico antigo, que ninguém rola atrás.
+ * Por intervalo, e não "os abertos": a grade de mês precisa mostrar o mês
+ * inteiro, inclusive o que já foi feito — um calendário que esconde o passado
+ * mente sobre onde o tempo foi. Quem quer só o que está em aberto filtra
+ * depois, que é barato para dezenas de linhas.
+ *
+ * A janela costuma cobrir mais que a tela pede, para trocar de mês não
+ * disparar uma consulta por clique.
  */
-export function useCompromissos(desde: string) {
+export function useCompromissos(de: string, ate: string) {
   return useQuery({
-    queryKey: queryKeys.compromissos(desde),
+    queryKey: queryKeys.compromissos(de, ate),
     queryFn: async (): Promise<Compromisso[]> => {
       const supabase = createClient()
       const { data, error } = await supabase.from('compromissos')
         .select('id, corretor_id, titulo, data, hora, nota, concluido_em, cliente_id, clientes(nome)')
-        .or(`concluido_em.is.null,data.gte.${desde}`)
+        .gte('data', de).lte('data', ate)
         .order('data', { ascending: true })
         .order('hora', { ascending: true, nullsFirst: true })
       if (error) throw error

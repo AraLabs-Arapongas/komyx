@@ -281,4 +281,30 @@
   html {
     @apply font-sans;
   }
+
+  /*
+   * Mãozinha em tudo que responde ao clique.
+   *
+   * O padrão do navegador para <button> é a seta, e o Tailwind não mexe nisso.
+   * Resultado: metade da interface não avisava que era clicável, e a outra
+   * metade avisava — porque alguns componentes traziam `cursor-pointer` na mão
+   * e outros não. Resolver aqui vale mais que espalhar a classe: componente
+   * novo nasce certo sem ninguém lembrar.
+   *
+   * `:disabled` fica de fora de propósito: quem não pode ser clicado não deve
+   * convidar o clique.
+   */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='menuitem'],
+  [role='option'],
+  [role='tab'],
+  a[href],
+  summary,
+  label:has(> input[type='checkbox']),
+  label:has(> input[type='radio']),
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled) {
+    cursor: pointer;
+  }
 }
