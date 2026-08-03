@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Clock, Users } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, SlidersHorizontal, Target, Users } from 'lucide-react'
 import { usePainelEscritorio } from '@/lib/queries/escritorio'
 import { proximaCompetencia } from '@/lib/engine/calendario'
 import { Valor } from '@/components/valor'
@@ -85,15 +85,35 @@ export function PainelEscritorio({ status }: { status: 'ativa' | 'encerrada' | n
               {data ? `${data.total.nVendas} venda${data.total.nVendas === 1 ? '' : 's'}` : ''}
             </p>
           </div>
+          {data?.metaCasaCentavos != null && data.metaCasaCentavos > 0 && (
+            <div className="mt-3">
+              <div className="h-1.5 overflow-hidden rounded-full bg-white/20">
+                <div className="h-full rounded-full bg-money-claro transition-all"
+                  style={{ width: `${Math.min(100, Math.round(data.total.totalCentavos / data.metaCasaCentavos * 100))}%` }} />
+              </div>
+              <p className="mt-1 text-[11px] text-white/75">
+                {Math.round(data.total.totalCentavos / data.metaCasaCentavos * 100)}% da meta do mês
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Por corretor</h2>
+      {/* os atalhos da área, visíveis em qualquer largura: no celular não há
+          menu lateral, e é daqui que se chega à equipe, às políticas e às metas */}
+      <div className="flex flex-wrap gap-2">
         <Button asChild variant="outline" size="sm">
           <Link href="/app/escritorio/equipe"><Users size={16} /> Equipe</Link>
         </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/app/escritorio/politicas"><SlidersHorizontal size={16} /> Políticas</Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/app/escritorio/metas"><Target size={16} /> Metas</Link>
+        </Button>
       </div>
+
+      <h2 className="text-sm font-medium text-muted-foreground">Por corretor</h2>
 
       {isLoading || !data ? (
         <div className="space-y-3">
@@ -115,6 +135,9 @@ export function PainelEscritorio({ status }: { status: 'ativa' | 'encerrada' | n
                   <p className="text-xs text-muted-foreground">
                     {c.nVendas} venda{c.nVendas === 1 ? '' : 's'} · comissão <Valor centavos={c.comissaoCentavos} className="inline" />
                   </p>
+                  {c.metaCentavos != null && c.metaCentavos > 0 && (
+                    <BarraMeta atingido={c.totalCentavos} meta={c.metaCentavos} />
+                  )}
                 </div>
                 <Valor centavos={c.totalCentavos} className="shrink-0 text-sm font-semibold" />
               </div>
@@ -137,6 +160,20 @@ export function PainelEscritorio({ status }: { status: 'ativa' | 'encerrada' | n
           )}
         </>
       )}
+    </div>
+  )
+}
+
+/** Barra fina de meta: quanto do combinado já entrou. Verde ao bater. */
+function BarraMeta({ atingido, meta }: { atingido: number; meta: number }) {
+  const pct = Math.round(atingido / meta * 100)
+  return (
+    <div className="mt-1.5 flex items-center gap-2">
+      <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+        <div className={pct >= 100 ? 'h-full rounded-full bg-money' : 'h-full rounded-full bg-primary'}
+          style={{ width: `${Math.min(100, pct)}%` }} />
+      </div>
+      <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{pct}%</span>
     </div>
   )
 }

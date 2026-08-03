@@ -19,6 +19,8 @@ export type LinhaCorretor = {
   nVendas: number
   totalCentavos: number
   comissaoCentavos: number
+  /** nulo quando o mês não tem meta para este corretor */
+  metaCentavos: number | null
 }
 
 export type LinhaAgrupada = {
@@ -30,6 +32,7 @@ export type LinhaAgrupada = {
 
 export type PainelEscritorio = {
   total: { nVendas: number; totalCentavos: number; comissaoCentavos: number }
+  metaCasaCentavos: number | null
   porCorretor: LinhaCorretor[]
   porAdministradora: LinhaAgrupada[]
   porProduto: LinhaAgrupada[]
