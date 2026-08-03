@@ -73,10 +73,18 @@ function mapearErrosFaixas(issues: Issue[]): Record<number, ErroFaixa> {
   return mapa
 }
 
-export function ConfigForm({ modo, inicial }: {
+export function ConfigForm({ modo, inicial, salvarComo, aposSalvar }: {
   modo: 'onboarding' | 'edicao'
   inicial?: { nomePolitica: string; faixas: { max: number | null; percentual: number; parcelas: number; distribuicao?: number[] | null }[];
               diaFechamento: number; diaPrimeiroPagamento: number; politicaEstorno: PoliticaEstorno }
+  /*
+   * Grava em outro escopo — a política do escritório usa o mesmo formulário,
+   * porque as perguntas são idênticas; só muda de quem é a resposta. Sem isto
+   * a página de políticas duplicaria os quatro passos inteiros, e é
+   * exatamente a divergência que o design system existe para evitar.
+   */
+  salvarComo?: (payload: import('@/lib/domain/schemas').ConfigFinanceiraForm) => Promise<{ ok: boolean; erro?: string }>
+  aposSalvar?: () => void
 }) {
   const router = useRouter()
   const qc = useQueryClient()
@@ -263,10 +271,11 @@ export function ConfigForm({ modo, inicial }: {
       return
     }
     setSalvando(true)
-    const r = await salvarConfig(payload)
+    const r = await (salvarComo ?? salvarConfig)(payload)
     setSalvando(false)
-    if (!r.ok) { toast.error(r.erro); return }
+    if (!r.ok) { toast.error(r.erro ?? 'Não foi possível salvar.'); return }
     qc.invalidateQueries()
+    if (aposSalvar) { aposSalvar(); return }
     if (modo === 'onboarding') {
       toast.success('Tudo pronto! Agora é só registrar suas vendas.')
       // a navegação do app só aparece depois que existe configuração, e quem

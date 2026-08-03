@@ -1,5 +1,7 @@
 'use server'
 import { createClient } from '@/lib/supabase/server'
+import { configFinanceiraSchema, type ConfigFinanceiraForm } from '@/lib/domain/schemas'
+import { reconciliarCompetencias } from '@/lib/actions/recalcular'
 
 /**
  * As ações do módulo de escritório.
@@ -115,3 +117,115 @@ export async function sairDoEscritorio(): Promise<Resultado> {
     return { ok: false, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
   }
 }
+
+/**
+ * Grava a política de comissão do escritório — a geral (`aplicaA` nulo) ou a
+ * específica de um corretor.
+ *
+ * Mesmo versionamento da config pessoal: desativa a vigente do escopo e
+ * insere uma linha nova, nunca update — as competências fechadas guardam
+ * snapshot da versão que valia nelas.
+ *
+ * Os números dos membros NÃO são recalculados aqui: não há como, as policies
+ * escrevem com auth.uid(). Cada membro reconcilia na abertura seguinte do
+ * app. Os do próprio dono, que também é membro, reconciliam já.
+ */
+export async function salvarPoliticaEscritorio(
+  input: ConfigFinanceiraForm,
+  opts: { aplicaA?: string | null; faixaPorEscritorio?: boolean } = {},
+): Promise<Resultado> {
+  try {
+    const parsed = configFinanceiraSchema.safeParse(input)
+    if (!parsed.success)
+      return { ok: false, erro: parsed.error.issues[0]?.message ?? 'Dados inválidos.' }
+
+    const supabase = await createClient()
+    const { data: escritorioId } = await supabase.rpc('meu_escritorio_como_dono')
+    if (!escritorioId) return { ok: false, erro: ERROS.nao_e_dono }
+
+    const aplicaA = opts.aplicaA ?? null
+    const d = parsed.data
+
+    let desativar = supabase.from('config_financeira')
+      .update({ ativa: false }).eq('ativa', true).eq('escritorio_id', escritorioId)
+    desativar = aplicaA ? desativar.eq('aplica_a', aplicaA) : desativar.is('aplica_a', null)
+    const { error: e1 } = await desativar
+    if (e1) return { ok: false, erro: 'Não foi possível atualizar a política.' }
+
+    const { error: e2 } = await supabase.from('config_financeira').insert({
+      escritorio_id: escritorioId, aplica_a: aplicaA,
+      nome_politica: aplicaA ? 'Política específica' : 'Política do escritório',
+      faixas: d.faixas, dia_fechamento: d.diaFechamento,
+      dia_primeiro_pagamento: d.diaPrimeiroPagamento,
+      politica_estorno: d.politicaEstorno,
+      faixa_por_escritorio: opts.faixaPorEscritorio ?? false,
+      ativa: true,
+    })
+    if (e2) return { ok: false, erro: 'Não foi possível salvar a política.' }
+
+    await reconciliarCompetencias(supabase)
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
+  }
+}
+
+/**
+ * Desativa a política de um escopo. Quem dependia dela volta para a próxima
+ * da fila — a geral, ou a config própria de cada corretor.
+ */
+export async function removerPoliticaEscritorio(aplicaA: string | null): Promise<Resultado> {
+  try {
+    const supabase = await createClient()
+    const { data: escritorioId } = await supabase.rpc('meu_escritorio_como_dono')
+    if (!escritorioId) return { ok: false, erro: ERROS.nao_e_dono }
+
+    let q = supabase.from('config_financeira')
+      .update({ ativa: false }).eq('ativa', true).eq('escritorio_id', escritorioId)
+    q = aplicaA ? q.eq('aplica_a', aplicaA) : q.is('aplica_a', null)
+    const { error } = await q
+    if (error) return { ok: false, erro: 'Não foi possível remover a política.' }
+
+    await reconciliarCompetencias(supabase)
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
+  }
+}
+
+/**
+ * Metas do mês: a da casa (corretorId nulo) e as por corretor, numa gravação
+ * só. Apagar e reinserir em vez de upsert linha a linha — o formulário manda
+ * o mês inteiro, e meta zerada/apagada é linha que deixa de existir.
+ */
+export async function salvarMetas(
+  ano: number, mes: number,
+  metas: { corretorId: string | null; valorCentavos: number }[],
+): Promise<Resultado> {
+  try {
+    if (!Number.isInteger(ano) || !Number.isInteger(mes) || mes < 1 || mes > 12)
+      return { ok: false, erro: 'Mês inválido.' }
+    const supabase = await createClient()
+    const { data: escritorioId } = await supabase.rpc('meu_escritorio_como_dono')
+    if (!escritorioId) return { ok: false, erro: ERROS.nao_e_dono }
+
+    const { error: e1 } = await supabase.from('metas_escritorio')
+      .delete().eq('escritorio_id', escritorioId).eq('ano', ano).eq('mes', mes)
+    if (e1) return { ok: false, erro: 'Não foi possível salvar as metas.' }
+
+    const linhas = metas
+      .filter(m => Number.isInteger(m.valorCentavos) && m.valorCentavos > 0)
+      .map(m => ({
+        escritorio_id: escritorioId, corretor_id: m.corretorId,
+        ano, mes, valor_centavos: m.valorCentavos,
+      }))
+    if (linhas.length > 0) {
+      const { error: e2 } = await supabase.from('metas_escritorio').insert(linhas)
+      if (e2) return { ok: false, erro: 'Não foi possível salvar as metas.' }
+    }
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, erro: e instanceof Error ? e.message : 'Erro inesperado.' }
+  }
+}
+
