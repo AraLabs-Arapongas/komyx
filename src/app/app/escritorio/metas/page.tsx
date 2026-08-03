@@ -17,7 +17,8 @@ export default async function MetasPage() {
   return (
     <div className="coluna-formulario space-y-6 md:min-h-0">
       <CabecalhoPagina voltarPara="/app/escritorio" titulo="Metas"
-        apoio="Quanto o escritório e cada corretor devem vender no mês." />
+        apoio="Quanto o escritório e cada corretor devem vender."
+        aviso="A meta vale do mês em que começa até a próxima vigência. Assim você define uma vez e só volta aqui quando o número mudar — e o histórico continua medido pela meta que valia em cada mês." />
       <MetasEscritorio membros={ativos} />
     </div>
   )
