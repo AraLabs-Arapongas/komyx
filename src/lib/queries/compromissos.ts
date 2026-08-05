@@ -14,7 +14,6 @@ import { queryKeys } from '@/lib/queries/keys'
 
 export type Compromisso = {
   id: string
-  corretorId: string
   titulo: string
   data: string
   /** nulo = do dia, sem hora marcada */
@@ -27,7 +26,6 @@ export type Compromisso = {
 
 type Linha = {
   id: string
-  corretor_id: string
   titulo: string
   data: string
   hora: string | null
@@ -42,7 +40,7 @@ function daLinha(l: Linha): Compromisso {
   // infere; normalizar aqui evita espalhar o `Array.isArray` pela tela
   const cliente = Array.isArray(l.clientes) ? l.clientes[0] : l.clientes
   return {
-    id: l.id, corretorId: l.corretor_id, titulo: l.titulo, data: l.data,
+    id: l.id, titulo: l.titulo, data: l.data,
     hora: l.hora, nota: l.nota, concluidoEm: l.concluido_em,
     clienteId: l.cliente_id, clienteNome: cliente?.nome ?? null,
   }
@@ -65,7 +63,7 @@ export function useCompromissos(de: string, ate: string) {
     queryFn: async (): Promise<Compromisso[]> => {
       const supabase = createClient()
       const { data, error } = await supabase.from('compromissos')
-        .select('id, corretor_id, titulo, data, hora, nota, concluido_em, cliente_id, clientes(nome)')
+        .select('id, titulo, data, hora, nota, concluido_em, cliente_id, clientes(nome)')
         .gte('data', de).lte('data', ate)
         .order('data', { ascending: true })
         .order('hora', { ascending: true, nullsFirst: true })

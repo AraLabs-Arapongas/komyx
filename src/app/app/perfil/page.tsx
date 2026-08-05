@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { configEfetiva } from '@/lib/actions/recalcular'
 import { MenuPerfil } from '@/components/menu-perfil'
 import { BotaoSair } from '@/components/botao-sair'
 import { LayoutAba } from '@/components/ui/layout-aba'
@@ -13,23 +12,10 @@ import { AvatarInicial } from '@/components/ui/avatar-inicial'
 export default async function PerfilPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  /*
-   * A config efetiva decide o nome do primeiro item do menu.
-   *
-   * É a MESMA pergunta que a página de destino faz — sob política de
-   * escritório ela vira ficha de leitura. Perguntar o vínculo aqui e a
-   * política lá deixaria o menu prometer "Ajustes" para quem abre uma tela
-   * sem nada a ajustar: um escritório sem política definida ainda deixa cada
-   * corretor com as regras dele.
-   */
-  const [{ data: perfil }, efetiva, { data: vinculo }] = await Promise.all([
-    supabase.from('profiles').select('nome').eq('id', user?.id ?? '').single(),
-    configEfetiva(supabase),
-    supabase.rpc('meu_escritorio'),
-  ])
+  const { data: perfil } = await supabase.from('profiles')
+    .select('nome').eq('id', user?.id ?? '').single()
 
   const nome = perfil?.nome?.trim() || 'Corretor'
-  const papel = (vinculo as { papel?: string } | null)?.papel
 
   return (
     <LayoutAba
@@ -46,8 +32,7 @@ export default async function PerfilPage() {
         </div>
       }
     >
-      <MenuPerfil politicaDoEscritorio={efetiva?.escritorio_id != null}
-        ehMembro={papel === 'corretor'} />
+      <MenuPerfil />
 
       {/* mesma confirmação do ícone da barra superior: dois caminhos para a
           mesma saída, uma pergunta só */}

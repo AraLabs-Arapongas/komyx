@@ -68,12 +68,7 @@ export function DevEntrarComo() {
           {contas.map(c => (
             <SelectItem key={c.email} value={c.email}>
               {c.nome}
-              {c.papel && (
-                <span className="text-muted-foreground">
-                  {' · '}{c.papel === 'dono' ? 'dono' : 'corretor'}
-                  {c.escritorio ? ` d${c.escritorio.startsWith('A') ? 'a' : 'o'} ${c.escritorio}` : ''}
-                </span>
-              )}
+              <span className="text-muted-foreground">{' · '}{c.email}</span>
             </SelectItem>
           ))}
         </SelectContent>

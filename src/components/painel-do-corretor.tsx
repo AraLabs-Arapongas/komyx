@@ -112,12 +112,11 @@ export function PainelDoCorretor() {
   const { data: config } = useQuery({
     queryKey: queryKeys.config,
     queryFn: async () => {
-      // a efetiva: num escritório, o calendário que vale é o da política dele
-      const { data, error } = await createClient().rpc('config_efetiva')
+      const { data, error } = await createClient().from('config_financeira')
+        .select('*').eq('ativa', true).maybeSingle()
       if (error) throw error
-      const linha = (data ?? [])[0]
-      if (!linha) throw new Error('sem config')
-      return linha
+      if (!data) throw new Error('sem config')
+      return data
     },
   })
   const hoje = hojeSP()

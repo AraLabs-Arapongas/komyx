@@ -95,21 +95,11 @@ export function calcularCompetencia(input: {
   recebimentosExistentes: RecebimentoExistente[]
   /** data de hoje (YYYY-MM-DD) — define quais parcelas já caíram */
   hoje: string
-  /**
-   * Volume vendido pelos OUTROS na mesma competência — centavos.
-   *
-   * É a faixa pelo acumulado do escritório: quando a política manda, o que a
-   * equipe inteira vendeu no mês empurra a faixa de cada um. Só muda ONDE a
-   * faixa é achada; a comissão continua sendo o percentual sobre a carta de
-   * cada venda deste corretor, e as vendas dos outros nunca entram nas
-   * parcelas dele.
-   */
-  volumeExterno?: number
 }): ResultadoCalculo {
-  const { config, competencia, vendas, recebimentosExistentes, hoje, volumeExterno = 0 } = input
+  const { config, competencia, vendas, recebimentosExistentes, hoje } = input
   const confirmadas = vendas.filter(v => v.status === 'confirmada')
   const volume = confirmadas.reduce((s, v) => s + v.valorCartaCentavos, 0)
-  const faixa = localizarFaixa(config.faixas, volume + volumeExterno)
+  const faixa = localizarFaixa(config.faixas, volume)
 
   const comissoes: ComissaoResultado[] = []
   const recebimentosPrevistos: RecebimentoResultado[] = []

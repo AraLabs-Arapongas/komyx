@@ -8,10 +8,10 @@ import {
 import { Revela } from '@/components/landing/revela'
 import { EntradaHeader } from '@/components/landing/entrada-header'
 import { CurvaMarca } from '@/components/curva-marca'
-import { INCLUSO, INCLUSO_ESCRITORIO, PLANO, PLANO_ESCRITORIO } from '@/lib/assinatura/plano'
+import { INCLUSO, PLANO } from '@/lib/assinatura/plano'
 import {
   Calculator, CalendarClock, Undo2, Search, ShieldCheck, Download,
-  EyeOff, Sparkles, Check, X, Building2,
+  EyeOff, Sparkles, Check, X,
 } from 'lucide-react'
 
 /*
@@ -428,11 +428,9 @@ export default function LandingPage() {
           </p>
         </Revela>
 
-        {/* Dois cartões, pesos diferentes de propósito: o que dá para assinar
-            hoje fica na superfície da marca, e o que ainda não existe fica num
-            cartão comum. Igualar os dois faria a lista de espera parecer
-            produto pronto. */}
-        <div className="mx-auto mt-10 grid max-w-4xl items-stretch gap-5 md:grid-cols-2">
+        {/* um plano só: o cartão fica no meio, na superfície da marca, com a
+            largura de leitura de uma coluna */}
+        <div className="mx-auto mt-10 flex max-w-md items-stretch">
           <Revela atraso={140} className="flex">
             <div className="superficie-marca relative w-full overflow-hidden rounded-3xl p-1.5">
               <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(1.5rem-0.375rem)] border border-white/20 bg-white/10 px-6 py-10 text-white backdrop-blur-xl">
@@ -472,49 +470,6 @@ export default function LandingPage() {
             </div>
           </Revela>
 
-          <Revela atraso={220} className="flex">
-            <div className="flex w-full flex-col rounded-3xl border bg-card px-6 py-10">
-              <div className="flex flex-1 flex-col text-center">
-                <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Building2 size={16} /> {PLANO_ESCRITORIO.nome}
-                </p>
-                {/* mesma composição do cartão individual: os dois preços ficam
-                    lado a lado e precisam ser comparáveis de relance */}
-                <p className="mt-2 flex items-baseline justify-center gap-1">
-                  <span className="text-lg text-muted-foreground">{PLANO_ESCRITORIO.moeda}</span>
-                  <span className="text-5xl font-bold tracking-tight">{PLANO_ESCRITORIO.valor}</span>
-                  <span className="text-lg text-muted-foreground">{PLANO_ESCRITORIO.periodo}</span>
-                </p>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Para até {PLANO_ESCRITORIO.corretoresInclusos} corretores.
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">{PLANO_ESCRITORIO.apoio}</p>
-
-                <ul className="mt-8 flex-1 space-y-3 text-left text-sm">
-                  {INCLUSO_ESCRITORIO.map(item => (
-                    <li key={item} className="flex items-start gap-2.5">
-                      <Check size={18} className="mt-0.5 shrink-0 text-money" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/*
-                  Preço fechado, mas sem botão de assinar: o escritório é criado
-                  pelo admin depois da conversa, com a equipe montada junto (ver
-                  README, seção Enterprise). Um checkout aqui entregaria um
-                  painel vazio para alguém que ainda não sabe convidar ninguém.
-                */}
-                <div className="mt-8 space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    Deixe seu contato: a gente monta o escritório com você e ativa tudo junto.
-                  </p>
-                  <CapturaLead origem="escritorio" empilhado
-                    rotulo="Quero o Enterprise" />
-                </div>
-              </div>
-            </div>
-          </Revela>
         </div>
       </Secao>
 

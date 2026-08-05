@@ -20,14 +20,8 @@ const TONS = [
   'bg-[#5468F0]/12 text-[#3F4FCC]',
 ] as const
 
-/**
- * Soma dos códigos das letras: estável para o mesmo nome, espalhada o bastante.
- *
- * Exportada porque a agenda pinta o compromisso com a cor de quem ele é — e a
- * cor tem que ser a MESMA do avatar da pessoa nas outras telas, senão viram
- * dois códigos de cor concorrentes para a mesma equipe.
- */
-export function tomDoNome(nome: string): string {
+/** Soma dos códigos das letras: estável para o mesmo nome, espalhada o bastante. */
+function tomDoNome(nome: string): string {
   let soma = 0
   for (let i = 0; i < nome.length; i++) soma += nome.charCodeAt(i)
   return TONS[soma % TONS.length]

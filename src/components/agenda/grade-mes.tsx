@@ -1,5 +1,4 @@
 'use client'
-import { tomDoNome } from '@/components/ui/avatar-inicial'
 import { horaCurta } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Compromisso } from '@/lib/queries/compromissos'
@@ -37,15 +36,13 @@ export function diasDaGrade(ano: number, mes: number): string[] {
 }
 
 export function GradeMes({
-  ano, mes, hoje, selecionado, compromissos, euId, nomePorId, aoSelecionar, aoAbrir,
+  ano, mes, hoje, selecionado, compromissos, aoSelecionar, aoAbrir,
 }: {
   ano: number
   mes: number
   hoje: string
   selecionado: string
   compromissos: Compromisso[]
-  euId: string
-  nomePorId: Map<string, string>
   aoSelecionar: (data: string) => void
   aoAbrir: (c: Compromisso) => void
 }) {
@@ -101,17 +98,12 @@ export function GradeMes({
               </span>
 
               <span className="flex min-w-0 flex-col gap-0.5">
-                {cabem.map(c => {
-                  const dono = c.corretorId === euId ? null : nomePorId.get(c.corretorId) ?? null
-                  return (
+                {cabem.map(c => (
                     <span
                       key={c.id}
                       role="button"
                       tabIndex={0}
-                      // o nome por extenso no hover: a cor diz de quem é, mas
-                      // cor sozinha não se lê em voz alta nem se decora no
-                      // primeiro dia
-                      title={dono ? `${dono} — ${c.titulo}` : c.titulo}
+                      title={c.titulo}
                       onClick={e => { e.stopPropagation(); aoAbrir(c) }}
                       onKeyDown={e => {
                         if (e.key !== 'Enter' && e.key !== ' ') return
@@ -119,17 +111,7 @@ export function GradeMes({
                       }}
                       className={cn(
                         'flex min-w-0 items-center gap-1 rounded border-l-2 px-1 py-0.5 text-[11px] leading-tight',
-                        /*
-                          A COR é de quem, a BORDA é do estado.
-
-                          Eram a mesma coisa antes — roxo/vermelho/cinza para
-                          futuro/atrasado/feito — e aí a linha do colega saía
-                          idêntica à minha, com a diferença espremida num
-                          avatar de sete pixels que ninguém consegue ler. Cor
-                          para pessoa e borda para estado deixa as duas
-                          perguntas respondidas ao mesmo tempo.
-                        */
-                        dono ? tomDoNome(dono) : 'bg-primary/10 text-primary',
+                        'bg-primary/10 text-primary',
                         c.concluidoEm
                           ? 'border-transparent line-through opacity-60'
                           : c.data < hoje
@@ -140,8 +122,7 @@ export function GradeMes({
                       {c.hora && <span className="shrink-0 tabular-nums">{horaCurta(c.hora)}</span>}
                       <span className="truncate">{c.titulo}</span>
                     </span>
-                  )
-                })}
+                ))}
                 {doDia.length > cabem.length && (
                   <span className="px-1 text-[11px] text-muted-foreground">
                     +{doDia.length - cabem.length}

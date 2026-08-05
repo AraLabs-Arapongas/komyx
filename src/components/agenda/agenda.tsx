@@ -10,8 +10,6 @@ import { concluirCompromisso } from '@/lib/actions/compromissos'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
-import { AvatarInicial } from '@/components/ui/avatar-inicial'
-import { Seletor } from '@/components/seletor'
 import { GradeMes, diasDaGrade } from '@/components/agenda/grade-mes'
 import { FormCompromisso } from '@/components/agenda/form-compromisso'
 import { formatData, formatMesAno, horaCurta } from '@/lib/format'
@@ -25,15 +23,9 @@ import { cn } from '@/lib/utils'
  * lista responde "o que eu tenho que fazer agora", e essa nenhum calendário
  * responde bem: o que venceu ontem fica no quadrado de ontem, que ninguém
  * olha. Por isso a lista abre com Atrasados no topo, em vermelho.
- *
- * O dono lê a agenda da equipe (só lê). Para ele existe o seletor de pessoa;
- * para o corretor ele nem aparece, porque escolher entre uma opção é ruído.
  */
 
-type Membro = { corretorId: string; nome: string }
 type Vista = 'mes' | 'lista'
-
-const TODOS = '__todos__'
 
 function hojeISO(): string {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
@@ -54,18 +46,11 @@ function fimDaSemana(hoje: string): string {
   return base.toISOString().slice(0, 10)
 }
 
-export function Agenda({ euId, membros = [], ehDono = false }: {
-  /** quem está olhando: separa a própria linha da linha de um corretor */
-  euId: string
-  /** a equipe, quando quem olha é o dono */
-  membros?: Membro[]
-  ehDono?: boolean
-}) {
+export function Agenda() {
   const hoje = hojeISO()
   const [vista, setVista] = useState<Vista>('mes')
   const [mesRef, setMesRef] = useState(() => hoje.slice(0, 7))
   const [selecionado, setSelecionado] = useState(hoje)
-  const [quem, setQuem] = useState(TODOS)
   const [editando, setEditando] = useState<Compromisso | null>(null)
   const [criandoEm, setCriandoEm] = useState<string | null>(null)
 
@@ -88,13 +73,6 @@ export function Agenda({ euId, membros = [], ehDono = false }: {
   }, [vista, ano, mes, hoje])
 
   const { data: compromissos = [], isLoading } = useCompromissos(de, ate)
-
-  const nomePorId = useMemo(
-    () => new Map(membros.map(m => [m.corretorId, m.nome])), [membros])
-
-  const visiveis = quem === TODOS
-    ? compromissos
-    : compromissos.filter(c => c.corretorId === quem)
 
   function irParaHoje() {
     setMesRef(hoje.slice(0, 7))
@@ -151,18 +129,7 @@ export function Agenda({ euId, membros = [], ehDono = false }: {
           </div>
         ) : <span />}
 
-        {ehDono && membros.length > 1 && (
-          <Seletor
-            valor={quem}
-            padrao={TODOS}
-            onMuda={setQuem}
-            opcoes={[
-              { valor: TODOS, rotulo: 'Toda a equipe' },
-              ...membros.map(m => ({ valor: m.corretorId, rotulo: m.nome })),
-            ]}
-          />
-        )}
-      </div>
+        </div>
 
       {isLoading ? (
         <Skeleton className="h-96 w-full rounded-lg" />
@@ -170,7 +137,7 @@ export function Agenda({ euId, membros = [], ehDono = false }: {
         <>
           <GradeMes
             ano={ano} mes={mes} hoje={hoje} selecionado={selecionado}
-            compromissos={visiveis} euId={euId} nomePorId={nomePorId}
+            compromissos={compromissos}
             /*
              * Tocar num dia já abre o novo compromisso naquele dia.
              *
@@ -185,15 +152,15 @@ export function Agenda({ euId, membros = [], ehDono = false }: {
           />
           <PainelDoDia
             data={selecionado} hoje={hoje}
-            itens={visiveis.filter(c => c.data === selecionado)}
-            euId={euId} nomePorId={nomePorId}
+            itens={compromissos.filter(c => c.data === selecionado)}
+           
             aoEditar={setEditando}
             aoNovo={() => setCriandoEm(selecionado)}
           />
         </>
       ) : (
         <ListaEmGavetas
-          itens={visiveis} hoje={hoje} euId={euId} nomePorId={nomePorId}
+          itens={compromissos} hoje={hoje}
           aoEditar={setEditando} aoNovo={() => setCriandoEm(hoje)}
         />
       )}
@@ -217,12 +184,10 @@ export function Agenda({ euId, membros = [], ehDono = false }: {
  * nota e cliente, e é onde se marca como feito. No celular, onde a grade é
  * quase só números, este painel é a agenda de verdade.
  */
-function PainelDoDia({ data, hoje, itens, euId, nomePorId, aoEditar, aoNovo }: {
+function PainelDoDia({ data, hoje, itens, aoEditar, aoNovo }: {
   data: string
   hoje: string
   itens: Compromisso[]
-  euId: string
-  nomePorId: Map<string, string>
   aoEditar: (c: Compromisso) => void
   aoNovo: () => void
 }) {
@@ -245,8 +210,7 @@ function PainelDoDia({ data, hoje, itens, euId, nomePorId, aoEditar, aoNovo }: {
       ) : (
         <div className="divide-y overflow-hidden rounded-lg bg-card">
           {itens.map(c => (
-            <Linha key={c.id} compromisso={c} deOutro={c.corretorId !== euId}
-              nome={nomePorId.get(c.corretorId)} aoEditar={() => aoEditar(c)} />
+            <Linha key={c.id} compromisso={c} aoEditar={() => aoEditar(c)} />
           ))}
         </div>
       )}
@@ -255,11 +219,9 @@ function PainelDoDia({ data, hoje, itens, euId, nomePorId, aoEditar, aoNovo }: {
 }
 
 /** A vista de tarefa: o que está em aberto, do mais urgente ao menos. */
-function ListaEmGavetas({ itens, hoje, euId, nomePorId, aoEditar, aoNovo }: {
+function ListaEmGavetas({ itens, hoje, aoEditar, aoNovo }: {
   itens: Compromisso[]
   hoje: string
-  euId: string
-  nomePorId: Map<string, string>
   aoEditar: (c: Compromisso) => void
   aoNovo: () => void
 }) {
@@ -302,8 +264,7 @@ function ListaEmGavetas({ itens, hoje, euId, nomePorId, aoEditar, aoNovo }: {
           </h2>
           <div className="divide-y overflow-hidden rounded-lg bg-card">
             {g.itens.map(c => (
-              <Linha key={c.id} compromisso={c} deOutro={c.corretorId !== euId}
-                nome={nomePorId.get(c.corretorId)} aoEditar={() => aoEditar(c)} />
+              <Linha key={c.id} compromisso={c} aoEditar={() => aoEditar(c)} />
             ))}
           </div>
         </section>
@@ -312,11 +273,8 @@ function ListaEmGavetas({ itens, hoje, euId, nomePorId, aoEditar, aoNovo }: {
   )
 }
 
-function Linha({ compromisso: c, nome, deOutro, aoEditar }: {
+function Linha({ compromisso: c, aoEditar }: {
   compromisso: Compromisso
-  nome?: string
-  /** o dono vendo a linha de um corretor */
-  deOutro: boolean
   aoEditar: () => void
 }) {
   const qc = useQueryClient()
@@ -333,22 +291,13 @@ function Linha({ compromisso: c, nome, deOutro, aoEditar }: {
 
   return (
     <div className="flex items-start gap-3 px-4 py-3">
-      {/*
-        A linha de outro corretor não responde ao toque.
-
-        O dono LÊ a agenda da equipe — a RLS não deixa escrever, e a action
-        recusa. Mas deixar a caixinha clicável para ela recusar depois é
-        prometer uma ação que não existe: melhor o alvo já dizer que não é
-        dele.
-      */}
-      <Checkbox checked={feito} disabled={ocupado || deOutro} onCheckedChange={alternar}
+      <Checkbox checked={feito} disabled={ocupado} onCheckedChange={alternar}
         aria-label={feito ? `Reabrir ${c.titulo}` : `Concluir ${c.titulo}`}
         className="mt-0.5 shrink-0" />
 
       {/* o corpo inteiro abre a edição: alvo grande é o que funciona no
           celular, e a caixinha ao lado já cuida do "feito" */}
-      <button type="button" onClick={aoEditar} disabled={deOutro}
-        className="min-w-0 flex-1 text-left disabled:cursor-default">
+      <button type="button" onClick={aoEditar} className="min-w-0 flex-1 text-left">
         <span className={cn('block text-sm font-medium',
           feito && 'text-muted-foreground line-through')}>
           {c.titulo}
@@ -363,9 +312,6 @@ function Linha({ compromisso: c, nome, deOutro, aoEditar }: {
         {c.nota && <span className="mt-1 block text-xs text-muted-foreground">{c.nota}</span>}
       </button>
 
-      {deOutro && nome && (
-        <AvatarInicial nome={nome} className="size-7 shrink-0 text-[10px]" />
-      )}
     </div>
   )
 }

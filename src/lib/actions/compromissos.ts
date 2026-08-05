@@ -11,8 +11,8 @@ import { compromissoFormSchema, type CompromissoForm } from '@/lib/domain/schema
  * condição deixa a intenção no código de quem lê.
  */
 
-/** O dono lê a agenda da equipe e o polegar encosta na caixinha do colega. */
-const NAO_E_SEU = 'Este compromisso é de outro corretor. Só ele pode mexer.'
+/** A linha existe, mas não é de quem pediu — ou já foi apagada em outra aba. */
+const NAO_E_SEU = 'Este compromisso não está mais disponível.'
 
 type Resultado<T = undefined> =
   | (T extends undefined ? { ok: true } : { ok: true; dados: T })
@@ -58,9 +58,9 @@ export async function atualizarCompromisso(id: string, input: CompromissoForm): 
    * `.select()` para saber se ALGUMA linha foi tocada.
    *
    * Update que não encontra linha não é erro no PostgREST: volta 200 com zero
-   * linhas. Sem esta checagem, o dono tentando mexer na agenda de um corretor
-   * — a RLS deixa ele LER, não escrever — recebia "salvo com sucesso" e nada
-   * acontecia. Falha silenciosa é pior que erro.
+   * linhas. Sem esta checagem, mexer num compromisso que a RLS não alcança
+   * devolveria "salvo com sucesso" sem nada ter acontecido. Falha silenciosa é
+   * pior que erro.
    */
   const { data, error } = await supabase.from('compromissos')
     .update(limpar(parsed.data)).eq('id', id).eq('corretor_id', user.id).select('id')

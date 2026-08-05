@@ -19,7 +19,7 @@ export async function salvarConfig(input: ConfigFinanceiraForm) {
   // só a PESSOAL: o dono de escritório enxerga também as políticas da equipe,
   // e sem o filtro este update desativaria a política do escritório inteiro
   await supabase.from('config_financeira').update({ ativa: false })
-    .eq('ativa', true).is('escritorio_id', null)
+    .eq('ativa', true)
   const { error } = await supabase.from('config_financeira').insert({
     corretor_id: user.id, nome_politica: d.nomePolitica, faixas: d.faixas,
     dia_fechamento: d.diaFechamento, dia_primeiro_pagamento: d.diaPrimeiroPagamento,

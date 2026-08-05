@@ -113,9 +113,6 @@ export async function simularAssinatura(estado: EstadoSimulado) {
 export type ContaDeTeste = {
   email: string
   nome: string
-  /** 'dono' | 'corretor' quando faz parte de um escritório */
-  papel: string | null
-  escritorio: string | null
 }
 
 /**
@@ -137,28 +134,15 @@ export async function contasDeTeste(): Promise<ContaDeTeste[]> {
     if (error) return []
 
     const ids = data.users.map(u => u.id)
-    const [{ data: perfis }, { data: vinculos }] = await Promise.all([
-      admin.from('profiles').select('id, nome').in('id', ids),
-      admin.from('membros_escritorio')
-        .select('corretor_id, papel, escritorios(nome)').is('saiu_em', null),
-    ])
-
+    const { data: perfis } = await admin.from('profiles').select('id, nome').in('id', ids)
     const nomes = new Map((perfis ?? []).map(p => [p.id, p.nome]))
-    const equipe = new Map((vinculos ?? []).map(v => [v.corretor_id, {
-      papel: v.papel,
-      escritorio: (v.escritorios as { nome: string } | null)?.nome ?? null,
-    }]))
 
     return data.users
       .filter(u => u.email)
       .map(u => ({
         email: u.email!,
         nome: nomes.get(u.id)?.trim() || u.email!.split('@')[0],
-        papel: equipe.get(u.id)?.papel ?? null,
-        escritorio: equipe.get(u.id)?.escritorio ?? null,
       }))
-      // dono primeiro: é a conta que se quer testar mais vezes
-      .sort((a, b) => (a.papel === 'dono' ? -1 : b.papel === 'dono' ? 1 : 0))
   } catch {
     return []
   }
