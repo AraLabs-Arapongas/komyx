@@ -536,8 +536,14 @@ export default function LandingPage() {
         </Revela>
       </Secao>
 
+      {/* os contratos moram no rodapé porque é onde se procura por eles — e
+          precisam existir antes do cadastro, não depois */}
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
-        Komyx — gestão financeira para corretores de consórcio.
+        <p>Komyx — gestão financeira para corretores de consórcio.</p>
+        <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+          <Link href="/termos" className="hover:text-foreground">Termos de Uso</Link>
+          <Link href="/privacidade" className="hover:text-foreground">Política de Privacidade</Link>
+        </p>
       </footer>
     </main>
   )

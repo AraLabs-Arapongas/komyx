@@ -42,6 +42,16 @@ export default async function CadastroPage(
         <Button type="submit" size="toque" className="w-full">
           Criar conta
         </Button>
+        {/* aceite junto do botão, e não numa caixinha a mais para marcar: o
+            que a lei pede é que a pessoa tenha acesso ao texto antes de
+            contratar, e um passo extra aqui só treina todo mundo a clicar sem
+            ler */}
+        <p className="text-center text-xs text-muted-foreground">
+          Ao criar a conta você concorda com os{' '}
+          <Link className="underline underline-offset-2 hover:text-foreground" href="/termos">Termos de Uso</Link>{' '}
+          e a{' '}
+          <Link className="underline underline-offset-2 hover:text-foreground" href="/privacidade">Política de Privacidade</Link>.
+        </p>
         <p className="text-center text-sm text-muted-foreground">
           Já tem conta? <Link className="font-medium text-primary hover:underline" href={volta ? `/login?volta=${encodeURIComponent(volta)}` : '/login'}>Entrar</Link>
         </p>
