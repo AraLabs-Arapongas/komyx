@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     // problemas de código que não é o que está aqui, e que ninguém pode
     // corrigir a partir daqui
     ".claude/**",
+    // o `supabase start` deixa aqui um bundle minificado do edge runtime; é
+    // artefato do container, não fonte deste projeto
+    "supabase/.temp/**",
   ]),
 ]);
 

@@ -33,7 +33,15 @@ export default async function LoginPage({ searchParams }: {
             />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="password">Senha</Label>
+          {/* o "esqueci" fica colado no campo, não perdido no rodapé: é ali
+              que a pessoa está olhando quando descobre que não lembra */}
+          <div className="flex items-baseline justify-between gap-2">
+            <Label htmlFor="password">Senha</Label>
+            <Link href="/recuperar"
+              className="text-sm text-muted-foreground hover:text-foreground hover:underline">
+              Esqueci minha senha
+            </Link>
+          </div>
           <Input id="password" name="password" type="password" required
             autoComplete="current-password" />
         </div>

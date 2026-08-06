@@ -124,3 +124,72 @@ export async function sair() {
   await supabase.auth.signOut()
   redirect('/login')
 }
+
+/*
+ * Recuperação de senha: pede o link.
+ *
+ * Responde a mesma coisa para e-mail que existe e para e-mail que não existe.
+ * Dizer "não encontramos essa conta" transformaria este formulário numa
+ * ferramenta de descobrir quem é cliente — e ele é público, sem sessão.
+ */
+export async function pedirRecuperacao(formData: FormData) {
+  const email = limparEmail(formData.get('email'))
+  const supabase = await createClient()
+
+  /*
+   * De onde sai o link do e-mail.
+   *
+   * Em produção manda a env var, que é um domínio fixo e conhecido. Usar o
+   * cabeçalho `Host` lá seria deixar quem forja um pedido escolher o endereço
+   * que chega no e-mail de outra pessoa.
+   *
+   * Em desenvolvimento é o contrário: `npm run dev` escolhe a porta livre do
+   * momento, e a env var apontaria para uma porta que já não existe — o link
+   * abriria "não foi possível conectar".
+   *
+   * Nos dois casos o Supabase ainda confere contra a lista de URLs
+   * permitidas: o que não casar, ele descarta.
+   */
+  const h = await headers()
+  const doPedido = `${h.get('x-forwarded-proto') ?? 'http'}://${h.get('host')}`
+  const origem = process.env.NODE_ENV === 'production'
+    ? (process.env.NEXT_PUBLIC_SITE_URL ?? doPedido)
+    : doPedido
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origem}/auth/confirmar?proximo=/nova-senha`,
+  })
+  // o motivo real fica no log; a tela não muda de resposta por causa dele
+  if (error) console.error('[recuperar] o Supabase recusou:', error.status, error.code, error.message)
+
+  redirect('/recuperar?enviado=1')
+}
+
+/**
+ * Recuperação de senha: grava a nova.
+ *
+ * Só funciona com a sessão que o link do e-mail criou — sem ela o Supabase
+ * recusa, que é o que impede alguém de trocar a senha de outra pessoa abrindo
+ * a URL na mão.
+ */
+export async function definirNovaSenha(formData: FormData) {
+  const senha = String(formData.get('password'))
+  const confirmacao = String(formData.get('password2'))
+
+  if (senha.length < 6) {
+    redirect('/nova-senha?erro=' + encodeURIComponent('A senha precisa de pelo menos 6 caracteres.'))
+  }
+  if (senha !== confirmacao) {
+    redirect('/nova-senha?erro=' + encodeURIComponent('As duas senhas não são iguais.'))
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.updateUser({ password: senha })
+  if (error) {
+    console.error('[nova senha] o Supabase recusou:', error.status, error.code, error.message)
+    redirect('/nova-senha?erro=' + encodeURIComponent(
+      'Não foi possível trocar a senha. Peça um link novo em "Esqueci minha senha".'))
+  }
+
+  redirect('/app')
+}

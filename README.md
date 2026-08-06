@@ -28,6 +28,36 @@ produção:
 npx supabase db push --linked
 ```
 
+## E-mail (recuperação de senha)
+
+O único e-mail que o produto manda é o link de "esqueci minha senha". Recibo de
+pagamento é o Stripe que envia.
+
+**O SMTP embutido do Supabase não serve para produção**: são 2 e-mails por hora
+(`config.toml`, `auth.rate_limit.email_sent`). O terceiro corretor que esquecer
+a senha dentro de uma hora vê "enviado" na tela e não recebe nada — trancado
+fora da própria carteira de comissões, sem erro visível para ninguém.
+
+Para ligar o Resend:
+
+1. Crie a conta, verifique o domínio `komyx.com.br` e gere uma API key.
+2. Supabase → Authentication → Emails → SMTP Settings:
+   - host `smtp.resend.com`, porta `465`
+   - usuário `resend`, senha = a API key
+   - remetente `nao-responda@komyx.com.br`
+3. Authentication → Rate Limits: suba o limite de e-mails por hora.
+4. Authentication → URL Configuration: Site URL `https://www.komyx.com.br` e,
+   em Redirect URLs, `https://www.komyx.com.br/auth/confirmar**`.
+
+O passo 4 não é detalhe. O `redirectTo` que o app manda só é respeitado se
+casar com a lista; o que não casa, o Supabase **descarta em silêncio** e usa o
+Site URL — o link do e-mail leva à home em vez da tela de trocar a senha. Foi
+exatamente o que aconteceu na primeira tentativa local, e o sintoma não diz o
+motivo. Localmente a lista equivalente está no `supabase/config.toml`.
+
+Com o Resend no ar, vale religar `enable_confirmations` no cadastro: hoje está
+desligado, o que deixa alguém se cadastrar com o e-mail de outra pessoa.
+
 ## Assinatura
 
 O produto é pago: R$ 19,90 por mês, com 14 dias de teste que começam no
@@ -96,6 +126,30 @@ Sem isso, um PATCH direto no PostgREST trocando `assinatura_status` para
 `active` libera o app de graça. **Toda coluna nova de cobrança em `profiles`
 nasce protegida por essa regra** — o grant lista o que é liberado, não o que é
 proibido, então esquecer é o caminho seguro.
+
+## O que falta para cobrar
+
+Em ordem de bloqueio, do que impede receber dinheiro ao que impede dormir.
+
+- [ ] **Stripe configurado.** O código está pronto e testado, mas sem
+      `STRIPE_SECRET_KEY` e `STRIPE_PRICE_ID` na Vercel o portão não fecha:
+      teste vencido continua usando de graça.
+- [ ] **SMTP do Resend.** Ver a seção acima. Sem ele, a recuperação de senha
+      existe mas entrega 2 e-mails por hora.
+- [ ] **Termos de Uso e Política de Privacidade.** Não existem. Cobrar
+      assinatura no Brasil sem isso é exposição, e a LGPD exige dizer o que se
+      faz com o dado de comissão de alguém. A exportação em Perfil → Backup já
+      cobre o direito de portabilidade.
+- [ ] **Depoimentos da landing.** Os três são inventados e estão marcados no
+      código. Trocar por reais com autorização por escrito, ou apagar a seção,
+      ANTES de divulgar a página — depoimento falso é propaganda enganosa
+      (CDC art. 37).
+- [ ] **Monitoramento de erro** (Sentry ou equivalente). Hoje, se a comissão de
+      alguém sair errada, quem descobre é ele.
+- [ ] **Canal de suporte.** Nenhum e-mail ou link no app para quem pagou
+      reclamar.
+- [ ] **Backup do banco.** Point-in-time recovery é plano pago no Supabase;
+      vale saber qual é a janela de recuperação atual.
 
 ## Convenções
 
