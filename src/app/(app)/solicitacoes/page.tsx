@@ -1,0 +1,62 @@
+import Link from "next/link";
+import { MessageCircle, CalendarPlus } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { archiveRequest, reopenRequest } from "@/lib/actions/requests";
+import { PageBody, PageHeader, EmptyState } from "@/components/ui/page";
+import { Badge } from "@/components/ui/badge";
+import { buttonClass } from "@/components/ui/button";
+import { cn, formatDateTime, formatPhone, whatsappLink } from "@/lib/utils";
+
+export const metadata = { title: "Solicitações" };
+
+export default async function RequestsPage({ searchParams }: PageProps<"/solicitacoes">) {
+  const sp = await searchParams;
+  const status = sp.status === "CONVERTED" || sp.status === "ARCHIVED" ? sp.status : "NEW";
+  const supabase = await createClient();
+  const { data: requests } = await supabase.from("public_requests").select("*").eq("status", status).order("created_at", { ascending: false }).limit(100);
+
+  return (
+    <>
+      <PageHeader title="Solicitações" subtitle="Pedidos de orçamento da página pública. Não bloqueiam a agenda." />
+      <PageBody>
+        <div className="flex gap-2">
+          {[["NEW", "Novas"], ["CONVERTED", "Convertidas"], ["ARCHIVED", "Arquivadas"]].map(([k, l]) => (
+            <Link key={k} href={`/solicitacoes?status=${k}`} className={cn("rounded-full px-3.5 py-1.5 text-sm font-medium border", status === k ? "bg-brand text-brand-fg border-brand" : "bg-surface border-border text-muted")}>{l}</Link>
+          ))}
+        </div>
+        {requests && requests.length > 0 ? (
+          <div className="space-y-2">
+            {requests.map((r) => (
+              <div key={r.id} className="rounded-2xl border border-border bg-surface p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium">{r.name}</p>
+                    <p className="text-sm text-muted">{formatPhone(r.whatsapp)} · {formatDateTime(r.created_at)}</p>
+                  </div>
+                  <Badge tone={status === "NEW" ? "amber" : status === "CONVERTED" ? "green" : "zinc"}>{status === "NEW" ? "Nova" : status === "CONVERTED" ? "Convertida" : "Arquivada"}</Badge>
+                </div>
+                <dl className="grid grid-cols-3 gap-2 text-sm">
+                  <div><dt className="text-xs text-muted">Data desejada</dt><dd className="font-medium">{r.desired_date ? r.desired_date.split("-").reverse().join("/") : "—"}</dd></div>
+                  <div><dt className="text-xs text-muted">Horário</dt><dd className="font-medium">{r.desired_time ? r.desired_time.slice(0, 5) : "—"}</dd></div>
+                  <div><dt className="text-xs text-muted">Participantes</dt><dd className="font-medium">{r.participants ?? "—"}</dd></div>
+                </dl>
+                {r.message ? <p className="text-sm whitespace-pre-wrap bg-stone-50 rounded-xl p-3">{r.message}</p> : null}
+                <div className="flex flex-wrap gap-2">
+                  <a href={whatsappLink(r.whatsapp, `Olá ${r.name.split(" ")[0]}! Recebemos sua solicitação de orçamento.`)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> WhatsApp</a>
+                  {status === "NEW" ? (
+                    <>
+                      <Link href={`/eventos/novo?request=${r.id}`} className={buttonClass("primary", "sm")}><CalendarPlus className="h-4 w-4" /> Criar pré-reserva</Link>
+                      <form action={archiveRequest}><input type="hidden" name="id" value={r.id} /><button className={buttonClass("ghost", "sm")}>Arquivar</button></form>
+                    </>
+                  ) : null}
+                  {status === "CONVERTED" && r.event_id ? <Link href={`/eventos/${r.event_id}`} className={buttonClass("outline", "sm")}>Ver evento</Link> : null}
+                  {status === "ARCHIVED" ? <form action={reopenRequest}><input type="hidden" name="id" value={r.id} /><button className={buttonClass("ghost", "sm")}>Reabrir</button></form> : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : <EmptyState title="Nenhuma solicitação" description="Divulgue sua página pública para receber pedidos de orçamento." />}
+      </PageBody>
+    </>
+  );
+}
