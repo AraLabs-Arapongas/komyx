@@ -6,31 +6,57 @@ import { removeStaff } from "@/lib/actions/settings";
 import { PageBody, PageHeader } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CopyButton } from "@/components/ui/copy-button";
 import { appUrl } from "@/lib/utils";
-import { OrganizationForm, ImageUploadForm, StaffForm } from "./forms";
+import { CONTRACT_PLACEHOLDERS } from "@/lib/contract";
+import { OrganizationForm, ImageUploadForm, StaffForm, PaymentPlanForm, ContractTemplateForm } from "./forms";
 
 export const metadata = { title: "Configurações" };
+
+type PlanItem = { label: string; percent: number; rule: "ON_ACCEPT" | "DAYS_BEFORE_EVENT" | "FIXED_DATE"; days_before: number | null };
 
 export default async function SettingsPage() {
   const profile = await requireOwner();
   const org = await getOrganization();
   const supabase = await createClient();
   const { data: team } = await supabase.from("profiles").select("id, name, email, role").order("role").order("name");
+  const plan = (Array.isArray(org.payment_plan) ? org.payment_plan : []) as PlanItem[];
+  const publicUrl = appUrl(`/p/${org.slug}`);
 
   return (
     <>
       <PageHeader title="Configurações" back="/menu" />
       <PageBody>
         <Card>
-          <CardHeader title="Página pública" subtitle="Endereço do seu buffet para clientes" action={
+          <CardHeader title="Página pública e link da bio" subtitle="Use na bio do Instagram. Adicione ?src=instagram para saber de onde veio o lead." action={
             <Link href={`/p/${org.slug}`} target="_blank" className="text-sm text-brand font-medium inline-flex items-center gap-1">Abrir <ExternalLink className="h-3.5 w-3.5" /></Link>
           } />
-          <CardBody><p className="text-sm break-all text-muted">{appUrl(`/p/${org.slug}`)}</p></CardBody>
+          <CardBody className="space-y-2 text-sm">
+            <div className="flex items-center justify-between gap-2"><span className="text-muted break-all">{publicUrl}</span><CopyButton text={publicUrl} /></div>
+            <div className="flex items-center justify-between gap-2"><span className="text-muted break-all">{publicUrl}?src=instagram</span><CopyButton text={`${publicUrl}?src=instagram`} label="Bio Instagram" /></div>
+            <div className="flex items-center justify-between gap-2"><span className="text-muted break-all">{publicUrl}/orcamento?src=instagram</span><CopyButton text={`${publicUrl}/orcamento?src=instagram`} label="Orçamento direto" /></div>
+          </CardBody>
         </Card>
 
         <Card>
-          <CardHeader title="Dados do buffet" />
+          <CardHeader title="Dados do buffet" subtitle="Razão social, CNPJ e cidade entram no contrato" />
           <CardBody><OrganizationForm org={org} /></CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="Plano de pagamento padrão" subtitle="Aplicado a novos orçamentos. Ex.: 30% no aceite e 70% até 7 dias antes da festa." />
+          <CardBody><PaymentPlanForm plan={plan} /></CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="Modelo de contrato" subtitle="Preenchido automaticamente ao gerar o contrato de um evento" />
+          <CardBody className="space-y-3">
+            <details className="text-xs text-muted">
+              <summary className="cursor-pointer font-medium text-foreground">Campos disponíveis</summary>
+              <p className="mt-2 flex flex-wrap gap-1">{CONTRACT_PLACEHOLDERS.map((p) => <code key={p} className="rounded bg-stone-100 px-1.5 py-0.5">{`{{${p}}}`}</code>)}</p>
+            </details>
+            <ContractTemplateForm template={org.contract_template} />
+          </CardBody>
         </Card>
 
         <Card>

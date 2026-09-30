@@ -5,7 +5,8 @@ import { archiveRequest, reopenRequest } from "@/lib/actions/requests";
 import { PageBody, PageHeader, EmptyState } from "@/components/ui/page";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
-import { cn, formatDateTime, formatPhone, whatsappLink } from "@/lib/utils";
+import { cn, formatCurrency, formatDateTime, formatPhone, whatsappLink } from "@/lib/utils";
+import { leadSourceLabel } from "@/lib/pricing";
 
 export const metadata = { title: "Solicitações" };
 
@@ -38,7 +39,10 @@ export default async function RequestsPage({ searchParams }: PageProps<"/solicit
                 <dl className="grid grid-cols-3 gap-2 text-sm">
                   <div><dt className="text-xs text-muted">Data desejada</dt><dd className="font-medium">{r.desired_date ? r.desired_date.split("-").reverse().join("/") : "—"}</dd></div>
                   <div><dt className="text-xs text-muted">Horário</dt><dd className="font-medium">{r.desired_time ? r.desired_time.slice(0, 5) : "—"}</dd></div>
-                  <div><dt className="text-xs text-muted">Participantes</dt><dd className="font-medium">{r.participants ?? "—"}</dd></div>
+                  <div><dt className="text-xs text-muted">Pessoas</dt><dd className="font-medium">{r.adults != null || r.children != null ? `${r.adults ?? 0}A ${r.children ?? 0}C` : r.participants ?? "—"}</dd></div>
+                  <div><dt className="text-xs text-muted">Origem</dt><dd className="font-medium">{leadSourceLabel(r.source)}</dd></div>
+                  <div><dt className="text-xs text-muted">Aniversariante</dt><dd className="font-medium">{r.celebrant_name ?? "—"}</dd></div>
+                  <div><dt className="text-xs text-muted">Estimativa</dt><dd className="font-medium">{r.estimated_total != null ? formatCurrency(r.estimated_total) : "—"}</dd></div>
                 </dl>
                 {r.message ? <p className="text-sm whitespace-pre-wrap bg-stone-50 rounded-xl p-3">{r.message}</p> : null}
                 <div className="flex flex-wrap gap-2">

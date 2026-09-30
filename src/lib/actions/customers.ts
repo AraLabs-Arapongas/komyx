@@ -12,6 +12,8 @@ const customerSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome"),
   whatsapp: phoneSchema,
   email: z.string().trim().email("E-mail inválido").optional().or(z.literal("")).transform((v) => v || null),
+  document: optionalText,
+  source: optionalText,
   notes: optionalText,
 });
 
@@ -46,7 +48,7 @@ export async function updateCustomer(_prev: ActionResult | undefined, formData: 
 }
 
 /** Find or create a customer by WhatsApp inside the org. Used by the quick pre-reservation form. */
-export async function upsertCustomerByPhone(orgId: string, name: string, whatsapp: string) {
+export async function upsertCustomerByPhone(orgId: string, name: string, whatsapp: string, source?: string | null) {
   const supabase = await createClient();
   const { data: existing } = await supabase
     .from("customers")
@@ -57,7 +59,7 @@ export async function upsertCustomerByPhone(orgId: string, name: string, whatsap
   if (existing) return { id: existing.id, error: null };
   const { data, error } = await supabase
     .from("customers")
-    .insert({ organization_id: orgId, name, whatsapp })
+    .insert({ organization_id: orgId, name, whatsapp, source: source ?? null })
     .select("id")
     .single();
   return { id: data?.id ?? null, error };

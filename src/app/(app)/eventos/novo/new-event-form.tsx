@@ -7,13 +7,18 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
-import { formatPhone } from "@/lib/utils";
+import { formatCurrency, formatPhone } from "@/lib/utils";
 import { CustomerPicker } from "@/components/events/customer-picker";
+import { ParticipantsFields } from "@/components/events/participants-fields";
+import { LEAD_SOURCES, type PackagePricing } from "@/lib/pricing";
 
 type Props = {
-  packages: { id: string; name: string; base_price: number | string }[];
+  packages: PackagePricing[];
   customer: { id: string; name: string; whatsapp: string } | null;
-  request: { id: string; name: string; whatsapp: string; participants: number | null; message: string | null } | null;
+  request: {
+    id: string; name: string; whatsapp: string; adults: number | null; children: number | null; message: string | null; source: string | null;
+    celebrant_name: string | null; celebrant_birth_date: string | null; package_id: string | null; estimated_total: number | string | null;
+  } | null;
   defaults: { date: string; start: string; durationMinutes: number };
 };
 
@@ -35,6 +40,9 @@ export function NewEventForm({ packages, customer, request, defaults }: Props) {
     <form action={action} className="space-y-4">
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {request ? <input type="hidden" name="request_id" value={request.id} /> : null}
+      {request?.estimated_total != null ? (
+        <Alert tone="info">Solicitação vinda de <b>{LEAD_SOURCES.find((s) => s.value === request.source)?.label ?? request.source ?? "origem não informada"}</b> com orçamento estimado de {formatCurrency(request.estimated_total)}. O orçamento será criado automaticamente ao salvar.</Alert>
+      ) : null}
 
       <Card>
         <CardBody className="pt-4 space-y-4">
@@ -56,6 +64,12 @@ export function NewEventForm({ packages, customer, request, defaults }: Props) {
               </Field>
               <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp} hint="DDD + número. Se já existir cliente com este número, ele será reaproveitado.">
                 <Input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" defaultValue={request?.whatsapp ?? ""} placeholder="(11) 99999-9999" required />
+              </Field>
+              <Field label="Como conheceu o buffet?" htmlFor="source">
+                <Select id="source" name="source" defaultValue={request?.source ?? ""}>
+                  <option value="">Não informado</option>
+                  {LEAD_SOURCES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </Select>
               </Field>
             </>
           )}
@@ -82,21 +96,28 @@ export function NewEventForm({ packages, customer, request, defaults }: Props) {
 
       <Card>
         <CardBody className="pt-4 space-y-4">
+          <h2 className="font-semibold">Pacote e participantes</h2>
+          <ParticipantsFields packages={packages} initialPackageId={request?.package_id ?? ""} initialAdults={request?.adults ?? null} initialChildren={request?.children ?? null} errors={fe} />
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardBody className="pt-4 space-y-4">
           <h2 className="font-semibold">Detalhes <span className="text-muted font-normal text-sm">(opcional)</span></h2>
           <Field label="Nome do evento" htmlFor="title">
             <Input id="title" name="title" placeholder="Ex.: Aniversário da Júlia" />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Participantes" htmlFor="estimated_participants" error={fe.estimated_participants}>
-              <Input id="estimated_participants" name="estimated_participants" type="number" inputMode="numeric" min={0} defaultValue={request?.participants ?? ""} />
+          <div className="grid grid-cols-[1fr_80px] gap-3">
+            <Field label="Aniversariante" htmlFor="celebrant_name">
+              <Input id="celebrant_name" name="celebrant_name" defaultValue={request?.celebrant_name ?? ""} placeholder="Nome" />
             </Field>
-            <Field label="Pacote" htmlFor="package_id">
-              <Select id="package_id" name="package_id" defaultValue="">
-                <option value="">Sem pacote</option>
-                {packages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </Select>
+            <Field label="Idade" htmlFor="celebrant_age" error={fe.celebrant_age}>
+              <Input id="celebrant_age" name="celebrant_age" type="number" inputMode="numeric" min={0} max={150} />
             </Field>
           </div>
+          <Field label="Data de nascimento do aniversariante" htmlFor="celebrant_birth_date" hint="Salva na lista de aniversariantes para lembrar no próximo ano.">
+            <Input id="celebrant_birth_date" name="celebrant_birth_date" type="date" defaultValue={request?.celebrant_birth_date ?? ""} />
+          </Field>
           <Field label="Observações" htmlFor="notes">
             <Textarea id="notes" name="notes" defaultValue={request?.message ?? ""} />
           </Field>

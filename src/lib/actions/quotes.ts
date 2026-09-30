@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { moneySchema, optionalText, uuid } from "./helpers";
+import { buildQuoteLines } from "@/lib/pricing";
 
 function revalidateQuote(eventId: string) {
   revalidatePath(`/eventos/${eventId}`);
@@ -23,29 +24,23 @@ export async function createQuote(eventId: string): Promise<ActionResult<{ id: s
 
   const { data: event, error: evErr } = await supabase
     .from("events")
-    .select("id, organization_id, package_id, estimated_participants, packages(id, name, base_price, included_participants, additional_participant_price)")
+    .select("id, organization_id, package_id, adults, children, packages(id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price)")
     .eq("id", idp.data)
     .single();
   if (evErr || !event) return fail("Evento não encontrado.");
 
-  const participants = event.estimated_participants ?? 0;
+  const adults = event.adults ?? 0;
+  const children = event.children ?? 0;
   const { data: quote, error } = await supabase
     .from("quotes")
-    .insert({ organization_id: event.organization_id, event_id: event.id, package_id: event.package_id, participants, created_by: profile.id })
+    .insert({ organization_id: event.organization_id, event_id: event.id, package_id: event.package_id, adults, children, created_by: profile.id })
     .select("id")
     .single();
   if (error || !quote) return fail(translateDbError(error));
 
-  const pkg = event.packages;
-  if (pkg) {
-    const items: { organization_id: string; quote_id: string; kind: "PACKAGE" | "EXTRA_PARTICIPANTS"; description: string; quantity: number; unit_price: number; sort_order: number }[] = [
-      { organization_id: event.organization_id, quote_id: quote.id, kind: "PACKAGE", description: pkg.name, quantity: 1, unit_price: Number(pkg.base_price), sort_order: 0 },
-    ];
-    const extra = Math.max(participants - pkg.included_participants, 0);
-    if (extra > 0 && Number(pkg.additional_participant_price) > 0) {
-      items.push({ organization_id: event.organization_id, quote_id: quote.id, kind: "EXTRA_PARTICIPANTS", description: `Participantes adicionais (${extra})`, quantity: extra, unit_price: Number(pkg.additional_participant_price), sort_order: 1 });
-    }
-    await supabase.from("quote_items").insert(items);
+  const lines = buildQuoteLines(event.packages, adults, children, []);
+  if (lines.length > 0) {
+    await supabase.from("quote_items").insert(lines.map((l) => ({ ...l, organization_id: event.organization_id, quote_id: quote.id })));
   }
 
   revalidateQuote(event.id);
@@ -187,4 +182,61 @@ export async function ensureQuoteLink(eventId: string) {
     .select("token")
     .single();
   return data?.token ?? null;
+}
+
+const installmentsSchema = z.object({ quote_id: uuid, event_id: uuid });
+
+/** Replaces the quote payment plan with the submitted rows (label/percent/rule/days_before arrays). */
+export async function updateQuoteInstallments(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const head = installmentsSchema.safeParse({ quote_id: formData.get("quote_id"), event_id: formData.get("event_id") });
+  if (!head.success) return fail("Orçamento inválido.");
+  const labels = formData.getAll("label").map(String);
+  const percents = formData.getAll("percent").map((v) => Number(String(v).replace(",", ".")));
+  const rules = formData.getAll("rule").map(String);
+  const days = formData.getAll("days_before").map((v) => (String(v).trim() === "" ? null : Number(v)));
+  const dates = formData.getAll("due_date").map((v) => (String(v).trim() === "" ? null : String(v)));
+  if (labels.length === 0) return fail("Adicione ao menos uma parcela.");
+  const sum = percents.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
+  if (Math.abs(sum - 100) > 0.01) return fail(`Os percentuais devem somar 100% (atual: ${sum}%).`);
+  const rows = labels.map((label, i) => ({
+    label: label.trim() || `Parcela ${i + 1}`,
+    percent: percents[i],
+    rule: (["ON_ACCEPT", "DAYS_BEFORE_EVENT", "FIXED_DATE"].includes(rules[i]) ? rules[i] : "DAYS_BEFORE_EVENT") as "ON_ACCEPT" | "DAYS_BEFORE_EVENT" | "FIXED_DATE",
+    days_before: rules[i] === "DAYS_BEFORE_EVENT" ? Math.max(days[i] ?? 0, 0) : null,
+    due_date: rules[i] === "FIXED_DATE" ? dates[i] : null,
+    sequence: i + 1,
+  }));
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  const { error: delErr } = await supabase.from("quote_installments").delete().eq("quote_id", head.data.quote_id);
+  if (delErr) return fail(translateDbError(delErr));
+  const { error } = await supabase.from("quote_installments").insert(rows.map((r) => ({ ...r, organization_id: profile.organization_id, quote_id: head.data.quote_id })));
+  if (error) return fail(translateDbError(error));
+  revalidateQuote(head.data.event_id);
+  return { ok: true, message: "Plano de pagamento atualizado." };
+}
+
+const participantsSchema = z.object({
+  quote_id: uuid,
+  event_id: uuid,
+  adults: z.string().transform(Number).refine((v) => Number.isInteger(v) && v >= 0, "Inválido"),
+  children: z.string().transform(Number).refine((v) => Number.isInteger(v) && v >= 0, "Inválido"),
+});
+
+/** Updates adults/children on the quote and rebuilds package + extra-participant lines (addons/custom kept). */
+export async function updateQuoteParticipants(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const parsed = participantsSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return fail("Verifique os campos.");
+  const d = parsed.data;
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  const { data: quote } = await supabase.from("quotes").select("id, package_id, packages(id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price)").eq("id", d.quote_id).single();
+  if (!quote) return fail("Orçamento não encontrado.");
+  const { error: upErr } = await supabase.from("quotes").update({ adults: d.adults, children: d.children }).eq("id", d.quote_id);
+  if (upErr) return fail(translateDbError(upErr));
+  await supabase.from("quote_items").delete().eq("quote_id", d.quote_id).in("kind", ["PACKAGE", "EXTRA_PARTICIPANTS"]);
+  const lines = buildQuoteLines(quote.packages, d.adults, d.children, []);
+  if (lines.length > 0) await supabase.from("quote_items").insert(lines.map((l) => ({ ...l, organization_id: profile.organization_id, quote_id: d.quote_id })));
+  revalidateQuote(d.event_id);
+  return { ok: true, message: "Participantes atualizados." };
 }

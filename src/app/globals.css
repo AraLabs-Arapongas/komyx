@@ -43,3 +43,7 @@ input, select, textarea {
 @utility safe-bottom {
   padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
 }
+
+a, button:not(:disabled), [role="button"], summary, label[for], input[type="submit"], input[type="file"], select {
+  cursor: pointer;
+}

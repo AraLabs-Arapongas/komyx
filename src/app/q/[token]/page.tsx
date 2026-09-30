@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Download } from "lucide-react";
+import { installmentDueLabel } from "@/lib/contract";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
@@ -14,7 +15,7 @@ export default async function PublicQuotePage({ params }: PageProps<"/q/[token]"
   const admin = createAdminClient();
   const { data: link } = await admin
     .from("public_links")
-    .select("event_id, events(title, starts_at, ends_at, estimated_participants, customers(name), organizations(name, whatsapp, logo_url, address))")
+    .select("event_id, events(title, starts_at, ends_at, adults, children, customers(name), organizations(name, whatsapp, logo_url, address, pix_key))")
     .eq("token", token)
     .eq("type", "QUOTE")
     .eq("active", true)
@@ -22,7 +23,7 @@ export default async function PublicQuotePage({ params }: PageProps<"/q/[token]"
   if (!link?.events) notFound();
   const { data: quote } = await admin
     .from("quotes")
-    .select("status, subtotal, discount_total, discount_type, discount_value, total, notes, sent_at, quote_items(id, description, quantity, unit_price, total, sort_order)")
+    .select("status, subtotal, discount_total, discount_type, discount_value, total, notes, sent_at, decided_at, quote_items(id, description, quantity, unit_price, total, sort_order), quote_installments(id, sequence, label, percent, amount, rule, days_before, due_date)")
     .eq("event_id", link.event_id)
     .neq("status", "DRAFT")
     .order("created_at", { ascending: false })
@@ -33,6 +34,7 @@ export default async function PublicQuotePage({ params }: PageProps<"/q/[token]"
   const ev = link.events;
   const org = ev.organizations!;
   const items = [...quote.quote_items].sort((a, b) => a.sort_order - b.sort_order);
+  const installments = [...quote.quote_installments].sort((a, b) => a.sequence - b.sequence);
   const title = ev.title?.trim() || (ev.customers ? `Festa de ${ev.customers.name}` : "Festa");
 
   return (
@@ -45,7 +47,7 @@ export default async function PublicQuotePage({ params }: PageProps<"/q/[token]"
           ) : <div className="mx-auto h-16 w-16 rounded-2xl bg-brand text-brand-fg grid place-items-center text-2xl font-bold">{org.name[0]}</div>}
           <p className="text-sm text-muted">{org.name}</p>
           <h1 className="text-2xl font-semibold tracking-tight">Orçamento · {title}</h1>
-          <p className="text-sm">{formatDateLong(ev.starts_at)} · {formatTime(ev.starts_at)}–{formatTime(ev.ends_at)}{ev.estimated_participants ? ` · ${ev.estimated_participants} participantes` : ""}</p>
+          <p className="text-sm">{formatDateLong(ev.starts_at)} · {formatTime(ev.starts_at)}–{formatTime(ev.ends_at)}{ev.adults || ev.children ? ` · ${ev.adults ?? 0} adultos e ${ev.children ?? 0} crianças` : ""}</p>
           <Badge tone={QUOTE_STATUS_TONE[quote.status]}>{QUOTE_STATUS_LABEL[quote.status]}</Badge>
         </header>
         <div className="rounded-2xl border border-border bg-surface p-5 space-y-4">
@@ -62,7 +64,17 @@ export default async function PublicQuotePage({ params }: PageProps<"/q/[token]"
             {Number(quote.discount_total) > 0 ? <div className="flex justify-between"><span className="text-muted">Desconto</span><span>- {formatCurrency(quote.discount_total)}</span></div> : null}
             <div className="flex justify-between text-lg font-semibold pt-1 border-t border-border"><span>Total</span><span>{formatCurrency(quote.total)}</span></div>
           </div>
+          {installments.length ? (
+            <div className="text-sm">
+              <p className="font-medium mb-1">Forma de pagamento</p>
+              <ul className="space-y-1">
+                {installments.map((i, idx) => <li key={i.id} className="flex justify-between gap-3"><span className="text-muted">{idx + 1}. {i.label} ({Number(i.percent)}%) · {installmentDueLabel(i, ev.starts_at, quote.decided_at)}</span><span className="font-medium">{formatCurrency(i.amount)}</span></li>)}
+              </ul>
+              {org.pix_key ? <p className="text-xs text-muted mt-1">Chave Pix: {org.pix_key}</p> : null}
+            </div>
+          ) : null}
           {quote.notes ? <p className="text-sm whitespace-pre-wrap text-muted">{quote.notes}</p> : null}
+          <a href={`/q/${token}/pdf`} className={buttonClass("outline", "md", "w-full")}><Download className="h-4 w-4" /> Baixar PDF</a>
           {org.whatsapp ? (
             <a href={whatsappLink(org.whatsapp, `Olá! Sobre o orçamento de ${title} (${formatCurrency(quote.total)}).`)} target="_blank" rel="noopener" className={buttonClass("primary", "lg", "w-full")}><MessageCircle className="h-5 w-5" /> Falar com o buffet</a>
           ) : null}

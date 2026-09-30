@@ -9,6 +9,7 @@ import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { addHours, localToIso } from "@/lib/utils";
 import { dateSchema, formToObject, optionalText, phoneSchema, timeSchema, uuid, zodFieldErrors } from "./helpers";
 import { upsertCustomerByPhone } from "./customers";
+import { buildQuoteLines } from "@/lib/pricing";
 
 const intOrNull = z
   .string()
@@ -26,8 +27,13 @@ const preReservationSchema = z.object({
   date: dateSchema,
   start_time: timeSchema,
   end_time: timeSchema,
-  estimated_participants: intOrNull,
+  adults: intOrNull,
+  children: intOrNull,
   package_id: uuidOrNull,
+  celebrant_name: optionalText,
+  celebrant_age: intOrNull,
+  celebrant_birth_date: z.string().optional().transform((v) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null)),
+  source: optionalText,
   notes: optionalText,
   status: z.enum(["PRE_RESERVED", "CONFIRMED"]).default("PRE_RESERVED"),
   request_id: uuidOrNull,
@@ -55,7 +61,7 @@ export async function createEvent(_prev: ActionResult | undefined, formData: For
     if (d.customer_name.length < 2) return fail("Informe o responsável.", { customer_name: "Informe o nome do responsável" });
     const phone = phoneSchema.safeParse(d.whatsapp);
     if (!phone.success) return fail("Verifique o WhatsApp.", { whatsapp: "WhatsApp inválido. Use DDD + número." });
-    const res = await upsertCustomerByPhone(org.id, d.customer_name, phone.data);
+    const res = await upsertCustomerByPhone(org.id, d.customer_name, phone.data, d.source);
     if (res.error || !res.id) return fail(translateDbError(res.error));
     customerId = res.id;
   }
@@ -74,7 +80,10 @@ export async function createEvent(_prev: ActionResult | undefined, formData: For
       ends_at,
       status: d.status,
       package_id: d.package_id,
-      estimated_participants: d.estimated_participants,
+      adults: d.adults,
+      children: d.children,
+      celebrant_name: d.celebrant_name,
+      celebrant_age: d.celebrant_age,
       notes: d.notes,
       expires_at,
       created_by: profile.id,
@@ -83,13 +92,42 @@ export async function createEvent(_prev: ActionResult | undefined, formData: For
     .single();
   if (error) return fail(translateDbError(error));
 
+  if (d.celebrant_name && d.celebrant_birth_date) {
+    await supabase.from("celebrants").insert({ organization_id: org.id, customer_id: customerId, event_id: data.id, name: d.celebrant_name, birth_date: d.celebrant_birth_date });
+  }
+
   if (d.request_id) {
+    const { data: req } = await supabase.from("public_requests").select("package_id, addons, adults, children, source").eq("id", d.request_id).maybeSingle();
     await supabase.from("public_requests").update({ status: "CONVERTED", event_id: data.id }).eq("id", d.request_id);
+    if (req?.source) await supabase.from("customers").update({ source: req.source }).eq("id", customerId).is("source", null);
+    // Self-service request: build the quote from what the client chose.
+    if (req?.package_id || (Array.isArray(req?.addons) && req.addons.length > 0)) {
+      await createQuoteFromRequest(data.id, org.id, profile.id, d.adults ?? req?.adults ?? 0, d.children ?? req?.children ?? 0, req.package_id ?? d.package_id, req.addons);
+    }
     revalidatePath("/solicitacoes");
   }
 
   revalidateEvents(data.id);
   redirect(`/eventos/${data.id}?created=1`);
+}
+
+async function createQuoteFromRequest(eventId: string, orgId: string, userId: string, adults: number, children: number, packageId: string | null, addons: unknown) {
+  const supabase = await createClient();
+  const { data: pkg } = packageId
+    ? await supabase.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price").eq("id", packageId).maybeSingle()
+    : { data: null };
+  const chosen = Array.isArray(addons) ? (addons as { addon_id?: string; quantity?: number }[]) : [];
+  const ids = chosen.map((a) => a.addon_id).filter((v): v is string => typeof v === "string");
+  const { data: addonRows } = ids.length ? await supabase.from("package_addons").select("id, name, price").in("id", ids) : { data: [] };
+  const addonLines = (addonRows ?? []).map((addon) => ({ addon, quantity: Math.max(Number(chosen.find((c) => c.addon_id === addon.id)?.quantity ?? 1), 1) }));
+  const { data: quote } = await supabase
+    .from("quotes")
+    .insert({ organization_id: orgId, event_id: eventId, package_id: pkg?.id ?? null, adults, children, created_by: userId })
+    .select("id")
+    .single();
+  if (!quote) return;
+  const lines = buildQuoteLines(pkg, adults, children, addonLines);
+  if (lines.length) await supabase.from("quote_items").insert(lines.map((l) => ({ ...l, organization_id: orgId, quote_id: quote.id })));
 }
 
 const updateSchema = z.object({
@@ -98,8 +136,11 @@ const updateSchema = z.object({
   date: dateSchema,
   start_time: timeSchema,
   end_time: timeSchema,
-  estimated_participants: intOrNull,
+  adults: intOrNull,
+  children: intOrNull,
   package_id: uuidOrNull,
+  celebrant_name: optionalText,
+  celebrant_age: intOrNull,
   space: z.string().trim().optional().default(""),
   notes: optionalText,
 });
@@ -117,8 +158,11 @@ export async function updateEvent(_prev: ActionResult | undefined, formData: For
       title: d.title,
       starts_at: localToIso(d.date, d.start_time),
       ends_at: localToIso(d.date, d.end_time),
-      estimated_participants: d.estimated_participants,
+      adults: d.adults,
+      children: d.children,
       package_id: d.package_id,
+      celebrant_name: d.celebrant_name,
+      celebrant_age: d.celebrant_age,
       space: d.space,
       notes: d.notes,
     })
@@ -169,4 +213,21 @@ export async function expirePreReservations() {
   const supabase = await createClient();
   const { data } = await supabase.rpc("expire_pre_reservations");
   return data ?? 0;
+}
+
+const inviteSchema = z.object({
+  id: uuid,
+  invite_title: optionalText,
+  invite_message: optionalText,
+});
+
+/** Staff-side invitation edit (image handled by uploadInviteImage). */
+export async function updateInvite(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const parsed = inviteSchema.safeParse(formToObject(formData));
+  if (!parsed.success) return fail("Verifique os campos.");
+  const supabase = await createClient();
+  const { error } = await supabase.from("events").update({ invite_title: parsed.data.invite_title, invite_message: parsed.data.invite_message, invite_updated_at: new Date().toISOString() }).eq("id", parsed.data.id);
+  if (error) return fail(translateDbError(error));
+  revalidateEvents(parsed.data.id);
+  return { ok: true, message: "Convite atualizado." };
 }

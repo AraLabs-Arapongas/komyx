@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarDays, Plus, PartyPopper, Users, Inbox, Settings, Package } from "lucide-react";
+import { Home, CalendarDays, Plus, PartyPopper, Users, Inbox, Settings, Package, FileText, Cake } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonClass } from "@/components/ui/button";
 
@@ -10,7 +10,9 @@ const links = [
   { href: "/home", label: "Início", icon: Home },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/eventos", label: "Eventos", icon: PartyPopper },
+  { href: "/orcamentos", label: "Orçamentos", icon: FileText },
   { href: "/clientes", label: "Clientes", icon: Users },
+  { href: "/aniversariantes", label: "Aniversariantes", icon: Cake },
   { href: "/solicitacoes", label: "Solicitações", icon: Inbox },
   { href: "/pacotes", label: "Pacotes", icon: Package },
   { href: "/configuracoes", label: "Configurações", icon: Settings },

@@ -6,7 +6,7 @@ import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 
-type Pkg = { id: string; name: string; base_price: number | string; included_participants: number; additional_participant_price: number | string; description: string | null };
+type Pkg = { id: string; name: string; base_price: number | string; included_adults: number; included_children: number; extra_adult_price: number | string; extra_child_price: number | string; description: string | null };
 type Addon = { id: string; name: string; price: number | string; description: string | null };
 
 export function PackageForm({ pkg }: { pkg?: Pkg }) {
@@ -19,10 +19,12 @@ export function PackageForm({ pkg }: { pkg?: Pkg }) {
       {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
       {pkg ? <input type="hidden" name="id" value={pkg.id} /> : null}
       <Field label="Nome" htmlFor={`pkg_name_${k}`} error={fe.name}><Input id={`pkg_name_${k}`} name="name" defaultValue={pkg?.name ?? ""} required /></Field>
-      <div className="grid grid-cols-3 gap-2">
-        <Field label="Preço-base" htmlFor={`pkg_price_${k}`} error={fe.base_price}><Input id={`pkg_price_${k}`} name="base_price" inputMode="decimal" defaultValue={pkg ? Number(pkg.base_price) : ""} required /></Field>
-        <Field label="Incluídos" htmlFor={`pkg_inc_${k}`} error={fe.included_participants}><Input id={`pkg_inc_${k}`} name="included_participants" type="number" min={0} defaultValue={pkg?.included_participants ?? 0} /></Field>
-        <Field label="R$/extra" htmlFor={`pkg_add_${k}`} error={fe.additional_participant_price}><Input id={`pkg_add_${k}`} name="additional_participant_price" inputMode="decimal" defaultValue={pkg ? Number(pkg.additional_participant_price) : 0} /></Field>
+      <Field label="Preço-base (R$)" htmlFor={`pkg_price_${k}`} error={fe.base_price}><Input id={`pkg_price_${k}`} name="base_price" inputMode="decimal" defaultValue={pkg ? Number(pkg.base_price) : ""} required /></Field>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Adultos incluídos" htmlFor={`pkg_ia_${k}`} error={fe.included_adults}><Input id={`pkg_ia_${k}`} name="included_adults" type="number" min={0} defaultValue={pkg?.included_adults ?? 0} /></Field>
+        <Field label="Crianças incluídas" htmlFor={`pkg_ic_${k}`} error={fe.included_children}><Input id={`pkg_ic_${k}`} name="included_children" type="number" min={0} defaultValue={pkg?.included_children ?? 0} /></Field>
+        <Field label="R$ por adulto extra" htmlFor={`pkg_ea_${k}`} error={fe.extra_adult_price}><Input id={`pkg_ea_${k}`} name="extra_adult_price" inputMode="decimal" defaultValue={pkg ? Number(pkg.extra_adult_price) : 0} /></Field>
+        <Field label="R$ por criança extra" htmlFor={`pkg_ec_${k}`} error={fe.extra_child_price}><Input id={`pkg_ec_${k}`} name="extra_child_price" inputMode="decimal" defaultValue={pkg ? Number(pkg.extra_child_price) : 0} /></Field>
       </div>
       <Field label="Descrição" htmlFor={`pkg_desc_${k}`}><Textarea id={`pkg_desc_${k}`} name="description" defaultValue={pkg?.description ?? ""} className="min-h-16" placeholder="O que está incluso" /></Field>
       <SubmitButton size="sm">{pkg ? "Salvar" : "Criar pacote"}</SubmitButton>

@@ -17,7 +17,49 @@ const orgSchema = z.object({
   description: optionalText,
   default_event_duration_minutes: z.string().transform(Number).refine((v) => v >= 30 && v <= 1440, "Entre 30 e 1440 minutos"),
   pre_reservation_validity_hours: z.string().transform(Number).refine((v) => v >= 1 && v <= 720, "Entre 1 e 720 horas"),
+  legal_name: optionalText,
+  document: optionalText,
+  city: optionalText,
+  pix_key: optionalText,
 });
+
+const installmentRule = z.enum(["ON_ACCEPT", "DAYS_BEFORE_EVENT", "FIXED_DATE"]);
+const planSchema = z
+  .array(z.object({
+    label: z.string().trim().min(1, "Informe o nome da parcela"),
+    percent: z.number().min(0).max(100),
+    rule: installmentRule,
+    days_before: z.number().int().min(0).nullable(),
+  }))
+  .min(1, "Adicione ao menos uma parcela")
+  .refine((items) => Math.abs(items.reduce((a, i) => a + i.percent, 0) - 100) < 0.01, "Os percentuais devem somar 100%");
+
+export async function updatePaymentPlan(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const labels = formData.getAll("label").map(String);
+  const percents = formData.getAll("percent").map((v) => Number(String(v).replace(",", ".")));
+  const rules = formData.getAll("rule").map(String);
+  const days = formData.getAll("days_before").map((v) => (String(v).trim() === "" ? null : Number(v)));
+  const items = labels.map((label, i) => ({ label, percent: percents[i] ?? 0, rule: rules[i] as z.infer<typeof installmentRule>, days_before: rules[i] === "DAYS_BEFORE_EVENT" ? days[i] ?? 0 : null }));
+  const parsed = planSchema.safeParse(items);
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Plano inválido.");
+  const profile = await requireOwner();
+  const supabase = await createClient();
+  const { error } = await supabase.from("organizations").update({ payment_plan: parsed.data }).eq("id", profile.organization_id);
+  if (error) return fail(translateDbError(error));
+  revalidatePath("/configuracoes");
+  return { ok: true, message: "Plano de pagamento salvo. Vale para novos orçamentos." };
+}
+
+export async function updateContractTemplate(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const template = String(formData.get("contract_template") ?? "").trim();
+  if (template.length < 50) return fail("O modelo de contrato está muito curto.");
+  const profile = await requireOwner();
+  const supabase = await createClient();
+  const { error } = await supabase.from("organizations").update({ contract_template: template }).eq("id", profile.organization_id);
+  if (error) return fail(translateDbError(error));
+  revalidatePath("/configuracoes");
+  return { ok: true, message: "Modelo de contrato salvo." };
+}
 
 export async function updateOrganization(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
   const parsed = orgSchema.safeParse(formToObject(formData));
@@ -58,8 +100,10 @@ const packageSchema = z.object({
   id: z.string().optional().transform((v) => (v ? v : null)),
   name: z.string().trim().min(2, "Informe o nome"),
   base_price: moneySchema,
-  included_participants: z.string().transform((v) => Number(v || 0)).refine((v) => Number.isInteger(v) && v >= 0, "Inválido"),
-  additional_participant_price: moneySchema,
+  included_adults: z.string().optional().transform((v) => Number(v || 0)).refine((v) => Number.isInteger(v) && v >= 0, "Inválido"),
+  included_children: z.string().optional().transform((v) => Number(v || 0)).refine((v) => Number.isInteger(v) && v >= 0, "Inválido"),
+  extra_adult_price: z.string().optional().transform((v) => Number(String(v || "0").replace(/\./g, "").replace(",", "."))).refine((v) => Number.isFinite(v) && v >= 0, "Valor inválido"),
+  extra_child_price: z.string().optional().transform((v) => Number(String(v || "0").replace(/\./g, "").replace(",", "."))).refine((v) => Number.isFinite(v) && v >= 0, "Valor inválido"),
   description: optionalText,
   active: z.string().optional().transform((v) => v !== "false"),
 });

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users, Inbox, Package, Settings, ExternalLink, ChevronRight, LogOut } from "lucide-react";
+import { Users, Inbox, Package, Settings, ExternalLink, ChevronRight, LogOut, FileText, Cake } from "lucide-react";
 import { requireProfile, getOrganization } from "@/lib/data/session";
 import { PageBody, PageHeader } from "@/components/ui/page";
 
@@ -9,7 +9,9 @@ export default async function MenuPage() {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const isOwner = profile.role === "owner";
   const items = [
+    { href: "/orcamentos", label: "Orçamentos", desc: "Todos os orçamentos, PDF e status", icon: FileText },
     { href: "/clientes", label: "Clientes", desc: "Cadastro e histórico", icon: Users },
+    { href: "/aniversariantes", label: "Aniversariantes", desc: "Promoções para o próximo ano", icon: Cake },
     { href: "/solicitacoes", label: "Solicitações", desc: "Pedidos da página pública", icon: Inbox },
     ...(isOwner ? [
       { href: "/pacotes", label: "Pacotes e adicionais", desc: "Catálogo para orçamentos", icon: Package },

@@ -12,12 +12,16 @@ function revalidateEvent(eventId: string) {
   revalidatePath("/home");
 }
 
-const guestSchema = z.object({
-  event_id: uuid,
-  name: z.string().trim().min(1, "Informe o nome"),
-  participants: z.string().transform(Number).refine((v) => Number.isInteger(v) && v >= 1, "Mínimo 1"),
-  notes: optionalText,
-});
+const count = z.string().optional().transform((v) => Number(v || 0)).refine((v) => Number.isInteger(v) && v >= 0, "Inválido");
+const guestSchema = z
+  .object({
+    event_id: uuid,
+    name: z.string().trim().min(1, "Informe o nome"),
+    adults: count,
+    children: count,
+    notes: optionalText,
+  })
+  .refine((d) => d.adults + d.children >= 1, { message: "Informe ao menos 1 pessoa", path: ["adults"] });
 
 export async function addGuest(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
   const parsed = guestSchema.safeParse(Object.fromEntries(formData));
@@ -65,21 +69,76 @@ export async function removePayment(formData: FormData) {
   revalidateEvent(eventId);
 }
 
-/** Ensures an active guest-confirmation link exists for the event. */
-export async function ensureGuestLink(formData: FormData) {
+type LinkType = "GUEST_CONFIRM" | "QUOTE" | "INVITE_EDIT" | "CHECKIN";
+
+/** Ensures an active public link of the given type exists for the event. */
+export async function ensureEventLink(formData: FormData) {
   const eventId = String(formData.get("event_id"));
+  const type = String(formData.get("type") ?? "GUEST_CONFIRM") as LinkType;
   const profile = await requireProfile();
   const supabase = await createClient();
   const { data: existing } = await supabase
     .from("public_links")
     .select("id")
     .eq("event_id", eventId)
-    .eq("type", "GUEST_CONFIRM")
+    .eq("type", type)
     .eq("active", true)
     .maybeSingle();
   if (!existing) {
-    await supabase.from("public_links").insert({ organization_id: profile.organization_id, event_id: eventId, type: "GUEST_CONFIRM", created_by: profile.id });
+    await supabase.from("public_links").insert({ organization_id: profile.organization_id, event_id: eventId, type, created_by: profile.id });
   }
+  revalidateEvent(eventId);
+}
+
+/** Back-compat alias used by the guest section. */
+export async function ensureGuestLink(formData: FormData) {
+  formData.set("type", "GUEST_CONFIRM");
+  return ensureEventLink(formData);
+}
+
+const checkinSchema = z.object({
+  id: uuid,
+  event_id: uuid,
+  checked_in_adults: count,
+  checked_in_children: count,
+});
+
+/** Staff check-in from the event page (same rules as the door page). */
+export async function checkInGuest(formData: FormData) {
+  const parsed = checkinSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return;
+  const d = parsed.data;
+  const supabase = await createClient();
+  const arrived = d.checked_in_adults + d.checked_in_children > 0;
+  await supabase.from("guests").update({ checked_in_adults: d.checked_in_adults, checked_in_children: d.checked_in_children, checked_in_at: arrived ? new Date().toISOString() : null }).eq("id", d.id);
+  revalidateEvent(d.event_id);
+}
+
+const extraSchema = z.object({
+  event_id: uuid,
+  addon_id: z.string().optional().transform((v) => (v ? v : null)),
+  description: z.string().trim().min(1, "Informe o item"),
+  quantity: z.string().transform((v) => Number(String(v).replace(",", "."))).refine((v) => v > 0, "Quantidade inválida"),
+  unit_price: moneySchema,
+});
+
+/** On-site extra order registered by staff. */
+export async function addEventExtra(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const parsed = extraSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return fail("Verifique os campos.", zodFieldErrors(parsed.error));
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  const { error } = await supabase.from("event_extras").insert({ ...parsed.data, organization_id: profile.organization_id, source: "STAFF", created_by: profile.id });
+  if (error) return fail(translateDbError(error));
+  revalidateEvent(parsed.data.event_id);
+  return { ok: true };
+}
+
+export async function removeEventExtra(formData: FormData) {
+  const id = String(formData.get("id"));
+  const eventId = String(formData.get("event_id"));
+  const supabase = await createClient();
+  await supabase.from("event_extras").delete().eq("id", id);
   revalidateEvent(eventId);
 }
 

@@ -22,14 +22,14 @@ export default async function PackagesPage() {
       <PageHeader title="Pacotes e adicionais" back="/menu" />
       <PageBody>
         <Card>
-          <CardHeader title="Pacotes" subtitle="Preço-base, participantes incluídos e valor por participante extra" />
+          <CardHeader title="Pacotes" subtitle="Preço-base, adultos e crianças incluídos e valor por participante extra" />
           <CardBody className="space-y-3">
             {(packages ?? []).map((p) => (
               <details key={p.id} className="rounded-xl border border-border">
                 <summary className="flex items-center justify-between gap-3 px-3 py-2.5 cursor-pointer list-none">
                   <div className="min-w-0">
                     <p className="font-medium truncate">{p.name} {!p.active ? <Badge tone="zinc" className="ml-1">inativo</Badge> : null}</p>
-                    <p className="text-xs text-muted">{formatCurrency(p.base_price)} · {p.included_participants} incluídos · +{formatCurrency(p.additional_participant_price)}/extra</p>
+                    <p className="text-xs text-muted">{formatCurrency(p.base_price)} · {p.included_adults} adultos + {p.included_children} crianças · extra {formatCurrency(p.extra_adult_price)}/adulto, {formatCurrency(p.extra_child_price)}/criança</p>
                   </div>
                   <span className="text-sm text-brand font-medium">Editar</span>
                 </summary>

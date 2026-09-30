@@ -15,9 +15,9 @@ export default async function NewEventPage({ searchParams }: PageProps<"/eventos
   const requestId = typeof sp.request === "string" ? sp.request : undefined;
 
   const [packagesRes, customerRes, requestRes] = await Promise.all([
-    supabase.from("packages").select("id, name, base_price").eq("active", true).order("sort_order").order("name"),
+    supabase.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price").eq("active", true).order("sort_order").order("name"),
     customerId ? supabase.from("customers").select("id, name, whatsapp").eq("id", customerId).maybeSingle() : Promise.resolve({ data: null }),
-    requestId ? supabase.from("public_requests").select("id, name, whatsapp, desired_date, desired_time, participants, message").eq("id", requestId).maybeSingle() : Promise.resolve({ data: null }),
+    requestId ? supabase.from("public_requests").select("id, name, whatsapp, desired_date, desired_time, adults, children, participants, message, source, celebrant_name, celebrant_birth_date, package_id, estimated_total").eq("id", requestId).maybeSingle() : Promise.resolve({ data: null }),
   ]);
 
   const req = requestRes.data;
@@ -31,7 +31,10 @@ export default async function NewEventPage({ searchParams }: PageProps<"/eventos
         <NewEventForm
           packages={packagesRes.data ?? []}
           customer={customerRes.data}
-          request={req ? { id: req.id, name: req.name, whatsapp: req.whatsapp, participants: req.participants, message: req.message } : null}
+          request={req ? {
+            id: req.id, name: req.name, whatsapp: req.whatsapp, adults: req.adults ?? (req.participants ?? null), children: req.children ?? null, message: req.message,
+            source: req.source, celebrant_name: req.celebrant_name, celebrant_birth_date: req.celebrant_birth_date, package_id: req.package_id, estimated_total: req.estimated_total,
+          } : null}
           defaults={{ date, start, durationMinutes: org.default_event_duration_minutes }}
         />
       </PageBody>

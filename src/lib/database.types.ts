@@ -34,40 +34,269 @@ export type Database = {
   }
   public: {
     Tables: {
+      celebrants: {
+        Row: {
+          birth_date: string
+          created_at: string
+          customer_id: string
+          event_id: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+        }
+        Insert: {
+          birth_date: string
+          created_at?: string
+          customer_id: string
+          event_id?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+        }
+        Update: {
+          birth_date?: string
+          created_at?: string
+          customer_id?: string
+          event_id?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "celebrants_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "celebrants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financials"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "celebrants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "celebrants_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          accepted_at: string | null
+          accepted_ip: string | null
+          accepted_name: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          event_id: string
+          id: string
+          number: number
+          organization_id: string
+          quote_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["contract_status"]
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_ip?: string | null
+          accepted_name?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          id?: string
+          number?: number
+          organization_id: string
+          quote_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_ip?: string | null
+          accepted_name?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          id?: string
+          number?: number
+          organization_id?: string
+          quote_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financials"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "contracts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "event_financials"
+            referencedColumns: ["quote_id"]
+          },
+          {
+            foreignKeyName: "contracts_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           created_at: string
+          document: string | null
           email: string | null
           id: string
           name: string
           notes: string | null
           organization_id: string
+          source: string | null
           updated_at: string
           whatsapp: string
         }
         Insert: {
           created_at?: string
+          document?: string | null
           email?: string | null
           id?: string
           name: string
           notes?: string | null
           organization_id: string
+          source?: string | null
           updated_at?: string
           whatsapp: string
         }
         Update: {
           created_at?: string
+          document?: string | null
           email?: string | null
           id?: string
           name?: string
           notes?: string | null
           organization_id?: string
+          source?: string | null
           updated_at?: string
           whatsapp?: string
         }
         Relationships: [
           {
             foreignKeyName: "customers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_extras: {
+        Row: {
+          addon_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          event_id: string
+          id: string
+          organization_id: string
+          quantity: number
+          source: string
+          total: number | null
+          unit_price: number
+        }
+        Insert: {
+          addon_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          event_id: string
+          id?: string
+          organization_id: string
+          quantity?: number
+          source?: string
+          total?: number | null
+          unit_price?: number
+        }
+        Update: {
+          addon_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          event_id?: string
+          id?: string
+          organization_id?: string
+          quantity?: number
+          source?: string
+          total?: number | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_extras_addon_id_fkey"
+            columns: ["addon_id"]
+            isOneToOne: false
+            referencedRelation: "package_addons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_extras_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financials"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_extras_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_extras_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -129,7 +358,11 @@ export type Database = {
       }
       events: {
         Row: {
+          adults: number | null
           cancelled_at: string | null
+          celebrant_age: number | null
+          celebrant_name: string | null
+          children: number | null
           confirmed_at: string | null
           created_at: string
           created_by: string | null
@@ -139,6 +372,10 @@ export type Database = {
           estimated_participants: number | null
           expires_at: string | null
           id: string
+          invite_image_url: string | null
+          invite_message: string | null
+          invite_title: string | null
+          invite_updated_at: string | null
           notes: string | null
           organization_id: string
           package_id: string | null
@@ -149,7 +386,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          adults?: number | null
           cancelled_at?: string | null
+          celebrant_age?: number | null
+          celebrant_name?: string | null
+          children?: number | null
           confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -159,6 +400,10 @@ export type Database = {
           estimated_participants?: number | null
           expires_at?: string | null
           id?: string
+          invite_image_url?: string | null
+          invite_message?: string | null
+          invite_title?: string | null
+          invite_updated_at?: string | null
           notes?: string | null
           organization_id: string
           package_id?: string | null
@@ -169,7 +414,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          adults?: number | null
           cancelled_at?: string | null
+          celebrant_age?: number | null
+          celebrant_name?: string | null
+          children?: number | null
           confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -179,6 +428,10 @@ export type Database = {
           estimated_participants?: number | null
           expires_at?: string | null
           id?: string
+          invite_image_url?: string | null
+          invite_message?: string | null
+          invite_title?: string | null
+          invite_updated_at?: string | null
           notes?: string | null
           organization_id?: string
           package_id?: string | null
@@ -214,33 +467,48 @@ export type Database = {
       }
       guests: {
         Row: {
+          adults: number
+          checked_in_adults: number
+          checked_in_at: string | null
+          checked_in_children: number
+          children: number
           created_at: string
           event_id: string
           id: string
           name: string
           notes: string | null
           organization_id: string
-          participants: number
+          participants: number | null
           source: Database["public"]["Enums"]["guest_source"]
         }
         Insert: {
+          adults?: number
+          checked_in_adults?: number
+          checked_in_at?: string | null
+          checked_in_children?: number
+          children?: number
           created_at?: string
           event_id: string
           id?: string
           name: string
           notes?: string | null
           organization_id: string
-          participants?: number
+          participants?: number | null
           source?: Database["public"]["Enums"]["guest_source"]
         }
         Update: {
+          adults?: number
+          checked_in_adults?: number
+          checked_in_at?: string | null
+          checked_in_children?: number
+          children?: number
           created_at?: string
           event_id?: string
           id?: string
           name?: string
           notes?: string | null
           organization_id?: string
-          participants?: number
+          participants?: number | null
           source?: Database["public"]["Enums"]["guest_source"]
         }
         Relationships: [
@@ -270,14 +538,20 @@ export type Database = {
       organizations: {
         Row: {
           address: string | null
+          city: string | null
+          contract_template: string
           cover_url: string | null
           created_at: string
           default_event_duration_minutes: number
           description: string | null
+          document: string | null
           id: string
           instagram: string | null
+          legal_name: string | null
           logo_url: string | null
           name: string
+          payment_plan: Json
+          pix_key: string | null
           pre_reservation_validity_hours: number
           slug: string
           updated_at: string
@@ -285,14 +559,20 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          city?: string | null
+          contract_template?: string
           cover_url?: string | null
           created_at?: string
           default_event_duration_minutes?: number
           description?: string | null
+          document?: string | null
           id?: string
           instagram?: string | null
+          legal_name?: string | null
           logo_url?: string | null
           name: string
+          payment_plan?: Json
+          pix_key?: string | null
           pre_reservation_validity_hours?: number
           slug: string
           updated_at?: string
@@ -300,14 +580,20 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          city?: string | null
+          contract_template?: string
           cover_url?: string | null
           created_at?: string
           default_event_duration_minutes?: number
           description?: string | null
+          document?: string | null
           id?: string
           instagram?: string | null
+          legal_name?: string | null
           logo_url?: string | null
           name?: string
+          payment_plan?: Json
+          pix_key?: string | null
           pre_reservation_validity_hours?: number
           slug?: string
           updated_at?: string
@@ -362,12 +648,14 @@ export type Database = {
       packages: {
         Row: {
           active: boolean
-          additional_participant_price: number
           base_price: number
           created_at: string
           description: string | null
+          extra_adult_price: number
+          extra_child_price: number
           id: string
-          included_participants: number
+          included_adults: number
+          included_children: number
           name: string
           organization_id: string
           sort_order: number
@@ -375,12 +663,14 @@ export type Database = {
         }
         Insert: {
           active?: boolean
-          additional_participant_price?: number
           base_price?: number
           created_at?: string
           description?: string | null
+          extra_adult_price?: number
+          extra_child_price?: number
           id?: string
-          included_participants?: number
+          included_adults?: number
+          included_children?: number
           name: string
           organization_id: string
           sort_order?: number
@@ -388,12 +678,14 @@ export type Database = {
         }
         Update: {
           active?: boolean
-          additional_participant_price?: number
           base_price?: number
           created_at?: string
           description?: string | null
+          extra_adult_price?: number
+          extra_child_price?: number
           id?: string
-          included_participants?: number
+          included_adults?: number
+          included_children?: number
           name?: string
           organization_id?: string
           sort_order?: number
@@ -565,43 +857,67 @@ export type Database = {
       }
       public_requests: {
         Row: {
+          addons: Json | null
+          adults: number | null
+          celebrant_birth_date: string | null
+          celebrant_name: string | null
+          children: number | null
           created_at: string
           desired_date: string | null
           desired_time: string | null
+          estimated_total: number | null
           event_id: string | null
           id: string
           message: string | null
           name: string
           organization_id: string
+          package_id: string | null
           participants: number | null
+          source: string | null
           status: Database["public"]["Enums"]["public_request_status"]
           updated_at: string
           whatsapp: string
         }
         Insert: {
+          addons?: Json | null
+          adults?: number | null
+          celebrant_birth_date?: string | null
+          celebrant_name?: string | null
+          children?: number | null
           created_at?: string
           desired_date?: string | null
           desired_time?: string | null
+          estimated_total?: number | null
           event_id?: string | null
           id?: string
           message?: string | null
           name: string
           organization_id: string
+          package_id?: string | null
           participants?: number | null
+          source?: string | null
           status?: Database["public"]["Enums"]["public_request_status"]
           updated_at?: string
           whatsapp: string
         }
         Update: {
+          addons?: Json | null
+          adults?: number | null
+          celebrant_birth_date?: string | null
+          celebrant_name?: string | null
+          children?: number | null
           created_at?: string
           desired_date?: string | null
           desired_time?: string | null
+          estimated_total?: number | null
           event_id?: string | null
           id?: string
           message?: string | null
           name?: string
           organization_id?: string
+          package_id?: string | null
           participants?: number | null
+          source?: string | null
           status?: Database["public"]["Enums"]["public_request_status"]
           updated_at?: string
           whatsapp?: string
@@ -626,6 +942,77 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_requests_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_installments: {
+        Row: {
+          amount: number
+          created_at: string
+          days_before: number | null
+          due_date: string | null
+          id: string
+          label: string
+          organization_id: string
+          percent: number
+          quote_id: string
+          rule: Database["public"]["Enums"]["installment_rule"]
+          sequence: number
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          days_before?: number | null
+          due_date?: string | null
+          id?: string
+          label: string
+          organization_id: string
+          percent: number
+          quote_id: string
+          rule?: Database["public"]["Enums"]["installment_rule"]
+          sequence?: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          days_before?: number | null
+          due_date?: string | null
+          id?: string
+          label?: string
+          organization_id?: string
+          percent?: number
+          quote_id?: string
+          rule?: Database["public"]["Enums"]["installment_rule"]
+          sequence?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_installments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_installments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "event_financials"
+            referencedColumns: ["quote_id"]
+          },
+          {
+            foreignKeyName: "quote_installments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
             referencedColumns: ["id"]
           },
         ]
@@ -703,6 +1090,8 @@ export type Database = {
       }
       quotes: {
         Row: {
+          adults: number
+          children: number
           created_at: string
           created_by: string | null
           decided_at: string | null
@@ -714,7 +1103,7 @@ export type Database = {
           notes: string | null
           organization_id: string
           package_id: string | null
-          participants: number
+          participants: number | null
           sent_at: string | null
           status: Database["public"]["Enums"]["quote_status"]
           subtotal: number
@@ -722,6 +1111,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          adults?: number
+          children?: number
           created_at?: string
           created_by?: string | null
           decided_at?: string | null
@@ -733,7 +1124,7 @@ export type Database = {
           notes?: string | null
           organization_id: string
           package_id?: string | null
-          participants?: number
+          participants?: number | null
           sent_at?: string | null
           status?: Database["public"]["Enums"]["quote_status"]
           subtotal?: number
@@ -741,6 +1132,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          adults?: number
+          children?: number
           created_at?: string
           created_by?: string | null
           decided_at?: string | null
@@ -752,7 +1145,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           package_id?: string | null
-          participants?: number
+          participants?: number | null
           sent_at?: string | null
           status?: Database["public"]["Enums"]["quote_status"]
           subtotal?: number
@@ -794,8 +1187,13 @@ export type Database = {
     Views: {
       event_financials: {
         Row: {
+          adults_total: number | null
           balance: number | null
+          checked_in_count: number | null
+          checked_in_total: number | null
+          children_total: number | null
           event_id: string | null
+          extras_total: number | null
           guest_count: number | null
           organization_id: string | null
           paid_total: number | null
@@ -804,6 +1202,7 @@ export type Database = {
           quote_id: string | null
           quote_status: Database["public"]["Enums"]["quote_status"] | null
           quote_total: number | null
+          total: number | null
         }
         Relationships: [
           {
@@ -820,6 +1219,7 @@ export type Database = {
       expire_pre_reservations: { Args: never; Returns: number }
     }
     Enums: {
+      contract_status: "DRAFT" | "SENT" | "ACCEPTED" | "CANCELLED"
       discount_type: "AMOUNT" | "PERCENT"
       event_status:
         | "PRE_RESERVED"
@@ -827,9 +1227,10 @@ export type Database = {
         | "DONE"
         | "CANCELLED"
         | "EXPIRED"
-      guest_source: "MANUAL" | "PUBLIC"
+      guest_source: "MANUAL" | "PUBLIC" | "DOOR"
+      installment_rule: "ON_ACCEPT" | "DAYS_BEFORE_EVENT" | "FIXED_DATE"
       payment_method: "PIX" | "CASH" | "CARD" | "TRANSFER" | "OTHER"
-      public_link_type: "GUEST_CONFIRM" | "QUOTE"
+      public_link_type: "GUEST_CONFIRM" | "QUOTE" | "INVITE_EDIT" | "CHECKIN"
       public_request_status: "NEW" | "CONVERTED" | "ARCHIVED"
       quote_item_kind: "PACKAGE" | "ADDON" | "EXTRA_PARTICIPANTS" | "CUSTOM"
       quote_status: "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED"
@@ -964,6 +1365,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      contract_status: ["DRAFT", "SENT", "ACCEPTED", "CANCELLED"],
       discount_type: ["AMOUNT", "PERCENT"],
       event_status: [
         "PRE_RESERVED",
@@ -972,9 +1374,10 @@ export const Constants = {
         "CANCELLED",
         "EXPIRED",
       ],
-      guest_source: ["MANUAL", "PUBLIC"],
+      guest_source: ["MANUAL", "PUBLIC", "DOOR"],
+      installment_rule: ["ON_ACCEPT", "DAYS_BEFORE_EVENT", "FIXED_DATE"],
       payment_method: ["PIX", "CASH", "CARD", "TRANSFER", "OTHER"],
-      public_link_type: ["GUEST_CONFIRM", "QUOTE"],
+      public_link_type: ["GUEST_CONFIRM", "QUOTE", "INVITE_EDIT", "CHECKIN"],
       public_request_status: ["NEW", "CONVERTED", "ARCHIVED"],
       quote_item_kind: ["PACKAGE", "ADDON", "EXTRA_PARTICIPANTS", "CUSTOM"],
       quote_status: ["DRAFT", "SENT", "ACCEPTED", "REJECTED"],

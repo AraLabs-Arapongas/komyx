@@ -4,13 +4,15 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { updateEvent } from "@/lib/actions/events";
 import { Card, CardBody } from "@/components/ui/card";
-import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
+import { ParticipantsFields } from "@/components/events/participants-fields";
+import type { PackagePricing } from "@/lib/pricing";
 
 type Props = {
-  event: { id: string; title: string; date: string; start: string; end: string; estimated_participants: number | null; package_id: string; space: string; notes: string };
-  packages: { id: string; name: string }[];
+  event: { id: string; title: string; date: string; start: string; end: string; adults: number | null; children: number | null; package_id: string; space: string; notes: string; celebrant_name: string; celebrant_age: number | null };
+  packages: PackagePricing[];
 };
 
 export function EditEventForm({ event, packages }: Props) {
@@ -28,16 +30,10 @@ export function EditEventForm({ event, packages }: Props) {
             <Field label="Início" htmlFor="start_time" error={fe.start_time}><Input id="start_time" name="start_time" type="time" defaultValue={event.start} step={900} required /></Field>
             <Field label="Fim" htmlFor="end_time" error={fe.end_time}><Input id="end_time" name="end_time" type="time" defaultValue={event.end} step={900} required /></Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Participantes" htmlFor="estimated_participants" error={fe.estimated_participants}>
-              <Input id="estimated_participants" name="estimated_participants" type="number" inputMode="numeric" min={0} defaultValue={event.estimated_participants ?? ""} />
-            </Field>
-            <Field label="Pacote" htmlFor="package_id">
-              <Select id="package_id" name="package_id" defaultValue={event.package_id}>
-                <option value="">Sem pacote</option>
-                {packages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </Select>
-            </Field>
+          <ParticipantsFields packages={packages} initialPackageId={event.package_id} initialAdults={event.adults} initialChildren={event.children} errors={fe} />
+          <div className="grid grid-cols-[1fr_80px] gap-3">
+            <Field label="Aniversariante" htmlFor="celebrant_name"><Input id="celebrant_name" name="celebrant_name" defaultValue={event.celebrant_name} /></Field>
+            <Field label="Idade" htmlFor="celebrant_age"><Input id="celebrant_age" name="celebrant_age" type="number" min={0} max={150} defaultValue={event.celebrant_age ?? ""} /></Field>
           </div>
           <Field label="Espaço / salão" htmlFor="space" hint="Deixe vazio se o buffet tem um único espaço. Eventos só conflitam dentro do mesmo espaço.">
             <Input id="space" name="space" defaultValue={event.space} placeholder="Ex.: Salão principal" />
