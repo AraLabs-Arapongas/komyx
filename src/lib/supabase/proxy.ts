@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PREFIXES = ["/login", "/signup", "/p/", "/g/", "/manifest.webmanifest", "/icons/", "/auth/"];
+const PUBLIC_PREFIXES = ["/login", "/signup", "/p/", "/g/", "/q/", "/manifest.webmanifest", "/icons/", "/auth/"];
 
 function isPublicPath(pathname: string) {
   if (pathname === "/") return true;
@@ -31,7 +31,9 @@ export async function updateSession(request: NextRequest) {
   );
 
   // Refreshes the session if needed and writes cookies back.
+  const t0 = performance.now();
   const { data } = await supabase.auth.getClaims();
+  if (performance.now() - t0 > 300) console.log(`[slow] proxy.getClaims: ${Math.round(performance.now() - t0)}ms`);
   const isAuthenticated = Boolean(data?.claims);
   const { pathname } = request.nextUrl;
 

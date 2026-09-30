@@ -55,19 +55,19 @@ begin
   -- Events relative to today
   insert into public.events (id, organization_id, customer_id, title, starts_at, ends_at, status, package_id, estimated_participants, notes, expires_at, created_by) values
     ('bbbbbbbb-0000-0000-0000-000000000001', v_org, 'aaaaaaaa-0000-0000-0000-000000000001', 'Aniversário da Júlia',
-      (current_date + 5) + time '15:00' at time zone 'America/Sao_Paulo', (current_date + 5) + time '19:00' at time zone 'America/Sao_Paulo',
+      ((current_date + 5) + time '15:00') at time zone 'America/Sao_Paulo', ((current_date + 5) + time '19:00') at time zone 'America/Sao_Paulo',
       'CONFIRMED', (select id from public.packages where organization_id = v_org and name = 'Pacote Prata'), 65, 'Tema: Frozen. Bolo azul.', null, '11111111-1111-1111-1111-111111111111'),
     ('bbbbbbbb-0000-0000-0000-000000000002', v_org, 'aaaaaaaa-0000-0000-0000-000000000002', 'Festa do Theo',
-      (current_date + 12) + time '11:00' at time zone 'America/Sao_Paulo', (current_date + 12) + time '15:00' at time zone 'America/Sao_Paulo',
+      ((current_date + 12) + time '11:00') at time zone 'America/Sao_Paulo', ((current_date + 12) + time '15:00') at time zone 'America/Sao_Paulo',
       'PRE_RESERVED', (select id from public.packages where organization_id = v_org and name = 'Pacote Bronze'), 40, null, now() + interval '30 hours', '22222222-2222-2222-2222-222222222222'),
     ('bbbbbbbb-0000-0000-0000-000000000003', v_org, 'aaaaaaaa-0000-0000-0000-000000000003', null,
-      (current_date + 19) + time '16:00' at time zone 'America/Sao_Paulo', (current_date + 19) + time '20:00' at time zone 'America/Sao_Paulo',
+      ((current_date + 19) + time '16:00') at time zone 'America/Sao_Paulo', ((current_date + 19) + time '20:00') at time zone 'America/Sao_Paulo',
       'PRE_RESERVED', null, 80, 'Quer ver o espaço antes de fechar.', now() + interval '3 days', '11111111-1111-1111-1111-111111111111'),
     ('bbbbbbbb-0000-0000-0000-000000000004', v_org, 'aaaaaaaa-0000-0000-0000-000000000004', 'Bodas de Prata',
-      (current_date - 9) + time '19:00' at time zone 'America/Sao_Paulo', (current_date - 9) + time '23:30' at time zone 'America/Sao_Paulo',
+      ((current_date - 9) + time '19:00') at time zone 'America/Sao_Paulo', ((current_date - 9) + time '23:30') at time zone 'America/Sao_Paulo',
       'DONE', (select id from public.packages where organization_id = v_org and name = 'Pacote Ouro'), 90, null, null, '11111111-1111-1111-1111-111111111111'),
     ('bbbbbbbb-0000-0000-0000-000000000005', v_org, 'aaaaaaaa-0000-0000-0000-000000000002', 'Chá revelação',
-      (current_date + 0) + time '18:00' at time zone 'America/Sao_Paulo', (current_date + 0) + time '21:00' at time zone 'America/Sao_Paulo',
+      ((current_date + 0) + time '18:00') at time zone 'America/Sao_Paulo', ((current_date + 0) + time '21:00') at time zone 'America/Sao_Paulo',
       'CONFIRMED', (select id from public.packages where organization_id = v_org and name = 'Pacote Bronze'), 35, null, null, '22222222-2222-2222-2222-222222222222');
 
   -- Quote for Júlia (accepted) with items

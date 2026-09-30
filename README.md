@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Festeja — SaaS para buffet
 
-## Getting Started
+Sistema simples para **vender, organizar e realizar festas**: agenda, pré-reservas, clientes, pacotes, orçamentos, convidados, pagamentos básicos, página pública e PWA. Centrado no evento; multiempresa desde o início.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 (App Router, Server Actions, Turbopack) + TypeScript + Tailwind CSS 4
+- Supabase (Postgres, Auth, Storage) com Row Level Security por `organization_id`
+- Supabase CLI + Docker para desenvolvimento local
+
+## Rodando localmente
+
+Pré-requisitos: Node 20+, pnpm, Docker, Supabase CLI.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+supabase start          # sobe Postgres/Auth/Storage/Studio nas portas 548xx
+supabase status -o env  # copie API_URL, PUBLISHABLE_KEY e SECRET_KEY para .env.local
+pnpm dev                # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.local` (veja `.env.example`):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54821
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_SECRET_KEY=sb_secret_...
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Studio local: http://127.0.0.1:54823
 
-## Learn More
+### Dados de exemplo
 
-To learn more about Next.js, take a look at the following resources:
+`supabase db reset` aplica as migrations e o `supabase/seed.sql`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Usuário | Senha | Papel |
+| --- | --- | --- |
+| dona@festabuffet.test | senha12345 | owner |
+| ana@festabuffet.test | senha12345 | staff |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Página pública de exemplo: `/p/festa-cia-buffet`. Link de convidados: `/g/demo-guest-link-julia-0123456789abcdef`.
 
-## Deploy on Vercel
+## Estrutura
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+supabase/migrations/   schema, triggers, RLS, view financeira
+supabase/seed.sql      dados locais
+src/app/(auth)         login / cadastro
+src/app/(app)          área autenticada (home, agenda, eventos, clientes, pacotes, configurações, solicitações)
+src/app/p/[slug]       página pública do buffet + formulário de interesse
+src/app/g/[token]      confirmação pública de convidados
+src/app/q/[token]      orçamento público
+src/lib/actions        server actions (zod + supabase)
+src/lib/supabase       clients (server, browser, admin) e proxy de sessão
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Regras de negócio (no banco)
+
+- **Disponibilidade**: trigger impede sobreposição de eventos na mesma empresa/espaço. Confirmados nunca se sobrepõem (exclusion constraint). Pré-reservas bloqueiam só enquanto `expires_at > now()`. Realizados/cancelados/expirados não bloqueiam.
+- **Expiração**: `expire_pre_reservations()` roda por pg_cron a cada 5 min e ao abrir Home/Agenda.
+- **Conversão sem duplicar**: confirmar muda o mesmo registro de `PRE_RESERVED` para `CONFIRMED`. Aceitar orçamento confirma o evento.
+- **Orçamento**: totais calculados por trigger (`subtotal`, desconto em R$ ou %, `total`). Estados: rascunho, enviado, aceito, recusado.
+- **Pagamentos**: view `event_financials` soma pagamentos e expõe total, pago, saldo e status (não pago / parcial / pago).
+- **Links públicos**: token aleatório de 48 hex, revogável; páginas públicas rodam no servidor com a chave de serviço e só leem o mínimo.
+- **Permissões**: `owner` gerencia empresa, equipe, pacotes; `staff` opera clientes, eventos, orçamentos, convidados e pagamentos. Todas as tabelas têm RLS por `organization_id`. `anon` não tem acesso direto.
+
+## Fluxo de migrations
+
+```bash
+supabase migration new <nome>   # cria arquivo
+supabase db reset               # reaplica tudo + seed
+supabase gen types typescript --local > src/lib/database.types.ts
+```

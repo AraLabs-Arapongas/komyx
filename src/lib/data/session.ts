@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { timed } from "@/lib/data/timing";
 
 export type Profile = {
   id: string;
@@ -17,15 +18,14 @@ export type Profile = {
  */
 export const requireProfile = cache(async (): Promise<Profile> => {
   const supabase = await createClient();
-  const { data: claims } = await supabase.auth.getClaims();
+  const { data: claims } = await timed("auth.getClaims", supabase.auth.getClaims());
   const userId = claims?.claims.sub;
   if (!userId) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, organization_id, name, email, role")
-    .eq("id", userId)
-    .maybeSingle();
+  const { data: profile } = await timed(
+    "profiles.select",
+    supabase.from("profiles").select("id, organization_id, name, email, role").eq("id", userId).maybeSingle(),
+  );
 
   if (!profile) {
     await supabase.auth.signOut();

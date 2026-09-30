@@ -17,6 +17,13 @@ import { PaymentForm } from "./payment-form";
 import { removePayment } from "@/lib/actions/guests-payments";
 import { loadEventFinancials } from "@/lib/data/financials";
 
+export async function generateMetadata({ params }: PageProps<"/eventos/[id]">) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase.from("events").select("title, customers(name)").eq("id", id).maybeSingle();
+  return { title: data ? eventTitle(data) : "Evento" };
+}
+
 export default async function EventDetailPage({ params, searchParams }: PageProps<"/eventos/[id]">) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   const org = await getOrganization();
