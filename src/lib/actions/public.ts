@@ -6,7 +6,6 @@ import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { dateSchema, optionalText, phoneSchema, zodFieldErrors, UUID_RE, uuid } from "./helpers";
 import { buildQuoteLines, sumLines } from "@/lib/pricing";
 import { localToIso, appUrl } from "@/lib/utils";
-import { redirect } from "next/navigation";
 import { buildPixPayload } from "@/lib/pix";
 import QRCode from "qrcode";
 

@@ -13,7 +13,7 @@ npx expo start              # tecle i (simulador iOS), a (Android) ou leia o QR 
 
 - Supabase local precisa estar de pé (`supabase start` na raiz). A chave publishable é a mesma do `.env.local` da raiz.
 - No celular físico, o IP em `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_WEB_URL` tem que ser o IP LAN do Mac (não `localhost`).
-- Contas de teste no login (só em dev): dona@festabuffet.test, ana@festabuffet.test, joao@alegriakids.test · senha `senha12345`.
+- Tela "Entrar" única: e-mail → senha (buffet); celular → código por SMS (cliente). Contas de teste (só em dev): dona@festabuffet.test / ana@festabuffet.test · senha `senha12345`; clientes 11999990002 (Roberto) e 11999990001 (Carla) · código `123456` (test_otp do Supabase local).
 - Deep links: `festeja://r/<token>` abre a reserva, `festeja://g/<token>` abre o convite.
 
 ## O que tem
@@ -25,21 +25,21 @@ npx expo start              # tecle i (simulador iOS), a (Android) ou leia o QR 
 - Solicitações, Notificações, Menu (plano, fatura, página pública, sair).
 
 **Cliente**
-- Minha reserva: busca por WhatsApp + data ou por link/código. Mostra status, prazo do sinal, **Pix com QR e copia-e-cola**, orçamento, parcelas pagas/em aberto, contrato (aceite na web), link permanente.
+- Minhas festas: após o código SMS, lista todas as festas do número em qualquer buffet. Reserva: status, prazo do sinal, **Pix com QR e copia-e-cola**, orçamento, parcelas pagas/em aberto, contrato (aceite na web), link permanente. Links `/r/` e `/g/` colados na tela Entrar abrem direto.
 - Convite: imagem/título/mensagem e confirmação de presença.
 
 ## Estrutura
 
 ```
 app/                 rotas (Expo Router)
-  welcome, login
+  entrar              e-mail+senha (buffet) ou celular+SMS (cliente)
   (app)/(tabs)/      home, agenda, solicitacoes, menu
   (app)/eventos/[id] detalhe do evento
   (app)/notificacoes
-  cliente/           index (buscar), reserva/[token], convite/[token]
+  cliente/           index (minhas festas), reserva/[token], convite/[token]
   r/[token], g/[token]   redirecionam para as telas do cliente (deep link)
 src/lib/             supabase, auth, format, labels, pix, installments, queries, client
 src/ui/              theme, components
 ```
 
-Funções SQL usadas pelo cliente: `find_reservation`, `reservation_by_token`, `guest_link`, `confirm_guest` (migração `20261001150000_mobile_client_rpcs.sql`).
+Funções SQL usadas pelo cliente: `my_reservations` (telefone autenticado), `reservation_by_token`, `guest_link`, `confirm_guest`. SMS: Supabase phone auth + hook `send_sms` → `src/app/api/auth/send-sms` → Comtele (`SMS_PROVIDER`, `COMTELE_API_KEY` no `.env.local` da raiz).
