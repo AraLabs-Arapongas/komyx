@@ -33,7 +33,7 @@ export type QuotePdfData = {
   };
 };
 
-const STATUS: Record<string, string> = { DRAFT: "Rascunho", SENT: "Enviado", ACCEPTED: "Aceito", REJECTED: "Recusado" };
+const STATUS: Record<string, string> = { DRAFT: "Rascunho", SENT: "Aguardando confirmação", ACCEPTED: "Aceito", REJECTED: "Recusado" };
 
 function Header({ org, title, subtitle }: { org: OrgPdf; title: string; subtitle?: string }) {
   return (

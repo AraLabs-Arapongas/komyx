@@ -60,6 +60,10 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 
 ---
 
+### Orçamentos (catálogo de propostas)
+
+Fluxo visível: Solicitação → Orçamento → Aguardando confirmação → Evento confirmado → Realizado/Cancelado. Um evento só "existe" para a dona depois da confirmação; antes é um orçamento com data e horário (mesmo registro no banco). Estados na página: Rascunho, Aguardando confirmação (orçamento enviado; pode segurar a data até o prazo), Aceito, Recusado, Expirado (prazo venceu, data liberada). "Enviado" é ação, não estado. Ações por estado: Continuar orçamento · Cobrar no WhatsApp / Abrir orçamento · Abrir evento. Cards do topo somam o mês atual. Sem gráficos, CRM ou financeiro.
+
 ## 2. Cliente (sem login)
 
 ### 2.1 Descobrir

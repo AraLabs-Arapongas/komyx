@@ -25,7 +25,7 @@ export const EVENT_STATUS_TONE: Record<EventStatus, "amber" | "green" | "slate" 
 
 export const QUOTE_STATUS_LABEL: Record<QuoteStatus, string> = {
   DRAFT: "Rascunho",
-  SENT: "Enviado",
+  SENT: "Aguardando confirmação",
   ACCEPTED: "Aceito",
   REJECTED: "Recusado",
 };
