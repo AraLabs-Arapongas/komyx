@@ -46,7 +46,7 @@ export async function updatePaymentPlan(_prev: ActionResult | undefined, formDat
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update({ payment_plan: parsed.data }).eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
   return { ok: true, message: "Plano de pagamento salvo. Vale para novos orçamentos." };
 }
 
@@ -57,7 +57,7 @@ export async function updateContractTemplate(_prev: ActionResult | undefined, fo
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update({ contract_template: template }).eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
   return { ok: true, message: "Modelo de contrato salvo." };
 }
 
@@ -68,7 +68,7 @@ export async function updateOrganization(_prev: ActionResult | undefined, formDa
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update(parsed.data).eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
   revalidatePath("/p/[slug]", "page");
   return { ok: true, message: "Dados salvos." };
 }
@@ -79,7 +79,7 @@ export async function updateCoverCaption(_prev: ActionResult | undefined, formDa
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update({ cover_caption: caption }).eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
   return { ok: true, message: "Legenda salva." };
 }
 
@@ -103,7 +103,7 @@ export async function uploadOrgImage(_prev: ActionResult | undefined, formData: 
     .update(kind === "cover" ? { cover_url: pub.publicUrl, cover_caption: caption } : { logo_url: pub.publicUrl })
     .eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
   return { ok: true, message: "Imagem atualizada." };
 }
 
@@ -194,7 +194,7 @@ export async function createStaff(_prev: ActionResult | undefined, formData: For
   });
   if (error || !created.user) return fail(error?.message.includes("already") ? "Este e-mail já está em uso." : error?.message ?? "Erro ao criar usuário.");
   await attachUserToOrg(admin, created.user.id, profile.organization_id, "staff");
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
   return { ok: true, message: "Usuário criado. Compartilhe a senha inicial com a pessoa." };
 }
 
@@ -207,7 +207,7 @@ export async function removeStaff(formData: FormData) {
   const { data: target } = await admin.from("profiles").select("organization_id, role").eq("id", id.data).single();
   if (!target || target.organization_id !== profile.organization_id || target.role === "owner") return;
   await admin.auth.admin.deleteUser(id.data);
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
 }
 
 const profileSchema = z.object({
@@ -237,7 +237,7 @@ export async function updatePublicProfile(_prev: ActionResult | undefined, formD
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update(parsed.data).eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
   return { ok: true, message: "Página pública atualizada." };
 }
 
@@ -263,7 +263,7 @@ export async function uploadGalleryImages(_prev: ActionResult | undefined, formD
   }
   const { error } = await supabase.from("organizations").update({ gallery: [...current, ...added] }).eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
   return { ok: true, message: `${added.length} foto(s) adicionada(s).` };
 }
 
@@ -275,7 +275,7 @@ export async function updateGalleryCaption(formData: FormData) {
   const { data: org } = await supabase.from("organizations").select("gallery").eq("id", profile.organization_id).single();
   const current = (Array.isArray(org?.gallery) ? org!.gallery : []) as GalleryItem[];
   await supabase.from("organizations").update({ gallery: current.map((g) => (g.url === url ? { ...g, caption: caption || null } : g)) }).eq("id", profile.organization_id);
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
 }
 
 export async function removeGalleryImage(formData: FormData) {
@@ -288,7 +288,7 @@ export async function removeGalleryImage(formData: FormData) {
   const marker = "/org-media/";
   const idx = url.indexOf(marker);
   if (idx > 0) await supabase.storage.from("org-media").remove([url.slice(idx + marker.length)]);
-  revalidatePath("/configuracoes");
+  revalidatePath("/configuracoes", "layout");
 }
 
 const hex = z.string().regex(/^#[0-9a-f]{6}$/i, "Cor inválida");
@@ -298,7 +298,6 @@ const themeSchema = z.object({
   ink: hex,
   paper: hex,
   font: z.enum(["festa", "elegante", "moderno"]),
-  show_prices_public: z.string().optional().transform((v) => v === "on" || v === "true"),
 });
 
 /** Premium only: colors + font pairing of the public site. Price visibility is available to every plan. */
@@ -308,11 +307,21 @@ export async function updateTheme(_prev: ActionResult | undefined, formData: For
   const profile = await requireOwner();
   const supabase = await createClient();
   const { data: org } = await supabase.from("organizations").select("plan").eq("id", profile.organization_id).single();
-  const { show_prices_public, ...theme } = parsed.data;
-  const patch: { show_prices_public: boolean; theme?: typeof theme } = { show_prices_public };
-  if (org?.plan === "premium") patch.theme = theme;
-  const { error } = await supabase.from("organizations").update(patch).eq("id", profile.organization_id);
+  if (org?.plan !== "premium") return fail("Cores e fonte são do plano Premium.");
+  const { error } = await supabase.from("organizations").update({ theme: parsed.data }).eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
-  revalidatePath("/configuracoes");
-  return { ok: true, message: org?.plan === "premium" ? "Site personalizado salvo." : "Exibição de preços salva. Cores e fontes são do plano Premium." };
+  revalidatePath("/configuracoes", "layout");
+  return { ok: true, message: "Aparência salva." };
+}
+
+/** Every plan: whether package prices show on the public page. */
+export async function updateShowPrices(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const v = formData.getAll("show_prices_public").map(String);
+  const show = v.includes("true") || v.includes("on");
+  const profile = await requireOwner();
+  const supabase = await createClient();
+  const { error } = await supabase.from("organizations").update({ show_prices_public: show }).eq("id", profile.organization_id);
+  if (error) return fail(translateDbError(error));
+  revalidatePath("/configuracoes", "layout");
+  return { ok: true, message: show ? "Valores visíveis na página pública." : "Valores ocultos: o cliente pede orçamento sem ver preço." };
 }

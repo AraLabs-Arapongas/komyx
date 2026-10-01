@@ -69,7 +69,7 @@ test.describe("Admin Festeja", () => {
     await expect(page.getByText(`/p/${slug}?src=instagram`)).toBeVisible();
 
     // Owner cannot change slug/plan/status via API (DB trigger)
-    await page.goto("/configuracoes");
+    await page.goto("/configuracoes/empresa");
     await expect(page.getByLabel("Endereço público")).toBeDisabled();
   });
 });

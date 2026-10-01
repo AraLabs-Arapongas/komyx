@@ -1,116 +1,44 @@
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { Globe, Building2, Wallet, FileSignature, Users, ChevronRight } from "lucide-react";
 import { requireOwner, getOrganization } from "@/lib/data/session";
-import { removeStaff } from "@/lib/actions/settings";
+import { createClient } from "@/lib/supabase/server";
 import { PageBody, PageHeader } from "@/components/ui/page";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CopyButton } from "@/components/ui/copy-button";
-import { appUrl } from "@/lib/utils";
-import { CONTRACT_PLACEHOLDERS } from "@/lib/contract";
-import { OrganizationForm, ImageUploadForm, StaffForm, PaymentPlanForm, ContractTemplateForm, PublicProfileForm, GalleryForm, ThemeForm, CoverCaptionForm } from "./forms";
-import { resolveTheme, DEFAULT_THEME } from "@/lib/theme";
+import { formatPhone } from "@/lib/utils";
 
 export const metadata = { title: "Configurações" };
 
-type PlanItem = { label: string; percent: number; rule: "ON_ACCEPT" | "DAYS_BEFORE_EVENT" | "FIXED_DATE"; days_before: number | null };
-
-export default async function SettingsPage() {
-  const profile = await requireOwner();
+export default async function SettingsIndex() {
+  await requireOwner();
   const org = await getOrganization();
   const supabase = await createClient();
-  const { data: team } = await supabase.from("profiles").select("id, name, email, role").order("role").order("name");
-  const plan = (Array.isArray(org.payment_plan) ? org.payment_plan : []) as PlanItem[];
-  const publicUrl = appUrl(`/p/${org.slug}`);
+  const { count: teamCount } = await supabase.from("profiles").select("id", { count: "exact", head: true });
+  const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { label: string; percent: number }[]) : [];
+  const gallery = Array.isArray(org.gallery) ? org.gallery.length : 0;
+
+  const cards = [
+    { href: "/configuracoes/pagina-publica", icon: Globe, title: "Página pública", desc: `Links, conteúdo, aparência e galeria · ${gallery} foto${gallery === 1 ? "" : "s"}` },
+    { href: "/configuracoes/empresa", icon: Building2, title: "Empresa", desc: `${org.name}${org.whatsapp ? ` · ${formatPhone(org.whatsapp)}` : ""}${org.pix_key ? " · Pix configurado" : " · sem chave Pix"}` },
+    { href: "/configuracoes/comercial", icon: Wallet, title: "Comercial", desc: plan.length ? `Plano de pagamento: ${plan.map((p) => `${Number(p.percent)}%`).join(" + ")}` : "Plano de pagamento padrão" },
+    { href: "/configuracoes/contrato", icon: FileSignature, title: "Contrato", desc: "Modelo preenchido automaticamente ao gerar o contrato" },
+    { href: "/configuracoes/equipe", icon: Users, title: "Equipe", desc: `${teamCount ?? 0} pessoa${(teamCount ?? 0) === 1 ? "" : "s"} com acesso` },
+  ];
 
   return (
     <>
       <PageHeader title="Configurações" back="/menu" />
       <PageBody>
-        <Card>
-          <CardHeader title="Página pública e link da bio" subtitle="Use na bio do Instagram. Adicione ?src=instagram para saber de onde veio o lead." action={
-            <Link href={`/p/${org.slug}`} target="_blank" className="text-sm text-brand font-medium inline-flex items-center gap-1">Abrir <ExternalLink className="h-3.5 w-3.5" /></Link>
-          } />
-          <CardBody className="space-y-2 text-sm">
-            <div className="flex items-center justify-between gap-2"><span className="text-muted break-all">{publicUrl}</span><CopyButton text={publicUrl} /></div>
-            <div className="flex items-center justify-between gap-2"><span className="text-muted break-all">{publicUrl}?src=instagram</span><CopyButton text={`${publicUrl}?src=instagram`} label="Bio Instagram" /></div>
-            <div className="flex items-center justify-between gap-2"><span className="text-muted break-all">{publicUrl}/orcamento?src=instagram</span><CopyButton text={`${publicUrl}/orcamento?src=instagram`} label="Orçamento direto" /></div>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Conteúdo da página pública" subtitle="Frase principal, destaques, depoimentos e regra de agenda" />
-          <CardBody><PublicProfileForm profile={{ tagline: org.tagline, highlights: org.highlights ?? [], testimonials: (Array.isArray(org.testimonials) ? org.testimonials : []) as { name: string; text: string }[], founded_year: org.founded_year, capacity: org.capacity, one_event_per_day: org.one_event_per_day, self_booking_enabled: org.self_booking_enabled }} /></CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Site personalizado" subtitle={org.plan === "premium" ? "Plano Premium: cores, fonte e exibição de preços" : "Exibição de preços (todos os planos) · cores e fonte no Premium"} action={<Badge tone={org.plan === "premium" ? "brand" : "zinc"}>{org.plan === "premium" ? "Premium" : "Básico"}</Badge>} />
-          <CardBody><ThemeForm plan={org.plan} theme={org.plan === "premium" ? resolveTheme(org.plan, org.theme) : DEFAULT_THEME} showPrices={org.show_prices_public} /></CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Galeria de fotos" subtitle="Até 12 fotos de festas reais (JPG, PNG ou WebP até 8MB)" />
-          <CardBody><GalleryForm gallery={(Array.isArray(org.gallery) ? org.gallery : []) as { url: string; caption?: string | null }[]} /></CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Dados do buffet" subtitle="Razão social, CNPJ e cidade entram no contrato" />
-          <CardBody><OrganizationForm org={org} /></CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Plano de pagamento padrão" subtitle="Aplicado a novos orçamentos. Ex.: 30% no aceite e 70% até 7 dias antes da festa." />
-          <CardBody><PaymentPlanForm plan={plan} /></CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Modelo de contrato" subtitle="Preenchido automaticamente ao gerar o contrato de um evento" />
-          <CardBody className="space-y-3">
-            <details className="text-xs text-muted">
-              <summary className="cursor-pointer font-medium text-foreground">Campos disponíveis</summary>
-              <p className="mt-2 flex flex-wrap gap-1">{CONTRACT_PLACEHOLDERS.map((p) => <code key={p} className="rounded bg-stone-100 px-1.5 py-0.5">{`{{${p}}}`}</code>)}</p>
-            </details>
-            <ContractTemplateForm template={org.contract_template} />
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Imagens" subtitle="Logo e capa da página pública (JPG, PNG ou WebP até 5MB). O nome do buffet exibido no topo é o de “Dados do buffet”." />
-          <CardBody className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <ImageUploadForm kind="logo" currentUrl={org.logo_url} />
-              <ImageUploadForm kind="cover" currentUrl={org.cover_url} />
-            </div>
-            <CoverCaptionForm caption={org.cover_caption} />
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Equipe" subtitle="Staff cria e edita eventos, clientes, orçamentos e pagamentos. Não altera configurações." />
-          <CardBody className="space-y-4">
-            <ul className="divide-y divide-border">
-              {(team ?? []).map((m) => (
-                <li key={m.id} className="flex items-center justify-between gap-3 py-2.5">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{m.name} {m.id === profile.id ? <span className="text-muted text-xs">(você)</span> : null}</p>
-                    <p className="text-xs text-muted truncate">{m.email}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge tone={m.role === "owner" ? "brand" : "zinc"}>{m.role === "owner" ? "Proprietário" : "Equipe"}</Badge>
-                    {m.role === "staff" ? (
-                      <form action={removeStaff}>
-                        <input type="hidden" name="id" value={m.id} />
-                        <button className="text-xs text-muted hover:text-red-600">Remover</button>
-                      </form>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <StaffForm />
-          </CardBody>
-        </Card>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {cards.map(({ href, icon: Icon, title, desc }) => (
+            <Link key={href} href={href} className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-4 hover:border-brand/50 hover:bg-stone-50">
+              <span className="h-11 w-11 shrink-0 grid place-items-center rounded-xl bg-brand-soft text-brand"><Icon className="h-5 w-5" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold">{title}</span>
+                <span className="block text-sm text-muted truncate">{desc}</span>
+              </span>
+              <ChevronRight className="h-4 w-4 text-muted shrink-0" />
+            </Link>
+          ))}
+        </div>
       </PageBody>
     </>
   );

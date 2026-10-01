@@ -14,10 +14,10 @@ export type OnboardingState = {
 /** First-week checklist. Disappears once everything is done. */
 export function Onboarding({ s, isOwner }: { s: OnboardingState; isOwner: boolean }) {
   const steps = [
-    { done: s.hasWhatsapp, label: "Informe o WhatsApp do buffet", href: "/configuracoes", hint: "é por ele que o cliente fala com você" },
+    { done: s.hasWhatsapp, label: "Informe o WhatsApp do buffet", href: "/configuracoes/empresa", hint: "é por ele que o cliente fala com você" },
     { done: s.hasPackages, label: "Cadastre seus pacotes", href: "/pacotes", hint: "preço, adultos e crianças inclusos" },
-    { done: s.hasPix, label: "Configure a chave Pix e o prazo do sinal", href: "/configuracoes", hint: "o cliente paga o sinal sozinho" },
-    { done: s.hasPhotos, label: "Suba fotos de festas", href: "/configuracoes", hint: "página com foto converte muito mais" },
+    { done: s.hasPix, label: "Configure a chave Pix e o prazo do sinal", href: "/configuracoes/empresa", hint: "o cliente paga o sinal sozinho" },
+    { done: s.hasPhotos, label: "Suba fotos de festas", href: "/configuracoes/pagina-publica?tab=galeria", hint: "página com foto converte muito mais" },
     { done: s.hasEvent, label: "Crie seu primeiro orçamento", href: "/eventos/novo", hint: "ou espere a primeira reserva online" },
   ];
   const doneCount = steps.filter((x) => x.done).length;

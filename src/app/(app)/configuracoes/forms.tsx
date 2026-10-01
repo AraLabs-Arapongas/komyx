@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useState } from "react";
-import { updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage, updateTheme, updateCoverCaption } from "@/lib/actions/settings";
+import { updateShowPrices, updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage, updateTheme, updateCoverCaption } from "@/lib/actions/settings";
 import { Trash2 } from "lucide-react";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -18,7 +18,7 @@ export function OrganizationForm({ org }: { org: Org }) {
   const [state, action] = useActionState(updateOrganization, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   return (
-    <form action={action} className="space-y-4">
+    <form data-settings action={action} className="space-y-4">
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
       <Field label="Nome do buffet" htmlFor="org_name" error={fe.name}><Input id="org_name" name="name" defaultValue={org.name} required /></Field>
@@ -39,7 +39,7 @@ export function OrganizationForm({ org }: { org: Org }) {
         <Field label="Duração padrão (min)" htmlFor="duration" error={fe.default_event_duration_minutes}><Input id="duration" name="default_event_duration_minutes" type="number" min={30} max={1440} step={30} defaultValue={org.default_event_duration_minutes} required /></Field>
         <Field label="Validade da reserva (h)" htmlFor="validity" error={fe.pre_reservation_validity_hours}><Input id="validity" name="pre_reservation_validity_hours" type="number" min={1} max={720} defaultValue={org.pre_reservation_validity_hours} required /></Field>
       </div>
-      <SubmitButton pendingText="Salvando...">Salvar dados</SubmitButton>
+      
     </form>
   );
 }
@@ -47,11 +47,11 @@ export function OrganizationForm({ org }: { org: Org }) {
 export function CoverCaptionForm({ caption }: { caption: string | null }) {
   const [state, action] = useActionState(updateCoverCaption, undefined);
   return (
-    <form action={action} className="flex gap-2 items-end">
+    <form data-settings action={action} className="flex gap-2 items-end">
       <Field label="Legenda da capa (aparece sob a foto no topo)" htmlFor="cover_caption" error={state && !state.ok ? state.error : undefined}>
         <Input id="cover_caption" name="caption" defaultValue={caption ?? ""} maxLength={120} placeholder="Ex.: Nosso salão principal" />
       </Field>
-      <SubmitButton size="md" variant="outline">Salvar</SubmitButton>
+      
       {state?.ok && state.message ? <span className="text-xs text-emerald-700 pb-3">{state.message}</span> : null}
     </form>
   );
@@ -100,7 +100,7 @@ export function PaymentPlanForm({ plan }: { plan: PlanItem[] }) {
   const sum = rows.reduce((a, r) => a + (Number(r.percent) || 0), 0);
   const update = (i: number, patch: Partial<PlanItem>) => setRows((r) => r.map((row, idx) => (idx === i ? { ...row, ...patch } : row)));
   return (
-    <form action={action} className="space-y-3">
+    <form data-settings action={action} className="space-y-3">
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
       {rows.map((r, i) => (
@@ -121,7 +121,7 @@ export function PaymentPlanForm({ plan }: { plan: PlanItem[] }) {
         <button type="button" onClick={() => setRows((x) => [...x, { label: `Parcela ${x.length + 1}`, percent: 0, rule: "DAYS_BEFORE_EVENT", days_before: 30 }])} className="text-sm text-brand font-medium">+ Adicionar parcela</button>
         <span className={sum === 100 ? "text-sm text-emerald-700" : "text-sm text-red-600"}>Soma: {sum}%</span>
       </div>
-      <SubmitButton size="sm">Salvar plano</SubmitButton>
+      
     </form>
   );
 }
@@ -129,11 +129,11 @@ export function PaymentPlanForm({ plan }: { plan: PlanItem[] }) {
 export function ContractTemplateForm({ template }: { template: string }) {
   const [state, action] = useActionState(updateContractTemplate, undefined);
   return (
-    <form action={action} className="space-y-3">
+    <form data-settings action={action} className="space-y-3">
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
       <Textarea name="contract_template" defaultValue={template} className="min-h-96 font-mono text-xs leading-relaxed" />
-      <SubmitButton size="sm">Salvar modelo</SubmitButton>
+      
     </form>
   );
 }
@@ -144,7 +144,7 @@ export function PublicProfileForm({ profile }: { profile: PublicProfile }) {
   const [state, action] = useActionState(updatePublicProfile, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   return (
-    <form action={action} className="space-y-4">
+    <form data-settings action={action} className="space-y-4">
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
       <Field label="Frase principal (título da página)" htmlFor="tagline" hint="Curta e emocional. Ex.: A festa que seu filho vai lembrar. E você vai curtir.">
@@ -168,7 +168,7 @@ export function PublicProfileForm({ profile }: { profile: PublicProfile }) {
         <input type="checkbox" name="self_booking_enabled" defaultChecked={profile.self_booking_enabled} className="mt-1 h-4 w-4" />
         <span><b>Reserva online pelo cliente.</b> No fim do orçamento, o cliente pode segurar a data sozinho: vira reserva com prazo de validade e instruções do sinal por Pix. Você confirma quando o sinal cair.</span>
       </label>
-      <SubmitButton pendingText="Salvando...">Salvar página pública</SubmitButton>
+      
     </form>
   );
 }
@@ -206,20 +206,16 @@ export function GalleryForm({ gallery }: { gallery: { url: string; caption?: str
   );
 }
 
-export function ThemeForm({ plan, theme, showPrices }: { plan: string; theme: { primary: string; accent: string; ink: string; paper: string; font: string }; showPrices: boolean }) {
+export function ThemeForm({ plan, theme }: { plan: string; theme: { primary: string; accent: string; ink: string; paper: string; font: string } }) {
   const [state, action] = useActionState(updateTheme, undefined);
   const premium = plan === "premium";
   const colors: [keyof typeof theme, string][] = [["primary", "Cor principal (botões)"], ["accent", "Cor de destaque (selos)"], ["ink", "Cor escura (fundo do topo)"], ["paper", "Cor do papel (fundo)"]];
   return (
-    <form action={action} className="space-y-4">
+    <form data-settings action={action} className="space-y-4">
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
-      <label className="flex items-start gap-2 text-sm">
-        <input type="checkbox" name="show_prices_public" defaultChecked={showPrices} className="mt-1 h-4 w-4" />
-        <span><b>Mostrar valores dos pacotes na página pública.</b> Desmarque para exibir “valor sob consulta”; o cliente ainda monta o orçamento e você responde com o preço.</span>
-      </label>
       <fieldset disabled={!premium} className="space-y-3 disabled:opacity-60">
-        <legend className="text-sm font-medium">Cores e fonte do site {premium ? <span className="text-xs text-emerald-700">(Premium ativo)</span> : <span className="text-xs text-muted">(plano Premium)</span>}</legend>
+        <legend className="text-sm font-medium">Cores e fonte do site</legend>
         <div className="grid grid-cols-2 gap-3">
           {colors.map(([key, label]) => (
             <label key={key} className="flex items-center gap-2 text-sm">
@@ -236,8 +232,23 @@ export function ThemeForm({ plan, theme, showPrices }: { plan: string; theme: { 
           </Select>
         </Field>
       </fieldset>
-      {!premium ? <p className="text-xs text-muted">No Premium, o site ganha cores e fonte próprias e, em breve, domínio personalizado (ex.: seubuffet.com.br).</p> : null}
-      <SubmitButton size="sm">Salvar site</SubmitButton>
+      
+    </form>
+  );
+}
+
+/** Price visibility on the public page (every plan). */
+export function ShowPricesForm({ showPrices }: { showPrices: boolean }) {
+  const [state, action] = useActionState(updateShowPrices, undefined);
+  return (
+    <form data-settings action={action} className="space-y-2">
+      {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+      {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
+      <input type="hidden" name="show_prices_public" value="false" />
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="show_prices_public" value="true" defaultChecked={showPrices} className="mt-1 h-4 w-4" />
+        <span><b>Mostrar valores dos pacotes na página pública.</b> Se desativada, o cliente solicita orçamento sem ver preço.</span>
+      </label>
     </form>
   );
 }

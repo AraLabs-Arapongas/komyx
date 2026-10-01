@@ -84,6 +84,10 @@ Fluxo: lead entra → WhatsApp ou Criar orçamento → Convertida ou Arquivada. 
 
 Criação fica no cabeçalho fixo: **+ Novo ▾** → Novo pacote / Novo adicional, abrindo o formulário num diálogo. Listas só com nome, resumo e **Editar** (expande o formulário do item). Sem ações de adicionar no fim das listas; vazio orienta a usar + Novo.
 
+### Configurações
+
+Índice em `/configuracoes` com cards: Página pública (`/pagina-publica`, abas Conteúdo · Aparência · Galeria, links da bio e orçamento direto; Aparência bloqueada fora do Premium), Empresa (`/empresa`: dados que alimentam página pública e contrato), Comercial (`/comercial`: plano de pagamento padrão, total 100%), Contrato (`/contrato`: modelo e variáveis), Equipe (`/equipe`). Cada página salva só os próprios campos: barra "Salvar alterações" aparece só com mudança pendente; sair com pendência pergunta Continuar editando / Descartar.
+
 ## 2. Cliente (sem login)
 
 ### 2.1 Descobrir

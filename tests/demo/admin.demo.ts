@@ -61,7 +61,7 @@ test.describe("Vídeo · Admin Festeja", () => {
     await logout(page);
     await login(page, { email: ownerEmail, password: "senha12345" });
     await caption(page, "A nova dona entra e encontra o checklist para deixar o buffet pronto para vender", 3500);
-    await page.goto("/configuracoes");
+    await page.goto("/configuracoes/empresa");
     await caption(page, "O endereço público é fixo para a dona: só o Festeja altera", 3000);
     await clearCaption(page);
     await saveVideo(page, testInfo, "03-admin-festeja");
