@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { slugify } from "@/lib/utils";
+import { attachUserToOrg } from "@/lib/data/attach-user";
 import { formToObject, optionalText, phoneSchema, uuid, zodFieldErrors } from "./helpers";
 
 /** All admin actions run with the service role after verifying the platform-admin flag. */
@@ -61,17 +62,18 @@ export async function adminCreateBuffet(_prev: ActionResult | undefined, formDat
   const { data: org, error: orgErr } = await admin.from("organizations").insert({ name: d.org_name, slug, plan: d.plan, whatsapp: d.whatsapp }).select("id").single();
   if (orgErr || !org) return fail(translateDbError(orgErr));
 
-  const { error: userErr } = await admin.auth.admin.createUser({
+  const { data: created, error: userErr } = await admin.auth.admin.createUser({
     email: d.owner_email,
     password: d.owner_password,
     email_confirm: true,
     user_metadata: { name: d.owner_name },
     app_metadata: { organization_id: org.id, role: "owner" },
   });
-  if (userErr) {
+  if (userErr || !created.user) {
     await admin.from("organizations").delete().eq("id", org.id);
-    return fail(userErr.message.includes("already") ? "Este e-mail já está em uso." : userErr.message);
+    return fail(userErr?.message.includes("already") ? "Este e-mail já está em uso." : userErr?.message ?? "Erro ao criar usuário.");
   }
+  await attachUserToOrg(admin, created.user.id, org.id, "owner");
   revalidatePath("/admin");
   revalidatePath("/admin/buffets");
   redirect(`/admin/buffets/${org.id}?created=1`);

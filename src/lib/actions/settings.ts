@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { attachUserToOrg } from "@/lib/data/attach-user";
 import { requireOwner } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { formToObject, moneySchema, optionalText, phoneSchema, uuid, zodFieldErrors } from "./helpers";
@@ -184,14 +185,15 @@ export async function createStaff(_prev: ActionResult | undefined, formData: For
   if (!parsed.success) return fail("Verifique os campos.", zodFieldErrors(parsed.error));
   const profile = await requireOwner();
   const admin = createAdminClient();
-  const { error } = await admin.auth.admin.createUser({
+  const { data: created, error } = await admin.auth.admin.createUser({
     email: parsed.data.email,
     password: parsed.data.password,
     email_confirm: true,
     user_metadata: { name: parsed.data.name },
     app_metadata: { organization_id: profile.organization_id, role: "staff" },
   });
-  if (error) return fail(error.message.includes("already") ? "Este e-mail já está em uso." : error.message);
+  if (error || !created.user) return fail(error?.message.includes("already") ? "Este e-mail já está em uso." : error?.message ?? "Erro ao criar usuário.");
+  await attachUserToOrg(admin, created.user.id, profile.organization_id, "staff");
   revalidatePath("/configuracoes");
   return { ok: true, message: "Usuário criado. Compartilhe a senha inicial com a pessoa." };
 }
