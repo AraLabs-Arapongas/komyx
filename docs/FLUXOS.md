@@ -84,6 +84,8 @@ Fluxo: lead entra → WhatsApp ou Criar orçamento → Convertida ou Arquivada. 
 
 ### Pacotes e adicionais
 
+Terceira seção **Temas de festa** (nome, foto, descrição; + Novo ▾ → Novo tema). O cliente escolhe o tema (opcional) no passo Pacote do orçamento público e interno; o tema fica na solicitação e no evento (Dados da festa).
+
 Criação fica no cabeçalho fixo: **+ Novo ▾** → Novo pacote / Novo adicional, abrindo o formulário num diálogo. Listas só com nome, resumo e **Editar** (expande o formulário do item). Sem ações de adicionar no fim das listas; vazio orienta a usar + Novo.
 
 ### Configurações

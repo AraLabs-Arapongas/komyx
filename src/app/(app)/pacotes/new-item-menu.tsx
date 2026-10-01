@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, Package, Plus, Sparkles, X } from "lucide-react";
+import { ChevronDown, Package, Palette, Plus, Sparkles, X } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
-import { PackageForm, AddonForm } from "./forms";
+import { PackageForm, AddonForm, ThemeForm } from "./forms";
 
-type Kind = "package" | "addon";
+type Kind = "package" | "addon" | "theme";
 
 /** "+ Novo ▾" in the page header: choose package or addon, fill the form in a dialog. Always visible, lists can grow. */
 export function NewItemMenu() {
@@ -30,16 +30,17 @@ export function NewItemMenu() {
         <ul role="menu" className="absolute right-0 mt-1 w-52 rounded-xl border border-border bg-surface shadow-lg z-40 overflow-hidden">
           <li role="none"><button role="menuitem" type="button" onClick={() => { setKind("package"); setOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-stone-50"><Package className="h-4 w-4 text-brand" /> <span className="font-medium">Novo pacote</span></button></li>
           <li role="none"><button role="menuitem" type="button" onClick={() => { setKind("addon"); setOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-stone-50"><Sparkles className="h-4 w-4 text-brand" /> <span className="font-medium">Novo adicional</span></button></li>
+          <li role="none"><button role="menuitem" type="button" onClick={() => { setKind("theme"); setOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-stone-50"><Palette className="h-4 w-4 text-brand" /> <span className="font-medium">Novo tema</span></button></li>
         </ul>
       ) : null}
       {kind ? createPortal(
         <div className="fixed inset-0 z-40 bg-black/30 flex items-end md:items-center justify-center p-0 md:p-6" onClick={close}>
-          <div role="dialog" aria-label={kind === "package" ? "Novo pacote" : "Novo adicional"} className="w-full md:max-w-lg max-h-[90dvh] overflow-y-auto rounded-t-2xl md:rounded-2xl bg-surface border border-border p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-label={kind === "package" ? "Novo pacote" : kind === "addon" ? "Novo adicional" : "Novo tema"} className="w-full md:max-w-lg max-h-[90dvh] overflow-y-auto rounded-t-2xl md:rounded-2xl bg-surface border border-border p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <p className="font-semibold">{kind === "package" ? "Novo pacote" : "Novo adicional"}</p>
+              <p className="font-semibold">{kind === "package" ? "Novo pacote" : kind === "addon" ? "Novo adicional" : "Novo tema"}</p>
               <button type="button" onClick={close} className="h-9 w-9 grid place-items-center rounded-lg hover:bg-stone-100" aria-label="Fechar"><X className="h-5 w-5" /></button>
             </div>
-            {kind === "package" ? <PackageForm onSaved={close} /> : <AddonForm onSaved={close} />}
+            {kind === "package" ? <PackageForm onSaved={close} /> : kind === "addon" ? <AddonForm onSaved={close} /> : <ThemeForm onSaved={close} />}
           </div>
         </div>,
         document.body,

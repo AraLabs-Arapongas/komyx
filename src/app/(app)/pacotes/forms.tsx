@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { savePackage, saveAddon } from "@/lib/actions/settings";
+import { savePackage, saveAddon, saveTheme } from "@/lib/actions/settings";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -49,6 +49,31 @@ export function AddonForm({ addon, onSaved }: { addon?: Addon; onSaved?: () => v
       </div>
       <Field label="Descrição" htmlFor={`addon_desc_${k}`}><Input id={`addon_desc_${k}`} name="description" defaultValue={addon?.description ?? ""} /></Field>
       <SubmitButton size="sm">{addon ? "Salvar" : "Criar adicional"}</SubmitButton>
+    </form>
+  );
+}
+
+type Theme = { id: string; name: string; description: string | null; photo_url: string | null; sort_order: number };
+
+export function ThemeForm({ theme, onSaved }: { theme?: Theme; onSaved?: () => void }) {
+  const [state, action] = useActionState(saveTheme, undefined);
+  useEffect(() => { if (state?.ok) onSaved?.(); }, [state, onSaved]);
+  const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
+  const k = theme?.id ?? "new";
+  return (
+    <form action={action} className="space-y-3">
+      {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+      {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
+      {theme ? <input type="hidden" name="id" value={theme.id} /> : null}
+      <Field label="Nome do tema" htmlFor={`theme_name_${k}`} error={fe.name}><Input id={`theme_name_${k}`} name="name" defaultValue={theme?.name ?? ""} placeholder="Ex.: Safári" required /></Field>
+      <Field label="Descrição" htmlFor={`theme_desc_${k}`}><Textarea id={`theme_desc_${k}`} name="description" defaultValue={theme?.description ?? ""} className="min-h-16" placeholder="O que entra na decoração" /></Field>
+      <div className="grid grid-cols-[1fr_90px] gap-2 items-end">
+        <Field label={theme?.photo_url ? "Trocar foto" : "Foto"} htmlFor={`theme_photo_${k}`} hint="JPG, PNG ou WebP até 8MB">
+          <input id={`theme_photo_${k}`} name="photo" type="file" accept="image/jpeg,image/png,image/webp" className="block w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-brand-soft file:px-3 file:py-1.5 file:text-brand file:font-medium" />
+        </Field>
+        <Field label="Ordem" htmlFor={`theme_order_${k}`}><Input id={`theme_order_${k}`} name="sort_order" type="number" min={0} defaultValue={theme?.sort_order ?? 0} /></Field>
+      </div>
+      <SubmitButton size="sm" pendingText="Salvando...">{theme ? "Salvar" : "Criar tema"}</SubmitButton>
     </form>
   );
 }

@@ -14,13 +14,14 @@ import { buildQuoteLines, sumLines, extrasFor, LEAD_SOURCES, type PackagePricing
 
 type Customer = { id: string; name: string; whatsapp: string };
 type Props = {
+  themes: { id: string; name: string; description: string | null; photo_url: string | null }[];
   slug: string;
   packages: PackagePricing[];
   addons: (AddonPricing & { description: string | null })[];
   customer: Customer | null;
   request: {
     id: string; name: string; whatsapp: string; adults: number | null; children: number | null; message: string | null; source: string | null;
-    celebrant_name: string | null; celebrant_birth_date: string | null; package_id: string | null; estimated_total: number | string | null;
+    celebrant_name: string | null; celebrant_birth_date: string | null; package_id: string | null; theme_id?: string | null; estimated_total: number | string | null;
     addons: { addon_id: string; quantity: number }[] | null;
   } | null;
   defaults: { date: string; start: string; durationMinutes: number; validityHours: number; today: string };
@@ -37,13 +38,14 @@ function addMinutes(time: string, minutes: number) {
   return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
 }
 
-export function NewEventWizard({ slug, packages, addons, customer, request, defaults, initialStatus, isOwner, sameDayWarning }: Props) {
+export function NewEventWizard({ slug, packages, addons, themes, customer, request, defaults, initialStatus, isOwner, sameDayWarning }: Props) {
   const [state, action] = useActionState(createEvent, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   const initialPkg = packages.find((p) => p.id === request?.package_id) ?? null;
 
   const [step, setStep] = useState(0);
   const [packageId, setPackageId] = useState<string | null>(initialPkg?.id ?? null);
+  const [themeId, setThemeId] = useState<string | null>(request?.theme_id ?? null);
   const [adults, setAdults] = useState<number>(request?.adults ?? initialPkg?.included_adults ?? 0);
   const [children, setChildren] = useState<number>(request?.children ?? initialPkg?.included_children ?? 0);
   const [qty, setQty] = useState<Record<string, number>>(() => Object.fromEntries((request?.addons ?? []).map((a) => [a.addon_id, a.quantity])));
@@ -85,6 +87,7 @@ export function NewEventWizard({ slug, packages, addons, customer, request, defa
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {request ? <input type="hidden" name="request_id" value={request.id} /> : null}
       <input type="hidden" name="package_id" value={packageId ?? ""} />
+      <input type="hidden" name="theme_id" value={themeId ?? ""} />
       <input type="hidden" name="adults" value={adults} />
       <input type="hidden" name="children" value={children} />
       <input type="hidden" name="addons" value={JSON.stringify(addons.filter((a) => (qty[a.id] ?? 0) > 0).map((a) => ({ addon_id: a.id, quantity: qty[a.id] })))} />
@@ -129,6 +132,20 @@ export function NewEventWizard({ slug, packages, addons, customer, request, defa
                   <span className="font-semibold">Sem pacote</span><p className="text-xs text-muted">Personalizado; o orçamento parte do zero.</p>
                 </button>
               </div>
+              {themes.length ? (
+                <div className="pt-1">
+                  <p className="text-sm font-medium">Tema da festa <span className="text-muted font-normal">(opcional)</span></p>
+                  <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {themes.map((t) => (
+                      <button type="button" key={t.id} onClick={() => setThemeId(themeId === t.id ? null : t.id)} className={cn("text-left rounded-xl border-2 overflow-hidden transition", themeId === t.id ? "border-brand bg-brand-soft/40" : "border-border hover:border-brand/40")}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        {t.photo_url ? <img src={t.photo_url} alt="" className="h-20 w-full object-cover" /> : <div className="h-20 w-full bg-stone-100" />}
+                        <p className="p-2 text-sm font-medium truncate">{t.name}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </>
           ) : null}
 

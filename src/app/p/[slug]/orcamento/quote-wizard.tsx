@@ -19,6 +19,7 @@ type Props = {
   slug: string;
   packages: (PackagePricing & { description: string | null })[];
   addons: Addon[];
+  themes: { id: string; name: string; description: string | null; photo_url: string | null }[];
   defaultSource: string;
   preselectedPackage: string;
   today: string;
@@ -40,12 +41,13 @@ function addMinutes(time: string, minutes: number) {
 }
 function fmtDate(key: string) { const [y, m, d] = key.split("-"); return `${d}/${m}/${y}`; }
 
-export function QuoteWizard({ slug, packages, addons, defaultSource, preselectedPackage, today, durationMinutes, showPrices, selfBooking, validityHours, depositPercent, depositLabel }: Props) {
+export function QuoteWizard({ slug, packages, addons, themes, defaultSource, preselectedPackage, today, durationMinutes, showPrices, selfBooking, validityHours, depositPercent, depositLabel }: Props) {
   const [state, action] = useActionState<ActionResult<PublicSubmitResult> | undefined, FormData>(submitPublicRequest, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   const initial = packages.find((p) => p.id === preselectedPackage) ?? null;
   const [step, setStep] = useState(initial ? 1 : 0);
   const [packageId, setPackageId] = useState<string | null>(initial?.id ?? null);
+  const [themeId, setThemeId] = useState<string | null>(null);
   const [adults, setAdults] = useState(initial?.included_adults ?? 10);
   const [children, setChildren] = useState(initial?.included_children ?? 10);
   const [qty, setQty] = useState<Record<string, number>>({});
@@ -155,6 +157,7 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="package_id" value={packageId ?? ""} />
+      <input type="hidden" name="theme_id" value={themeId ?? ""} />
       <input type="hidden" name="addons" value={addonsJson} />
       <input type="hidden" name="desired_date" value={date} />
       <input type="hidden" name="desired_time" value={time} />
@@ -196,6 +199,20 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
                 <span className="display font-bold text-lg">Sem pacote</span><p className="text-xs" style={{ color: "var(--muted-ink)" }}>Quero algo personalizado; o buffet monta comigo.</p>
               </button>
             </div>
+            {themes.length ? (
+              <div className="pt-2">
+                <h3 className="display font-extrabold text-xl">Tem um tema em mente? <span className="text-sm font-normal" style={{ color: "var(--muted-ink)" }}>(opcional)</span></h3>
+                <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {themes.map((t) => (
+                    <button type="button" key={t.id} onClick={() => setThemeId(themeId === t.id ? null : t.id)} className={cn("text-left rounded-2xl border-2 overflow-hidden bg-white transition", themeId === t.id ? "border-[var(--berry)]" : "border-[#ece7dc] hover:border-[var(--berry)]/40")}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      {t.photo_url ? <img src={t.photo_url} alt="" className="h-24 w-full object-cover" /> : <div className="h-24 w-full" style={{ background: "var(--paper-2)" }} />}
+                      <div className="p-2"><p className="font-bold text-sm">{t.name}</p>{t.description ? <p className="text-xs line-clamp-2" style={{ color: "var(--muted-ink)" }}>{t.description}</p> : null}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </>
         ) : null}
 

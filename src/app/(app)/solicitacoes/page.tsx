@@ -16,7 +16,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/solicit
   const status = sp.status === "CONVERTED" || sp.status === "ARCHIVED" ? sp.status : "NEW";
   const focusId = typeof sp.id === "string" ? sp.id : null;
   const supabase = await createClient();
-  const { data: requests } = await supabase.from("public_requests").select("*").eq("status", status).order("created_at", { ascending: false }).limit(100);
+  const { data: requests } = await supabase.from("public_requests").select("*, party_themes(name)").eq("status", status).order("created_at", { ascending: false }).limit(100);
 
   return (
     <>
@@ -45,6 +45,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/solicit
                   <div><dt className="text-xs text-muted">Pessoas</dt><dd className="font-medium">{r.adults != null || r.children != null ? `${r.adults ?? 0}A ${r.children ?? 0}C` : r.participants ?? "—"}</dd></div>
                   <div><dt className="text-xs text-muted">Origem</dt><dd className="font-medium">{leadSourceLabel(r.source)}</dd></div>
                   <div><dt className="text-xs text-muted">Ocasião</dt><dd className="font-medium">{occasionLabel(r.occasion ?? (r.celebrant_name ? "BIRTHDAY" : null))}{(r.occasion ?? "BIRTHDAY") === "BIRTHDAY" && r.celebrant_name ? <span className="text-muted font-normal"> · {r.celebrant_name}</span> : null}</dd></div>
+                  {r.party_themes ? <div><dt className="text-xs text-muted">Tema</dt><dd className="font-medium">{r.party_themes.name}</dd></div> : null}
                   <div><dt className="text-xs text-muted">Estimativa</dt><dd className="font-medium">{r.estimated_total != null ? formatCurrency(r.estimated_total) : "—"}</dd></div>
                 </dl>
                 {r.message ? <p className="text-sm whitespace-pre-wrap bg-stone-50 rounded-xl p-3">{r.message}</p> : null}

@@ -426,6 +426,7 @@ export type Database = {
           space: string
           starts_at: string
           status: Database["public"]["Enums"]["event_status"]
+          theme_id: string | null
           title: string | null
           updated_at: string
         }
@@ -457,6 +458,7 @@ export type Database = {
           space?: string
           starts_at: string
           status?: Database["public"]["Enums"]["event_status"]
+          theme_id?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -488,6 +490,7 @@ export type Database = {
           space?: string
           starts_at?: string
           status?: Database["public"]["Enums"]["event_status"]
+          theme_id?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -518,6 +521,13 @@ export type Database = {
             columns: ["package_id"]
             isOneToOne: false
             referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "party_themes"
             referencedColumns: ["id"]
           },
         ]
@@ -908,6 +918,54 @@ export type Database = {
           },
         ]
       }
+      party_themes: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          photo_url: string | null
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          photo_url?: string | null
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          photo_url?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_themes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "admin_org_stats"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "party_themes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -1110,6 +1168,7 @@ export type Database = {
           participants: number | null
           source: string | null
           status: Database["public"]["Enums"]["public_request_status"]
+          theme_id: string | null
           updated_at: string
           whatsapp: string
         }
@@ -1133,6 +1192,7 @@ export type Database = {
           participants?: number | null
           source?: string | null
           status?: Database["public"]["Enums"]["public_request_status"]
+          theme_id?: string | null
           updated_at?: string
           whatsapp: string
         }
@@ -1156,6 +1216,7 @@ export type Database = {
           participants?: number | null
           source?: string | null
           status?: Database["public"]["Enums"]["public_request_status"]
+          theme_id?: string | null
           updated_at?: string
           whatsapp?: string
         }
@@ -1193,6 +1254,13 @@ export type Database = {
             columns: ["package_id"]
             isOneToOne: false
             referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_requests_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "party_themes"
             referencedColumns: ["id"]
           },
         ]

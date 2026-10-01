@@ -70,6 +70,7 @@ const requestSchema = z.object({
   celebrant_name: optionalText,
   celebrant_birth_date: z.union([dateSchema, z.literal("")]).optional().transform((v) => v || null),
   package_id: z.string().optional().transform((v) => (v && UUID_RE.test(v) ? v : null)),
+  theme_id: z.string().optional().transform((v) => (v && UUID_RE.test(v) ? v : null)),
   addons: z.string().optional().transform((v) => {
     if (!v) return null;
     try {
@@ -151,6 +152,7 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
     celebrant_name: isBirthday ? d.celebrant_name : null,
     celebrant_birth_date: isBirthday ? d.celebrant_birth_date : null,
     package_id: pkg?.id ?? null,
+    theme_id: d.theme_id,
     addons: addonsSnapshot,
     estimated_total,
     message: d.message,
@@ -194,6 +196,7 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
       status: "PRE_RESERVED",
       expires_at,
       package_id: pkg?.id ?? null,
+      theme_id: d.theme_id,
       adults: d.adults ?? 0,
       children: d.children ?? 0,
       celebrant_name: isBirthday ? d.celebrant_name : null,

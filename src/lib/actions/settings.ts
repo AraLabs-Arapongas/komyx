@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { attachUserToOrg } from "@/lib/data/attach-user";
 import { requireOwner } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
-import { formToObject, moneySchema, optionalText, phoneSchema, uuid, zodFieldErrors } from "./helpers";
+import { formToObject, moneySchema, optionalText, phoneSchema, uuid, zodFieldErrors, UUID_RE } from "./helpers";
 
 const orgSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome"),
@@ -324,4 +324,46 @@ export async function updateShowPrices(_prev: ActionResult | undefined, formData
   if (error) return fail(translateDbError(error));
   revalidatePath("/configuracoes", "layout");
   return { ok: true, message: show ? "Valores visíveis na página pública." : "Valores ocultos: o cliente pede orçamento sem ver preço." };
+}
+
+const themeItemSchema = z.object({
+  id: z.string().optional().transform((v) => (v && UUID_RE.test(v) ? v : null)),
+  name: z.string().trim().min(2, "Informe o nome do tema"),
+  description: optionalText,
+  sort_order: z.string().optional().transform((v) => (v && /^\d+$/.test(v) ? Number(v) : 0)),
+});
+
+/** Party theme (catalog): name, description and an optional photo. */
+export async function saveTheme(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const parsed = themeItemSchema.safeParse(formToObject(formData));
+  if (!parsed.success) return fail("Verifique os campos.", zodFieldErrors(parsed.error));
+  const profile = await requireOwner();
+  const supabase = await createClient();
+  let photo_url: string | undefined;
+  const file = formData.get("photo");
+  if (file instanceof File && file.size > 0) {
+    if (file.size > 8 * 1024 * 1024) return fail("Foto muito grande (máx. 8MB).");
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return fail("Use JPG, PNG ou WebP.");
+    const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const path = `${profile.organization_id}/themes/${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("org-media").upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) return fail(upErr.message);
+    photo_url = supabase.storage.from("org-media").getPublicUrl(path).data.publicUrl;
+  }
+  const { id, ...data } = parsed.data;
+  const row = { ...data, ...(photo_url ? { photo_url } : {}) };
+  const { error } = id
+    ? await supabase.from("party_themes").update(row).eq("id", id)
+    : await supabase.from("party_themes").insert({ ...row, organization_id: profile.organization_id });
+  if (error) return fail(translateDbError(error));
+  revalidatePath("/pacotes");
+  return { ok: true, message: id ? "Tema atualizado." : "Tema criado." };
+}
+
+export async function toggleTheme(formData: FormData) {
+  const id = String(formData.get("id"));
+  const active = formData.get("active") === "true";
+  const supabase = await createClient();
+  await supabase.from("party_themes").update({ active }).eq("id", id);
+  revalidatePath("/pacotes");
 }

@@ -74,7 +74,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
 
   const { data: event } = await supabase
     .from("events")
-    .select("*, customers(id, name, whatsapp, email, document, source), packages(id, name)")
+    .select("*, customers(id, name, whatsapp, email, document, source), packages(id, name), party_themes(name)")
     .eq("id", id)
     .maybeSingle();
   if (!event) notFound();
@@ -172,6 +172,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                 <div><dt className="text-muted text-xs">Data</dt><dd className="font-medium">{formatDate(event.starts_at)} · {formatTime(event.starts_at)}–{formatTime(event.ends_at)}</dd></div>
                 <div><dt className="text-muted text-xs">Pacote</dt><dd className="font-medium">{event.packages?.name ?? "Personalizado"}</dd></div>
                 <div><dt className="text-muted text-xs">Participantes</dt><dd className="font-medium">{event.adults ?? 0} adultos · {event.children ?? 0} crianças</dd></div>
+                {event.party_themes ? <div><dt className="text-muted text-xs">Tema</dt><dd className="font-medium">{event.party_themes.name}</dd></div> : null}
                 {event.celebrant_name ? <div><dt className="text-muted text-xs">Aniversariante</dt><dd className="font-medium">{event.celebrant_name}{event.celebrant_age != null ? `, ${event.celebrant_age} anos` : ""}</dd></div> : null}
                 {event.space ? <div><dt className="text-muted text-xs">Espaço</dt><dd className="font-medium">{event.space}</dd></div> : null}
                 {event.notes ? <div className="col-span-2"><dt className="text-muted text-xs">Observações</dt><dd className="whitespace-pre-wrap">{event.notes}</dd></div> : null}

@@ -160,3 +160,15 @@ begin
     (v_org, 'Festeja Premium · mensalidade', 199.00, current_date - 9, current_date - 10, 'paid', 'PIX'),
     (v_org, 'Festeja Premium · mensalidade', 199.00, (select due_at from public.organization_billing where organization_id = v_org), null, 'open', null);
 end $$;
+
+-- Party themes for the demo buffet (photos reuse the demo gallery)
+do $$
+declare v_org uuid;
+begin
+  select id into v_org from public.organizations where slug = 'festa-cia-buffet';
+  insert into public.party_themes (organization_id, name, description, photo_url, sort_order) values
+    (v_org, 'Safári', 'Bichinhos, folhagens e tons terrosos. Mesa do bolo com animais em feltro.', '/demo/festa-2.jpg', 1),
+    (v_org, 'Princesas', 'Rosa e dourado, castelo cenográfico e coroas para as crianças.', '/demo/festa-1.jpg', 2),
+    (v_org, 'Super-heróis', 'Cores vivas, painel de cidade e capas para a turma.', '/demo/festa-3.jpg', 3),
+    (v_org, 'Frozen', 'Azul gelo, flocos de neve e boneco de neve cenográfico.', '/demo/festa-4.jpg', 4);
+end $$;
