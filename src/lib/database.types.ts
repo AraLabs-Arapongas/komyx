@@ -1497,6 +1497,16 @@ export type Database = {
       guest_link: { Args: { p_token: string }; Returns: Json }
       my_reservations: { Args: never; Returns: Json }
       reservation_by_token: { Args: { p_token: string }; Returns: Json }
+      search_customers: {
+        Args: {
+          p_dir?: string
+          p_page?: number
+          p_q?: string
+          p_size?: number
+          p_sort?: string
+        }
+        Returns: Json
+      }
       unread_notifications_count: { Args: never; Returns: number }
     }
     Enums: {
