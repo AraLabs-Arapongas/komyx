@@ -20,7 +20,15 @@ export function Installments({ eventId, installments, paidTotal, eventStartsAt, 
             <Badge tone={INSTALLMENT_STATUS_TONE[i.status]}>{INSTALLMENT_STATUS_LABEL[i.status]}</Badge>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <span className="font-medium"><Money value={i.amountNum} />{i.status === "PARTIAL" ? <span className="text-xs text-muted"> · falta <Money value={i.remaining} /></span> : null}</span>
+            {i.status === "PARTIAL" ? (
+              <span className="text-right leading-tight">
+                <span className="font-semibold text-amber-800">Falta <Money value={i.remaining} /></span>
+                <span className="block text-xs text-muted">pago <Money value={i.paid} /> de <Money value={i.amountNum} /></span>
+                <span className="mt-1 block h-1 w-28 ml-auto rounded-full bg-amber-100 overflow-hidden"><span className="block h-full bg-amber-500" style={{ width: `${Math.round((i.paid / i.amountNum) * 100)}%` }} /></span>
+              </span>
+            ) : (
+              <span className="font-medium"><Money value={i.amountNum} /></span>
+            )}
             {i.status !== "PAID" ? (
               <form action={confirmInstallment} className="flex items-center gap-1">
                 <input type="hidden" name="event_id" value={eventId} />

@@ -194,7 +194,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                   <form action={createQuoteAndGo} className="mt-1.5 flex items-center justify-between gap-2">
                     <input type="hidden" name="event_id" value={id} />
                     <p className="text-xs text-muted">Parte do pacote e dos participantes.</p>
-                    <button className={buttonClass("primary", "sm")}>Montar orçamento</button>
+                    <button className={buttonClass("primary", "sm", "whitespace-nowrap")}>Montar orçamento</button>
                   </form>
                 ) : (
                   <ul className="divide-y divide-border">
@@ -229,7 +229,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                 <form action={generateContractAndGo} className="mt-1.5 flex items-center justify-between gap-2">
                   <input type="hidden" name="event_id" value={id} />
                   <p className="text-xs text-muted">{contracts.length ? "Preenchido com evento e orçamento." : "Preenchido automaticamente com evento e orçamento."}</p>
-                  <button className={buttonClass(contracts.length ? "outline" : "primary", "sm")}>{contracts.length ? "Nova versão" : "Gerar contrato"}</button>
+                  <button className={buttonClass(contracts.length ? "outline" : "primary", "sm", "whitespace-nowrap")}>{contracts.length ? "Nova versão" : "Gerar contrato"}</button>
                 </form>
               </div>
             </CardBody>
@@ -239,7 +239,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
         {/* Row: payments · extras */}
         <div className="grid gap-3 xl:grid-cols-2">
           <Card>
-            <CardHeader title="Pagamentos" subtitle={`Pago ${formatCurrency(fin?.paid_total ?? 0)} · saldo ${formatCurrency(fin?.balance ?? 0)}`} />
+            <CardHeader title="Pagamentos" subtitle={`Pago ${formatCurrency(fin?.paid_total ?? 0)} · falta receber ${formatCurrency(fin?.balance ?? 0)}`} />
             <CardBody className="space-y-3">
               {latestQuote && latestQuote.quote_installments.length > 0 ? (
                 <div>
