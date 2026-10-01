@@ -9,7 +9,7 @@ function cycleProgress(b: Billing) {
   const start = new Date(b.cycleStart + "T00:00:00-03:00").getTime();
   const due = new Date(b.dueAt + "T23:59:59-03:00").getTime();
   const now = Date.now();
-  const pct = Math.min(Math.max(((now - start) / (due - start)) * 100, 0), 100);
+  const pct = Math.round(Math.min(Math.max(((now - start) / (due - start)) * 100, 0), 100));
   const daysLeft = Math.ceil((due - now) / 86_400_000);
   return { pct, daysLeft };
 }
