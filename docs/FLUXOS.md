@@ -19,11 +19,11 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 
 ### 1.1 Primeiro acesso (onboarding)
 1. `/signup`: nome do buffet, seu nome, e-mail, senha. Vira owner de uma empresa nova com slug gerado (ex.: `festa-cia-buffet`).
-2. Home mostra o checklist **"Deixe seu buffet pronto para vender"**: WhatsApp → pacotes → Pix e prazo do sinal → fotos → primeira pré-reserva. Some quando tudo está feito.
+2. Home mostra o checklist **"Deixe seu buffet pronto para vender"**: WhatsApp → pacotes → Pix e prazo do sinal → fotos → primeira reserva. Some quando tudo está feito.
 3. Copia o **link da bio** (`/p/slug?src=instagram`) direto do checklist ou de Configurações.
 
 ### 1.2 Configurações (só owner)
-- **Dados do buffet**: nome, WhatsApp, Instagram, endereço, razão social, CNPJ, cidade (foro), **chave Pix**, duração padrão da festa, **validade da pré-reserva em horas** (= prazo do sinal).
+- **Dados do buffet**: nome, WhatsApp, Instagram, endereço, razão social, CNPJ, cidade (foro), **chave Pix**, duração padrão da festa, **validade da reserva em horas** (= prazo do sinal).
 - **Conteúdo da página pública**: frase principal, capacidade, ano de fundação, destaques, depoimentos, regra **um evento por dia**, **reserva online pelo cliente** (liga/desliga).
 - **Site personalizado**: mostrar ou não preços (todos os planos); cores e fonte (Premium).
 - **Galeria**: até 12 fotos com legenda; **Imagens**: logo, capa e legenda da capa.
@@ -37,10 +37,10 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 - **Sino de notificações** (sidebar / canto superior no celular) com contador, lista rápida e página `/notificacoes`. Chegam exatamente três eventos: **pedido de orçamento** da página pública, **reserva online** (aguardando sinal) e **contrato aceito** pelo cliente. Confirmação de convidado não notifica (aparece na ficha do evento).
 
 ### 1.3 Vender uma festa (atendimento)
-1. **Solicitações** (`/solicitacoes`): leads da página pública com origem (Instagram, Google…), pessoas, aniversariante, estimativa. Botão **Criar pré-reserva** já leva tudo preenchido (pacote, adultos/crianças, data, aniversariante); se o lead montou orçamento, o orçamento é criado sozinho.
-2. **Novo orçamento** (`/eventos/novo`): tudo começa pelo orçamento. Nome do responsável com autocomplete (cliente conhecido é escolhido; desconhecido é criado sozinho ao salvar), WhatsApp, data e horário, pacote (preenche adultos/crianças inclusos; excedente aparece como extra), aniversariante. Campo **"Reservar a data?"**: *sim* (pré-reserva com validade, bloqueia a agenda), *não* (status "Orçamento", não bloqueia) ou *confirmar*. O orçamento com itens e parcelas nasce junto. Se o dia já tem evento e você quer reservar: staff é bloqueado; owner marca "sei que já tem evento" e segue.
+1. **Solicitações** (`/solicitacoes`): leads da página pública com origem (Instagram, Google…), pessoas, aniversariante, estimativa. Botão **Criar orçamento** já leva tudo preenchido (pacote, adultos/crianças, data, aniversariante); se o lead montou orçamento, o orçamento é criado sozinho.
+2. **Novo orçamento** (`/eventos/novo`): tudo começa pelo orçamento. Nome do responsável com autocomplete (cliente conhecido é escolhido; desconhecido é criado sozinho ao salvar), WhatsApp, data e horário, pacote (preenche adultos/crianças inclusos; excedente aparece como extra), aniversariante. Campo **"Reservar a data?"**: *sim* (reserva com validade, bloqueia a agenda), *não* (status "Orçamento", não bloqueia) ou *confirmar*. O orçamento com itens e parcelas nasce junto. Se o dia já tem evento e você quer reservar: staff é bloqueado; owner marca "sei que já tem evento" e segue.
 3. **Agenda**: lista/semana/mês. Dia livre → "+ evento"; dia ocupado → owner vê "+ outro evento".
-3b. Na ficha, um evento "Orçamento" tem **Reservar a data** / **Confirmar**; uma pré-reserva tem **Liberar a data** (volta a só orçamento).
+3b. Na ficha, um evento "Orçamento" tem **Reservar a data** / **Confirmar**; uma reserva tem **Liberar a data** (volta a só orçamento).
 4. **Orçamento** (`/eventos/[id]/orcamento`): participantes (recalcula pacote/extras), adicionais do catálogo, itens livres, desconto, **plano de parcelas** do orçamento, PDF, link público `/q/[token]`, WhatsApp. "Marcar como enviado" → "Cliente aceitou" confirma o evento no mesmo registro.
 5. **Contrato** (`/eventos/[id]/contrato`): gerado do modelo com dados do evento/orçamento; editável; PDF; link `/c/[token]` para aceite do cliente; versões numeradas.
 6. **Aba Orçamentos** (`/orcamentos`): tudo por status + eventos sem orçamento.
@@ -49,7 +49,7 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 - Home: card **"Reservas online aguardando sinal"** com o código `FESTA…` e prazo.
 - Na ficha do evento: badge "Reserva online", bloco verde com o código → confere o Pix no extrato (o código vai no identificador do Pix) → informa o valor → **"Sinal recebido · confirmar festa"** (registra pagamento Pix, aceita orçamento, confirma evento).
 - Página do cliente (`/r/[token]`) pode ser reenviada pelo botão "Reenviar link".
-- Sem sinal no prazo, a pré-reserva expira sozinha (pg_cron a cada 5 min + ao abrir Home/Agenda) e a data volta a ficar livre.
+- Sem sinal no prazo, a reserva expira sozinha (pg_cron a cada 5 min + ao abrir Home/Agenda) e a data volta a ficar livre.
 
 ### 1.5 Realizar a festa
 - **Convite**: título/mensagem na ficha; link `/i/[token]` para o cliente subir a arte e editar texto.
@@ -72,10 +72,10 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 3. **Pessoas**: adultos/crianças (extras além do pacote avisados) + adicionais.
 4. **Seus dados**: nome, WhatsApp, aniversariante, origem.
 5. **Revisão**: resumo, total, **sinal (% do plano) e prazo em horas**. Botões: *Só orçamento* (vira solicitação) ou **Reservar esta data**.
-6. Confirmação: data pré-reservada até *data/hora*, **QR Pix** com a chave do buffet + copia e cola + **código da reserva** `FESTA…` (vai no identificador do Pix), botão de enviar comprovante no WhatsApp, link do orçamento, e **link permanente da reserva** (`/r/[token]`) com "Enviar pra mim no WhatsApp". O link fica salvo no navegador.
+6. Confirmação: data reservada até *data/hora*, **QR Pix** com a chave do buffet + copia e cola + **código da reserva** `FESTA…` (vai no identificador do Pix), botão de enviar comprovante no WhatsApp, link do orçamento, e **link permanente da reserva** (`/r/[token]`) com "Enviar pra mim no WhatsApp". O link fica salvo no navegador.
 
 ### 2.3 Voltar depois
-- `/r/[token]`: status (pré-reservada / confirmada / expirada), Pix enquanto não pago, orçamento (PDF), contrato para aceitar, WhatsApp. Banner "Sua reserva" aparece ao voltar à página do buffet no mesmo aparelho. Perdeu o link: "Encontre sua reserva" com WhatsApp + data da festa.
+- `/r/[token]`: status (reservada / confirmada / expirada), Pix enquanto não pago, orçamento (PDF), contrato para aceitar, WhatsApp. Banner "Sua reserva" aparece ao voltar à página do buffet no mesmo aparelho. Perdeu o link: "Encontre sua reserva" com WhatsApp + data da festa.
 - Expirou: botão "Tentar reservar de novo".
 
 ### 2.4 Depois de fechar

@@ -37,7 +37,7 @@ export function OrganizationForm({ org }: { org: Org }) {
       <Field label="Descrição" htmlFor="description"><Textarea id="description" name="description" defaultValue={org.description ?? ""} placeholder="Conte em poucas linhas o que torna seu buffet especial." /></Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Duração padrão (min)" htmlFor="duration" error={fe.default_event_duration_minutes}><Input id="duration" name="default_event_duration_minutes" type="number" min={30} max={1440} step={30} defaultValue={org.default_event_duration_minutes} required /></Field>
-        <Field label="Validade pré-reserva (h)" htmlFor="validity" error={fe.pre_reservation_validity_hours}><Input id="validity" name="pre_reservation_validity_hours" type="number" min={1} max={720} defaultValue={org.pre_reservation_validity_hours} required /></Field>
+        <Field label="Validade da reserva (h)" htmlFor="validity" error={fe.pre_reservation_validity_hours}><Input id="validity" name="pre_reservation_validity_hours" type="number" min={1} max={720} defaultValue={org.pre_reservation_validity_hours} required /></Field>
       </div>
       <SubmitButton pendingText="Salvando...">Salvar dados</SubmitButton>
     </form>
@@ -166,7 +166,7 @@ export function PublicProfileForm({ profile }: { profile: PublicProfile }) {
       </label>
       <label className="flex items-start gap-2 text-sm">
         <input type="checkbox" name="self_booking_enabled" defaultChecked={profile.self_booking_enabled} className="mt-1 h-4 w-4" />
-        <span><b>Reserva online pelo cliente.</b> No fim do orçamento, o cliente pode segurar a data sozinho: vira pré-reserva com prazo de validade e instruções do sinal por Pix. Você confirma quando o sinal cair.</span>
+        <span><b>Reserva online pelo cliente.</b> No fim do orçamento, o cliente pode segurar a data sozinho: vira reserva com prazo de validade e instruções do sinal por Pix. Você confirma quando o sinal cair.</span>
       </label>
       <SubmitButton pendingText="Salvando...">Salvar página pública</SubmitButton>
     </form>

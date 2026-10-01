@@ -80,7 +80,7 @@ test.describe("Cliente", () => {
     const link = await page.getByText(/\/r\/[0-9a-f]{48}/).first().textContent();
     const token = link!.match(/\/r\/([0-9a-f]{48})/)![1];
 
-    // Banco: pré-reserva com origem SELF_SERVICE, orçamento enviado, parcelas, aniversariante
+    // Banco: reserva com origem SELF_SERVICE, orçamento enviado, parcelas, aniversariante
     const db = adminDb();
     const { data: customer } = await db.from("customers").select("id, source").eq("whatsapp", phone).single();
     expect(customer?.source).toBe("instagram");
@@ -96,7 +96,7 @@ test.describe("Cliente", () => {
 
     // Página da reserva
     await page.goto(`/r/${token}`);
-    await expect(page.getByText("Pré-reservada")).toBeVisible();
+    await expect(page.getByText("Reservada")).toBeVisible();
     await expect(page.getByRole("img", { name: "QR Code Pix" })).toBeVisible();
     await expect(page.getByText("Pacote Prata").first()).toBeVisible();
 
@@ -114,7 +114,7 @@ test.describe("Cliente", () => {
     await box.getByLabel("Data da festa").fill(date);
     await box.getByRole("button", { name: "Abrir minha reserva" }).click();
     await page.waitForURL(/\/r\/[0-9a-f]{48}/);
-    await expect(page.getByText("Pré-reservada")).toBeVisible();
+    await expect(page.getByText("Reservada")).toBeVisible();
   });
 
   test("convidado confirma presença e baixa .ics; contrato aceito pelo link", async ({ page }) => {

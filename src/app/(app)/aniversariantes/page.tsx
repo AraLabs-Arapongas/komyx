@@ -64,10 +64,10 @@ export default async function CelebrantsPage() {
         <Card>
           <CardHeader title="Mais adiante" />
           <CardBody>
-            {later.length ? <ul className="divide-y divide-border">{later.map((c) => <Row key={c.id} c={c} />)}</ul> : <p className="text-sm text-muted">Cadastre a data de nascimento do aniversariante ao criar a pré-reserva.</p>}
+            {later.length ? <ul className="divide-y divide-border">{later.map((c) => <Row key={c.id} c={c} />)}</ul> : <p className="text-sm text-muted">Cadastre a data de nascimento do aniversariante ao criar a reserva.</p>}
           </CardBody>
         </Card>
-        {list.length === 0 ? <EmptyState title="Nenhum aniversariante" description="Informe a data de nascimento na pré-reserva ou na ficha do cliente." /> : null}
+        {list.length === 0 ? <EmptyState title="Nenhum aniversariante" description="Informe a data de nascimento na reserva ou na ficha do cliente." /> : null}
       </PageBody>
     </>
   );

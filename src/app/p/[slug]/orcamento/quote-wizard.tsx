@@ -103,7 +103,7 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
             <a href={`https://wa.me/?text=${encodeURIComponent(`Minha reserva no ${r.org_name}: ${r.reservation_url}`)}`} target="_blank" rel="noopener" className="h-9 px-3 inline-flex items-center rounded-lg text-sm font-bold" style={{ background: "var(--sun)", color: "var(--ink)" }}>Enviar pra mim no WhatsApp</a>
           </div>
         </div>
-        <p className="text-sm">Sua festa está <b>pré-reservada</b> para <b>{formatDateLong(r.starts_at)}</b>, das {formatTime(r.starts_at)} às {formatTime(r.ends_at)}. A data fica segura até <b>{formatDateTime(r.expires_at)}</b>.</p>
+        <p className="text-sm">Sua festa está <b>reservada</b> para <b>{formatDateLong(r.starts_at)}</b>, das {formatTime(r.starts_at)} às {formatTime(r.ends_at)}. A data fica segura até <b>{formatDateTime(r.expires_at)}</b>.</p>
         <ol className="space-y-3 text-sm">
           <li className="rounded-2xl p-4" style={{ background: "var(--paper-2)" }}>
             <p className="display font-bold text-lg">1. Pague o sinal{r.deposit_amount != null ? <> de <span style={{ color: "var(--berry)" }}>{formatCurrency(r.deposit_amount)}</span></> : null} em até {r.deposit_hours}h</p>

@@ -7,7 +7,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export const metadata: Metadata = {
   title: { default: "Festeja", template: "%s · Festeja" },
-  description: "Agenda, pré-reservas, orçamentos, convidados e pagamentos para o seu buffet.",
+  description: "Agenda, reservas, orçamentos, convidados e pagamentos para o seu buffet.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Festeja" },
   icons: { icon: "/icons/icon-192.png", apple: "/icons/icon-192.png" },

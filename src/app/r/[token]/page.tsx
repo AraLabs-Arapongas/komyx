@@ -20,7 +20,7 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
   const title = ev.title?.trim() || (ev.celebrant_name ? `Aniversário de ${ev.celebrant_name}` : ev.customers ? `Festa de ${ev.customers.name}` : "Sua festa");
   const expired = ev.status === "EXPIRED" || (ev.status === "PRE_RESERVED" && ev.expires_at && new Date(ev.expires_at) < new Date());
   const statusTone = ev.status === "CONFIRMED" ? "green" : expired ? "red" : ev.status === "CANCELLED" ? "red" : "amber";
-  const statusLabel = ev.status === "CONFIRMED" ? "Confirmada" : ev.status === "CANCELLED" ? "Cancelada" : expired ? "Prazo expirado" : ev.status === "DONE" ? "Realizada" : "Pré-reservada";
+  const statusLabel = ev.status === "CONFIRMED" ? "Confirmada" : ev.status === "CANCELLED" ? "Cancelada" : expired ? "Prazo expirado" : ev.status === "DONE" ? "Realizada" : "Reservada";
   const selfUrl = appUrl(`/r/${token}`);
   const waBuffet = org.whatsapp ? whatsappLink(org.whatsapp, `Olá! Sobre minha reserva ${ev.pix_txid ?? ""} de ${formatDateLong(ev.starts_at)}: ${selfUrl}`) : null;
 

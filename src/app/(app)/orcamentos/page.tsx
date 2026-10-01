@@ -74,7 +74,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/orcamento
               </li>
             ))}
           </ul>
-        ) : <EmptyState title="Nenhum orçamento" description="Orçamentos são criados a partir de um evento ou pré-reserva." action={<Link href="/eventos/novo" className={buttonClass("primary", "sm")}>Novo orçamento</Link>} />}
+        ) : <EmptyState title="Nenhum orçamento" description="Orçamentos são criados a partir de um evento ou reserva." action={<Link href="/eventos/novo" className={buttonClass("primary", "sm")}>Novo orçamento</Link>} />}
       </PageBody>
     </>
   );

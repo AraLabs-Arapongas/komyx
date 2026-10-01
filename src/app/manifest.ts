@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Festeja - Gestão de Buffet",
     short_name: "Festeja",
-    description: "Agenda, pré-reservas, orçamentos, convidados e pagamentos para o seu buffet.",
+    description: "Agenda, reservas, orçamentos, convidados e pagamentos para o seu buffet.",
     start_url: "/home",
     display: "standalone",
     background_color: "#faf7f2",

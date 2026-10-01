@@ -10,7 +10,7 @@ test.describe("Vídeo · Dona do buffet", () => {
   test.beforeAll(async () => { date = await pickFreeDate(DEMO_SLUG, 45); });
   test.afterAll(async () => { await cleanupCustomerByPhone(DEMO_SLUG, phone); });
 
-  test("da pré-reserva ao contrato", async ({ page }, testInfo) => {
+  test("da reserva ao contrato", async ({ page }, testInfo) => {
     await installCaptions(page);
     await page.goto("/login");
     await caption(page, "Dona do buffet entra no Festeja com e-mail e senha");
@@ -18,7 +18,7 @@ test.describe("Vídeo · Dona do buffet", () => {
     await page.getByLabel("Senha").fill(ACCOUNTS.owner.password);
     await page.getByRole("button", { name: "Entrar" }).click();
     await page.waitForURL(/\/home/);
-    await caption(page, "Início: o que exige atenção hoje — reservas online, pré-reservas expirando, orçamentos pendentes, a receber", 3500);
+    await caption(page, "Início: o que exige atenção hoje — reservas online, reservas expirando, orçamentos pendentes, a receber", 3500);
 
     await page.goto("/agenda?view=month");
     await caption(page, "Agenda por mês, semana ou lista. Dias riscados têm festa: o buffet faz um evento por dia", 3500);

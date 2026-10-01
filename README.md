@@ -1,6 +1,6 @@
 # Festeja — SaaS para buffet
 
-Sistema simples para **vender, organizar e realizar festas**: agenda, pré-reservas, clientes, pacotes (adultos/crianças), orçamentos com plano de pagamento, contrato automático em PDF, convite personalizável, portaria com check-in, aniversariantes, página pública com orçamento self-service e PWA. Centrado no evento; multiempresa desde o início.
+Sistema simples para **vender, organizar e realizar festas**: agenda, reservas, clientes, pacotes (adultos/crianças), orçamentos com plano de pagamento, contrato automático em PDF, convite personalizável, portaria com check-in, aniversariantes, página pública com orçamento self-service e PWA. Centrado no evento; multiempresa desde o início.
 
 ## Stack
 
@@ -54,7 +54,7 @@ Página pública de exemplo: `/p/festa-cia-buffet` (orçamento self-service em `
 - **Portaria**: `/d/[token]` marca chegadas por nome ou quantidade, adiciona convidado que chegou sem confirmar e registra pedidos extras (somam ao saldo).
 - **Aniversariantes**: data de nascimento do aniversariante vira lista em `/aniversariantes` com mensagem de promoção pronta no WhatsApp.
 - **Origem do lead**: `?src=instagram` no link da bio (ou campo no formulário) é gravado na solicitação e no cliente.
-- **Self-service**: `/p/[slug]/orcamento` monta pacote + pessoas + adicionais com total ao vivo; ao converter em pré-reserva o orçamento é criado automaticamente.
+- **Self-service**: `/p/[slug]/orcamento` monta pacote + pessoas + adicionais com total ao vivo; ao converter em reserva o orçamento é criado automaticamente.
 
 ## Estrutura
 
@@ -72,7 +72,7 @@ src/lib/supabase       clients (server, browser, admin) e proxy de sessão
 
 ## Regras de negócio (no banco)
 
-- **Disponibilidade**: trigger impede sobreposição de eventos na mesma empresa/espaço. Confirmados nunca se sobrepõem (exclusion constraint). Pré-reservas bloqueiam só enquanto `expires_at > now()`. Realizados/cancelados/expirados não bloqueiam.
+- **Disponibilidade**: trigger impede sobreposição de eventos na mesma empresa/espaço. Confirmados nunca se sobrepõem (exclusion constraint). Reservas bloqueiam só enquanto `expires_at > now()`. Realizados/cancelados/expirados não bloqueiam.
 - **Expiração**: `expire_pre_reservations()` roda por pg_cron a cada 5 min e ao abrir Home/Agenda.
 - **Conversão sem duplicar**: confirmar muda o mesmo registro de `PRE_RESERVED` para `CONFIRMED`. Aceitar orçamento confirma o evento.
 - **Orçamento**: totais calculados por trigger (`subtotal`, desconto em R$ ou %, `total`). Estados: rascunho, enviado, aceito, recusado.
@@ -91,7 +91,7 @@ pnpm test:e2e:ui     # modo interativo
 
 | Spec | Cobre |
 | --- | --- |
-| `tests/e2e/owner.spec.ts` | dona: pré-reserva com pacote/extras → orçamento (adicional, enviado, aceito, PDF) → contrato preenchido → pagamento e saldo → convidado e link RSVP; staff bloqueado em Configurações |
+| `tests/e2e/owner.spec.ts` | dona: reserva com pacote/extras → orçamento (adicional, enviado, aceito, PDF) → contrato preenchido → pagamento e saldo → convidado e link RSVP; staff bloqueado em Configurações |
 | `tests/e2e/client.spec.ts` | cliente: página pública, wizard de 5 passos com calendário, reserva autônoma (Pix/QR/código), página `/r/`, encontrar reserva por WhatsApp+data, RSVP + `.ics`, aceite de contrato + PDF |
 | `tests/e2e/admin.spec.ts` | admin: dono comum bloqueado; cria buffet + dono, suspende (404 público, `/suspenso`), reativa, checklist do dono, slug travado |
 

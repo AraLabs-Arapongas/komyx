@@ -92,7 +92,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                 <div key={e.id} className="rounded-xl bg-surface border border-border px-3 py-2.5 flex flex-wrap items-center gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium truncate"><AlertTriangle className="inline h-4 w-4 text-amber-600 mr-1.5" /><Link href={`/eventos/${e.id}`} className="hover:underline">{eventTitle(e)}</Link></p>
-                    <p className="text-xs text-muted">Pré-reserva expira {e.expires_at && toDateKey(e.expires_at) === todayKey ? `hoje às ${formatTime(e.expires_at)}` : formatDateTime(e.expires_at!)} · festa {formatDateLong(e.starts_at)}</p>
+                    <p className="text-xs text-muted">Reserva expira {e.expires_at && toDateKey(e.expires_at) === todayKey ? `hoje às ${formatTime(e.expires_at)}` : formatDateTime(e.expires_at!)} · festa {formatDateLong(e.starts_at)}</p>
                   </div>
                   <PreReservationQuickActions eventId={e.id} />
                 </div>

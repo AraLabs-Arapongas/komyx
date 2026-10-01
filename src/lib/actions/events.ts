@@ -244,7 +244,7 @@ export async function extendPreReservation(_prev: ActionResult | undefined, form
     .eq("id", id.data);
   if (error) return fail(translateDbError(error));
   revalidateEvents(id.data);
-  return { ok: true, message: "Pré-reserva renovada." };
+  return { ok: true, message: "Reserva renovada." };
 }
 
 export async function expirePreReservations() {

@@ -129,7 +129,7 @@ export function NewEventForm({ packages, customer, request, defaults, sameDayWar
           </Field>
           <Field label="Reservar a data?" htmlFor="status" hint="Orçamento sempre é criado. Reservar bloqueia a agenda; sem reserva, outro cliente pode fechar o dia.">
             <Select id="status" name="status" defaultValue="PRE_RESERVED">
-              <option value="PRE_RESERVED">Sim, segurar a data por {defaults.validityHours}h (pré-reserva)</option>
+              <option value="PRE_RESERVED">Sim, segurar a data por {defaults.validityHours}h (reserva)</option>
               <option value="QUOTE">Não, só o orçamento (não bloqueia a agenda)</option>
               <option value="CONFIRMED">Já está fechado: confirmar evento</option>
             </Select>

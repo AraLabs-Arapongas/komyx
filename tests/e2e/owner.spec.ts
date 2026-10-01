@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { ACCOUNTS, DEMO_SLUG, brDate, cleanupCustomerByPhone, login, pickFreeDate, uniq, uniquePhone } from "./helpers";
 
 /**
- * Dona do buffet: pré-reserva → orçamento → contrato → pagamento → confirmação.
+ * Dona do buffet: reserva → orçamento → contrato → pagamento → confirmação.
  * Everything created here is removed in afterAll.
  */
 test.describe("Dona do buffet", () => {
@@ -24,7 +24,7 @@ test.describe("Dona do buffet", () => {
     // Home shows onboarding or operational cards
     await expect(page.getByRole("heading", { name: /Olá,/ })).toBeVisible();
 
-    // Nova pré-reserva
+    // Novo orçamento
     await page.goto("/eventos/novo");
     await page.getByLabel("Nome do responsável").fill(customerName);
     await page.getByLabel("WhatsApp", { exact: true }).fill(phone);

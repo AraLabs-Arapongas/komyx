@@ -49,7 +49,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/solicit
                   <a href={whatsappLink(r.whatsapp, `Olá ${r.name.split(" ")[0]}! Recebemos sua solicitação de orçamento.`)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> WhatsApp</a>
                   {status === "NEW" ? (
                     <>
-                      <Link href={`/eventos/novo?request=${r.id}`} className={buttonClass("primary", "sm")}><CalendarPlus className="h-4 w-4" /> Criar pré-reserva</Link>
+                      <Link href={`/eventos/novo?request=${r.id}`} className={buttonClass("primary", "sm")}><CalendarPlus className="h-4 w-4" /> Criar orçamento</Link>
                       <form action={archiveRequest}><input type="hidden" name="id" value={r.id} /><button className={buttonClass("ghost", "sm")}>Arquivar</button></form>
                     </>
                   ) : null}
