@@ -95,6 +95,16 @@ pnpm test:e2e:ui     # modo interativo
 | `tests/e2e/client.spec.ts` | cliente: página pública, wizard de 5 passos com calendário, reserva autônoma (Pix/QR/código), página `/r/`, encontrar reserva por WhatsApp+data, RSVP + `.ics`, aceite de contrato + PDF |
 | `tests/e2e/admin.spec.ts` | admin: dono comum bloqueado; cria buffet + dono, suspende (404 público, `/suspenso`), reativa, checklist do dono, slug travado |
 
+## Vídeos de demonstração (legendados)
+
+Gravação automática de cada fluxo com legenda na tela (Playwright + overlay). Saída em `videos/` (`.webm` e `.mp4`, ignorados pelo git).
+
+```bash
+pnpm demo:videos   # 01-dona-do-buffet, 02-cliente, 03-admin-festeja
+```
+
+Specs em `tests/demo/*.demo.ts`; os dados criados são apagados ao fim de cada gravação.
+
 ## Fluxo de migrations
 
 ```bash

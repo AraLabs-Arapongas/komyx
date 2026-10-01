@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "demo:videos": "playwright test --config playwright.demo.config.ts && node scripts/convert-videos.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
