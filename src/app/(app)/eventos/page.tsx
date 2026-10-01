@@ -11,7 +11,7 @@ export const metadata = { title: "Eventos" };
 
 const FILTERS = [
   { key: "upcoming", label: "Próximos" },
-  { key: "QUOTE", label: "Só orçamento" },
+  { key: "QUOTE", label: "Em orçamento" },
   { key: "PRE_RESERVED", label: "Data reservada" },
   { key: "CONFIRMED", label: "Confirmados" },
   { key: "DONE", label: "Realizados" },
