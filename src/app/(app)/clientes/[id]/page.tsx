@@ -25,7 +25,7 @@ export default async function CustomerPage({ params, searchParams }: PageProps<"
   const [{ id }, sp, org] = await Promise.all([params, searchParams, getOrganization()]);
   const supabase = await createClient();
   const [{ data: customer }, { data: eventRows }] = await Promise.all([
-    supabase.from("customers").select("id, name, whatsapp, email, notes, document, source").eq("id", id).maybeSingle(),
+    supabase.from("customers").select("id, name, whatsapp, email, notes, document, source, marketing_opt_in").eq("id", id).maybeSingle(),
     supabase.from("events").select("id, title, starts_at, ends_at, status, expires_at, adults, children, estimated_participants, customers(name, whatsapp)").eq("customer_id", id).order("starts_at", { ascending: false }).limit(100),
   ]);
   if (!customer) notFound();

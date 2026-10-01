@@ -5,7 +5,6 @@ import { Check } from "lucide-react";
 import { MonthPicker } from "@/components/calendar/month-picker";
 import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
 import { CopyButton } from "@/components/ui/copy-button";
-import { RememberReservation } from "@/app/r/[token]/remember";
 import { appUrl, formatDateTime, formatDateLong, formatTime, whatsappLink } from "@/lib/utils";
 import type { ActionResult } from "@/lib/action-result";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
@@ -84,7 +83,6 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
     const waText = `Olá! Reservei ${formatDateLong(r.starts_at)} às ${formatTime(r.starts_at)} pela página (código ${r.pix_txid}) e vou enviar o comprovante do sinal. Minha reserva: ${r.reservation_url}`;
     return (
       <div className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8 space-y-4">
-        <RememberReservation token={r.reservation_url.split("/r/")[1] ?? ""} date={r.starts_at} org={r.org_name} />
         <p className="display font-extrabold text-2xl">Data reservada 🎉</p>
         <div className="rounded-2xl p-3 text-sm space-y-2" style={{ background: "var(--ink)", color: "#fff" }}>
           <p className="font-bold">Guarde o link da sua reserva</p>

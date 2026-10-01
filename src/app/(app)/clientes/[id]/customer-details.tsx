@@ -11,7 +11,7 @@ import { buttonClass } from "@/components/ui/button";
 import { LEAD_SOURCES, leadSourceLabel } from "@/lib/pricing";
 import { formatPhone } from "@/lib/utils";
 
-type Customer = { id: string; name: string; whatsapp: string; email: string | null; notes: string | null; document: string | null; source: string | null };
+type Customer = { id: string; name: string; whatsapp: string; email: string | null; notes: string | null; document: string | null; source: string | null; marketing_opt_in: boolean };
 
 /** Read mode by default; "Editar dados" switches to the form. CPF only shows while editing (it belongs to the contract flow). */
 export function CustomerDetails({ customer, startEditing = false }: { customer: Customer; startEditing?: boolean }) {
@@ -34,6 +34,7 @@ export function CustomerDetails({ customer, startEditing = false }: { customer: 
             <div><dt className="text-muted text-xs">WhatsApp</dt><dd className="font-medium">{formatPhone(customer.whatsapp)}</dd></div>
             <div><dt className="text-muted text-xs">E-mail</dt><dd className="font-medium">{customer.email || "—"}</dd></div>
             <div><dt className="text-muted text-xs">Origem</dt><dd className="font-medium">{customer.source ? leadSourceLabel(customer.source) : "—"}</dd></div>
+            <div><dt className="text-muted text-xs">Comunicações promocionais</dt><dd className="font-medium">{customer.marketing_opt_in ? "Autorizadas" : "Não autorizadas"}</dd></div>
             <div className="col-span-2"><dt className="text-muted text-xs">Observações gerais</dt><dd className="whitespace-pre-wrap">{customer.notes || "—"}</dd></div>
           </dl>
         </CardBody>
@@ -60,6 +61,8 @@ export function CustomerDetails({ customer, startEditing = false }: { customer: 
             </Field>
             <Field label="CPF (só para o contrato)" htmlFor="document"><Input id="document" name="document" defaultValue={customer.document ?? ""} placeholder="000.000.000-00" /></Field>
           </div>
+          <input type="hidden" name="marketing_opt_in" value="false" />
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="marketing_opt_in" value="true" defaultChecked={customer.marketing_opt_in} className="h-4 w-4 accent-[var(--brand)]" /> Autoriza comunicações promocionais (lembrete de aniversário, promoções)</label>
           <Field label="Observações gerais" htmlFor="notes" hint="Preferências de contato, como conheceu o buffet, etc."><Textarea id="notes" name="notes" defaultValue={customer.notes ?? ""} /></Field>
           <div className="flex gap-2">
             <SubmitButton size="md" pendingText="Salvando...">Salvar alterações</SubmitButton>

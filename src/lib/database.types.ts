@@ -44,6 +44,7 @@ export type Database = {
           name: string
           notes: string | null
           organization_id: string
+          promo_muted_until: string | null
         }
         Insert: {
           birth_date: string
@@ -54,6 +55,7 @@ export type Database = {
           name: string
           notes?: string | null
           organization_id: string
+          promo_muted_until?: string | null
         }
         Update: {
           birth_date?: string
@@ -64,6 +66,7 @@ export type Database = {
           name?: string
           notes?: string | null
           organization_id?: string
+          promo_muted_until?: string | null
         }
         Relationships: [
           {
@@ -206,6 +209,7 @@ export type Database = {
           document: string | null
           email: string | null
           id: string
+          marketing_opt_in: boolean
           name: string
           notes: string | null
           organization_id: string
@@ -218,6 +222,7 @@ export type Database = {
           document?: string | null
           email?: string | null
           id?: string
+          marketing_opt_in?: boolean
           name: string
           notes?: string | null
           organization_id: string
@@ -230,6 +235,7 @@ export type Database = {
           document?: string | null
           email?: string | null
           id?: string
+          marketing_opt_in?: boolean
           name?: string
           notes?: string | null
           organization_id?: string

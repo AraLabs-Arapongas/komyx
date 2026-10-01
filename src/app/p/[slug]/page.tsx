@@ -7,7 +7,6 @@ import { formatCurrency, whatsappLink } from "@/lib/utils";
 import { Bunting } from "@/components/public/bunting";
 import { PolaroidGallery, type GalleryItem } from "@/components/public/polaroid-gallery";
 import { PublicFooter } from "@/components/public/public-footer";
-import { ReservationRecall } from "@/components/public/reservation-recall";
 import { RequestForm } from "./request-form";
 import { resolveTheme, themeStyle } from "@/lib/theme";
 
@@ -98,7 +97,6 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
         </div>
       </section>
 
-      <ReservationRecall orgName={org.name} />
       {waUrl ? (
         <a href={waUrl} target="_blank" rel="noopener" aria-label="Falar no WhatsApp" className="md:hidden fixed bottom-4 right-4 z-30 h-14 w-14 rounded-full grid place-items-center shadow-lg" style={{ background: "#25D366", color: "#fff" }}>
           <MessageCircle className="h-7 w-7" />

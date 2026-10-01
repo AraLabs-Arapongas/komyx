@@ -28,6 +28,16 @@ export async function addCelebrant(_prev: ActionResult | undefined, formData: Fo
   return { ok: true, message: "Aniversariante salvo." };
 }
 
+/** "Não enviar promoção": hides this reminder until the day after the upcoming birthday. Nothing is deleted. */
+export async function mutePromo(formData: FormData) {
+  const id = uuid.safeParse(formData.get("id"));
+  const until = dateSchema.safeParse(formData.get("until"));
+  if (!id.success || !until.success) return;
+  const supabase = await createClient();
+  await supabase.from("celebrants").update({ promo_muted_until: until.data }).eq("id", id.data);
+  revalidatePath("/aniversariantes");
+}
+
 export async function removeCelebrant(formData: FormData) {
   const id = String(formData.get("id"));
   const supabase = await createClient();

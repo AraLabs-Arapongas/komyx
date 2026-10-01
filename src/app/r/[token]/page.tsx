@@ -8,7 +8,6 @@ import { buttonClass } from "@/components/ui/button";
 import { appUrl, formatCurrency, formatDateLong, formatDateTime, formatTime, whatsappLink } from "@/lib/utils";
 import { installmentDueLabel } from "@/lib/contract";
 import { allocateInstallments } from "@/lib/installments";
-import { RememberReservation } from "./remember";
 
 export const metadata = { title: "Minha reserva" };
 export const dynamic = "force-dynamic";
@@ -27,7 +26,6 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
 
   return (
     <main className="public-theme flex-1 flex flex-col">
-      <RememberReservation token={token} date={ev.starts_at} org={org.name} />
       <div className="flex-1 mx-auto w-full max-w-2xl px-4 py-8 space-y-5">
         <header className="flex items-center gap-3">
           {org.logo_url ? (

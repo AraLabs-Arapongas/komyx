@@ -72,6 +72,10 @@ Todo link público tem um código curto aleatório de 8 caracteres (`public_link
 
 Lista = tabela no desktop (Cliente, WhatsApp, Próximo/último evento, Eventos; linha inteira clicável, ordenável, 25 por página) e cards no celular. Busca ao digitar por nome (sem acento/caixa) ou trecho do WhatsApp; busca e paginação no servidor (`search_customers`). Ficha: cabeçalho com WhatsApp · Novo orçamento (cliente pré-preenchido, sem copiar dados de festa anterior) · Editar dados; depois Próximo evento, Histórico e Dados do cliente em modo leitura (CPF só aparece ao editar; dados da festa ficam no evento).
 
+### Aniversariantes próximos
+
+Reativação manual: aniversariantes dos próximos 60 dias com idade, dias restantes, responsável e última festa. "Enviar WhatsApp" abre um texto editável (variáveis nome do responsável, aniversariante e idade) e só então o WhatsApp; nada é enviado sozinho. "Não enviar promoção" oculta só aquele lembrete até o dia seguinte ao aniversário (`promo_muted_until`), sem apagar nada. Cliente com `marketing_opt_in = false` (ficha do cliente) não mostra o botão. Sem campanhas, disparo em massa ou painel.
+
 ## 2. Cliente (sem login)
 
 ### 2.1 Descobrir

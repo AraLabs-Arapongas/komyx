@@ -15,6 +15,7 @@ const customerSchema = z.object({
   document: optionalText,
   source: optionalText,
   notes: optionalText,
+  marketing_opt_in: z.union([z.literal("on"), z.literal("true"), z.literal("false"), z.literal("")]).optional().transform((v) => v === undefined ? undefined : v === "on" || v === "true"),
 });
 
 export async function createCustomer(_prev: ActionResult<{ id: string }> | undefined, formData: FormData): Promise<ActionResult<{ id: string }>> {
