@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, router } from "expo-router";
 import { Image, Pressable, Text, View } from "react-native";
 import { useAuth } from "@/lib/auth";
-import { formatDateLong, formatTime } from "@/lib/format";
+import { formatDateLong, formatPhone, formatTime } from "@/lib/format";
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, type EventStatus } from "@/lib/labels";
 import { supabase } from "@/lib/supabase";
 import { Badge, Button, Card, Empty, Loading, Muted, Row, Screen, styles } from "@/ui/components";
@@ -44,7 +44,7 @@ export default function MinhasFestas() {
   return (
     <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()}>
       <Text style={styles.title}>Minhas festas</Text>
-      <Muted>{session?.user.phone ? `Celular ${session.user.phone}` : ""}</Muted>
+      <Muted>{session?.user.phone ? `Celular ${formatPhone(session.user.phone.replace(/^\+?55/, ""))}` : ""}</Muted>
       {q.isLoading ? <Loading /> : parties.length === 0 ? (
         <Empty title="Nenhuma festa neste número" description="Quando um buffet registrar uma reserva com o seu celular, ela aparece aqui. Se já tem uma, confira com o buffet se o número está certo." />
       ) : (
