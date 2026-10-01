@@ -80,6 +80,21 @@ src/lib/supabase       clients (server, browser, admin) e proxy de sessão
 - **Links públicos**: token aleatório de 48 hex, revogável; páginas públicas rodam no servidor com a chave de serviço e só leem o mínimo.
 - **Permissões**: `owner` gerencia empresa, equipe, pacotes; `staff` opera clientes, eventos, orçamentos, convidados e pagamentos. Todas as tabelas têm RLS por `organization_id`. `anon` não tem acesso direto.
 
+## Testes end-to-end (Playwright)
+
+Cobrem os três fluxos de `docs/FLUXOS.md` contra o dev server e o Supabase local. Cada spec apaga o que cria (service role) no `afterAll`.
+
+```bash
+pnpm test:e2e        # roda tudo (usa o dev server se já estiver no ar)
+pnpm test:e2e:ui     # modo interativo
+```
+
+| Spec | Cobre |
+| --- | --- |
+| `tests/e2e/owner.spec.ts` | dona: pré-reserva com pacote/extras → orçamento (adicional, enviado, aceito, PDF) → contrato preenchido → pagamento e saldo → convidado e link RSVP; staff bloqueado em Configurações |
+| `tests/e2e/client.spec.ts` | cliente: página pública, wizard de 5 passos com calendário, reserva autônoma (Pix/QR/código), página `/r/`, encontrar reserva por WhatsApp+data, RSVP + `.ics`, aceite de contrato + PDF |
+| `tests/e2e/admin.spec.ts` | admin: dono comum bloqueado; cria buffet + dono, suspende (404 público, `/suspenso`), reativa, checklist do dono, slug travado |
+
 ## Fluxo de migrations
 
 ```bash
