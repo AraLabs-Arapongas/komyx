@@ -14,7 +14,6 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <div className="flex min-h-screen">
       <Sidebar orgName={org.name} userName={profile.name} userEmail={profile.email} role={profile.role} isAdmin={profile.is_platform_admin} billing={billing} />
       <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0">
-        <script dangerouslySetInnerHTML={{ __html: `try{document.documentElement.dataset.privacy=localStorage.getItem("festeja:privacy")==="on"?"on":"off"}catch(e){}` }} />
         <div className="fixed top-2 right-3 z-30 flex items-center gap-1 rounded-xl bg-background/80 backdrop-blur px-1">
           <PrivacyToggle />
           <NotificationsBell initialUnread={unread ?? 0} />

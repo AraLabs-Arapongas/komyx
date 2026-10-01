@@ -12,8 +12,11 @@ const KEY = "festeja:privacy";
 export function PrivacyToggle() {
   const [on, setOn] = useState(false);
   useEffect(() => {
+    let saved = false;
+    try { saved = localStorage.getItem(KEY) === "on"; } catch {}
+    document.documentElement.dataset.privacy = saved ? "on" : "off";
     // eslint-disable-next-line react-hooks/set-state-in-effect -- read persisted preference after mount
-    setOn(document.documentElement.dataset.privacy === "on");
+    setOn(saved);
   }, []);
   function toggle() {
     const next = !on;
