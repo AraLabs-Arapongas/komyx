@@ -106,17 +106,6 @@ test.describe("Cliente", () => {
     expect((await busy.json()).busy).toContain(date);
   });
 
-  test("encontrar reserva por WhatsApp + data", async ({ page }) => {
-    await page.goto(`/p/${DEMO_SLUG}`);
-    await page.getByText("Já reservou? Encontre sua reserva").click();
-    const box = page.locator("details", { hasText: "Encontre sua reserva" });
-    await box.getByLabel("WhatsApp", { exact: true }).fill(phone);
-    await box.getByLabel("Data da festa").fill(date);
-    await box.getByRole("button", { name: "Abrir minha reserva" }).click();
-    await page.waitForURL(/\/r\/[0-9a-f]{48}/);
-    await expect(page.getByText("Reservada")).toBeVisible();
-  });
-
   test("convidado confirma presença e baixa .ics; contrato aceito pelo link", async ({ page }) => {
     const db = adminDb();
     const { data: org } = await db.from("organizations").select("id").eq("slug", DEMO_SLUG).single();

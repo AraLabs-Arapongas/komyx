@@ -8,7 +8,6 @@ import { Bunting } from "@/components/public/bunting";
 import { PolaroidGallery, type GalleryItem } from "@/components/public/polaroid-gallery";
 import { PublicFooter } from "@/components/public/public-footer";
 import { ReservationRecall } from "@/components/public/reservation-recall";
-import { FindReservation } from "./find-reservation";
 import { RequestForm } from "./request-form";
 import { resolveTheme, themeStyle } from "@/lib/theme";
 
@@ -206,7 +205,6 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
               {org.instagram ? <li><a href={`https://instagram.com/${org.instagram}`} target="_blank" rel="noopener" className="inline-flex items-center gap-2 underline-offset-4 hover:underline"><Camera className="h-4 w-4" style={{ color: "var(--sun)" }} /> @{org.instagram}</a></li> : null}
               {waUrl ? <li><a href={waUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-2 underline-offset-4 hover:underline"><MessageCircle className="h-4 w-4" style={{ color: "var(--sun)" }} /> WhatsApp</a></li> : null}
             </ul>
-            <div className="mt-6"><FindReservation slug={org.slug} /></div>
           </div>
           <div className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8">
             <p className="display font-extrabold text-2xl mb-4" style={{ color: "var(--ink)" }}>Pedir contato</p>

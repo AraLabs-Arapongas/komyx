@@ -42,10 +42,10 @@ export default function Menu() {
         {publicUrl ? <Item icon="share-outline" label="Compartilhar minha página pública" onPress={() => Share.share({ message: publicUrl })} /> : null}
         {publicUrl ? <Item icon="globe-outline" label="Abrir minha página pública" onPress={() => Linking.openURL(publicUrl)} /> : null}
         <Item icon="laptop-outline" label="Festeja na web (configurações, pacotes, contratos)" onPress={() => Linking.openURL(`${WEB_URL}/home`)} />
-        <Item icon="people-outline" label="Área do cliente (testar como cliente)" href="/cliente" />
+        <Item icon="people-outline" label="Entrar como cliente (testar)" href="/entrar" />
       </View>
       <View style={{ padding: 16 }}>
-        <Button title="Sair" variant="outline" onPress={async () => { await signOut(); router.replace("/welcome"); }} />
+        <Button title="Sair" variant="outline" onPress={async () => { await signOut(); router.replace("/entrar"); }} />
         <Muted style={{ textAlign: "center", marginTop: 16 }}>Festeja · desenvolvido por AraLabs</Muted>
       </View>
     </Screen>

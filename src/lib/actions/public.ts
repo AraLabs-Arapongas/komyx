@@ -437,34 +437,3 @@ export async function acceptContract(_prev: ActionResult | undefined, formData: 
   return { ok: true, message: "Contrato aceito. Obrigado!" };
 }
 
-const findSchema = z.object({ slug: z.string().min(1), whatsapp: phoneSchema, date: dateSchema });
-
-/** Lost the link: WhatsApp + party date opens the reservation page. */
-export async function findReservation(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
-  const parsed = findSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return fail("Informe WhatsApp e a data da festa.");
-  const d = parsed.data;
-  const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("id").eq("slug", d.slug).maybeSingle();
-  if (!org) return fail("Buffet não encontrado.");
-  const dayStart = localToIso(d.date, "00:00");
-  const dayEnd = new Date(new Date(dayStart).getTime() + 86_400_000).toISOString();
-  const { data: ev } = await admin
-    .from("events")
-    .select("id, customers!inner(whatsapp)")
-    .eq("organization_id", org.id)
-    .eq("customers.whatsapp", d.whatsapp)
-    .gte("starts_at", dayStart)
-    .lt("starts_at", dayEnd)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (!ev) return fail("Não achamos reserva com esse WhatsApp nessa data. Confira os dados ou fale com o buffet.");
-  let { data: link } = await admin.from("public_links").select("token").eq("event_id", ev.id).eq("type", "RESERVATION").eq("active", true).maybeSingle();
-  if (!link) {
-    const { data: created } = await admin.from("public_links").insert({ organization_id: org.id, event_id: ev.id, type: "RESERVATION" }).select("token").single();
-    link = created;
-  }
-  if (!link) return fail("Não foi possível abrir a reserva.");
-  redirect(`/r/${link.token}`);
-}

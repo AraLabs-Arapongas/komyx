@@ -255,18 +255,29 @@ otp_expiry = 3600
 # content_path = "./supabase/templates/password_changed_notification.html"
 
 [auth.sms]
-# Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+# Clients sign in with their phone (OTP). Sending goes through the send_sms hook below (Comtele in production).
+enable_signup = true
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
-template = "Your code is {{ .Code }}"
+template = "Festeja: seu codigo e {{ .Code }}. Vale por 10 minutos."
 # Controls the minimum amount of time that must pass before sending another sms otp.
 max_frequency = "5s"
 
-# Use pre-defined map of phone number to OTP for testing.
-# [auth.sms.test_otp]
-# 4152127777 = "123456"
+# Seed customers get a fixed code locally; nothing is sent for these numbers.
+[auth.sms.test_otp]
+5511999990001 = "123456"
+5511999990002 = "123456"
+5511999990003 = "123456"
+5511999990004 = "123456"
+5511999990005 = "123456"
+
+# Send SMS hook → Next.js route that talks to the SMS provider (see src/app/api/auth/send-sms/route.ts).
+# Local-only secret; production uses env(SEND_SMS_HOOK_SECRETS).
+[auth.hook.send_sms]
+enabled = true
+uri = "http://host.docker.internal:3000/api/auth/send-sms"
+secrets = "v1,whsec_ZmVzdGVqYS1sb2NhbC1zZW5kLXNtcy1ob29rLXNlY3JldC0wMQ=="
 
 # Configure logged in session timeouts.
 # [auth.sessions]
@@ -286,12 +297,12 @@ max_frequency = "5s"
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+# GoTrue requires a provider entry even when the send_sms hook does the sending; these values are placeholders.
 [auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
-# DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+enabled = true
+account_sid = "hook"
+message_service_sid = "hook"
+auth_token = "hook"
 
 # Multi-factor-authentication is available to Supabase Pro plan.
 [auth.mfa]

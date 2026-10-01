@@ -63,7 +63,7 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 ## 2. Cliente (sem login)
 
 ### 2.1 Descobrir
-- Link da bio → `/p/slug?src=instagram` (origem gravada). Página: convite, fotos (carrossel), destaques, pacotes (preço ou "sob consulta"), como funciona, depoimentos, contato, "Encontre sua reserva".
+- Link da bio → `/p/slug?src=instagram` (origem gravada). Página: convite, fotos (carrossel), destaques, pacotes (preço ou "sob consulta"), como funciona, depoimentos, contato.
 - WhatsApp flutuante no celular.
 
 ### 2.2 Montar orçamento e reservar sozinho (`/p/slug/orcamento`)
@@ -75,7 +75,7 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 6. Confirmação: data reservada até *data/hora*, **QR Pix** com a chave do buffet + copia e cola + **código da reserva** `FESTA…` (vai no identificador do Pix), botão de enviar comprovante no WhatsApp, link do orçamento, e **link permanente da reserva** (`/r/[token]`) com "Enviar pra mim no WhatsApp". O link fica salvo no navegador.
 
 ### 2.3 Voltar depois
-- `/r/[token]`: status (reservada / confirmada / expirada), Pix enquanto não pago, orçamento (PDF), contrato para aceitar, WhatsApp. Banner "Sua reserva" aparece ao voltar à página do buffet no mesmo aparelho. Perdeu o link: "Encontre sua reserva" com WhatsApp + data da festa.
+- `/r/[token]`: status (reservada / confirmada / expirada), Pix enquanto não pago, orçamento (PDF), contrato para aceitar, WhatsApp. Banner "Sua reserva" aparece ao voltar à página do buffet no mesmo aparelho. Perdeu o link: o buffet reenvia pelo app/web, ou o cliente entra no app com o celular (código por SMS) e vê todas as suas festas.
 - Expirou: botão "Tentar reservar de novo".
 
 ### 2.4 Depois de fechar
@@ -107,4 +107,4 @@ Acesso só para perfis com `is_platform_admin` (flag que só a service role alte
 
 ## 4. App mobile (Expo)
 
-Mesmos fluxos, no celular. Dona/equipe: Início (ações urgentes, solicitações, hoje, 7 dias, a receber) → Agenda → Evento (status, parcelas com "Recebida", recebimentos, check-in, extras, enviar página da reserva/RSVP). Cliente: "Sou cliente" → WhatsApp + data ou link → reserva (Pix QR + copia-e-cola, parcelas, contrato) e convite (RSVP). Deep links `festeja://r/<token>` e `festeja://g/<token>`. Orçamento, contrato e convite continuam sendo editados na web.
+Mesmos fluxos, no celular. Dona/equipe: Início (ações urgentes, solicitações, hoje, 7 dias, a receber) → Agenda → Evento (status, parcelas com "Recebida", recebimentos, check-in, extras, enviar página da reserva/RSVP). Cliente: entra com o celular (código por SMS, enviado pela Comtele via hook do Supabase) ou abre o link do buffet → "Minhas festas" → reserva (Pix QR + copia-e-cola, parcelas, contrato) e convite (RSVP). Deep links `festeja://r/<token>` e `festeja://g/<token>`. Orçamento, contrato e convite continuam sendo editados na web.

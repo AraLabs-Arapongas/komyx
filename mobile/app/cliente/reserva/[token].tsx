@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, Image, Linking, Pressable, Share, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+import { useAuth } from "@/lib/auth";
 import { loadReservation } from "@/lib/client";
 import { formatCurrency, formatDateLong, formatDateTime, formatTime, hoursLeft, whatsappUrl } from "@/lib/format";
 import { allocateInstallments, dueShort } from "@/lib/installments";
@@ -15,6 +16,7 @@ import { colors } from "@/ui/theme";
 
 export default function Reserva() {
   const { token } = useLocalSearchParams<{ token: string }>();
+  const { session } = useAuth();
   const q = useQuery({ queryKey: ["reservation", token], queryFn: () => loadReservation(token) });
   const [showPayload, setShowPayload] = useState(false);
   if (q.isLoading) return <Loading />;
@@ -106,6 +108,7 @@ export default function Reserva() {
         </Row>
       </Card>
       {org.whatsapp ? <Button title={`Falar com ${org.name}`} variant="secondary" onPress={() => Linking.openURL(whatsappUrl(org.whatsapp!, `Olá! Sobre minha reserva de ${formatDateLong(ev.starts_at)}.`))} /> : null}
+      <Button title={session ? "Minhas festas" : "Entrar com meu celular para ver todas as minhas festas"} variant="ghost" size="sm" onPress={() => router.replace(session ? "/cliente" : "/entrar")} />
     </Screen>
   );
 }

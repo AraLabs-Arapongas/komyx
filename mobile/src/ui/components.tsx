@@ -1,3 +1,4 @@
+import type React from "react";
 import { type ReactNode } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, type PressableProps, type TextInputProps, type ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -69,8 +70,8 @@ export function Field({ label, error, children }: { label: string; error?: strin
   );
 }
 
-export function Input(props: TextInputProps) {
-  return <TextInput placeholderTextColor="#a8a29e" {...props} style={[styles.input, props.style]} />;
+export function Input({ ref, ...props }: TextInputProps & { ref?: React.Ref<TextInput> }) {
+  return <TextInput ref={ref} placeholderTextColor="#a8a29e" {...props} style={[styles.input, props.style]} />;
 }
 
 export function Muted({ children, style }: { children: ReactNode; style?: object }) {

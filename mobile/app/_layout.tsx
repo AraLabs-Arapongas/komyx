@@ -13,10 +13,9 @@ export default function RootLayout() {
         <StatusBar style="dark" />
         <Stack screenOptions={{ headerStyle: { backgroundColor: colors.background }, headerTintColor: colors.brand, headerTitleStyle: { color: colors.foreground, fontWeight: "700" }, headerShadowVisible: false, contentStyle: { backgroundColor: colors.background } }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="welcome" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ title: "Entrar", headerBackTitle: "Voltar" }} />
+          <Stack.Screen name="entrar" options={{ headerShown: false }} />
           <Stack.Screen name="(app)" options={{ headerShown: false }} />
-          <Stack.Screen name="cliente/index" options={{ title: "Área do cliente", headerBackTitle: "Voltar" }} />
+          <Stack.Screen name="cliente/index" options={{ headerShown: false }} />
           <Stack.Screen name="cliente/reserva/[token]" options={{ title: "Minha reserva", headerBackTitle: "Voltar" }} />
           <Stack.Screen name="cliente/convite/[token]" options={{ title: "Convite", headerBackTitle: "Voltar" }} />
           <Stack.Screen name="r/[token]" options={{ headerShown: false }} />

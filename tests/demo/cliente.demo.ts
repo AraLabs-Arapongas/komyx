@@ -76,14 +76,7 @@ test.describe("Vídeo · Cliente", () => {
     await page.waitForTimeout(1500);
 
     await page.goto(`/p/${DEMO_SLUG}`);
-    await caption(page, "Voltou à página? O banner lembra a reserva. Perdeu o link? Busca por WhatsApp e data", 3500);
-    await page.mouse.wheel(0, 99999);
-    await page.getByText("Já reservou? Encontre sua reserva").click();
-    const box = page.locator("details", { hasText: "Encontre sua reserva" });
-    await box.getByLabel("WhatsApp", { exact: true }).fill(phone);
-    await box.getByLabel("Data da festa").fill(date);
-    await box.getByRole("button", { name: "Abrir minha reserva" }).click();
-    await page.waitForURL(/\/r\/[0-9a-f]{48}/);
+    await caption(page, "Voltou à página? O banner lembra a reserva. Perdeu o link? O buffet reenvia, ou entre no app com o celular", 3500);
     await page.waitForTimeout(1500);
 
     // Guest RSVP on the same event

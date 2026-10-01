@@ -9,7 +9,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aralabs.festeja"
+      "bundleIdentifier": "com.aralabs.festeja",
+      "associatedDomains": [
+        "applinks:festeja.app"
+      ]
     },
     "android": {
       "package": "com.aralabs.festeja",
@@ -18,7 +21,29 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png",
         "backgroundColor": "#faf7f2"
-      }
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "festeja.app",
+              "pathPrefix": "/r/"
+            },
+            {
+              "scheme": "https",
+              "host": "festeja.app",
+              "pathPrefix": "/g/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",

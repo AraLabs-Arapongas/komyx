@@ -92,7 +92,7 @@ pnpm test:e2e:ui     # modo interativo
 | Spec | Cobre |
 | --- | --- |
 | `tests/e2e/owner.spec.ts` | dona: reserva com pacote/extras → orçamento (adicional, enviado, aceito, PDF) → contrato preenchido → pagamento e saldo → convidado e link RSVP; staff bloqueado em Configurações |
-| `tests/e2e/client.spec.ts` | cliente: página pública, wizard de 5 passos com calendário, reserva autônoma (Pix/QR/código), página `/r/`, encontrar reserva por WhatsApp+data, RSVP + `.ics`, aceite de contrato + PDF |
+| `tests/e2e/client.spec.ts` | cliente: página pública, wizard de 5 passos com calendário, reserva autônoma (Pix/QR/código), página `/r/`, RSVP + `.ics`, aceite de contrato + PDF |
 | `tests/e2e/admin.spec.ts` | admin: dono comum bloqueado; cria buffet + dono, suspende (404 público, `/suspenso`), reativa, checklist do dono, slug travado |
 
 ## Vídeos de demonstração (legendados)
@@ -112,6 +112,10 @@ supabase migration new <nome>   # cria arquivo
 supabase db reset               # reaplica tudo + seed
 supabase gen types typescript --local > src/lib/database.types.ts
 ```
+
+## Login do cliente por SMS
+
+Clientes entram no app com o celular: o Supabase gera o código e chama o hook `send_sms` (rota `/api/auth/send-sms`), que envia pela Comtele. Variáveis em `.env.local`: `SMS_PROVIDER` (`comtele` ou `log`), `COMTELE_API_KEY`, `COMTELE_ROUTE`, `SEND_SMS_HOOK_SECRET` (igual ao `[auth.hook.send_sms].secrets` do `supabase/config.toml`). Em dev os telefones do seed usam o código fixo `123456` (`[auth.sms.test_otp]`), sem envio.
 
 ## App mobile (Expo)
 
