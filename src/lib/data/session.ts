@@ -55,3 +55,13 @@ export const requireAdmin = cache(async (): Promise<Profile> => {
   if (!profile.is_platform_admin) redirect("/home?error=forbidden");
   return profile;
 });
+
+export type BillingRow = { cycle_start: string | null; due_at: string | null; status: string };
+
+/** Billing cycle of the org. Only owners can read it (RLS); staff get null. */
+export async function getBilling(profile: { organization_id: string; role: string }): Promise<BillingRow | null> {
+  if (profile.role !== "owner") return null;
+  const supabase = await createClient();
+  const { data } = await supabase.from("organization_billing").select("cycle_start, due_at, status").eq("organization_id", profile.organization_id).maybeSingle();
+  return data ?? null;
+}

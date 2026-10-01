@@ -1,4 +1,4 @@
-import { requireProfile, getOrganization } from "@/lib/data/session";
+import { requireProfile, getOrganization, getBilling } from "@/lib/data/session";
 import { BottomNav } from "@/components/shell/bottom-nav";
 import { Sidebar } from "@/components/shell/sidebar";
 import { NotificationsBell } from "@/components/shell/notifications-bell";
@@ -8,11 +8,12 @@ import { createClient } from "@/lib/supabase/server";
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const supabase = await createClient();
-  const [{ data: unread }, { count: newRequests }] = await Promise.all([
+  const [{ data: unread }, { count: newRequests }, bill] = await Promise.all([
     supabase.rpc("unread_notifications_count"),
     supabase.from("public_requests").select("id", { count: "exact", head: true }).eq("status", "NEW"),
+    getBilling(profile),
   ]);
-  const billing = { cycleStart: org.billing_cycle_start, dueAt: org.billing_due_at, status: org.billing_status, plan: org.plan };
+  const billing = { cycleStart: bill?.cycle_start ?? null, dueAt: bill?.due_at ?? null, status: bill?.status ?? "ok", plan: org.plan };
   return (
     <div className="flex min-h-screen">
       <Sidebar orgName={org.name} userName={profile.name} userEmail={profile.email} role={profile.role} isAdmin={profile.is_platform_admin} billing={billing} newRequests={newRequests ?? 0} />

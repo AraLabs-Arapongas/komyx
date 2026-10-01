@@ -33,6 +33,8 @@ begin
          instagram = 'festaeciabuffet',
          description = 'Festas infantis e comemorações com brinquedos, buffet completo e equipe de monitores. Espaço climatizado para até 120 pessoas.'
    where id = v_org;
+  insert into public.organization_billing (organization_id, cycle_start, due_at, status) values (v_org, current_date - 10, current_date + 20, 'ok')
+    on conflict (organization_id) do update set cycle_start = excluded.cycle_start, due_at = excluded.due_at, status = excluded.status;
 
   insert into public.packages (organization_id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price, description, sort_order) values
     (v_org, 'Pacote Bronze', 2500, 20, 20, 55, 35, 'Buffet de salgados e doces, refrigerantes e sucos, 3h de festa, 1 monitor.', 1),
@@ -124,7 +126,6 @@ begin
     tagline = 'A festa que seu filho vai lembrar. E você vai curtir.',
     highlights = array['Espaço climatizado', 'Brinquedão e piscina de bolinhas', 'Monitores o tempo todo', 'Estacionamento gratuito', 'Cardápio para alérgicos'],
     founded_year = 2014, capacity = 120, plan = 'premium',
-    billing_cycle_start = current_date - 10, billing_due_at = current_date + 20, billing_status = 'ok',
     gallery = '[{"url":"/demo/festa-1.jpg","caption":"Salão principal pronto para a festa"},{"url":"/demo/festa-2.jpg","caption":"Mesa do bolo tema safári"},{"url":"/demo/festa-3.jpg","caption":"Brinquedão com monitores"},{"url":"/demo/festa-4.jpg","caption":"Hora do parabéns"}]'::jsonb,
     testimonials = '[{"name":"Renata, mãe do Pedro","text":"Não precisei me preocupar com nada. As monitoras cuidaram das crianças e eu consegui curtir a festa do meu filho pela primeira vez."},{"name":"Carla, mãe da Júlia","text":"Fechamos pelo WhatsApp em 10 minutos e o orçamento veio certinho, sem surpresa no dia."},{"name":"Marcos, pai do Theo","text":"Comida boa de verdade, não aquele salgadinho de festa. Os adultos repetiram."}]'::jsonb
   where id = v_org;
@@ -157,5 +158,5 @@ begin
   insert into public.saas_invoices (organization_id, description, amount, due_at, paid_at, status, method) values
     (v_org, 'Festeja Premium · mensalidade', 199.00, current_date - 39, current_date - 41, 'paid', 'PIX'),
     (v_org, 'Festeja Premium · mensalidade', 199.00, current_date - 9, current_date - 10, 'paid', 'PIX'),
-    (v_org, 'Festeja Premium · mensalidade', 199.00, (select billing_due_at from public.organizations where id = v_org), null, 'open', null);
+    (v_org, 'Festeja Premium · mensalidade', 199.00, (select due_at from public.organization_billing where organization_id = v_org), null, 'open', null);
 end $$;

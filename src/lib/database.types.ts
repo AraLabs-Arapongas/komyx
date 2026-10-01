@@ -647,12 +647,48 @@ export type Database = {
           },
         ]
       }
+      organization_billing: {
+        Row: {
+          cycle_start: string | null
+          due_at: string | null
+          organization_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cycle_start?: string | null
+          due_at?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cycle_start?: string | null
+          due_at?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_billing_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "admin_org_stats"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "organization_billing_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           address: string | null
-          billing_cycle_start: string | null
-          billing_due_at: string | null
-          billing_status: string
           capacity: number | null
           city: string | null
           contract_template: string
@@ -688,9 +724,6 @@ export type Database = {
         }
         Insert: {
           address?: string | null
-          billing_cycle_start?: string | null
-          billing_due_at?: string | null
-          billing_status?: string
           capacity?: number | null
           city?: string | null
           contract_template?: string
@@ -726,9 +759,6 @@ export type Database = {
         }
         Update: {
           address?: string | null
-          billing_cycle_start?: string | null
-          billing_due_at?: string | null
-          billing_status?: string
           capacity?: number | null
           city?: string | null
           contract_template?: string

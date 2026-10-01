@@ -1,6 +1,6 @@
 import { MessageCircle, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile, getOrganization } from "@/lib/data/session";
+import { requireProfile, getOrganization, getBilling } from "@/lib/data/session";
 import { PageBody, PageHeader } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ export const metadata = { title: "Minha conta" };
 export default async function AccountPage() {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const isOwner = profile.role === "owner";
+  const bill = await getBilling(profile);
   const supabase = await createClient();
   const { data: invoices } = isOwner ? await supabase.from("saas_invoices").select("id, description, amount, due_at, paid_at, status, method, receipt_url").order("due_at", { ascending: false }).limit(36) : { data: [] };
   const price = PLAN_PRICES[org.plan] ?? 0;
@@ -43,14 +44,14 @@ export default async function AccountPage() {
                 <dl className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-sm">
                   <div><dt className="text-xs text-muted">Plano atual</dt><dd className="font-medium">{PLAN_LABEL[org.plan] ?? org.plan}</dd></div>
                   <div><dt className="text-xs text-muted">Valor mensal</dt><dd className="font-medium">{formatCurrency(price)}</dd></div>
-                  <div><dt className="text-xs text-muted">Próxima cobrança</dt><dd className="font-medium">{org.billing_due_at ? dayDate(org.billing_due_at) : "—"}</dd></div>
-                  <div><dt className="text-xs text-muted">Status</dt><dd><Badge tone={org.billing_status === "overdue" ? "red" : org.billing_status === "due" ? "amber" : org.billing_status === "trial" ? "brand" : "green"}>{BILLING_STATUS_LABEL[org.billing_status] ?? org.billing_status}</Badge></dd></div>
+                  <div><dt className="text-xs text-muted">Próxima cobrança</dt><dd className="font-medium">{bill?.due_at ? dayDate(bill.due_at) : "—"}</dd></div>
+                  <div><dt className="text-xs text-muted">Status</dt><dd><Badge tone={bill?.status === "overdue" ? "red" : bill?.status === "due" ? "amber" : bill?.status === "trial" ? "brand" : "green"}>{BILLING_STATUS_LABEL[bill?.status ?? "ok"] ?? bill?.status}</Badge></dd></div>
                 </dl>
                 <div className="flex flex-wrap gap-2">
                   <a href={support(`Olá! Sou do ${org.name} (${org.slug}) e quero alterar a forma de pagamento da assinatura Festeja.`)} target="_blank" rel="noopener" className={buttonClass("outline", "sm")}><MessageCircle className="h-4 w-4" /> Alterar forma de pagamento</a>
                   <a href={support(`Olá! Sou do ${org.name} (${org.slug}) e quero cancelar a assinatura Festeja.`)} target="_blank" rel="noopener" className={buttonClass("ghost", "sm", "text-red-600")}>Cancelar assinatura</a>
                 </div>
-                <p className="text-xs text-muted">Alterações de plano e pagamento são feitas com o suporte Festeja pelo WhatsApp. O ciclo atual vai de {org.billing_cycle_start ? dayDate(org.billing_cycle_start) : "—"} até {org.billing_due_at ? dayDate(org.billing_due_at) : "—"}.</p>
+                <p className="text-xs text-muted">Alterações de plano e pagamento são feitas com o suporte Festeja pelo WhatsApp. O ciclo atual vai de {bill?.cycle_start ? dayDate(bill.cycle_start) : "—"} até {bill?.due_at ? dayDate(bill.due_at) : "—"}.</p>
               </CardBody>
             </Card>
 

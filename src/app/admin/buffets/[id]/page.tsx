@@ -14,8 +14,9 @@ export const dynamic = "force-dynamic";
 export default async function AdminBuffetPage({ params, searchParams }: PageProps<"/admin/buffets/[id]">) {
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   const admin = createAdminClient();
-  const [{ data: org }, { data: stat }, { data: members }, { data: recentEvents }] = await Promise.all([
+  const [{ data: org }, { data: bill }, { data: stat }, { data: members }, { data: recentEvents }] = await Promise.all([
     admin.from("organizations").select("*").eq("id", id).maybeSingle(),
+    admin.from("organization_billing").select("cycle_start, due_at, status").eq("organization_id", id).maybeSingle(),
     admin.from("admin_org_stats").select("*").eq("organization_id", id).maybeSingle(),
     admin.from("profiles").select("id, name, email, role, created_at, is_platform_admin").eq("organization_id", id).order("role").order("name"),
     admin.from("events").select("id, title, starts_at, status, origin, customers(name)").eq("organization_id", id).order("created_at", { ascending: false }).limit(8),
@@ -40,7 +41,7 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
 
         <Card>
           <CardHeader title="Plano, status, cobrança e endereço" subtitle="Só o Festeja altera. Suspender bloqueia o app e a página pública; os dados ficam guardados. O ciclo de cobrança aparece para o dono com barra de progresso." />
-          <CardBody><OrgAdminForm org={{ id: org.id, slug: org.slug, plan: org.plan, status: org.status, notes: org.notes, billing_cycle_start: org.billing_cycle_start, billing_due_at: org.billing_due_at, billing_status: org.billing_status }} /></CardBody>
+          <CardBody><OrgAdminForm org={{ id: org.id, slug: org.slug, plan: org.plan, status: org.status, notes: org.notes, billing_cycle_start: bill?.cycle_start ?? null, billing_due_at: bill?.due_at ?? null, billing_status: bill?.status ?? "ok" }} /></CardBody>
         </Card>
 
         <Card>

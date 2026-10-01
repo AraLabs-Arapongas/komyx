@@ -28,10 +28,12 @@ export async function adminUpdateOrganization(_prev: ActionResult | undefined, f
   await requireAdmin();
   const parsed = orgAdminSchema.safeParse(formToObject(formData));
   if (!parsed.success) return fail("Verifique os campos.", zodFieldErrors(parsed.error));
-  const { id, ...patch } = parsed.data;
+  const { id, billing_cycle_start, billing_due_at, billing_status, ...patch } = parsed.data;
   const admin = createAdminClient();
   const { error } = await admin.from("organizations").update(patch).eq("id", id);
   if (error) return fail(translateDbError(error));
+  const { error: bErr } = await admin.from("organization_billing").upsert({ organization_id: id, cycle_start: billing_cycle_start, due_at: billing_due_at, status: billing_status, updated_at: new Date().toISOString() });
+  if (bErr) return fail(translateDbError(bErr));
   revalidatePath("/admin");
   revalidatePath(`/admin/buffets/${id}`);
   revalidatePath("/admin/buffets");
