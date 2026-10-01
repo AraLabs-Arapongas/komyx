@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/ui/copy-button";
 import { appUrl } from "@/lib/utils";
 import { CONTRACT_PLACEHOLDERS } from "@/lib/contract";
-import { OrganizationForm, ImageUploadForm, StaffForm, PaymentPlanForm, ContractTemplateForm, PublicProfileForm, GalleryForm, ThemeForm } from "./forms";
+import { OrganizationForm, ImageUploadForm, StaffForm, PaymentPlanForm, ContractTemplateForm, PublicProfileForm, GalleryForm, ThemeForm, CoverCaptionForm } from "./forms";
 import { resolveTheme, DEFAULT_THEME } from "@/lib/theme";
 
 export const metadata = { title: "Configurações" };
@@ -76,10 +76,13 @@ export default async function SettingsPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Imagens" subtitle="Logo e capa da página pública (JPG, PNG ou WebP até 5MB)" />
-          <CardBody className="grid grid-cols-2 gap-4">
-            <ImageUploadForm kind="logo" currentUrl={org.logo_url} />
-            <ImageUploadForm kind="cover" currentUrl={org.cover_url} />
+          <CardHeader title="Imagens" subtitle="Logo e capa da página pública (JPG, PNG ou WebP até 5MB). O nome do buffet exibido no topo é o de “Dados do buffet”." />
+          <CardBody className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <ImageUploadForm kind="logo" currentUrl={org.logo_url} />
+              <ImageUploadForm kind="cover" currentUrl={org.cover_url} />
+            </div>
+            <CoverCaptionForm caption={org.cover_caption} />
           </CardBody>
         </Card>
 

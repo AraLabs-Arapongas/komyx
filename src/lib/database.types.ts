@@ -547,6 +547,7 @@ export type Database = {
           capacity: number | null
           city: string | null
           contract_template: string
+          cover_caption: string | null
           cover_url: string | null
           created_at: string
           default_event_duration_minutes: number
@@ -579,6 +580,7 @@ export type Database = {
           capacity?: number | null
           city?: string | null
           contract_template?: string
+          cover_caption?: string | null
           cover_url?: string | null
           created_at?: string
           default_event_duration_minutes?: number
@@ -611,6 +613,7 @@ export type Database = {
           capacity?: number | null
           city?: string | null
           contract_template?: string
+          cover_caption?: string | null
           cover_url?: string | null
           created_at?: string
           default_event_duration_minutes?: number

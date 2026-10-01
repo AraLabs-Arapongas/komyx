@@ -33,7 +33,7 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
   const admin = createAdminClient();
   const { data: org } = await admin
     .from("organizations")
-    .select("id, name, slug, logo_url, cover_url, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, show_prices_public")
+    .select("id, name, slug, logo_url, cover_url, cover_caption, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, show_prices_public")
     .eq("slug", slug)
     .maybeSingle();
   if (!org) notFound();
@@ -86,8 +86,8 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
             {org.cover_url || gallery[0] ? (
               <div className="polaroid bg-white p-3 pb-5 shadow-[0_24px_60px_rgba(0,0,0,0.45)] rounded-sm mx-auto max-w-sm" style={{ transform: "rotate(2.5deg)" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={org.cover_url ?? gallery[0].url} alt={gallery[0]?.caption ?? org.name} className="aspect-[4/3] w-full object-cover rounded-[2px]" />
-                <p className="mt-3 text-sm font-semibold" style={{ color: "var(--ink)" }}>{gallery[0]?.caption ?? "Nosso salão"}</p>
+                <img src={org.cover_url ?? gallery[0].url} alt={(org.cover_url ? org.cover_caption : gallery[0]?.caption) ?? org.name} className="aspect-[4/3] w-full object-cover rounded-[2px]" />
+                {(org.cover_url ? org.cover_caption : gallery[0]?.caption) ? <p className="mt-3 text-sm font-semibold" style={{ color: "var(--ink)" }}>{org.cover_url ? org.cover_caption : gallery[0]?.caption}</p> : null}
               </div>
             ) : (
               <div className="rounded-3xl p-8 text-center" style={{ background: "rgba(255,255,255,0.06)" }}>

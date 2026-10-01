@@ -72,6 +72,16 @@ export async function updateOrganization(_prev: ActionResult | undefined, formDa
   return { ok: true, message: "Dados salvos." };
 }
 
+export async function updateCoverCaption(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const caption = String(formData.get("caption") ?? "").trim().slice(0, 120) || null;
+  const profile = await requireOwner();
+  const supabase = await createClient();
+  const { error } = await supabase.from("organizations").update({ cover_caption: caption }).eq("id", profile.organization_id);
+  if (error) return fail(translateDbError(error));
+  revalidatePath("/configuracoes");
+  return { ok: true, message: "Legenda salva." };
+}
+
 export async function uploadOrgImage(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
   const kind = formData.get("kind") === "cover" ? "cover" : "logo";
   const file = formData.get("file");
@@ -86,9 +96,10 @@ export async function uploadOrgImage(_prev: ActionResult | undefined, formData: 
   const { error: upErr } = await supabase.storage.from("org-media").upload(path, file, { contentType: file.type, upsert: false });
   if (upErr) return fail(upErr.message);
   const { data: pub } = supabase.storage.from("org-media").getPublicUrl(path);
+  const caption = String(formData.get("caption") ?? "").trim().slice(0, 120) || null;
   const { error } = await supabase
     .from("organizations")
-    .update(kind === "cover" ? { cover_url: pub.publicUrl } : { logo_url: pub.publicUrl })
+    .update(kind === "cover" ? { cover_url: pub.publicUrl, cover_caption: caption } : { logo_url: pub.publicUrl })
     .eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
   revalidatePath("/configuracoes");

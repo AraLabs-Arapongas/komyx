@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useState } from "react";
-import { updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage, updateTheme } from "@/lib/actions/settings";
+import { updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage, updateTheme, updateCoverCaption } from "@/lib/actions/settings";
 import { Trash2 } from "lucide-react";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -44,11 +44,24 @@ export function OrganizationForm({ org }: { org: Org }) {
   );
 }
 
+export function CoverCaptionForm({ caption }: { caption: string | null }) {
+  const [state, action] = useActionState(updateCoverCaption, undefined);
+  return (
+    <form action={action} className="flex gap-2 items-end">
+      <Field label="Legenda da capa (aparece sob a foto no topo)" htmlFor="cover_caption" error={state && !state.ok ? state.error : undefined}>
+        <Input id="cover_caption" name="caption" defaultValue={caption ?? ""} maxLength={120} placeholder="Ex.: Nosso salão principal" />
+      </Field>
+      <SubmitButton size="md" variant="outline">Salvar</SubmitButton>
+      {state?.ok && state.message ? <span className="text-xs text-emerald-700 pb-3">{state.message}</span> : null}
+    </form>
+  );
+}
+
 export function ImageUploadForm({ kind, currentUrl }: { kind: "logo" | "cover"; currentUrl: string | null }) {
   const [state, action] = useActionState(uploadOrgImage, undefined);
   return (
     <form action={action} className="space-y-2">
-      <p className="text-sm font-medium">{kind === "logo" ? "Logo" : "Capa"}</p>
+      <p className="text-sm font-medium">{kind === "logo" ? "Logo" : "Capa (foto do topo)"}</p>
       {currentUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={currentUrl} alt="" className={kind === "logo" ? "h-20 w-20 rounded-xl object-cover border border-border" : "h-20 w-full rounded-xl object-cover border border-border"} />
