@@ -27,10 +27,18 @@ export function StatusActions({ eventId, status, pixTxid, depositAmount }: { eve
         </form>
       ) : null}
       <div className="flex flex-wrap gap-2">
+        {status === "QUOTE" ? (
+          <>
+            <form action={extendAction}><input type="hidden" name="id" value={eventId} /><SubmitButton size="sm">Reservar a data</SubmitButton></form>
+            <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CONFIRMED" /><SubmitButton size="sm" variant="outline">Confirmar evento</SubmitButton></form>
+            <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CANCELLED" /><SubmitButton size="sm" variant="ghost" className="text-red-600">Cancelar</SubmitButton></form>
+          </>
+        ) : null}
         {status === "PRE_RESERVED" ? (
           <>
             <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CONFIRMED" /><SubmitButton size="sm">Confirmar evento</SubmitButton></form>
             <form action={extendAction}><input type="hidden" name="id" value={eventId} /><SubmitButton size="sm" variant="outline">Renovar prazo</SubmitButton></form>
+            <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="QUOTE" /><SubmitButton size="sm" variant="ghost">Liberar a data</SubmitButton></form>
             <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CANCELLED" /><SubmitButton size="sm" variant="ghost" className="text-red-600">Cancelar</SubmitButton></form>
           </>
         ) : null}

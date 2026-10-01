@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Users, Inbox, Package, Settings, ExternalLink, ChevronRight, LogOut, FileText, Cake, ShieldCheck } from "lucide-react";
+import { Users, Inbox, Package, Settings, ExternalLink, ChevronRight, FileText, Cake, ShieldCheck, Bell } from "lucide-react";
+import { AccountFooter } from "@/components/shell/account-footer";
 import { requireProfile, getOrganization } from "@/lib/data/session";
 import { PageBody, PageHeader } from "@/components/ui/page";
 
@@ -9,6 +10,7 @@ export default async function MenuPage() {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const isOwner = profile.role === "owner";
   const items = [
+    { href: "/notificacoes", label: "Notificações", desc: "Pedidos, reservas, contratos e confirmações", icon: Bell },
     { href: "/orcamentos", label: "Orçamentos", desc: "Todos os orçamentos, PDF e status", icon: FileText },
     { href: "/clientes", label: "Clientes", desc: "Cadastro e histórico", icon: Users },
     { href: "/aniversariantes", label: "Aniversariantes", desc: "Promoções para o próximo ano", icon: Cake },
@@ -35,9 +37,9 @@ export default async function MenuPage() {
             </li>
           ))}
         </ul>
-        <form action="/auth/signout" method="post">
-          <button className="w-full flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 py-3.5 text-sm font-medium text-muted hover:text-foreground"><LogOut className="h-4 w-4" /> Sair da conta</button>
-        </form>
+        <div className="rounded-2xl border border-border bg-surface p-3">
+          <AccountFooter compact name={profile.name} email={profile.email} role={profile.role} billing={{ cycleStart: org.billing_cycle_start, dueAt: org.billing_due_at, status: org.billing_status, plan: org.plan }} />
+        </div>
       </PageBody>
     </>
   );

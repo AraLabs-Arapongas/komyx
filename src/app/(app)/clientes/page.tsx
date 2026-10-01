@@ -41,7 +41,7 @@ export default async function CustomersPage({ searchParams }: PageProps<"/client
             ))}
           </ul>
         ) : (
-          <EmptyState title="Nenhum cliente" description={q ? "Nada encontrado para essa busca." : "Clientes são criados automaticamente na pré-reserva ou aqui."} action={<Link href="/clientes/novo" className={buttonClass("primary", "sm")}>Novo cliente</Link>} />
+          <EmptyState title="Nenhum cliente" description={q ? "Nada encontrado para essa busca." : "Clientes são criados automaticamente no orçamento ou aqui."} action={<Link href="/clientes/novo" className={buttonClass("primary", "sm")}>Novo cliente</Link>} />
         )}
       </PageBody>
     </>

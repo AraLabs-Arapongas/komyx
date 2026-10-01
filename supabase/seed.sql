@@ -66,6 +66,9 @@ begin
     ('bbbbbbbb-0000-0000-0000-000000000004', v_org, 'aaaaaaaa-0000-0000-0000-000000000004', 'Bodas de Prata',
       ((current_date - 9) + time '19:00') at time zone 'America/Sao_Paulo', ((current_date - 9) + time '23:30') at time zone 'America/Sao_Paulo',
       'DONE', (select id from public.packages where organization_id = v_org and name = 'Pacote Ouro'), 80, 10, null, null, null, null, '11111111-1111-1111-1111-111111111111'),
+    ('bbbbbbbb-0000-0000-0000-000000000006', v_org, 'aaaaaaaa-0000-0000-0000-000000000003', 'Festa da firma',
+      ((current_date + 30) + time '19:00') at time zone 'America/Sao_Paulo', ((current_date + 30) + time '23:00') at time zone 'America/Sao_Paulo',
+      'QUOTE', (select id from public.packages where organization_id = v_org and name = 'Pacote Ouro'), 60, 0, null, null, 'Só quer o valor por enquanto; decide até sexta.', null, '11111111-1111-1111-1111-111111111111'),
     ('bbbbbbbb-0000-0000-0000-000000000005', v_org, 'aaaaaaaa-0000-0000-0000-000000000002', 'Chá revelação',
       ((current_date + 0) + time '18:00') at time zone 'America/Sao_Paulo', ((current_date + 0) + time '21:00') at time zone 'America/Sao_Paulo',
       'CONFIRMED', (select id from public.packages where organization_id = v_org and name = 'Pacote Bronze'), 25, 10, null, null, null, null, '22222222-2222-2222-2222-222222222222');
@@ -121,6 +124,7 @@ begin
     tagline = 'A festa que seu filho vai lembrar. E você vai curtir.',
     highlights = array['Espaço climatizado', 'Brinquedão e piscina de bolinhas', 'Monitores o tempo todo', 'Estacionamento gratuito', 'Cardápio para alérgicos'],
     founded_year = 2014, capacity = 120, plan = 'premium',
+    billing_cycle_start = current_date - 10, billing_due_at = current_date + 20, billing_status = 'ok',
     gallery = '[{"url":"/demo/festa-1.jpg","caption":"Salão principal pronto para a festa"},{"url":"/demo/festa-2.jpg","caption":"Mesa do bolo tema safári"},{"url":"/demo/festa-3.jpg","caption":"Brinquedão com monitores"},{"url":"/demo/festa-4.jpg","caption":"Hora do parabéns"}]'::jsonb,
     testimonials = '[{"name":"Renata, mãe do Pedro","text":"Não precisei me preocupar com nada. As monitoras cuidaram das crianças e eu consegui curtir a festa do meu filho pela primeira vez."},{"name":"Carla, mãe da Júlia","text":"Fechamos pelo WhatsApp em 10 minutos e o orçamento veio certinho, sem surpresa no dia."},{"name":"Marcos, pai do Theo","text":"Comida boa de verdade, não aquele salgadinho de festa. Os adultos repetiram."}]'::jsonb
   where id = v_org;

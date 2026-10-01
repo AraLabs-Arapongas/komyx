@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { Home, CalendarDays, Plus, PartyPopper, Users, Inbox, Settings, Package, FileText, Cake, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonClass } from "@/components/ui/button";
+import { AccountFooter, type Billing } from "@/components/shell/account-footer";
+import { NotificationsBell } from "@/components/shell/notifications-bell";
 
 const links = [
   { href: "/home", label: "Início", icon: Home },
@@ -18,17 +20,17 @@ const links = [
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
-export function Sidebar({ orgName, userName, role, isAdmin = false }: { orgName: string; userName: string; role: string; isAdmin?: boolean }) {
+export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, billing, unread }: { orgName: string; userName: string; userEmail: string; role: string; isAdmin?: boolean; billing: Billing; unread: number }) {
   const pathname = usePathname();
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-surface min-h-screen sticky top-0">
-      <div className="px-5 py-5 border-b border-border">
+      <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-2">
         <p className="font-semibold truncate">{orgName}</p>
-        <p className="text-xs text-muted truncate">{userName} · {role === "owner" ? "Proprietário" : "Equipe"}</p>
+        <NotificationsBell initialUnread={unread} />
       </div>
       <div className="p-3">
         <Link href="/eventos/novo" className={buttonClass("primary", "md", "w-full")}>
-          <Plus className="h-4 w-4" /> Nova pré-reserva
+          <Plus className="h-4 w-4" /> Novo orçamento
         </Link>
       </div>
       <nav className="px-3 space-y-0.5">
@@ -48,9 +50,7 @@ export function Sidebar({ orgName, userName, role, isAdmin = false }: { orgName:
           </Link>
         </div>
       ) : null}
-      <form action="/auth/signout" method="post" className="mt-auto p-3">
-        <button className="w-full text-left text-sm text-muted hover:text-foreground px-3 py-2">Sair</button>
-      </form>
+      <div className="mt-auto"><AccountFooter name={userName} email={userEmail} role={role} billing={billing} /></div>
     </aside>
   );
 }

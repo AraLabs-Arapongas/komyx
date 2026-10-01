@@ -8,7 +8,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { formatCurrency, formatPhone } from "@/lib/utils";
-import { CustomerPicker } from "@/components/events/customer-picker";
+import { CustomerField } from "@/components/events/customer-field";
 import { ParticipantsFields } from "@/components/events/participants-fields";
 import { LEAD_SOURCES, type PackagePricing } from "@/lib/pricing";
 
@@ -19,7 +19,7 @@ type Props = {
     id: string; name: string; whatsapp: string; adults: number | null; children: number | null; message: string | null; source: string | null;
     celebrant_name: string | null; celebrant_birth_date: string | null; package_id: string | null; estimated_total: number | string | null;
   } | null;
-  defaults: { date: string; start: string; durationMinutes: number };
+  defaults: { date: string; start: string; durationMinutes: number; validityHours: number };
   sameDayWarning?: string | null;
   isOwner: boolean;
 };
@@ -49,23 +49,20 @@ export function NewEventForm({ packages, customer, request, defaults, sameDayWar
 
       <Card>
         <CardBody className="pt-4 space-y-4">
-          <h2 className="font-semibold">Responsável</h2>
+          <h2 className="font-semibold">Cliente</h2>
           {selectedCustomer ? (
             <div className="flex items-center justify-between rounded-xl bg-stone-50 border border-border px-3 py-2.5">
               <div>
                 <p className="font-medium">{selectedCustomer.name}</p>
-                <p className="text-sm text-muted">{formatPhone(selectedCustomer.whatsapp)}</p>
+                <p className="text-sm text-muted">{formatPhone(selectedCustomer.whatsapp)} · cliente já cadastrado</p>
               </div>
               <input type="hidden" name="customer_id" value={selectedCustomer.id} />
               <button type="button" className="text-sm text-brand font-medium" onClick={() => setSelectedCustomer(null)}>Trocar</button>
             </div>
           ) : (
             <>
-              <CustomerPicker onSelect={(c) => setSelectedCustomer(c)} />
-              <Field label="Nome do responsável" htmlFor="customer_name" error={fe.customer_name}>
-                <Input id="customer_name" name="customer_name" defaultValue={request?.name ?? ""} autoComplete="off" required />
-              </Field>
-              <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp} hint="DDD + número. Se já existir cliente com este número, ele será reaproveitado.">
+              <CustomerField initialName={request?.name ?? ""} error={fe.customer_name} onPick={(c) => setSelectedCustomer(c)} />
+              <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp} hint="DDD + número. Cliente novo é cadastrado automaticamente ao salvar.">
                 <Input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" defaultValue={request?.whatsapp ?? ""} placeholder="(11) 99999-9999" required />
               </Field>
               <Field label="Como conheceu o buffet?" htmlFor="source">
@@ -130,18 +127,19 @@ export function NewEventForm({ packages, customer, request, defaults, sameDayWar
           <Field label="Observações" htmlFor="notes">
             <Textarea id="notes" name="notes" defaultValue={request?.message ?? ""} />
           </Field>
-          <Field label="Salvar como" htmlFor="status">
+          <Field label="Reservar a data?" htmlFor="status" hint="Orçamento sempre é criado. Reservar bloqueia a agenda; sem reserva, outro cliente pode fechar o dia.">
             <Select id="status" name="status" defaultValue="PRE_RESERVED">
-              <option value="PRE_RESERVED">Pré-reserva (bloqueia até expirar)</option>
-              <option value="CONFIRMED">Evento confirmado</option>
+              <option value="PRE_RESERVED">Sim, segurar a data por {defaults.validityHours}h (pré-reserva)</option>
+              <option value="QUOTE">Não, só o orçamento (não bloqueia a agenda)</option>
+              <option value="CONFIRMED">Já está fechado: confirmar evento</option>
             </Select>
           </Field>
         </CardBody>
       </Card>
 
-      <div className="sticky bottom-24 md:bottom-4 flex gap-2">
+      <div className="sticky bottom-20 md:bottom-0 z-10 -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-t border-border flex gap-2">
         <Link href="/agenda" className="h-12 px-4 inline-flex items-center rounded-xl border border-border bg-surface text-sm font-medium">Cancelar</Link>
-        <SubmitButton size="lg" className="flex-1" pendingText="Salvando...">Salvar</SubmitButton>
+        <SubmitButton size="lg" className="flex-1" pendingText="Salvando...">Criar orçamento</SubmitButton>
       </div>
     </form>
   );

@@ -24,7 +24,7 @@ export function BottomNav() {
           if ("primary" in item && item.primary) {
             return (
               <li key={item.href} className="flex justify-center">
-                <Link href={item.href} className="-mt-5 h-14 w-14 rounded-full bg-brand text-brand-fg grid place-items-center shadow-lg shadow-orange-900/20 active:scale-95 transition" aria-label="Nova pré-reserva">
+                <Link href={item.href} className="-mt-5 h-14 w-14 rounded-full bg-brand text-brand-fg grid place-items-center shadow-lg shadow-orange-900/20 active:scale-95 transition" aria-label="Novo orçamento">
                   <Icon className="h-6 w-6" />
                 </Link>
               </li>

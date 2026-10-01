@@ -72,7 +72,9 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
       <PageHeader title={title} subtitle={`${formatDateLong(event.starts_at)} · ${formatTime(event.starts_at)}–${formatTime(event.ends_at)}`} back="/eventos"
         action={<Link href={`/eventos/${id}/editar`} className={buttonClass("ghost", "icon")} aria-label="Editar"><Pencil className="h-5 w-5" /></Link>} />
       <PageBody>
-        {sp.created ? <Alert tone="success">Pré-reserva criada. O horário está bloqueado na agenda.</Alert> : null}
+        {sp.created === "QUOTE" ? <Alert tone="success">Orçamento criado. A data não está bloqueada; reserve quando o cliente sinalizar.</Alert> : null}
+        {sp.created === "PRE_RESERVED" || sp.created === "1" ? <Alert tone="success">Orçamento criado e data reservada. O horário está bloqueado na agenda até o prazo.</Alert> : null}
+        {sp.created === "CONFIRMED" ? <Alert tone="success">Orçamento criado e evento confirmado.</Alert> : null}
         {sp.error ? <Alert>{String(sp.error)}</Alert> : null}
 
         <Card>
@@ -83,6 +85,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                 {event.origin === "SELF_SERVICE" ? <Badge tone="brand" className="ml-1">Reserva online</Badge> : null}
                 {event.status === "PRE_RESERVED" && event.expires_at ? <p className="text-xs text-muted mt-2">Expira em {formatDateTime(event.expires_at)}</p> : null}
                 {event.status === "EXPIRED" ? <p className="text-xs text-muted mt-2">Horário liberado. Renove para bloquear novamente.</p> : null}
+                {event.status === "QUOTE" ? <p className="text-xs text-muted mt-2">Só orçamento: a data não está bloqueada na agenda.</p> : null}
               </div>
               <div className="text-right">
                 <p className="text-xs text-muted">Saldo</p>

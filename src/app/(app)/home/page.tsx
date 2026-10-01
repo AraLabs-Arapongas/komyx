@@ -49,7 +49,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   return (
     <>
       <PageHeader title={`Olá, ${profile.name.split(" ")[0]}`} subtitle={formatDateLong(now)} action={
-        <Link href="/eventos/novo" className={buttonClass("primary", "sm")}><Plus className="h-4 w-4" /> Pré-reserva</Link>
+        <Link href="/eventos/novo" className={buttonClass("primary", "sm")}><Plus className="h-4 w-4" /> Orçamento</Link>
       } />
       <PageBody>
         {sp.error === "forbidden" ? <Alert>Apenas o proprietário pode acessar essa área.</Alert> : null}
@@ -122,7 +122,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           {upcoming.length > 0 ? (
             upcoming.map((e) => <EventCard key={e.id} event={e as EventListItem} />)
           ) : (
-            <EmptyState title="Nada agendado" description="Crie uma pré-reserva para segurar um horário." action={<Link href="/eventos/novo" className={buttonClass("primary", "sm")}>Nova pré-reserva</Link>} />
+            <EmptyState title="Nada agendado" description="Crie um orçamento; se quiser, já reserve a data." action={<Link href="/eventos/novo" className={buttonClass("primary", "sm")}>Novo orçamento</Link>} />
           )}
         </section>
 

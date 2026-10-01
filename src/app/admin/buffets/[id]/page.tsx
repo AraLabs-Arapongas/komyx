@@ -39,8 +39,8 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
         </div>
 
         <Card>
-          <CardHeader title="Plano, status e endereço" subtitle="Só o Festeja altera. Suspender bloqueia o app e a página pública; os dados ficam guardados." />
-          <CardBody><OrgAdminForm org={{ id: org.id, slug: org.slug, plan: org.plan, status: org.status, notes: org.notes }} /></CardBody>
+          <CardHeader title="Plano, status, cobrança e endereço" subtitle="Só o Festeja altera. Suspender bloqueia o app e a página pública; os dados ficam guardados. O ciclo de cobrança aparece para o dono com barra de progresso." />
+          <CardBody><OrgAdminForm org={{ id: org.id, slug: org.slug, plan: org.plan, status: org.status, notes: org.notes, billing_cycle_start: org.billing_cycle_start, billing_due_at: org.billing_due_at, billing_status: org.billing_status }} /></CardBody>
         </Card>
 
         <Card>

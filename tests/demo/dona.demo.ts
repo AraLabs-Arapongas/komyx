@@ -24,7 +24,7 @@ test.describe("Vídeo · Dona do buffet", () => {
     await caption(page, "Agenda por mês, semana ou lista. Dias riscados têm festa: o buffet faz um evento por dia", 3500);
 
     await page.goto("/eventos/novo");
-    await caption(page, "Nova pré-reserva em menos de um minuto: responsável, WhatsApp, data e horário");
+    await caption(page, "Novo orçamento em menos de um minuto: cliente, WhatsApp, data e horário");
     await page.getByLabel("Nome do responsável").fill(customerName);
     await page.getByLabel("WhatsApp", { exact: true }).fill(phone);
     await page.getByLabel("Data", { exact: true }).fill(date);
@@ -40,14 +40,14 @@ test.describe("Vídeo · Dona do buffet", () => {
     await page.waitForTimeout(1500);
     await page.getByLabel("Aniversariante", { exact: true }).fill("Lua");
     await page.getByLabel("Idade").fill("5");
-    await caption(page, "Salvar cria a pré-reserva: a data fica bloqueada até o prazo configurado");
-    await page.getByRole("button", { name: "Salvar" }).click();
-    await page.waitForURL(/\/eventos\/[0-9a-f-]+\?created=1/);
+    await caption(page, "Reservar a data? Sim: a data fica bloqueada até o prazo configurado. O orçamento já nasce junto");
+    await page.getByRole("button", { name: "Criar orçamento" }).click();
+    await page.waitForURL(/\/eventos\/[0-9a-f-]+\?created=/);
     const eventUrl = page.url().split("?")[0];
     await caption(page, "Ficha única do evento: status, cliente, orçamento, contrato, convite, convidados, pagamentos", 3500);
 
-    await caption(page, "Montar orçamento: parte do pacote e dos participantes");
-    await page.getByRole("button", { name: "Montar orçamento" }).click();
+    await caption(page, "Abrir o orçamento: já veio pronto com pacote e participantes");
+    await page.getByRole("link", { name: "Abrir" }).first().click();
     await page.waitForURL(/\/orcamento\?quote=/);
     await caption(page, "Itens, extras e o plano de pagamento em % já vêm prontos", 3000);
     await caption(page, "Adicionais do catálogo entram com um clique");

@@ -11,7 +11,8 @@ export const metadata = { title: "Eventos" };
 
 const FILTERS = [
   { key: "upcoming", label: "Próximos" },
-  { key: "PRE_RESERVED", label: "Pré-reservas" },
+  { key: "QUOTE", label: "Só orçamento" },
+  { key: "PRE_RESERVED", label: "Data reservada" },
   { key: "CONFIRMED", label: "Confirmados" },
   { key: "DONE", label: "Realizados" },
   { key: "CANCELLED", label: "Cancelados" },
@@ -59,7 +60,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/eventos">
         {events.length > 0 ? (
           <div className="space-y-2">{events.map((e) => <EventCard key={e.id} event={e as unknown as EventListItem} />)}</div>
         ) : (
-          <EmptyState title="Nenhum evento encontrado" description="Ajuste o filtro ou crie uma nova pré-reserva." action={<Link href="/eventos/novo" className={buttonClass("primary", "sm")}>Nova pré-reserva</Link>} />
+          <EmptyState title="Nenhum evento encontrado" description="Ajuste o filtro ou crie um novo orçamento." action={<Link href="/eventos/novo" className={buttonClass("primary", "sm")}>Novo orçamento</Link>} />
         )}
       </PageBody>
     </>

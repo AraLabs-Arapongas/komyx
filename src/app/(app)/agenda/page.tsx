@@ -27,7 +27,7 @@ export default async function AgendaPage({ searchParams }: PageProps<"/agenda">)
     .select("id, title, starts_at, ends_at, status, expires_at, estimated_participants, space, customers(name)")
     .gte("starts_at", from)
     .lt("starts_at", to)
-    .in("status", ["PRE_RESERVED", "CONFIRMED", "DONE"])
+    .in("status", ["QUOTE", "PRE_RESERVED", "CONFIRMED", "DONE"])
     .order("starts_at");
 
   return (

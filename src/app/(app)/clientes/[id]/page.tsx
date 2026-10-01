@@ -27,7 +27,7 @@ export default async function CustomerPage({ params }: PageProps<"/clientes/[id]
       } />
       <PageBody>
         <Card>
-          <CardHeader title="Eventos" subtitle={`${events?.length ?? 0} registro(s)`} action={<Link href={`/eventos/novo?customer=${id}`} className={buttonClass("primary", "sm")}><Plus className="h-4 w-4" /> Pré-reserva</Link>} />
+          <CardHeader title="Eventos" subtitle={`${events?.length ?? 0} registro(s)`} action={<Link href={`/eventos/novo?customer=${id}`} className={buttonClass("primary", "sm")}><Plus className="h-4 w-4" /> Orçamento</Link>} />
           <CardBody className="space-y-2">
             {events.length > 0 ? events.map((e) => <EventCard key={e.id} event={e as unknown as EventListItem} />) : <p className="text-sm text-muted">Nenhum evento ainda.</p>}
           </CardBody>

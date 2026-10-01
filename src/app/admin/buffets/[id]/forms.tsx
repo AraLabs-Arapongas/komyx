@@ -6,7 +6,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 
-export function OrgAdminForm({ org }: { org: { id: string; slug: string; plan: string; status: string; notes: string | null } }) {
+export function OrgAdminForm({ org }: { org: { id: string; slug: string; plan: string; status: string; notes: string | null; billing_cycle_start: string | null; billing_due_at: string | null; billing_status: string } }) {
   const [state, action] = useActionState(adminUpdateOrganization, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   return (
@@ -18,6 +18,11 @@ export function OrgAdminForm({ org }: { org: { id: string; slug: string; plan: s
         <Field label="Slug (/p/…)" htmlFor="slug" error={fe.slug}><Input id="slug" name="slug" defaultValue={org.slug} required /></Field>
         <Field label="Plano" htmlFor="plan"><Select id="plan" name="plan" defaultValue={org.plan}><option value="basic">Básico</option><option value="premium">Premium</option></Select></Field>
         <Field label="Status" htmlFor="status"><Select id="status" name="status" defaultValue={org.status}><option value="active">Ativo</option><option value="suspended">Suspenso</option></Select></Field>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <Field label="Início do ciclo" htmlFor="billing_cycle_start"><Input id="billing_cycle_start" name="billing_cycle_start" type="date" defaultValue={org.billing_cycle_start ?? ""} /></Field>
+        <Field label="Vencimento da fatura" htmlFor="billing_due_at"><Input id="billing_due_at" name="billing_due_at" type="date" defaultValue={org.billing_due_at ?? ""} /></Field>
+        <Field label="Cobrança" htmlFor="billing_status"><Select id="billing_status" name="billing_status" defaultValue={org.billing_status}><option value="ok">Em dia</option><option value="trial">Teste grátis</option><option value="due">A vencer</option><option value="overdue">Vencida</option></Select></Field>
       </div>
       <Field label="Notas internas (só o Festeja vê)" htmlFor="notes"><Textarea id="notes" name="notes" defaultValue={org.notes ?? ""} className="min-h-20" placeholder="Ex.: cliente desde a fase piloto, pagou anual" /></Field>
       <SubmitButton size="sm">Salvar</SubmitButton>

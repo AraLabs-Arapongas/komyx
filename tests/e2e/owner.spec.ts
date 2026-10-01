@@ -39,14 +39,14 @@ test.describe("Dona do buffet", () => {
     await expect(page.getByText(/Extras além do pacote/)).toBeVisible();
     await page.getByLabel("Aniversariante", { exact: true }).fill("Lua");
     await page.getByLabel("Idade").fill("5");
-    await page.getByRole("button", { name: "Salvar" }).click();
-    await page.waitForURL(/\/eventos\/[0-9a-f-]+\?created=1/);
-    await expect(page.getByText("Pré-reserva criada")).toBeVisible();
+    await page.getByRole("button", { name: "Criar orçamento" }).click();
+    await page.waitForURL(/\/eventos\/[0-9a-f-]+\?created=PRE_RESERVED/);
+    await expect(page.getByText(/Orçamento criado e data reservada/)).toBeVisible();
     await expect(page.getByText("35 adultos · 30 crianças")).toBeVisible();
     const eventUrl = page.url().split("?")[0];
 
-    // Orçamento criado a partir do pacote + extras
-    await page.getByRole("button", { name: "Montar orçamento" }).click();
+    // Orçamento já nasce com o evento, a partir do pacote + extras
+    await page.getByRole("link", { name: "Abrir" }).first().click();
     await page.waitForURL(/\/orcamento\?quote=/);
     await expect(page.getByText("Pacote Prata", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Adultos adicionais (5)")).toBeVisible();

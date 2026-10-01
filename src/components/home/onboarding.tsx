@@ -18,7 +18,7 @@ export function Onboarding({ s, isOwner }: { s: OnboardingState; isOwner: boolea
     { done: s.hasPackages, label: "Cadastre seus pacotes", href: "/pacotes", hint: "preço, adultos e crianças inclusos" },
     { done: s.hasPix, label: "Configure a chave Pix e o prazo do sinal", href: "/configuracoes", hint: "o cliente paga o sinal sozinho" },
     { done: s.hasPhotos, label: "Suba fotos de festas", href: "/configuracoes", hint: "página com foto converte muito mais" },
-    { done: s.hasEvent, label: "Crie sua primeira pré-reserva", href: "/eventos/novo", hint: "ou espere a primeira reserva online" },
+    { done: s.hasEvent, label: "Crie seu primeiro orçamento", href: "/eventos/novo", hint: "ou espere a primeira reserva online" },
   ];
   const doneCount = steps.filter((x) => x.done).length;
   if (doneCount === steps.length) return null;

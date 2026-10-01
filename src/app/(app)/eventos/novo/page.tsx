@@ -4,7 +4,7 @@ import { PageBody, PageHeader } from "@/components/ui/page";
 import { NewEventForm } from "./new-event-form";
 import { toDateKey } from "@/lib/utils";
 
-export const metadata = { title: "Nova pré-reserva" };
+export const metadata = { title: "Novo orçamento" };
 
 export default async function NewEventPage({ searchParams }: PageProps<"/eventos/novo">) {
   const sp = await searchParams;
@@ -27,7 +27,7 @@ export default async function NewEventPage({ searchParams }: PageProps<"/eventos
 
   return (
     <>
-      <PageHeader title="Nova pré-reserva" subtitle={`Válida por ${org.pre_reservation_validity_hours}h após criada`} back="/agenda" />
+      <PageHeader title="Novo orçamento" subtitle="Cliente, data, pacote. Você decide se reserva a data." back="/agenda" />
       <PageBody>
         <NewEventForm
           packages={packagesRes.data ?? []}
@@ -36,7 +36,7 @@ export default async function NewEventPage({ searchParams }: PageProps<"/eventos
             id: req.id, name: req.name, whatsapp: req.whatsapp, adults: req.adults ?? (req.participants ?? null), children: req.children ?? null, message: req.message,
             source: req.source, celebrant_name: req.celebrant_name, celebrant_birth_date: req.celebrant_birth_date, package_id: req.package_id, estimated_total: req.estimated_total,
           } : null}
-          defaults={{ date, start, durationMinutes: org.default_event_duration_minutes }}
+          defaults={{ date, start, durationMinutes: org.default_event_duration_minutes, validityHours: org.pre_reservation_validity_hours }}
           sameDayWarning={another ? "já marcado na agenda" : null}
           isOwner={profile.role === "owner"}
         />

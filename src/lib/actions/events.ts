@@ -35,7 +35,7 @@ const preReservationSchema = z.object({
   celebrant_birth_date: z.string().optional().transform((v) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null)),
   source: optionalText,
   notes: optionalText,
-  status: z.enum(["PRE_RESERVED", "CONFIRMED"]).default("PRE_RESERVED"),
+  status: z.enum(["QUOTE", "PRE_RESERVED", "CONFIRMED"]).default("PRE_RESERVED"),
   request_id: uuidOrNull,
   force_same_day: z.string().optional().transform((v) => v === "on" || v === "1"),
 });
@@ -78,7 +78,8 @@ export async function createEvent(_prev: ActionResult | undefined, formData: For
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const supabase = await createClient();
 
-  const sameDay = await checkSameDay(org.one_event_per_day, profile.role, d.date, d.force_same_day);
+  // A plain quote does not hold the date, so the one-event-per-day rule does not apply to it.
+  const sameDay = d.status === "QUOTE" ? null : await checkSameDay(org.one_event_per_day, profile.role, d.date, d.force_same_day);
   if (sameDay) return sameDay;
 
   let customerId = d.customer_id;
@@ -121,6 +122,7 @@ export async function createEvent(_prev: ActionResult | undefined, formData: For
     await supabase.from("celebrants").insert({ organization_id: org.id, customer_id: customerId, event_id: data.id, name: d.celebrant_name, birth_date: d.celebrant_birth_date });
   }
 
+  let quoteCreated = false;
   if (d.request_id) {
     const { data: req } = await supabase.from("public_requests").select("package_id, addons, adults, children, source").eq("id", d.request_id).maybeSingle();
     await supabase.from("public_requests").update({ status: "CONVERTED", event_id: data.id }).eq("id", d.request_id);
@@ -128,12 +130,17 @@ export async function createEvent(_prev: ActionResult | undefined, formData: For
     // Self-service request: build the quote from what the client chose.
     if (req?.package_id || (Array.isArray(req?.addons) && req.addons.length > 0)) {
       await createQuoteFromRequest(data.id, org.id, profile.id, d.adults ?? req?.adults ?? 0, d.children ?? req?.children ?? 0, req.package_id ?? d.package_id, req.addons);
+      quoteCreated = true;
     }
     revalidatePath("/solicitacoes");
   }
+  // Everything starts as a quote: create it right away from the package and participants.
+  if (!quoteCreated) {
+    await createQuoteFromRequest(data.id, org.id, profile.id, d.adults ?? 0, d.children ?? 0, d.package_id, null);
+  }
 
   revalidateEvents(data.id);
-  redirect(`/eventos/${data.id}?created=1`);
+  redirect(`/eventos/${data.id}?created=${d.status}`);
 }
 
 async function createQuoteFromRequest(eventId: string, orgId: string, userId: string, adults: number, children: number, packageId: string | null, addons: unknown) {
@@ -153,6 +160,7 @@ async function createQuoteFromRequest(eventId: string, orgId: string, userId: st
   if (!quote) return;
   const lines = buildQuoteLines(pkg, adults, children, addonLines);
   if (lines.length) await supabase.from("quote_items").insert(lines.map((l) => ({ ...l, organization_id: orgId, quote_id: quote.id })));
+  return quote.id;
 }
 
 const updateSchema = z.object({
@@ -202,7 +210,7 @@ export async function updateEvent(_prev: ActionResult | undefined, formData: For
   redirect(`/eventos/${d.id}`);
 }
 
-const statusSchema = z.object({ id: uuid, status: z.enum(["PRE_RESERVED", "CONFIRMED", "DONE", "CANCELLED"]) });
+const statusSchema = z.object({ id: uuid, status: z.enum(["QUOTE", "PRE_RESERVED", "CONFIRMED", "DONE", "CANCELLED"]) });
 
 /**
  * Status transitions happen on the same event row (never duplicate).
@@ -216,7 +224,7 @@ export async function changeEventStatus(_prev: ActionResult | undefined, formDat
   const supabase = await createClient();
 
   const patch: { status: typeof status; expires_at?: string | null } = { status };
-  if (status === "CONFIRMED") patch.expires_at = null;
+  if (status === "CONFIRMED" || status === "QUOTE") patch.expires_at = null;
   if (status === "PRE_RESERVED") patch.expires_at = addHours(new Date(), org.pre_reservation_validity_hours).toISOString();
 
   const { error } = await supabase.from("events").update(patch).eq("id", id);

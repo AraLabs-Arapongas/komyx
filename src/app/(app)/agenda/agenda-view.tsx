@@ -24,6 +24,7 @@ const WEEKDAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 const MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 
 const dotClass: Record<EventStatus, string> = {
+  QUOTE: "bg-stone-300",
   PRE_RESERVED: "bg-amber-400",
   CONFIRMED: "bg-emerald-500",
   DONE: "bg-slate-400",
@@ -32,6 +33,7 @@ const dotClass: Record<EventStatus, string> = {
 };
 
 const pillClass: Record<EventStatus, string> = {
+  QUOTE: "bg-white text-stone-500 border-dashed border-stone-300",
   PRE_RESERVED: "bg-amber-100 text-amber-900 border-amber-200",
   CONFIRMED: "bg-emerald-100 text-emerald-900 border-emerald-200",
   DONE: "bg-slate-100 text-slate-700 border-slate-200",
@@ -106,14 +108,14 @@ export function AgendaView({ events, month, today, initialView, isOwner }: { eve
       </div>
 
       <div className="flex items-center gap-3 text-xs text-muted">
-        {(["PRE_RESERVED", "CONFIRMED", "DONE"] as EventStatus[]).map((s) => (
+        {(["QUOTE", "PRE_RESERVED", "CONFIRMED", "DONE"] as EventStatus[]).map((s) => (
           <span key={s} className="inline-flex items-center gap-1"><span className={cn("h-2 w-2 rounded-full", dotClass[s])} /> {EVENT_STATUS_LABEL[s]}</span>
         ))}
       </div>
 
       {view === "list" ? (
         monthEvents.length === 0 ? (
-          <EmptyState title="Nenhum evento neste mês" description="Toque em Criar para registrar uma pré-reserva." action={<Link href={`/eventos/novo?date=${dayKey(month, 1)}`} className={buttonClass("primary", "sm")}><Plus className="h-4 w-4" /> Nova pré-reserva</Link>} />
+          <EmptyState title="Nenhum evento neste mês" description="Toque em Criar para registrar um orçamento." action={<Link href={`/eventos/novo?date=${dayKey(month, 1)}`} className={buttonClass("primary", "sm")}><Plus className="h-4 w-4" /> Novo orçamento</Link>} />
         ) : (
           <div className="space-y-4">
             {Array.from(byDay.entries()).filter(([k]) => k.startsWith(month)).sort().map(([day, list]) => (

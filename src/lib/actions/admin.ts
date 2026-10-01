@@ -12,12 +12,16 @@ import { formToObject, optionalText, phoneSchema, uuid, zodFieldErrors } from ".
 
 /** All admin actions run with the service role after verifying the platform-admin flag. */
 
+const dateOrNull = z.string().optional().transform((v) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null));
 const orgAdminSchema = z.object({
   id: uuid,
   slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use letras minúsculas, números e hífens"),
   plan: z.enum(["basic", "premium"]),
   status: z.enum(["active", "suspended"]),
   notes: optionalText,
+  billing_cycle_start: dateOrNull,
+  billing_due_at: dateOrNull,
+  billing_status: z.enum(["ok", "due", "overdue", "trial"]).default("ok"),
 });
 
 export async function adminUpdateOrganization(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {

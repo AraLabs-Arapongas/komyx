@@ -590,9 +590,60 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          href: string | null
+          id: string
+          organization_id: string
+          read_at: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          href?: string | null
+          id?: string
+          organization_id: string
+          read_at?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          href?: string | null
+          id?: string
+          organization_id?: string
+          read_at?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "admin_org_stats"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           address: string | null
+          billing_cycle_start: string | null
+          billing_due_at: string | null
+          billing_status: string
           capacity: number | null
           city: string | null
           contract_template: string
@@ -628,6 +679,9 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          billing_cycle_start?: string | null
+          billing_due_at?: string | null
+          billing_status?: string
           capacity?: number | null
           city?: string | null
           contract_template?: string
@@ -663,6 +717,9 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          billing_cycle_start?: string | null
+          billing_due_at?: string | null
+          billing_status?: string
           capacity?: number | null
           city?: string | null
           contract_template?: string
@@ -1424,11 +1481,13 @@ export type Database = {
         Returns: string[]
       }
       expire_pre_reservations: { Args: never; Returns: number }
+      unread_notifications_count: { Args: never; Returns: number }
     }
     Enums: {
       contract_status: "DRAFT" | "SENT" | "ACCEPTED" | "CANCELLED"
       discount_type: "AMOUNT" | "PERCENT"
       event_status:
+        | "QUOTE"
         | "PRE_RESERVED"
         | "CONFIRMED"
         | "DONE"
@@ -1582,6 +1641,7 @@ export const Constants = {
       contract_status: ["DRAFT", "SENT", "ACCEPTED", "CANCELLED"],
       discount_type: ["AMOUNT", "PERCENT"],
       event_status: [
+        "QUOTE",
         "PRE_RESERVED",
         "CONFIRMED",
         "DONE",

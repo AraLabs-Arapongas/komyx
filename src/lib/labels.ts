@@ -6,7 +6,8 @@ export type PaymentMethod = Database["public"]["Enums"]["payment_method"];
 export type DiscountType = Database["public"]["Enums"]["discount_type"];
 
 export const EVENT_STATUS_LABEL: Record<EventStatus, string> = {
-  PRE_RESERVED: "Pré-reserva",
+  QUOTE: "Orçamento",
+  PRE_RESERVED: "Data reservada",
   CONFIRMED: "Confirmado",
   DONE: "Realizado",
   CANCELLED: "Cancelado",
@@ -14,6 +15,7 @@ export const EVENT_STATUS_LABEL: Record<EventStatus, string> = {
 };
 
 export const EVENT_STATUS_TONE: Record<EventStatus, "amber" | "green" | "slate" | "red" | "zinc"> = {
+  QUOTE: "zinc",
   PRE_RESERVED: "amber",
   CONFIRMED: "green",
   DONE: "slate",

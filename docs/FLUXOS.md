@@ -5,6 +5,8 @@ Ambiente local: `pnpm dev` em http://localhost:3000 · Supabase em http://127.0.
 | Quem | Login | Senha | Entra em |
 | --- | --- | --- | --- |
 | Dona do buffet (owner) | dona@festabuffet.test | senha12345 | /home |
+
+Em desenvolvimento a tela de login tem um select "Conta de teste" que preenche e-mail e senha.
 | Equipe (staff) | ana@festabuffet.test | senha12345 | /home (sem Configurações/Pacotes) |
 | Admin Festeja | admin@festeja.test | senha12345 | /home → menu "Admin Festeja" → /admin |
 | Outro buffet (plano básico) | joao@alegriakids.test | senha12345 | /home |
@@ -30,10 +32,15 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 - **Equipe**: cria acesso staff com senha inicial.
 - O **endereço público (slug)** é somente leitura; só o admin do Festeja altera.
 
+### 1.2b Rodapé da conta e notificações
+- Rodapé da sidebar (e no Menu no celular): quem está logado, botão sair, **plano e vencimento da fatura** com barra de progresso do ciclo (datas definidas pelo admin do Festeja; fica amarelo a 7 dias e vermelho vencida).
+- **Sino de notificações** (sidebar / canto superior no celular) com contador, lista rápida e página `/notificacoes`. Chegam: pedido de orçamento da página pública, reserva online, contrato aceito, convidado confirmado.
+
 ### 1.3 Vender uma festa (atendimento)
 1. **Solicitações** (`/solicitacoes`): leads da página pública com origem (Instagram, Google…), pessoas, aniversariante, estimativa. Botão **Criar pré-reserva** já leva tudo preenchido (pacote, adultos/crianças, data, aniversariante); se o lead montou orçamento, o orçamento é criado sozinho.
-2. **Nova pré-reserva** (`/eventos/novo`): responsável + WhatsApp (ou cliente existente), data e horário, pacote (preenche adultos/crianças inclusos; excedente aparece como extra), aniversariante e nascimento. Salva como pré-reserva com validade. Se o dia já tem evento: staff é bloqueado; owner marca "sei que já tem evento" e segue.
+2. **Novo orçamento** (`/eventos/novo`): tudo começa pelo orçamento. Nome do responsável com autocomplete (cliente conhecido é escolhido; desconhecido é criado sozinho ao salvar), WhatsApp, data e horário, pacote (preenche adultos/crianças inclusos; excedente aparece como extra), aniversariante. Campo **"Reservar a data?"**: *sim* (pré-reserva com validade, bloqueia a agenda), *não* (status "Orçamento", não bloqueia) ou *confirmar*. O orçamento com itens e parcelas nasce junto. Se o dia já tem evento e você quer reservar: staff é bloqueado; owner marca "sei que já tem evento" e segue.
 3. **Agenda**: lista/semana/mês. Dia livre → "+ evento"; dia ocupado → owner vê "+ outro evento".
+3b. Na ficha, um evento "Orçamento" tem **Reservar a data** / **Confirmar**; uma pré-reserva tem **Liberar a data** (volta a só orçamento).
 4. **Orçamento** (`/eventos/[id]/orcamento`): participantes (recalcula pacote/extras), adicionais do catálogo, itens livres, desconto, **plano de parcelas** do orçamento, PDF, link público `/q/[token]`, WhatsApp. "Marcar como enviado" → "Cliente aceitou" confirma o evento no mesmo registro.
 5. **Contrato** (`/eventos/[id]/contrato`): gerado do modelo com dados do evento/orçamento; editável; PDF; link `/c/[token]` para aceite do cliente; versões numeradas.
 6. **Aba Orçamentos** (`/orcamentos`): tudo por status + eventos sem orçamento.
@@ -85,7 +92,7 @@ Acesso só para perfis com `is_platform_admin` (flag que só a service role alte
 - **Visão geral**: buffets ativos/suspensos/premium, eventos e reservas online (30 d), solicitações, pagamentos registrados, buffets recentes.
 - **Buffets**: busca por nome/slug, filtro ativo/suspenso, responsável, plano, eventos, pagamentos, último evento.
 - **Buffet › Gerenciar**:
-  - **Slug, plano (básico/premium), status (ativo/suspenso), notas internas** — só aqui se altera (triggers bloqueiam o owner).
+  - **Slug, plano (básico/premium), status (ativo/suspenso), ciclo de cobrança (início, vencimento, situação), notas internas** — só aqui se altera (triggers bloqueiam o owner).
   - Suspender: owner e equipe caem em `/suspenso`; página pública e reservas respondem 404. Dados ficam.
   - **Pessoas**: trocar papel owner/equipe, **redefinir senha** (envie ao responsável).
   - Eventos recentes e links úteis (página pública, orçamento).
