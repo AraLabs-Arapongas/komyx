@@ -10,7 +10,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   ];
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-stone-900 text-stone-100 min-h-screen sticky top-0">
+      <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-stone-900 text-stone-100 h-screen sticky top-0 self-start overflow-hidden">
         <div className="px-5 py-5 border-b border-stone-800">
           <p className="font-semibold inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-amber-400" /> Festeja Admin</p>
           <p className="text-xs text-stone-400 truncate">{profile.email}</p>

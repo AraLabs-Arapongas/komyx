@@ -23,7 +23,7 @@ const links = [
 export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, billing, unread }: { orgName: string; userName: string; userEmail: string; role: string; isAdmin?: boolean; billing: Billing; unread: number }) {
   const pathname = usePathname();
   return (
-    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-surface min-h-screen sticky top-0">
+    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-surface h-screen sticky top-0 self-start overflow-hidden">
       <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-2">
         <p className="font-semibold truncate">{orgName}</p>
         <NotificationsBell initialUnread={unread} />
@@ -33,7 +33,7 @@ export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, b
           <Plus className="h-4 w-4" /> Novo orçamento
         </Link>
       </div>
-      <nav className="px-3 space-y-0.5">
+      <nav className="px-3 space-y-0.5 overflow-y-auto min-h-0">
         {links.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
