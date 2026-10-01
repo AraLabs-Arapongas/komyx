@@ -1418,6 +1418,60 @@ export type Database = {
           },
         ]
       }
+      saas_invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          due_at: string
+          id: string
+          method: string | null
+          organization_id: string
+          paid_at: string | null
+          receipt_url: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description: string
+          due_at: string
+          id?: string
+          method?: string | null
+          organization_id: string
+          paid_at?: string | null
+          receipt_url?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          due_at?: string
+          id?: string
+          method?: string | null
+          organization_id?: string
+          paid_at?: string | null
+          receipt_url?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saas_invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "admin_org_stats"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "saas_invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       admin_org_stats: {

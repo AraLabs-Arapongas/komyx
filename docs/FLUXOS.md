@@ -88,6 +88,10 @@ Criação fica no cabeçalho fixo: **+ Novo ▾** → Novo pacote / Novo adicion
 
 Índice em `/configuracoes` com cards: Página pública (`/pagina-publica`, abas Conteúdo · Aparência · Galeria, links da bio e orçamento direto; Aparência bloqueada fora do Premium), Empresa (`/empresa`: dados que alimentam página pública e contrato), Comercial (`/comercial`: plano de pagamento padrão, total 100%), Contrato (`/contrato`: modelo e variáveis), Equipe (`/equipe`). Cada página salva só os próprios campos: barra "Salvar alterações" aparece só com mudança pendente; sair com pendência pergunta Continuar editando / Descartar.
 
+### Minha conta (`/conta`)
+
+Separada de Configurações: pessoa logada e cobrança do SaaS. Acesso pelo nome/avatar no rodapé da sidebar e pelo card do plano (abre em Assinatura). Perfil: nome, e-mail (login, troca via suporte), alterar senha (confirma a atual). Proprietário vê também Assinatura (plano, valor mensal, próxima cobrança, status, alterar forma de pagamento / cancelar via WhatsApp do suporte) e Pagamentos (tabela `saas_invoices`: data, descrição, valor, status, recibo). Equipe vê só o perfil. Nada disso se mistura com pagamentos das festas.
+
 ## 2. Cliente (sem login)
 
 ### 2.1 Descobrir

@@ -22,7 +22,7 @@ export function AccountFooter({ name, email, role, billing, compact = false }: {
   const barColor = overdue ? "bg-red-500" : soon ? "bg-amber-500" : "bg-emerald-500";
   return (
     <div className={compact ? "space-y-3" : "space-y-3 border-t border-border p-3"}>
-      <Link href="/configuracoes" className="block px-1">
+      <Link href={role === "owner" ? "/conta#assinatura" : "/conta"} className="block px-1" title="Minha conta · assinatura">
         <div className="flex items-center justify-between gap-2 text-[11px] whitespace-nowrap">
           <span className="font-medium inline-flex items-center gap-1.5 min-w-0"><CreditCard className="h-3.5 w-3.5 text-muted shrink-0" /> {billing.plan === "premium" ? "Premium" : "Básico"}</span>
           {p ? (
@@ -41,10 +41,10 @@ export function AccountFooter({ name, email, role, billing, compact = false }: {
         ) : null}
       </Link>
       <div className="flex items-center justify-between gap-2 px-1">
-        <div className="min-w-0">
+        <Link href="/conta" className="min-w-0 block rounded-lg -mx-1 px-1 hover:bg-stone-100" title="Minha conta">
           <p className="text-sm font-medium truncate">{name}</p>
           <p className="text-xs text-muted truncate">{email} · {role === "owner" ? "Proprietário" : "Equipe"}</p>
-        </div>
+        </Link>
         <form action="/auth/signout" method="post">
           <button className="h-9 w-9 grid place-items-center rounded-lg text-muted hover:bg-stone-100 hover:text-foreground" aria-label="Sair" title="Sair"><LogOut className="h-4 w-4" /></button>
         </form>

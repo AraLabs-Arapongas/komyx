@@ -148,3 +148,14 @@ begin
   values (gen_random_uuid(), '44444444-4444-4444-4444-444444444444', '44444444-4444-4444-4444-444444444444',
     '{"sub":"44444444-4444-4444-4444-444444444444","email":"joao@alegriakids.test","email_verified":true}', 'email', now(), now(), now());
 end $$;
+
+-- Festeja subscription invoices for the demo buffet (two paid, one open for the current cycle)
+do $$
+declare v_org uuid;
+begin
+  select id into v_org from public.organizations where slug = 'festa-cia-buffet';
+  insert into public.saas_invoices (organization_id, description, amount, due_at, paid_at, status, method) values
+    (v_org, 'Festeja Premium · mensalidade', 199.00, current_date - 39, current_date - 41, 'paid', 'PIX'),
+    (v_org, 'Festeja Premium · mensalidade', 199.00, current_date - 9, current_date - 10, 'paid', 'PIX'),
+    (v_org, 'Festeja Premium · mensalidade', 199.00, (select billing_due_at from public.organizations where id = v_org), null, 'open', null);
+end $$;
