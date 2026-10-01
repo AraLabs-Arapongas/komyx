@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { MessageCircle, Download } from "lucide-react";
 import { installmentDueLabel } from "@/lib/contract";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { PublicFooter } from "@/components/public/public-footer";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { QUOTE_STATUS_LABEL, QUOTE_STATUS_TONE } from "@/lib/labels";
@@ -38,7 +39,8 @@ export default async function PublicQuotePage({ params }: PageProps<"/q/[token]"
   const title = ev.title?.trim() || (ev.customers ? `Festa de ${ev.customers.name}` : "Festa");
 
   return (
-    <main className="flex-1 flex flex-col items-center px-4 py-10">
+    <main className="flex-1 flex flex-col">
+      <div className="flex flex-col items-center px-4 py-10 flex-1">
       <div className="w-full max-w-md space-y-5">
         <header className="text-center space-y-2">
           {org.logo_url ? (
@@ -79,8 +81,9 @@ export default async function PublicQuotePage({ params }: PageProps<"/q/[token]"
             <a href={whatsappLink(org.whatsapp, `Olá! Sobre o orçamento de ${title} (${formatCurrency(quote.total)}).`)} target="_blank" rel="noopener" className={buttonClass("primary", "lg", "w-full")}><MessageCircle className="h-5 w-5" /> Falar com o buffet</a>
           ) : null}
         </div>
-        <p className="text-center text-xs text-muted">Gestão por Festeja</p>
-      </div>
+              </div>
+          </div>
+      <PublicFooter variant="light" orgName={org.name} />
     </main>
   );
 }

@@ -84,7 +84,7 @@ export function AgendaView({ events, month, today, initialView, isOwner }: { eve
   }, [events]);
 
   const [y, m] = month.split("-").map(Number);
-  const title = `${MONTHS[m - 1]} de ${y}`;
+  const title = MONTHS[m - 1];
 
   const monthEvents = useMemo(() => events.filter((e) => toDateKey(e.starts_at).startsWith(month)), [events, month]);
 
@@ -93,7 +93,7 @@ export function AgendaView({ events, month, today, initialView, isOwner }: { eve
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1">
           <Link href={`/agenda?m=${shiftMonth(month, -1)}&view=${view}`} className="h-10 w-10 grid place-items-center rounded-lg hover:bg-stone-100" aria-label="Mês anterior"><ChevronLeft className="h-5 w-5" /></Link>
-          <span className="font-semibold capitalize min-w-36 text-center">{title}</span>
+          <span className="font-semibold min-w-36 text-center"><span className="capitalize">{title}</span> de {y}</span>
           <Link href={`/agenda?m=${shiftMonth(month, 1)}&view=${view}`} className="h-10 w-10 grid place-items-center rounded-lg hover:bg-stone-100" aria-label="Próximo mês"><ChevronRight className="h-5 w-5" /></Link>
         </div>
         <div className="flex rounded-xl border border-border bg-surface p-0.5 text-sm">

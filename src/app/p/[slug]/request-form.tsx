@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { submitPublicRequest } from "@/lib/actions/public";
+import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
 import type { ActionResult } from "@/lib/action-result";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -9,7 +9,7 @@ import { Alert } from "@/components/ui/page";
 import { LEAD_SOURCES } from "@/lib/pricing";
 
 export function RequestForm({ slug, defaultSource }: { slug: string; defaultSource?: string }) {
-  const [state, action] = useActionState<ActionResult<{ estimated_total: number | null }> | undefined, FormData>(submitPublicRequest, undefined);
+  const [state, action] = useActionState<ActionResult<PublicSubmitResult> | undefined, FormData>(submitPublicRequest, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   if (state?.ok) return <Alert tone="success">{state.message}</Alert>;
   const known = LEAD_SOURCES.some((s) => s.value === defaultSource);

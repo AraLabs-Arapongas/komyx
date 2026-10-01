@@ -59,10 +59,24 @@ a, button:not(:disabled), [role="button"], summary, label[for], input[type="subm
   --sky: #4cb5f5;
   --mint: #2ec4a6;
   --muted-ink: #5b5f7a;
+  /* Re-map app tokens so shared inputs/buttons follow the invitation palette */
+  --brand: var(--berry);
+  --brand-soft: #fde7ef;
+  --brand-fg: #ffffff;
+  --border: #ece7dc;
+  --surface: #ffffff;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --muted: var(--muted-ink);
+  --font-display: var(--font-festa-display);
+  --font-body: var(--font-festa-body);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   background: var(--paper);
   color: var(--ink);
 }
+.public-theme .font-elegante { --font-display: var(--font-elegante-display); --font-body: var(--font-elegante-body); font-family: var(--font-body), serif; }
+.public-theme .font-moderno { --font-display: var(--font-moderno-display); --font-body: var(--font-moderno-body); font-family: var(--font-body), sans-serif; }
+.public-theme .font-festa { --font-display: var(--font-festa-display); --font-body: var(--font-festa-body); }
 .public-theme .display {
   font-family: var(--font-display), var(--font-body), sans-serif;
   letter-spacing: -0.02em;
@@ -94,3 +108,18 @@ a, button:not(:disabled), [role="button"], summary, label[for], input[type="subm
   transition: transform 0.25s ease;
 }
 .public-theme .polaroid:hover { transform: rotate(0deg) scale(1.03) !important; }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.public-theme .marquee {
+  animation: marquee var(--marquee-duration, 30s) linear infinite;
+}
+.public-theme .marquee:hover,
+.public-theme .marquee:focus-within {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-theme .marquee { animation: none; overflow-x: auto; }
+}

@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useState } from "react";
-import { updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage } from "@/lib/actions/settings";
+import { updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage, updateTheme } from "@/lib/actions/settings";
 import { Trash2 } from "lucide-react";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -125,7 +125,7 @@ export function ContractTemplateForm({ template }: { template: string }) {
   );
 }
 
-type PublicProfile = { tagline: string | null; highlights: string[]; testimonials: { name: string; text: string }[]; founded_year: number | null; capacity: number | null; one_event_per_day: boolean };
+type PublicProfile = { tagline: string | null; highlights: string[]; testimonials: { name: string; text: string }[]; founded_year: number | null; capacity: number | null; one_event_per_day: boolean; self_booking_enabled: boolean };
 
 export function PublicProfileForm({ profile }: { profile: PublicProfile }) {
   const [state, action] = useActionState(updatePublicProfile, undefined);
@@ -150,6 +150,10 @@ export function PublicProfileForm({ profile }: { profile: PublicProfile }) {
       <label className="flex items-start gap-2 text-sm">
         <input type="checkbox" name="one_event_per_day" defaultChecked={profile.one_event_per_day} className="mt-1 h-4 w-4" />
         <span><b>Um evento por dia.</b> A equipe não consegue marcar dois eventos no mesmo dia; só a proprietária, confirmando o aviso.</span>
+      </label>
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="self_booking_enabled" defaultChecked={profile.self_booking_enabled} className="mt-1 h-4 w-4" />
+        <span><b>Reserva online pelo cliente.</b> No fim do orçamento, o cliente pode segurar a data sozinho: vira pré-reserva com prazo de validade e instruções do sinal por Pix. Você confirma quando o sinal cair.</span>
       </label>
       <SubmitButton pendingText="Salvando...">Salvar página pública</SubmitButton>
     </form>
@@ -186,5 +190,41 @@ export function GalleryForm({ gallery }: { gallery: { url: string; caption?: str
         <SubmitButton size="sm" variant="outline" pendingText="Enviando...">Adicionar fotos</SubmitButton>
       </form>
     </div>
+  );
+}
+
+export function ThemeForm({ plan, theme, showPrices }: { plan: string; theme: { primary: string; accent: string; ink: string; paper: string; font: string }; showPrices: boolean }) {
+  const [state, action] = useActionState(updateTheme, undefined);
+  const premium = plan === "premium";
+  const colors: [keyof typeof theme, string][] = [["primary", "Cor principal (botões)"], ["accent", "Cor de destaque (selos)"], ["ink", "Cor escura (fundo do topo)"], ["paper", "Cor do papel (fundo)"]];
+  return (
+    <form action={action} className="space-y-4">
+      {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+      {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="show_prices_public" defaultChecked={showPrices} className="mt-1 h-4 w-4" />
+        <span><b>Mostrar valores dos pacotes na página pública.</b> Desmarque para exibir “valor sob consulta”; o cliente ainda monta o orçamento e você responde com o preço.</span>
+      </label>
+      <fieldset disabled={!premium} className="space-y-3 disabled:opacity-60">
+        <legend className="text-sm font-medium">Cores e fonte do site {premium ? <span className="text-xs text-emerald-700">(Premium ativo)</span> : <span className="text-xs text-muted">(plano Premium)</span>}</legend>
+        <div className="grid grid-cols-2 gap-3">
+          {colors.map(([key, label]) => (
+            <label key={key} className="flex items-center gap-2 text-sm">
+              <input type="color" name={key} defaultValue={theme[key]} className="h-10 w-12 rounded-lg border border-border bg-surface p-1" />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+        <Field label="Fonte" htmlFor="theme_font">
+          <Select id="theme_font" name="font" defaultValue={theme.font}>
+            <option value="festa">Festa — alegre e redonda</option>
+            <option value="elegante">Elegante — serifada, para eventos sociais</option>
+            <option value="moderno">Moderno — reta e minimalista</option>
+          </Select>
+        </Field>
+      </fieldset>
+      {!premium ? <p className="text-xs text-muted">No Premium, o site ganha cores e fonte próprias e, em breve, domínio personalizado (ex.: seubuffet.com.br).</p> : null}
+      <SubmitButton size="sm">Salvar site</SubmitButton>
+    </form>
   );
 }

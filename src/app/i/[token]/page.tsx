@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { PublicFooter } from "@/components/public/public-footer";
 import { appUrl, formatDateLong, formatTime } from "@/lib/utils";
 import { InviteEditor } from "./invite-editor";
 
@@ -21,7 +22,8 @@ export default async function InviteEditPage({ params }: PageProps<"/i/[token]">
   const { data: guestLink } = await admin.from("public_links").select("token").eq("event_id", link.event_id).eq("type", "GUEST_CONFIRM").eq("active", true).maybeSingle();
 
   return (
-    <main className="flex-1 flex flex-col items-center px-4 py-8">
+    <main className="flex-1 flex flex-col">
+      <div className="flex flex-col items-center px-4 py-8 flex-1">
       <div className="w-full max-w-md space-y-5">
         <header className="space-y-1">
           <p className="text-sm text-muted">{ev.organizations?.name}</p>
@@ -30,6 +32,8 @@ export default async function InviteEditPage({ params }: PageProps<"/i/[token]">
         </header>
         <InviteEditor token={token} imageUrl={ev.invite_image_url} title={ev.invite_title ?? ""} message={ev.invite_message ?? ""} guestUrl={guestLink ? appUrl(`/g/${guestLink.token}`) : null} />
       </div>
+          </div>
+      <PublicFooter variant="light" orgName={ev.organizations?.name} />
     </main>
   );
 }

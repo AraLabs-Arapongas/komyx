@@ -378,7 +378,9 @@ export type Database = {
           invite_updated_at: string | null
           notes: string | null
           organization_id: string
+          origin: string
           package_id: string | null
+          pix_txid: string | null
           space: string
           starts_at: string
           status: Database["public"]["Enums"]["event_status"]
@@ -406,7 +408,9 @@ export type Database = {
           invite_updated_at?: string | null
           notes?: string | null
           organization_id: string
+          origin?: string
           package_id?: string | null
+          pix_txid?: string | null
           space?: string
           starts_at: string
           status?: Database["public"]["Enums"]["event_status"]
@@ -434,7 +438,9 @@ export type Database = {
           invite_updated_at?: string | null
           notes?: string | null
           organization_id?: string
+          origin?: string
           package_id?: string | null
+          pix_txid?: string | null
           space?: string
           starts_at?: string
           status?: Database["public"]["Enums"]["event_status"]
@@ -557,10 +563,14 @@ export type Database = {
           one_event_per_day: boolean
           payment_plan: Json
           pix_key: string | null
+          plan: Database["public"]["Enums"]["org_plan"]
           pre_reservation_validity_hours: number
+          self_booking_enabled: boolean
+          show_prices_public: boolean
           slug: string
           tagline: string | null
           testimonials: Json
+          theme: Json
           updated_at: string
           whatsapp: string | null
         }
@@ -585,10 +595,14 @@ export type Database = {
           one_event_per_day?: boolean
           payment_plan?: Json
           pix_key?: string | null
+          plan?: Database["public"]["Enums"]["org_plan"]
           pre_reservation_validity_hours?: number
+          self_booking_enabled?: boolean
+          show_prices_public?: boolean
           slug: string
           tagline?: string | null
           testimonials?: Json
+          theme?: Json
           updated_at?: string
           whatsapp?: string | null
         }
@@ -613,10 +627,14 @@ export type Database = {
           one_event_per_day?: boolean
           payment_plan?: Json
           pix_key?: string | null
+          plan?: Database["public"]["Enums"]["org_plan"]
           pre_reservation_validity_hours?: number
+          self_booking_enabled?: boolean
+          show_prices_public?: boolean
           slug?: string
           tagline?: string | null
           testimonials?: Json
+          theme?: Json
           updated_at?: string
           whatsapp?: string | null
         }
@@ -1254,8 +1272,14 @@ export type Database = {
         | "EXPIRED"
       guest_source: "MANUAL" | "PUBLIC" | "DOOR"
       installment_rule: "ON_ACCEPT" | "DAYS_BEFORE_EVENT" | "FIXED_DATE"
+      org_plan: "basic" | "premium"
       payment_method: "PIX" | "CASH" | "CARD" | "TRANSFER" | "OTHER"
-      public_link_type: "GUEST_CONFIRM" | "QUOTE" | "INVITE_EDIT" | "CHECKIN"
+      public_link_type:
+        | "GUEST_CONFIRM"
+        | "QUOTE"
+        | "INVITE_EDIT"
+        | "CHECKIN"
+        | "RESERVATION"
       public_request_status: "NEW" | "CONVERTED" | "ARCHIVED"
       quote_item_kind: "PACKAGE" | "ADDON" | "EXTRA_PARTICIPANTS" | "CUSTOM"
       quote_status: "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED"
@@ -1401,8 +1425,15 @@ export const Constants = {
       ],
       guest_source: ["MANUAL", "PUBLIC", "DOOR"],
       installment_rule: ["ON_ACCEPT", "DAYS_BEFORE_EVENT", "FIXED_DATE"],
+      org_plan: ["basic", "premium"],
       payment_method: ["PIX", "CASH", "CARD", "TRANSFER", "OTHER"],
-      public_link_type: ["GUEST_CONFIRM", "QUOTE", "INVITE_EDIT", "CHECKIN"],
+      public_link_type: [
+        "GUEST_CONFIRM",
+        "QUOTE",
+        "INVITE_EDIT",
+        "CHECKIN",
+        "RESERVATION",
+      ],
       public_request_status: ["NEW", "CONVERTED", "ARCHIVED"],
       quote_item_kind: ["PACKAGE", "ADDON", "EXTRA_PARTICIPANTS", "CUSTOM"],
       quote_status: ["DRAFT", "SENT", "ACCEPTED", "REJECTED"],

@@ -46,7 +46,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
     supabase.from("guests").select("id, name, adults, children, participants, source, notes, checked_in_at, checked_in_adults, checked_in_children, created_at").eq("event_id", id).order("created_at"),
     supabase.from("payments").select("id, amount, paid_at, method, notes").eq("event_id", id).order("paid_at", { ascending: false }),
     supabase.from("public_links").select("id, token, type, active, created_at").eq("event_id", id).eq("active", true),
-    supabase.from("quotes").select("id, status, total, created_at").eq("event_id", id).order("created_at", { ascending: false }),
+    supabase.from("quotes").select("id, status, total, created_at, quote_installments(amount, sequence)").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("contracts").select("id, number, status, created_at, accepted_at").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("event_extras").select("id, description, quantity, unit_price, total, source, created_at").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("package_addons").select("id, name, price").eq("active", true).order("sort_order").order("name"),
@@ -59,6 +59,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
   const guestLink = link("GUEST_CONFIRM");
   const inviteLink = link("INVITE_EDIT");
   const checkinLink = link("CHECKIN");
+  const reservationLink = link("RESERVATION");
   const quotes = quotesRes.data ?? [];
   const latestQuote = quotes[0];
   const contracts = contractsRes.data ?? [];
@@ -79,6 +80,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
             <div className="flex items-start justify-between gap-3">
               <div>
                 <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
+                {event.origin === "SELF_SERVICE" ? <Badge tone="brand" className="ml-1">Reserva online</Badge> : null}
                 {event.status === "PRE_RESERVED" && event.expires_at ? <p className="text-xs text-muted mt-2">Expira em {formatDateTime(event.expires_at)}</p> : null}
                 {event.status === "EXPIRED" ? <p className="text-xs text-muted mt-2">Horário liberado. Renove para bloquear novamente.</p> : null}
               </div>
@@ -94,7 +96,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
               <div className="rounded-xl bg-stone-50 p-2"><p className="text-xs text-muted">Presentes</p><p className="font-medium">{fin?.checked_in_total ?? 0}/{fin?.participants_total ?? 0}</p></div>
             </div>
             <div className="mt-4">
-              <StatusActions eventId={id} status={event.status} />
+              <StatusActions eventId={id} status={event.status} pixTxid={event.pix_txid} depositAmount={latestQuote ? Number([...latestQuote.quote_installments].sort((a, b) => a.sequence - b.sequence)[0]?.amount ?? 0) || null : null} />
             </div>
           </CardBody>
         </Card>
@@ -109,6 +111,18 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
             <a href={whatsappLink(customer.whatsapp, waMessage)} target="_blank" rel="noopener" className={buttonClass("secondary", "md", "w-full")}>
               <MessageCircle className="h-4 w-4" /> Chamar no WhatsApp
             </a>
+            {reservationLink ? (
+              <div className="rounded-xl border border-border bg-stone-50 p-3 text-sm space-y-2">
+                <p className="font-medium">Página da reserva do cliente</p>
+                <p className="text-xs text-muted break-all">{appUrl(`/r/${reservationLink.token}`)}</p>
+                <div className="flex flex-wrap gap-2">
+                  <CopyButton text={appUrl(`/r/${reservationLink.token}`)} />
+                  <a href={whatsappLink(customer.whatsapp, `Sua reserva no ${org.name} (Pix, orçamento e contrato): ${appUrl(`/r/${reservationLink.token}`)}`)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> Reenviar link</a>
+                </div>
+              </div>
+            ) : (
+              <form action={ensureEventLink}><input type="hidden" name="event_id" value={id} /><input type="hidden" name="type" value="RESERVATION" /><button className="text-sm text-brand font-medium">Gerar página da reserva para o cliente (Pix, orçamento, contrato)</button></form>
+            )}
           </CardBody>
         </Card>
 

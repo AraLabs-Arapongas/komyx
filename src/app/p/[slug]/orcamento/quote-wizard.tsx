@@ -2,7 +2,10 @@
 
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
-import { submitPublicRequest } from "@/lib/actions/public";
+import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
+import { CopyButton } from "@/components/ui/copy-button";
+import { RememberReservation } from "@/app/r/[token]/remember";
+import { appUrl, formatDateTime, formatDateLong, formatTime, whatsappLink } from "@/lib/utils";
 import type { ActionResult } from "@/lib/action-result";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -19,6 +22,8 @@ type Props = {
   preselectedPackage: string;
   today: string;
   durationMinutes: number;
+  showPrices: boolean;
+  selfBooking: boolean;
 };
 
 const STEPS = ["Pacote", "Data", "Pessoas", "Seus dados"] as const;
@@ -39,8 +44,8 @@ function addMinutes(time: string, minutes: number) {
 }
 function fmtDate(key: string) { const [y, m, d] = key.split("-"); return `${d}/${m}/${y}`; }
 
-export function QuoteWizard({ slug, packages, addons, defaultSource, preselectedPackage, today, durationMinutes }: Props) {
-  const [state, action] = useActionState<ActionResult<{ estimated_total: number | null }> | undefined, FormData>(submitPublicRequest, undefined);
+export function QuoteWizard({ slug, packages, addons, defaultSource, preselectedPackage, today, durationMinutes, showPrices, selfBooking }: Props) {
+  const [state, action] = useActionState<ActionResult<PublicSubmitResult> | undefined, FormData>(submitPublicRequest, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   const initial = packages.find((p) => p.id === preselectedPackage) ?? null;
   const [step, setStep] = useState(initial ? 1 : 0);
@@ -76,6 +81,58 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
     if (p) { setAdults(p.included_adults); setChildren(p.included_children); }
   }
 
+  if (state?.ok && state.data?.reservation) {
+    const r = state.data.reservation;
+    const quoteUrl = r.quote_token ? appUrl(`/q/${r.quote_token}`) : null;
+    const waText = `Olá! Reservei ${formatDateLong(r.starts_at)} às ${formatTime(r.starts_at)} pela página (código ${r.pix_txid}) e vou enviar o comprovante do sinal. Minha reserva: ${r.reservation_url}`;
+    return (
+      <div className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8 space-y-4">
+        <RememberReservation token={r.reservation_url.split("/r/")[1] ?? ""} date={r.starts_at} org={r.org_name} />
+        <p className="display font-extrabold text-2xl">Data reservada 🎉</p>
+        <div className="rounded-2xl p-3 text-sm space-y-2" style={{ background: "var(--ink)", color: "#fff" }}>
+          <p className="font-bold">Guarde o link da sua reserva</p>
+          <p className="text-xs break-all" style={{ color: "#cfd2e6" }}>{r.reservation_url}</p>
+          <p className="text-xs" style={{ color: "#cfd2e6" }}>Nele você encontra o Pix, o orçamento e o contrato a qualquer hora. Perdeu? Na página do buffet, use “Encontre sua reserva” com seu WhatsApp e a data.</p>
+          <div className="flex flex-wrap gap-2">
+            <CopyButton text={r.reservation_url} label="Copiar link" />
+            <a href={`https://wa.me/?text=${encodeURIComponent(`Minha reserva no ${r.org_name}: ${r.reservation_url}`)}`} target="_blank" rel="noopener" className="h-9 px-3 inline-flex items-center rounded-lg text-sm font-bold" style={{ background: "var(--sun)", color: "var(--ink)" }}>Enviar pra mim no WhatsApp</a>
+          </div>
+        </div>
+        <p className="text-sm">Sua festa está <b>pré-reservada</b> para <b>{formatDateLong(r.starts_at)}</b>, das {formatTime(r.starts_at)} às {formatTime(r.ends_at)}. A data fica segura até <b>{formatDateTime(r.expires_at)}</b>.</p>
+        <ol className="space-y-3 text-sm">
+          <li className="rounded-2xl p-4" style={{ background: "var(--paper-2)" }}>
+            <p className="display font-bold text-lg">1. Pague o sinal{r.deposit_amount != null ? <> de <span style={{ color: "var(--berry)" }}>{formatCurrency(r.deposit_amount)}</span></> : null} em até {r.deposit_hours}h</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--muted-ink)" }}>Prazo: {formatDateTime(r.expires_at)}. Depois disso a data volta a ficar livre.</p>
+            {r.pix_key ? (
+              <div className="mt-3 grid gap-3 sm:grid-cols-[150px_1fr] sm:items-start">
+                {r.pix_qr ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={r.pix_qr} alt="QR Code Pix" className="h-[150px] w-[150px] rounded-xl bg-white p-1 border" style={{ borderColor: "#ece7dc" }} />
+                ) : null}
+                <div className="space-y-2">
+                  <p>Pix para <b>{r.org_name}</b></p>
+                  <p className="flex flex-wrap items-center gap-2">Chave: <code className="rounded bg-white px-1.5 py-0.5">{r.pix_key}</code> <CopyButton text={r.pix_key} label="Copiar chave" /></p>
+                  {r.pix_payload ? <p className="flex flex-wrap items-center gap-2"><span>Ou use o Pix copia e cola</span> <CopyButton text={r.pix_payload} label="Copiar código" /></p> : null}
+                  <p className="text-xs rounded-lg px-2.5 py-1.5 bg-white" style={{ color: "var(--ink)" }}>Código da reserva: <b>{r.pix_txid}</b>. Ele vai no identificador do Pix e aparece no seu comprovante; se pagar manualmente, escreva esse código na descrição.</p>
+                  {r.deposit_label ? <p className="text-xs" style={{ color: "var(--muted-ink)" }}>{r.deposit_label}. O restante segue o plano do orçamento.</p> : null}
+                </div>
+              </div>
+            ) : <p className="mt-1">O buffet envia os dados de pagamento pelo WhatsApp.</p>}
+          </li>
+          <li className="rounded-2xl p-4" style={{ background: "var(--paper-2)" }}>
+            <p className="display font-bold text-lg">2. Envie o comprovante</p>
+            {r.whatsapp ? <a href={whatsappLink(r.whatsapp, waText)} target="_blank" rel="noopener" className="mt-2 inline-flex h-11 items-center justify-center rounded-full px-5 font-extrabold text-white" style={{ background: "var(--berry)" }}>Abrir WhatsApp do buffet</a> : <p>O buffet entra em contato pelo seu WhatsApp.</p>}
+          </li>
+          <li className="rounded-2xl p-4" style={{ background: "var(--paper-2)" }}>
+            <p className="display font-bold text-lg">3. Receba o contrato</p>
+            <p className="mt-1">Com o sinal confirmado, o buffet confirma a festa e envia o contrato para aceite online.</p>
+            {quoteUrl ? <p className="mt-2 text-xs break-all" style={{ color: "var(--muted-ink)" }}>Seu orçamento: <a href={quoteUrl} className="underline">{quoteUrl}</a></p> : null}
+          </li>
+        </ol>
+      </div>
+    );
+  }
+
   if (state?.ok) {
     return (
       <div className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8 space-y-3">
@@ -85,7 +142,7 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
           {pkg ? <li>Pacote: <b style={{ color: "var(--ink)" }}>{pkg.name}</b></li> : null}
           {date ? <li>Data: <b style={{ color: "var(--ink)" }}>{fmtDate(date)} às {time}</b></li> : null}
           <li>Pessoas: <b style={{ color: "var(--ink)" }}>{adults} adultos e {children} crianças</b></li>
-          {state.data?.estimated_total != null ? <li>Estimativa: <b style={{ color: "var(--ink)" }}>{formatCurrency(state.data.estimated_total)}</b></li> : null}
+          {showPrices && state.data?.estimated_total != null ? <li>Estimativa: <b style={{ color: "var(--ink)" }}>{formatCurrency(state.data.estimated_total)}</b></li> : null}
         </ul>
       </div>
     );
@@ -118,15 +175,15 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
         ))}
       </ol>
 
-      <div className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8 space-y-4 min-h-[22rem]">
+      <div className="scallop rounded-b-3xl pt-7 px-5 pb-5 sm:px-8 space-y-3">
         {step === 0 ? (
           <>
             <h2 className="display font-extrabold text-2xl">Qual pacote?</h2>
             <div className="grid gap-2">
               {packages.map((p) => (
                 <button type="button" key={p.id} onClick={() => choosePackage(p.id)} className={cn("text-left rounded-2xl border-2 p-4 transition", packageId === p.id ? "border-[var(--berry)] bg-white" : "border-[#ece7dc] bg-white/60 hover:border-[var(--berry)]/40")}>
-                  <div className="flex items-center justify-between gap-3"><span className="display font-bold text-lg">{p.name}</span><span className="display font-extrabold text-lg" style={{ color: "var(--berry)" }}>{formatCurrency(p.base_price)}</span></div>
-                  <p className="text-xs" style={{ color: "var(--muted-ink)" }}>{p.included_adults} adultos + {p.included_children} crianças inclusos · extra {formatCurrency(p.extra_adult_price)}/adulto, {formatCurrency(p.extra_child_price)}/criança</p>
+                  <div className="flex items-center justify-between gap-3"><span className="display font-bold text-lg">{p.name}</span>{showPrices ? <span className="display font-extrabold text-lg" style={{ color: "var(--berry)" }}>{formatCurrency(p.base_price)}</span> : null}</div>
+                  <p className="text-xs" style={{ color: "var(--muted-ink)" }}>{p.included_adults} adultos + {p.included_children} crianças inclusos{showPrices ? ` · extra ${formatCurrency(p.extra_adult_price)}/adulto, ${formatCurrency(p.extra_child_price)}/criança` : ""}</p>
                   {p.description ? <p className="text-sm mt-1">{p.description}</p> : null}
                 </button>
               ))}
@@ -140,13 +197,14 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
         {step === 1 ? (
           <>
             <h2 className="display font-extrabold text-2xl">Qual dia?</h2>
-            <p className="text-sm" style={{ color: "var(--muted-ink)" }}>Dias riscados já têm festa marcada. Fazemos uma festa por dia para cuidar de tudo com calma.</p>
+            <p className="text-sm" style={{ color: "var(--muted-ink)" }}>Dias riscados já têm festa. Fazemos uma festa por dia.</p>
+            <div className="mx-auto w-full max-w-sm space-y-1.5">
             <div className="flex items-center justify-between">
               <button type="button" onClick={() => setMonth((m) => shiftMonth(m, -1))} disabled={month <= today.slice(0, 7)} className="h-10 w-10 grid place-items-center rounded-full bg-white border disabled:opacity-30" style={{ borderColor: "#ece7dc" }} aria-label="Mês anterior"><ChevronLeft className="h-5 w-5" /></button>
-              <span className="display font-bold text-lg capitalize">{MONTHS[Number(month.slice(5)) - 1]} de {month.slice(0, 4)}</span>
+              <span className="display font-bold text-lg"><span className="capitalize">{MONTHS[Number(month.slice(5)) - 1]}</span> de {month.slice(0, 4)}</span>
               <button type="button" onClick={() => setMonth((m) => shiftMonth(m, 1))} className="h-10 w-10 grid place-items-center rounded-full bg-white border" style={{ borderColor: "#ece7dc" }} aria-label="Próximo mês"><ChevronRight className="h-5 w-5" /></button>
             </div>
-            <div className={cn("grid grid-cols-7 gap-1 text-center text-xs font-bold", loadingMonth && "opacity-60")} style={{ color: "var(--muted-ink)" }}>{WEEKDAYS.map((d, i) => <div key={i} className="py-1">{d}</div>)}</div>
+            <div className={cn("grid grid-cols-7 gap-1 text-center text-[11px] font-bold", loadingMonth && "opacity-60")} style={{ color: "var(--muted-ink)" }}>{WEEKDAYS.map((d, i) => <div key={i}>{d}</div>)}</div>
             <div className={cn("grid grid-cols-7 gap-1", loadingMonth && "opacity-60")} role="grid" aria-busy={loadingMonth}>
               {Array.from({ length: weekdayOf(`${month}-01`) }).map((_, i) => <div key={`pad-${i}`} />)}
               {Array.from({ length: daysInMonth(month) }).map((_, i) => {
@@ -157,16 +215,17 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
                 const selected = key === date;
                 return (
                   <button type="button" key={key} disabled={disabled} onClick={() => setDate(key)} aria-label={`${fmtDate(key)}${isBusy ? ", ocupado" : ""}`}
-                    className={cn("aspect-square rounded-xl text-sm font-bold grid place-items-center transition", selected ? "text-white" : disabled ? "cursor-not-allowed" : "bg-white hover:bg-[var(--paper-2)]")}
+                    className={cn("h-10 rounded-lg text-sm font-bold grid place-items-center transition", selected ? "text-white" : disabled ? "cursor-not-allowed" : "bg-white hover:bg-[var(--paper-2)]")}
                     style={selected ? { background: "var(--berry)" } : isBusy ? { background: "#f1ede4", color: "#b5b0a4", textDecoration: "line-through" } : past ? { color: "#cfcac0" } : undefined}>
                     {i + 1}
                   </button>
                 );
               })}
             </div>
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <Field label="Horário de início" htmlFor="wizard_time"><Input id="wizard_time" type="time" step={900} value={time} onChange={(e) => setTime(e.target.value || "15:00")} /></Field>
-              <div className="text-sm pt-7" style={{ color: "var(--muted-ink)" }}>{date ? <>Festa em <b style={{ color: "var(--ink)" }}>{fmtDate(date)}</b>, das {time} às {addMinutes(time, durationMinutes)}</> : "Escolha um dia livre no calendário"}</div>
+            <div className="grid grid-cols-[150px_1fr] gap-3 items-center pt-2">
+              <Field label="Início" htmlFor="wizard_time"><Input id="wizard_time" type="time" step={900} value={time} onChange={(e) => setTime(e.target.value || "15:00")} /></Field>
+              <div className="text-sm pt-6" style={{ color: "var(--muted-ink)" }}>{date ? <>Festa em <b style={{ color: "var(--ink)" }}>{fmtDate(date)}</b>, das {time} às {addMinutes(time, durationMinutes)}</> : "Escolha um dia livre."}</div>
+            </div>
             </div>
           </>
         ) : null}
@@ -187,7 +246,7 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
                 <ul className="divide-y" style={{ borderColor: "#ece7dc" }}>
                   {addons.map((a) => (
                     <li key={a.id} className="flex items-center justify-between gap-3 py-2.5">
-                      <div className="min-w-0"><p className="font-bold">{a.name}</p><p className="text-xs" style={{ color: "var(--muted-ink)" }}>{formatCurrency(a.price)}{a.description ? ` · ${a.description}` : ""}</p></div>
+                      <div className="min-w-0"><p className="font-bold">{a.name}</p><p className="text-xs" style={{ color: "var(--muted-ink)" }}>{[showPrices ? formatCurrency(a.price) : null, a.description].filter(Boolean).join(" · ")}</p></div>
                       <div className="flex items-center gap-1">
                         <button type="button" aria-label={`Menos ${a.name}`} onClick={() => setQty((q) => ({ ...q, [a.id]: Math.max((q[a.id] ?? 0) - 1, 0) }))} className="h-9 w-9 rounded-full bg-white border" style={{ borderColor: "#ece7dc" }}>−</button>
                         <span className="w-8 text-center font-bold">{qty[a.id] ?? 0}</span>
@@ -204,6 +263,7 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
         {step === 3 ? (
           <>
             <h2 className="display font-extrabold text-2xl">Pra quem mandamos a resposta?</h2>
+            {selfBooking && date ? <p className="text-sm rounded-xl px-3 py-2" style={{ background: "var(--paper-2)" }}><b>Quer garantir {fmtDate(date)} agora?</b> Clique em “Reservar esta data”: a data fica segura por um prazo enquanto você paga o sinal por Pix. Sem compromisso até o pagamento.</p> : null}
             <Field label="Seu nome" htmlFor="name" error={fe.name}><Input id="name" name="name" autoComplete="name" required /></Field>
             <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp}><Input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" placeholder="(11) 99999-9999" required /></Field>
             <div className="grid grid-cols-2 gap-3">
@@ -224,17 +284,22 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
       </div>
 
       {/* Summary + nav */}
-      <div className="rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+      <div className="sticky bottom-3 z-10 rounded-3xl p-3 sm:p-4 flex flex-row items-center gap-3 shadow-[0_12px_40px_rgba(27,31,58,0.35)]" style={{ background: "var(--ink)", color: "var(--paper)" }}>
         <div className="flex-1 text-sm" style={{ color: "#cfd2e6" }}>
-          <p><b className="display text-2xl text-white">{formatCurrency(total)}</b> estimado</p>
+          {showPrices ? <p><b className="display text-2xl text-white">{formatCurrency(total)}</b> estimado</p> : <p className="display text-lg text-white">Valor enviado no WhatsApp</p>}
           <p className="truncate">{pkg ? pkg.name : "Sem pacote"}{date ? ` · ${fmtDate(date)} ${time}` : ""} · {adults}A {children}C{lines.filter((l) => l.kind === "ADDON").length ? ` · ${lines.filter((l) => l.kind === "ADDON").length} adicional(is)` : ""}</p>
         </div>
         <div className="flex gap-2">
-          {step > 0 ? <button type="button" onClick={() => setStep((s) => s - 1)} className="h-12 px-4 rounded-full font-bold ring-2 ring-inset ring-white/30">Voltar</button> : null}
+          {step > 0 ? <button type="button" onClick={() => setStep((s) => s - 1)} className="h-11 px-4 rounded-full font-bold ring-2 ring-inset ring-white/30">Voltar</button> : null}
           {step < STEPS.length - 1 ? (
-            <button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)} className="h-12 px-5 rounded-full font-extrabold disabled:opacity-40" style={{ background: "var(--berry)", color: "#fff" }}>Continuar</button>
+            <button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)} className="h-11 px-5 rounded-full font-extrabold disabled:opacity-40" style={{ background: "var(--berry)", color: "#fff" }}>Continuar</button>
+          ) : selfBooking && date ? (
+            <>
+              <SubmitButton name="mode" value="lead" size="md" variant="ghost" className="rounded-full font-bold text-white ring-2 ring-inset ring-white/30 hover:bg-white/10" pendingText="Enviando...">Só o orçamento</SubmitButton>
+              <SubmitButton name="mode" value="reserve" size="lg" className="rounded-full font-extrabold" style={{ background: "var(--berry)" }} pendingText="Reservando...">Reservar esta data</SubmitButton>
+            </>
           ) : (
-            <SubmitButton size="lg" className="rounded-full font-extrabold" style={{ background: "var(--berry)" }} pendingText="Enviando...">Enviar pedido</SubmitButton>
+            <SubmitButton name="mode" value="lead" size="lg" className="rounded-full font-extrabold" style={{ background: "var(--berry)" }} pendingText="Enviando...">Enviar pedido</SubmitButton>
           )}
         </div>
       </div>

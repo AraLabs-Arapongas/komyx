@@ -6,7 +6,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { formatCurrency, whatsappLink } from "@/lib/utils";
 import { Bunting } from "@/components/public/bunting";
 import { PolaroidGallery, type GalleryItem } from "@/components/public/polaroid-gallery";
+import { PublicFooter } from "@/components/public/public-footer";
+import { ReservationRecall } from "@/components/public/reservation-recall";
+import { FindReservation } from "./find-reservation";
 import { RequestForm } from "./request-form";
+import { resolveTheme, themeStyle } from "@/lib/theme";
 
 type Testimonial = { name: string; text: string };
 
@@ -29,7 +33,7 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
   const admin = createAdminClient();
   const { data: org } = await admin
     .from("organizations")
-    .select("id, name, slug, logo_url, cover_url, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity")
+    .select("id, name, slug, logo_url, cover_url, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, show_prices_public")
     .eq("slug", slug)
     .maybeSingle();
   if (!org) notFound();
@@ -42,9 +46,11 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
   const years = org.founded_year ? new Date().getFullYear() - org.founded_year : null;
   const mapsUrl = org.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(org.address)}` : null;
   const waUrl = org.whatsapp ? whatsappLink(org.whatsapp, `Olá! Vi a página do ${org.name} e quero saber sobre datas e valores.`) : null;
+  const theme = resolveTheme(org.plan, org.theme);
+  const showPrices = org.show_prices_public;
 
   return (
-    <main className="flex-1">
+    <main className={`flex-1 font-${theme.font}`} style={themeStyle(theme)}>
       {/* HERO: the invitation */}
       <section className="relative overflow-hidden" style={{ background: "var(--ink)", color: "var(--paper)" }}>
         <div className="absolute inset-x-0 top-0"><Bunting /></div>
@@ -61,7 +67,7 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
             {org.description ? <p className="mt-5 text-lg/relaxed max-w-prose" style={{ color: "#cfd2e6" }}>{org.description}</p> : null}
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link href={`/p/${org.slug}/orcamento${q}`} className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sun)]" style={{ background: "var(--berry)", color: "#fff" }}>
-                <Calculator className="h-5 w-5" /> Monte seu orçamento em 2 minutos
+                <Calculator className="h-5 w-5" /> Monte seu orçamento
               </Link>
               {waUrl ? (
                 <a href={waUrl} target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold text-base ring-2 ring-inset ring-white/30 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sun)]">
@@ -69,10 +75,11 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
                 </a>
               ) : null}
             </div>
+            <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}>Leva 2 minutos. Você escolhe pacote, data e quantidade de pessoas e já vê o valor.</p>
             <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm" style={{ color: "#cfd2e6" }}>
               {org.capacity ? <div><dt className="sr-only">Capacidade</dt><dd><b className="display text-2xl text-white">{org.capacity}</b> pessoas</dd></div> : null}
               {years && years > 0 ? <div><dt className="sr-only">Experiência</dt><dd><b className="display text-2xl text-white">{years}</b> anos de festas</dd></div> : null}
-              {packages?.length ? <div><dt className="sr-only">Pacotes</dt><dd><b className="display text-2xl text-white">{packages.length}</b> pacotes a partir de {formatCurrency(Math.min(...packages.map((p) => Number(p.base_price))))}</dd></div> : null}
+              {packages?.length ? <div><dt className="sr-only">Pacotes</dt><dd><b className="display text-2xl text-white">{packages.length}</b> pacotes{showPrices ? ` a partir de ${formatCurrency(Math.min(...packages.map((p) => Number(p.base_price))))}` : ""}</dd></div> : null}
             </dl>
           </div>
           <div className="relative">
@@ -91,6 +98,8 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
           </div>
         </div>
       </section>
+
+      <ReservationRecall orgName={org.name} />
 
       {/* HIGHLIGHTS */}
       {highlights.length ? (
@@ -118,7 +127,7 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
       {packages && packages.length ? (
         <section className="mx-auto max-w-5xl px-4 py-10">
           <h2 className="display font-extrabold text-3xl sm:text-4xl">Escolha o tamanho da festa</h2>
-          <p className="mt-1 mb-8" style={{ color: "var(--muted-ink)" }}>Cada pacote já inclui um número de adultos e crianças. Passou disso, cobramos só o extra.</p>
+          <p className="mt-1 mb-8" style={{ color: "var(--muted-ink)" }}>{showPrices ? "Cada pacote já inclui um número de adultos e crianças. Passou disso, cobramos só o extra." : "Cada pacote já inclui um número de adultos e crianças. Monte o orçamento e enviamos o valor no WhatsApp."}</p>
           <div className="grid gap-5 md:grid-cols-3 md:items-stretch">
             {packages.map((p, i) => {
               const featured = i === featuredIndex;
@@ -127,11 +136,11 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
                 <article key={p.id} className="relative flex flex-col rounded-3xl p-6 border-2" style={{ borderColor: featured ? "var(--berry)" : "#ece7dc", background: featured ? "#fff" : "var(--paper)", boxShadow: featured ? "0 20px 50px rgba(232,53,109,0.18)" : "none" }}>
                   {featured ? <span className="absolute -top-3 left-6 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: "var(--ink)" }}>Mais escolhido</span> : null}
                   <h3 className="display font-bold text-2xl">{p.name}</h3>
-                  <p className="display font-extrabold text-4xl mt-2" style={{ color: featured ? "var(--berry)" : "var(--ink)" }}>{formatCurrency(p.base_price)}</p>
+                  {showPrices ? <p className="display font-extrabold text-4xl mt-2" style={{ color: featured ? "var(--berry)" : "var(--ink)" }}>{formatCurrency(p.base_price)}</p> : <p className="display font-bold text-xl mt-2" style={{ color: "var(--muted-ink)" }}>Valor sob consulta</p>}
                   <p className="mt-3 text-sm font-bold">
                     <span className="display text-xl">{p.included_adults}</span> adultos + <span className="display text-xl">{p.included_children}</span> crianças
                   </p>
-                  <p className="text-xs" style={{ color: "var(--muted-ink)" }}>extra: {formatCurrency(p.extra_adult_price)} por adulto · {formatCurrency(p.extra_child_price)} por criança</p>
+                  {showPrices ? <p className="text-xs" style={{ color: "var(--muted-ink)" }}>extra: {formatCurrency(p.extra_adult_price)} por adulto · {formatCurrency(p.extra_child_price)} por criança</p> : null}
                   {features.length ? (
                     <ul className="mt-4 space-y-1.5 text-sm flex-1">
                       {features.map((f) => <li key={f} className="flex gap-2"><Check className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "var(--mint)" }} /><span>{f}</span></li>)}
@@ -192,13 +201,15 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
               {org.instagram ? <li><a href={`https://instagram.com/${org.instagram}`} target="_blank" rel="noopener" className="inline-flex items-center gap-2 underline-offset-4 hover:underline"><Camera className="h-4 w-4" style={{ color: "var(--sun)" }} /> @{org.instagram}</a></li> : null}
               {waUrl ? <li><a href={waUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-2 underline-offset-4 hover:underline"><MessageCircle className="h-4 w-4" style={{ color: "var(--sun)" }} /> WhatsApp</a></li> : null}
             </ul>
+            <div className="mt-6"><FindReservation slug={org.slug} /></div>
           </div>
           <div className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8">
             <p className="display font-extrabold text-2xl mb-4" style={{ color: "var(--ink)" }}>Pedir contato</p>
             <RequestForm slug={org.slug} defaultSource={src} />
           </div>
         </div>
-        <p className="text-center text-xs pb-6" style={{ color: "#8a8ea8" }}>Gestão por Festeja</p>
+        <div className="mx-auto max-w-5xl px-4"><hr style={{ borderColor: "rgba(255,255,255,0.12)" }} /></div>
+        <PublicFooter orgName={org.name} />
       </section>
     </main>
   );

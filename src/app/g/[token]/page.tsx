@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { CalendarDays, MapPin } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { PublicFooter } from "@/components/public/public-footer";
 import { formatDateLong, formatTime } from "@/lib/utils";
 import { GuestForm } from "./guest-form";
 
@@ -24,7 +25,8 @@ export default async function GuestConfirmPage({ params }: PageProps<"/g/[token]
   const title = ev.invite_title?.trim() || ev.title?.trim() || (ev.celebrant_name ? `Aniversário de ${ev.celebrant_name}` : ev.customers ? `Festa de ${ev.customers.name}` : "Festa");
 
   return (
-    <main className="flex-1 flex flex-col items-center px-4 py-8">
+    <main className="flex-1 flex flex-col">
+      <div className="flex flex-col items-center px-4 py-8 flex-1">
       <div className="w-full max-w-md space-y-5">
         {ev.invite_image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -46,6 +48,8 @@ export default async function GuestConfirmPage({ params }: PageProps<"/g/[token]
           {expired ? <p className="text-center text-sm text-muted">Este link não está mais disponível.</p> : <GuestForm token={link.token} />}
         </div>
       </div>
+          </div>
+      <PublicFooter variant="light" orgName={org.name} />
     </main>
   );
 }

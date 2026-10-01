@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/ui/copy-button";
 import { appUrl } from "@/lib/utils";
 import { CONTRACT_PLACEHOLDERS } from "@/lib/contract";
-import { OrganizationForm, ImageUploadForm, StaffForm, PaymentPlanForm, ContractTemplateForm, PublicProfileForm, GalleryForm } from "./forms";
+import { OrganizationForm, ImageUploadForm, StaffForm, PaymentPlanForm, ContractTemplateForm, PublicProfileForm, GalleryForm, ThemeForm } from "./forms";
+import { resolveTheme, DEFAULT_THEME } from "@/lib/theme";
 
 export const metadata = { title: "Configurações" };
 
@@ -40,7 +41,12 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader title="Conteúdo da página pública" subtitle="Frase principal, destaques, depoimentos e regra de agenda" />
-          <CardBody><PublicProfileForm profile={{ tagline: org.tagline, highlights: org.highlights ?? [], testimonials: (Array.isArray(org.testimonials) ? org.testimonials : []) as { name: string; text: string }[], founded_year: org.founded_year, capacity: org.capacity, one_event_per_day: org.one_event_per_day }} /></CardBody>
+          <CardBody><PublicProfileForm profile={{ tagline: org.tagline, highlights: org.highlights ?? [], testimonials: (Array.isArray(org.testimonials) ? org.testimonials : []) as { name: string; text: string }[], founded_year: org.founded_year, capacity: org.capacity, one_event_per_day: org.one_event_per_day, self_booking_enabled: org.self_booking_enabled }} /></CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="Site personalizado" subtitle={org.plan === "premium" ? "Plano Premium: cores, fonte e exibição de preços" : "Exibição de preços (todos os planos) · cores e fonte no Premium"} action={<Badge tone={org.plan === "premium" ? "brand" : "zinc"}>{org.plan === "premium" ? "Premium" : "Básico"}</Badge>} />
+          <CardBody><ThemeForm plan={org.plan} theme={org.plan === "premium" ? resolveTheme(org.plan, org.theme) : DEFAULT_THEME} showPrices={org.show_prices_public} /></CardBody>
         </Card>
 
         <Card>

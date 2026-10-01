@@ -215,6 +215,7 @@ const profileSchema = z.object({
   founded_year: z.string().optional().transform((v) => (v && v.trim() ? Number(v) : null)).refine((v) => v === null || (Number.isInteger(v) && v >= 1950 && v <= 2100), "Ano inválido"),
   capacity: z.string().optional().transform((v) => (v && v.trim() ? Number(v) : null)).refine((v) => v === null || (Number.isInteger(v) && v > 0), "Capacidade inválida"),
   one_event_per_day: z.string().optional().transform((v) => v === "on" || v === "true"),
+  self_booking_enabled: z.string().optional().transform((v) => v === "on" || v === "true"),
 });
 
 export async function updatePublicProfile(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
@@ -276,4 +277,30 @@ export async function removeGalleryImage(formData: FormData) {
   const idx = url.indexOf(marker);
   if (idx > 0) await supabase.storage.from("org-media").remove([url.slice(idx + marker.length)]);
   revalidatePath("/configuracoes");
+}
+
+const hex = z.string().regex(/^#[0-9a-f]{6}$/i, "Cor inválida");
+const themeSchema = z.object({
+  primary: hex,
+  accent: hex,
+  ink: hex,
+  paper: hex,
+  font: z.enum(["festa", "elegante", "moderno"]),
+  show_prices_public: z.string().optional().transform((v) => v === "on" || v === "true"),
+});
+
+/** Premium only: colors + font pairing of the public site. Price visibility is available to every plan. */
+export async function updateTheme(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const parsed = themeSchema.safeParse(formToObject(formData));
+  if (!parsed.success) return fail("Verifique as cores.", zodFieldErrors(parsed.error));
+  const profile = await requireOwner();
+  const supabase = await createClient();
+  const { data: org } = await supabase.from("organizations").select("plan").eq("id", profile.organization_id).single();
+  const { show_prices_public, ...theme } = parsed.data;
+  const patch: { show_prices_public: boolean; theme?: typeof theme } = { show_prices_public };
+  if (org?.plan === "premium") patch.theme = theme;
+  const { error } = await supabase.from("organizations").update(patch).eq("id", profile.organization_id);
+  if (error) return fail(translateDbError(error));
+  revalidatePath("/configuracoes");
+  return { ok: true, message: org?.plan === "premium" ? "Site personalizado salvo." : "Exibição de preços salva. Cores e fontes são do plano Premium." };
 }

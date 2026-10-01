@@ -5,6 +5,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { dateSchema, optionalText, phoneSchema, zodFieldErrors, UUID_RE, uuid } from "./helpers";
 import { buildQuoteLines, sumLines } from "@/lib/pricing";
+import { localToIso, appUrl } from "@/lib/utils";
+import { redirect } from "next/navigation";
+import { buildPixPayload } from "@/lib/pix";
+import QRCode from "qrcode";
 
 /**
  * Public actions run with the service role on the server. Every query is scoped by
@@ -78,18 +82,40 @@ const requestSchema = z.object({
     }
   }),
   message: optionalText,
+  mode: z.enum(["lead", "reserve"]).optional().default("lead"),
 });
+
+export type PublicSubmitResult = {
+  estimated_total: number | null;
+  reservation?: {
+    event_id: string;
+    expires_at: string;
+    starts_at: string;
+    ends_at: string;
+    quote_token: string | null;
+    deposit_amount: number | null;
+    deposit_label: string | null;
+    deposit_hours: number;
+    pix_key: string | null;
+    pix_payload: string | null;
+    pix_qr: string | null; // data URI (SVG)
+    pix_txid: string; // reservation code shown on the payer's receipt
+    reservation_url: string; // permanent client page (/r/[token])
+    whatsapp: string | null;
+    org_name: string;
+  };
+};
 
 /**
  * Interest form and self-service quote both land here. When a package or addons are
  * chosen, the estimated total is recomputed server-side from current prices.
  */
-export async function submitPublicRequest(_prev: ActionResult<{ estimated_total: number | null }> | undefined, formData: FormData): Promise<ActionResult<{ estimated_total: number | null }>> {
+export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult> | undefined, formData: FormData): Promise<ActionResult<PublicSubmitResult>> {
   const parsed = requestSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return fail("Verifique os campos.", zodFieldErrors(parsed.error));
   const d = parsed.data;
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("id").eq("slug", d.slug).maybeSingle();
+  const { data: org } = await admin.from("organizations").select("id, name, legal_name, city, whatsapp, pix_key, self_booking_enabled, one_event_per_day, pre_reservation_validity_hours, default_event_duration_minutes").eq("slug", d.slug).maybeSingle();
   if (!org) return fail("Buffet não encontrado.");
 
   let estimated_total: number | null = null;
@@ -109,7 +135,7 @@ export async function submitPublicRequest(_prev: ActionResult<{ estimated_total:
   }
 
   const participants = d.adults === null && d.children === null ? null : (d.adults ?? 0) + (d.children ?? 0);
-  const { error } = await admin.from("public_requests").insert({
+  const { data: request, error } = await admin.from("public_requests").insert({
     organization_id: org.id,
     name: d.name,
     whatsapp: d.whatsapp,
@@ -125,9 +151,120 @@ export async function submitPublicRequest(_prev: ActionResult<{ estimated_total:
     addons: addonsSnapshot,
     estimated_total,
     message: d.message,
-  });
-  if (error) return fail(translateDbError(error));
-  return { ok: true, data: { estimated_total }, message: estimated_total !== null ? "Recebemos seu orçamento! Em breve confirmamos a disponibilidade da data pelo WhatsApp." : "Recebemos sua solicitação! Em breve entraremos em contato pelo WhatsApp." };
+  }).select("id").single();
+  if (error || !request) return fail(translateDbError(error));
+
+  if (d.mode !== "reserve") {
+    return { ok: true, data: { estimated_total }, message: estimated_total !== null ? "Recebemos seu orçamento! Em breve confirmamos a disponibilidade da data pelo WhatsApp." : "Recebemos sua solicitação! Em breve entraremos em contato pelo WhatsApp." };
+  }
+
+  // ---- Autonomous reservation: hold the date now, no staff involved ----
+  if (!org.self_booking_enabled) return fail("Este buffet confirma datas pelo WhatsApp. Envie o pedido e respondemos em breve.");
+  if (!d.desired_date || !d.desired_time) return fail("Escolha dia e horário para reservar.", { desired_date: "Obrigatório" });
+  const starts_at = localToIso(d.desired_date, d.desired_time);
+  const ends_at = new Date(new Date(starts_at).getTime() + org.default_event_duration_minutes * 60_000).toISOString();
+  if (new Date(starts_at) < new Date()) return fail("Escolha uma data futura.");
+
+  if (org.one_event_per_day) {
+    const { data: busy } = await admin.rpc("busy_days", { p_slug: d.slug, p_from: d.desired_date, p_to: d.desired_date });
+    if (busy && busy.length) return fail("Este dia acabou de ser reservado por outra pessoa. Escolha outra data.", { desired_date: "Dia ocupado" });
+  }
+
+  const { data: existing } = await admin.from("customers").select("id").eq("organization_id", org.id).eq("whatsapp", d.whatsapp).maybeSingle();
+  let customerId = existing?.id ?? null;
+  if (!customerId) {
+    const { data: c, error: cErr } = await admin.from("customers").insert({ organization_id: org.id, name: d.name, whatsapp: d.whatsapp, source: d.source }).select("id").single();
+    if (cErr || !c) return fail(translateDbError(cErr));
+    customerId = c.id;
+  }
+
+  const expires_at = new Date(Date.now() + org.pre_reservation_validity_hours * 3_600_000).toISOString();
+  const { data: event, error: evErr } = await admin
+    .from("events")
+    .insert({
+      organization_id: org.id,
+      customer_id: customerId,
+      title: d.celebrant_name ? `Aniversário de ${d.celebrant_name}` : null,
+      starts_at,
+      ends_at,
+      status: "PRE_RESERVED",
+      expires_at,
+      package_id: pkg?.id ?? null,
+      adults: d.adults ?? 0,
+      children: d.children ?? 0,
+      celebrant_name: d.celebrant_name,
+      notes: `Reserva feita pelo cliente na página pública.${d.message ? ` Mensagem: ${d.message}` : ""}`,
+      origin: "SELF_SERVICE",
+    })
+    .select("id")
+    .single();
+  if (evErr || !event) {
+    if (evErr?.hint === "SCHEDULE_CONFLICT" || evErr?.message.includes("Horário indisponível")) return fail("Este horário acabou de ser reservado. Escolha outra data ou horário.", { desired_date: "Ocupado" });
+    return fail(translateDbError(evErr));
+  }
+
+  if (d.celebrant_name && d.celebrant_birth_date) {
+    await admin.from("celebrants").insert({ organization_id: org.id, customer_id: customerId, event_id: event.id, name: d.celebrant_name, birth_date: d.celebrant_birth_date });
+  }
+
+  // Quote + lines (installments are seeded by trigger from the org plan)
+  let quoteToken: string | null = null;
+  let deposit: { amount: number; label: string } | null = null;
+  const lines = buildQuoteLines(pkg, d.adults ?? 0, d.children ?? 0, (addonsSnapshot ?? []).map((a) => ({ addon: { id: a.addon_id, name: a.name, price: a.price }, quantity: a.quantity })));
+  const { data: quote } = await admin
+    .from("quotes")
+    .insert({ organization_id: org.id, event_id: event.id, package_id: pkg?.id ?? null, adults: d.adults ?? 0, children: d.children ?? 0, status: lines.length ? "SENT" : "DRAFT" })
+    .select("id")
+    .single();
+  if (quote) {
+    if (lines.length) await admin.from("quote_items").insert(lines.map((l) => ({ ...l, organization_id: org.id, quote_id: quote.id })));
+    const { data: inst } = await admin.from("quote_installments").select("label, amount, rule").eq("quote_id", quote.id).order("sequence").limit(1);
+    if (inst?.[0]) deposit = { amount: Number(inst[0].amount), label: inst[0].label };
+    if (lines.length) {
+      const { data: link } = await admin.from("public_links").insert({ organization_id: org.id, event_id: event.id, type: "QUOTE" }).select("token").single();
+      quoteToken = link?.token ?? null;
+    }
+  }
+
+  await admin.from("public_requests").update({ status: "CONVERTED", event_id: event.id }).eq("id", request.id);
+  const { data: resLink } = await admin.from("public_links").insert({ organization_id: org.id, event_id: event.id, type: "RESERVATION" }).select("token").single();
+  const reservationUrl = appUrl(`/r/${resLink?.token ?? ""}`);
+
+  // Pix QR for the deposit. The txid (EMV field 62-05) shows up as "Identificador" on the payer's
+  // receipt and bank statement, so the owner can match the deposit to this reservation.
+  const pixTxid = `FESTA${event.id.replace(/-/g, "").slice(0, 10).toUpperCase()}`;
+  await admin.from("events").update({ pix_txid: pixTxid }).eq("id", event.id);
+  let pixPayload: string | null = null;
+  let pixQr: string | null = null;
+  if (org.pix_key) {
+    pixPayload = buildPixPayload({
+      key: org.pix_key,
+      merchantName: org.legal_name || org.name,
+      merchantCity: (org.city || "SAO PAULO").split("/")[0],
+      amount: deposit?.amount ?? null,
+      txid: pixTxid,
+      description: `${pixTxid} sinal festa ${d.desired_date.split("-").reverse().join("/")}`,
+    });
+    try {
+      const svg = await QRCode.toString(pixPayload, { type: "svg", margin: 1, width: 240, errorCorrectionLevel: "M" });
+      pixQr = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+    } catch {
+      pixQr = null;
+    }
+  }
+
+  return {
+    ok: true,
+    data: {
+      estimated_total,
+      reservation: {
+        event_id: event.id, expires_at, starts_at, ends_at, quote_token: quoteToken,
+        deposit_amount: deposit?.amount ?? null, deposit_label: deposit?.label ?? null, deposit_hours: org.pre_reservation_validity_hours,
+        pix_key: org.pix_key, pix_payload: pixPayload, pix_qr: pixQr, pix_txid: pixTxid, reservation_url: reservationUrl, whatsapp: org.whatsapp, org_name: org.name,
+      },
+    },
+    message: "Data reservada!",
+  };
 }
 
 // ------------------------------------------------------------
@@ -298,4 +435,36 @@ export async function acceptContract(_prev: ActionResult | undefined, formData: 
     .eq("id", c.id);
   if (error) return fail(translateDbError(error));
   return { ok: true, message: "Contrato aceito. Obrigado!" };
+}
+
+const findSchema = z.object({ slug: z.string().min(1), whatsapp: phoneSchema, date: dateSchema });
+
+/** Lost the link: WhatsApp + party date opens the reservation page. */
+export async function findReservation(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const parsed = findSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return fail("Informe WhatsApp e a data da festa.");
+  const d = parsed.data;
+  const admin = createAdminClient();
+  const { data: org } = await admin.from("organizations").select("id").eq("slug", d.slug).maybeSingle();
+  if (!org) return fail("Buffet não encontrado.");
+  const dayStart = localToIso(d.date, "00:00");
+  const dayEnd = new Date(new Date(dayStart).getTime() + 86_400_000).toISOString();
+  const { data: ev } = await admin
+    .from("events")
+    .select("id, customers!inner(whatsapp)")
+    .eq("organization_id", org.id)
+    .eq("customers.whatsapp", d.whatsapp)
+    .gte("starts_at", dayStart)
+    .lt("starts_at", dayEnd)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!ev) return fail("Não achamos reserva com esse WhatsApp nessa data. Confira os dados ou fale com o buffet.");
+  let { data: link } = await admin.from("public_links").select("token").eq("event_id", ev.id).eq("type", "RESERVATION").eq("active", true).maybeSingle();
+  if (!link) {
+    const { data: created } = await admin.from("public_links").insert({ organization_id: org.id, event_id: ev.id, type: "RESERVATION" }).select("token").single();
+    link = created;
+  }
+  if (!link) return fail("Não foi possível abrir a reserva.");
+  redirect(`/r/${link.token}`);
 }

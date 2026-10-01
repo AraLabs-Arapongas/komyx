@@ -261,3 +261,40 @@ export async function updateInvite(_prev: ActionResult | undefined, formData: Fo
   revalidateEvents(parsed.data.id);
   return { ok: true, message: "Convite atualizado." };
 }
+
+/**
+ * Owner/staff matched the Pix deposit on the bank statement: registers the first installment
+ * as a payment and confirms the event (same row, PRE_RESERVED -> CONFIRMED).
+ */
+export async function confirmDeposit(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const id = uuid.safeParse(formData.get("id"));
+  if (!id.success) return fail("Evento inválido.");
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  const { data: quote } = await supabase
+    .from("quotes")
+    .select("id, status, quote_installments(amount, sequence)")
+    .eq("event_id", id.data)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const first = quote ? [...quote.quote_installments].sort((a, b) => a.sequence - b.sequence)[0] : null;
+  const amountRaw = String(formData.get("amount") ?? "").replace(/\./g, "").replace(",", ".");
+  const amount = amountRaw ? Number(amountRaw) : first ? Number(first.amount) : 0;
+  if (!(amount > 0)) return fail("Informe o valor recebido.");
+
+  const { error: payErr } = await supabase.from("payments").insert({
+    organization_id: profile.organization_id,
+    event_id: id.data,
+    amount,
+    method: "PIX",
+    notes: "Sinal da reserva online (Pix conferido no extrato)",
+    created_by: profile.id,
+  });
+  if (payErr) return fail(translateDbError(payErr));
+  if (quote && quote.status !== "ACCEPTED") await supabase.from("quotes").update({ status: "ACCEPTED" }).eq("id", quote.id);
+  const { error } = await supabase.from("events").update({ status: "CONFIRMED", expires_at: null }).eq("id", id.data);
+  if (error) return fail(translateDbError(error));
+  revalidateEvents(id.data);
+  return { ok: true, message: "Sinal registrado e evento confirmado." };
+}

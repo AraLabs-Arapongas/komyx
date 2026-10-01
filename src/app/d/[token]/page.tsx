@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { PublicFooter } from "@/components/public/public-footer";
 import { formatCurrency, formatDateLong, formatTime } from "@/lib/utils";
 import { DoorBoard } from "./door-board";
 
@@ -37,6 +38,7 @@ export default async function DoorPage({ params }: PageProps<"/d/[token]">) {
         </header>
         <DoorBoard token={token} guests={guests ?? []} extras={(extras ?? []).map((x) => ({ ...x, total: Number(x.total), unit_price: Number(x.unit_price), quantity: Number(x.quantity) }))} extrasTotalLabel={formatCurrency(extrasTotal)} addons={(addons ?? []).map((a) => ({ ...a, price: Number(a.price) }))} />
       </div>
+          <PublicFooter variant="light" orgName={ev.organizations?.name} />
     </main>
   );
 }

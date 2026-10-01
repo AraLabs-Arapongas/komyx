@@ -69,7 +69,7 @@ export async function removePayment(formData: FormData) {
   revalidateEvent(eventId);
 }
 
-type LinkType = "GUEST_CONFIRM" | "QUOTE" | "INVITE_EDIT" | "CHECKIN";
+type LinkType = "GUEST_CONFIRM" | "QUOTE" | "INVITE_EDIT" | "CHECKIN" | "RESERVATION";
 
 /** Ensures an active public link of the given type exists for the event. */
 export async function ensureEventLink(formData: FormData) {

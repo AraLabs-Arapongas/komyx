@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { PublicFooter } from "@/components/public/public-footer";
 import { buttonClass } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/utils";
@@ -17,7 +18,8 @@ export default async function PublicContractPage({ params }: PageProps<"/c/[toke
   const org = c.organizations;
 
   return (
-    <main className="flex-1 flex flex-col items-center px-4 py-8">
+    <main className="flex-1 flex flex-col">
+      <div className="flex flex-col items-center px-4 py-8 flex-1">
       <div className="w-full max-w-2xl space-y-5">
         <header className="text-center space-y-2">
           {org.logo_url ? (
@@ -37,8 +39,9 @@ export default async function PublicContractPage({ params }: PageProps<"/c/[toke
         {c.status !== "ACCEPTED" ? (
           <div className="rounded-2xl border border-border bg-surface p-5"><AcceptForm token={token} /></div>
         ) : null}
-        <p className="text-center text-xs text-muted">Gestão por Festeja</p>
-      </div>
+              </div>
+          </div>
+      <PublicFooter variant="light" orgName={org.name} />
     </main>
   );
 }
