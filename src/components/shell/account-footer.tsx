@@ -22,8 +22,8 @@ export function AccountFooter({ name, email, role, billing, compact = false }: {
   const barColor = overdue ? "bg-red-500" : soon ? "bg-amber-500" : "bg-emerald-500";
   return (
     <div className={compact ? "space-y-3" : "space-y-3 border-t border-border p-3"}>
-      <Link href="/configuracoes" className="block rounded-xl border border-border bg-stone-50 px-3 py-2.5">
-        <div className="flex items-center justify-between gap-2 text-xs whitespace-nowrap">
+      <Link href="/configuracoes" className="block px-1">
+        <div className="flex items-center justify-between gap-2 text-[11px] whitespace-nowrap">
           <span className="font-medium inline-flex items-center gap-1.5 min-w-0"><CreditCard className="h-3.5 w-3.5 text-muted shrink-0" /> {billing.plan === "premium" ? "Premium" : "Básico"}</span>
           {p ? (
             <span className={overdue ? "text-red-600 font-medium" : soon ? "text-amber-700 font-medium" : "text-muted"}>
@@ -33,10 +33,10 @@ export function AccountFooter({ name, email, role, billing, compact = false }: {
         </div>
         {p ? (
           <>
-            <div className="mt-2 h-1.5 w-full rounded-full bg-stone-200 overflow-hidden" role="progressbar" aria-valuenow={Math.round(p.pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Progresso do ciclo de cobrança">
+            <div className="mt-1 h-1 w-full rounded-full bg-stone-200 overflow-hidden" role="progressbar" aria-valuenow={Math.round(p.pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Progresso do ciclo de cobrança">
               <div className={`h-full rounded-full ${barColor}`} style={{ width: `${p.pct}%` }} />
             </div>
-            <p className="mt-1 text-[11px] text-muted">{formatDate(billing.cycleStart + "T12:00:00-03:00")} → {formatDate(billing.dueAt + "T12:00:00-03:00")}</p>
+            <p className="sr-only">{formatDate(billing.cycleStart + "T12:00:00-03:00")} até {formatDate(billing.dueAt + "T12:00:00-03:00")}</p>
           </>
         ) : null}
       </Link>
