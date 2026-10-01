@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { test, caption, clearCaption, installCaptions, saveVideo, spotlight } from "./caption";
-import { ACCOUNTS, DEMO_SLUG, cleanupCustomerByPhone, login, pickFreeDate, uniq, uniquePhone } from "../e2e/helpers";
+import { ACCOUNTS, DEMO_SLUG, brDate, cleanupCustomerByPhone, login, pickFreeDate, uniq, uniquePhone } from "../e2e/helpers";
 
 test.describe("Vídeo · Dona do buffet", () => {
   const phone = uniquePhone();
@@ -24,23 +24,36 @@ test.describe("Vídeo · Dona do buffet", () => {
     await caption(page, "Agenda por mês, semana ou lista. Dias riscados têm festa: o buffet faz um evento por dia", 3500);
 
     await page.goto("/eventos/novo");
-    await caption(page, "Novo orçamento em menos de um minuto: cliente, WhatsApp, data e horário");
-    await page.getByLabel("Nome do responsável").fill(customerName);
-    await page.getByLabel("WhatsApp", { exact: true }).fill(phone);
-    await page.getByLabel("Data", { exact: true }).fill(date);
+    await caption(page, "Novo orçamento: os mesmos 5 passos que o cliente vê na página pública");
+    await caption(page, "1. Pacote: escolher preenche adultos e crianças inclusos");
+    await page.getByRole("button", { name: /Pacote Prata/ }).click();
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await caption(page, "2. Data: o calendário risca os dias que já têm festa");
+    const [y, m] = date.split("-").map(Number);
+    const months = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+    const target = `${months[m - 1]} de ${y}`;
+    for (let i = 0; i < 4; i++) {
+      if ((await page.getByText(target, { exact: true }).count()) > 0) break;
+      await page.getByRole("button", { name: "Próximo mês" }).click();
+      await page.waitForTimeout(800);
+    }
+    const dayBtn = page.getByRole("button", { name: brDate(date), exact: true });
+    await spotlight(page, dayBtn);
+    await dayBtn.click();
     await page.getByLabel("Início").fill("14:00");
     await page.getByLabel("Fim").fill("18:00");
-    await caption(page, "Escolher o pacote preenche adultos e crianças inclusos");
-    const pkgSelect = page.getByLabel("Pacote", { exact: true });
-    await spotlight(page, pkgSelect);
-    await pkgSelect.selectOption((await pkgSelect.locator("option", { hasText: "Pacote Prata" }).getAttribute("value"))!);
-    await page.waitForTimeout(800);
-    await caption(page, "Passou do incluso? O sistema mostra o extra e o valor na hora");
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await caption(page, "3. Pessoas: passou do incluso? O extra aparece com valor na hora");
     await page.getByLabel("Adultos", { exact: true }).fill("35");
     await page.waitForTimeout(1500);
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await caption(page, "4. Cliente: digite o nome; conhecido aparece para escolher, novo é criado sozinho");
+    await page.getByLabel("Nome do responsável").fill(customerName);
+    await page.getByLabel("WhatsApp", { exact: true }).fill(phone);
     await page.getByLabel("Aniversariante", { exact: true }).fill("Lua");
     await page.getByLabel("Idade").fill("5");
-    await caption(page, "Reservar a data? Sim: a data fica bloqueada até o prazo configurado. O orçamento já nasce junto");
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await caption(page, "5. Revisão: valor do orçamento e a decisão de reservar a data ou não", 3000);
     await page.getByRole("button", { name: "Salvar" }).click();
     await page.waitForURL(/\/eventos\/[0-9a-f-]+\?created=/);
     const eventUrl = page.url().split("?")[0];

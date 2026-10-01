@@ -11,7 +11,7 @@ type Customer = { id: string; name: string; whatsapp: string };
  * One field for the customer name. Typing searches existing customers (name or WhatsApp);
  * picking one fills the form, otherwise a new customer is created when the event is saved.
  */
-export function CustomerField({ initialName, error, onPick }: { initialName: string; error?: string; onPick: (c: Customer) => void }) {
+export function CustomerField({ initialName, error, onPick, onChange }: { initialName: string; error?: string; onPick: (c: Customer) => void; onChange?: (value: string) => void }) {
   const [value, setValue] = useState(initialName);
   const [results, setResults] = useState<Customer[]>([]);
   const [open, setOpen] = useState(false);
@@ -35,7 +35,7 @@ export function CustomerField({ initialName, error, onPick }: { initialName: str
     <div className="relative">
       <Field label="Nome do responsável" htmlFor="customer_name" error={error} hint={results.length ? undefined : "Digite o nome ou o WhatsApp; clientes já cadastrados aparecem para escolher."}>
         <Input id="customer_name" name="customer_name" value={value} autoComplete="off" required
-          onChange={(e) => { setValue(e.target.value); setOpen(true); }}
+          onChange={(e) => { setValue(e.target.value); onChange?.(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)} />
       </Field>

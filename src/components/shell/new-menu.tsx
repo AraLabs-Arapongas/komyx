@@ -6,10 +6,10 @@ import { Plus, CalendarCheck, PartyPopper, FileText, UserPlus } from "lucide-rea
 import { buttonClass } from "@/components/ui/button";
 
 const ITEMS = [
-  { href: "/eventos/novo?status=PRE_RESERVED", label: "Nova reserva", hint: "segura a data", icon: CalendarCheck },
-  { href: "/eventos/novo?status=CONFIRMED", label: "Novo evento", hint: "já fechado", icon: PartyPopper },
-  { href: "/eventos/novo?status=QUOTE", label: "Novo orçamento", hint: "sem bloquear a data", icon: FileText },
-  { href: "/clientes/novo", label: "Novo cliente", hint: "cadastro", icon: UserPlus },
+  { href: "/eventos/novo?status=PRE_RESERVED", label: "Nova reserva", icon: CalendarCheck },
+  { href: "/eventos/novo?status=CONFIRMED", label: "Novo evento", icon: PartyPopper },
+  { href: "/eventos/novo?status=QUOTE", label: "Novo orçamento", icon: FileText },
+  { href: "/clientes/novo", label: "Novo cliente", icon: UserPlus },
 ];
 
 /** Primary "+ Novo" button with the four entry points. */
@@ -29,12 +29,11 @@ export function NewMenu() {
       </button>
       {open ? (
         <ul role="menu" className="absolute left-0 right-0 mt-1 rounded-xl border border-border bg-surface shadow-lg z-40 overflow-hidden">
-          {ITEMS.map(({ href, label, hint, icon: Icon }) => (
+          {ITEMS.map(({ href, label, icon: Icon }) => (
             <li key={href} role="none">
               <Link role="menuitem" href={href} onClick={() => setOpen(false)} className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-stone-50">
                 <Icon className="h-4 w-4 text-brand" />
                 <span className="font-medium">{label}</span>
-                <span className="ml-auto text-xs text-muted">{hint}</span>
               </Link>
             </li>
           ))}

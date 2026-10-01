@@ -25,20 +25,32 @@ test.describe("Dona do buffet", () => {
     await expect(page.getByRole("heading", { name: /Olá,/ })).toBeVisible();
 
     // Novo orçamento
+    // Novo orçamento: wizard de 5 passos (igual ao público)
     await page.goto("/eventos/novo");
-    await page.getByLabel("Nome do responsável").fill(customerName);
-    await page.getByLabel("WhatsApp", { exact: true }).fill(phone);
-    await page.getByLabel("Data", { exact: true }).fill(date);
+    await page.getByRole("button", { name: /Pacote Prata/ }).click();
+    await page.getByRole("button", { name: "Continuar" }).click();
+    const [y, m] = date.split("-").map(Number);
+    const months = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+    const target = `${months[m - 1]} de ${y}`;
+    for (let i = 0; i < 4; i++) {
+      if ((await page.getByText(target, { exact: true }).count()) > 0) break;
+      await page.getByRole("button", { name: "Próximo mês" }).click();
+    }
+    await page.getByRole("button", { name: brDate(date), exact: true }).click();
     await page.getByLabel("Início").fill("14:00");
     await page.getByLabel("Fim").fill("18:00");
-    const pkgSelect = page.getByLabel("Pacote", { exact: true });
-    const prataValue = await pkgSelect.locator("option", { hasText: "Pacote Prata" }).getAttribute("value");
-    await pkgSelect.selectOption(prataValue!);
+    await page.getByRole("button", { name: "Continuar" }).click();
     await expect(page.getByLabel("Adultos", { exact: true })).toHaveValue("30");
     await page.getByLabel("Adultos", { exact: true }).fill("35"); // 5 extra adults
     await expect(page.getByText(/Extras além do pacote/)).toBeVisible();
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await page.getByLabel("Nome do responsável").fill(customerName);
+    await page.getByLabel("WhatsApp", { exact: true }).fill(phone);
     await page.getByLabel("Aniversariante", { exact: true }).fill("Lua");
     await page.getByLabel("Idade").fill("5");
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await expect(page.getByText("Confira e salve")).toBeVisible();
+    await expect(page.getByText("R$ 4.225,00").first()).toBeVisible(); // 3900 + 5*65
     await page.getByRole("button", { name: "Salvar" }).click();
     await page.waitForURL(/\/eventos\/[0-9a-f-]+\?created=PRE_RESERVED/);
     await expect(page.getByText(/Orçamento criado e data reservada/)).toBeVisible();

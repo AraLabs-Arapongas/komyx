@@ -38,6 +38,10 @@ const preReservationSchema = z.object({
   status: z.enum(["QUOTE", "PRE_RESERVED", "CONFIRMED"]).default("PRE_RESERVED"),
   request_id: uuidOrNull,
   force_same_day: z.string().optional().transform((v) => v === "on" || v === "1"),
+  addons: z.string().optional().transform((v) => {
+    if (!v) return null;
+    try { const arr = JSON.parse(v); return Array.isArray(arr) ? arr.filter((a) => a && typeof a.addon_id === "string" && Number(a.quantity) > 0).map((a) => ({ addon_id: String(a.addon_id), quantity: Math.min(Math.round(Number(a.quantity)), 500) })) : null; } catch { return null; }
+  }),
 });
 
 /**
@@ -134,9 +138,9 @@ export async function createEvent(_prev: ActionResult | undefined, formData: For
     }
     revalidatePath("/solicitacoes");
   }
-  // Everything starts as a quote: create it right away from the package and participants.
+  // Everything starts as a quote: create it right away from the package, participants and addons.
   if (!quoteCreated) {
-    await createQuoteFromRequest(data.id, org.id, profile.id, d.adults ?? 0, d.children ?? 0, d.package_id, null);
+    await createQuoteFromRequest(data.id, org.id, profile.id, d.adults ?? 0, d.children ?? 0, d.package_id, d.addons);
   }
 
   revalidateEvents(data.id);

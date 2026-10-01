@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check } from "lucide-react";
+import { MonthPicker } from "@/components/calendar/month-picker";
 import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
 import { CopyButton } from "@/components/ui/copy-button";
 import { RememberReservation } from "@/app/r/[token]/remember";
@@ -31,16 +32,7 @@ type Props = {
 
 const STEPS = ["Pacote", "Data", "Pessoas", "Seus dados", "Revisão"] as const;
 function known_source_default(src: string) { return LEAD_SOURCES.some((s) => s.value === src) ? src : ""; }
-const MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-const WEEKDAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
-function shiftMonth(month: string, delta: number) {
-  const [y, m] = month.split("-").map(Number);
-  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-}
-function daysInMonth(month: string) { const [y, m] = month.split("-").map(Number); return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
-function weekdayOf(key: string) { const [y, m, d] = key.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)).getUTCDay(); }
 function addMinutes(time: string, minutes: number) {
   const [h, m] = time.split(":").map(Number);
   const t = Math.min(h * 60 + m + minutes, 23 * 60 + 59);
@@ -212,29 +204,7 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
             <h2 className="display font-extrabold text-2xl">Qual dia?</h2>
             <p className="text-sm" style={{ color: "var(--muted-ink)" }}>Dias riscados já têm festa. Fazemos uma festa por dia.</p>
             <div className="mx-auto w-full max-w-sm space-y-1.5">
-            <div className="flex items-center justify-between">
-              <button type="button" onClick={() => setMonth((m) => shiftMonth(m, -1))} disabled={month <= today.slice(0, 7)} className="h-10 w-10 grid place-items-center rounded-full bg-white border disabled:opacity-30" style={{ borderColor: "#ece7dc" }} aria-label="Mês anterior"><ChevronLeft className="h-5 w-5" /></button>
-              <span className="display font-bold text-lg"><span className="capitalize">{MONTHS[Number(month.slice(5)) - 1]}</span> de {month.slice(0, 4)}</span>
-              <button type="button" onClick={() => setMonth((m) => shiftMonth(m, 1))} className="h-10 w-10 grid place-items-center rounded-full bg-white border" style={{ borderColor: "#ece7dc" }} aria-label="Próximo mês"><ChevronRight className="h-5 w-5" /></button>
-            </div>
-            <div className={cn("grid grid-cols-7 gap-1 text-center text-[11px] font-bold", loadingMonth && "opacity-60")} style={{ color: "var(--muted-ink)" }}>{WEEKDAYS.map((d, i) => <div key={i}>{d}</div>)}</div>
-            <div className={cn("grid grid-cols-7 gap-1", loadingMonth && "opacity-60")} role="grid" aria-busy={loadingMonth}>
-              {Array.from({ length: weekdayOf(`${month}-01`) }).map((_, i) => <div key={`pad-${i}`} />)}
-              {Array.from({ length: daysInMonth(month) }).map((_, i) => {
-                const key = `${month}-${String(i + 1).padStart(2, "0")}`;
-                const past = key < today;
-                const isBusy = busyDays.has(key);
-                const disabled = past || isBusy;
-                const selected = key === date;
-                return (
-                  <button type="button" key={key} disabled={disabled} onClick={() => setDate(key)} aria-label={`${fmtDate(key)}${isBusy ? ", ocupado" : ""}`}
-                    className={cn("h-10 rounded-lg text-sm font-bold grid place-items-center transition", selected ? "text-white" : disabled ? "cursor-not-allowed" : "bg-white hover:bg-[var(--paper-2)]")}
-                    style={selected ? { background: "var(--berry)" } : isBusy ? { background: "#f1ede4", color: "#b5b0a4", textDecoration: "line-through" } : past ? { color: "#cfcac0" } : undefined}>
-                    {i + 1}
-                  </button>
-                );
-              })}
-            </div>
+            <MonthPicker month={month} onMonthChange={setMonth} date={date} onDateChange={setDate} today={today} busy={busyDays} loading={loadingMonth} variant="public" />
             <div className="grid grid-cols-[150px_1fr] gap-3 items-center pt-2">
               <Field label="Início" htmlFor="wizard_time"><Input id="wizard_time" type="time" step={900} value={time} onChange={(e) => setTime(e.target.value || "15:00")} /></Field>
               <div className="text-sm pt-6" style={{ color: "var(--muted-ink)" }}>{date ? <>Festa em <b style={{ color: "var(--ink)" }}>{fmtDate(date)}</b>, das {time} às {addMinutes(time, durationMinutes)}</> : "Escolha um dia livre."}</div>
