@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { savePackage, saveAddon } from "@/lib/actions/settings";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -9,8 +9,9 @@ import { Alert } from "@/components/ui/page";
 type Pkg = { id: string; name: string; base_price: number | string; included_adults: number; included_children: number; extra_adult_price: number | string; extra_child_price: number | string; description: string | null };
 type Addon = { id: string; name: string; price: number | string; description: string | null };
 
-export function PackageForm({ pkg }: { pkg?: Pkg }) {
+export function PackageForm({ pkg, onSaved }: { pkg?: Pkg; onSaved?: () => void }) {
   const [state, action] = useActionState(savePackage, undefined);
+  useEffect(() => { if (state?.ok) onSaved?.(); }, [state, onSaved]);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   const k = pkg?.id ?? "new";
   return (
@@ -32,8 +33,9 @@ export function PackageForm({ pkg }: { pkg?: Pkg }) {
   );
 }
 
-export function AddonForm({ addon }: { addon?: Addon }) {
+export function AddonForm({ addon, onSaved }: { addon?: Addon; onSaved?: () => void }) {
   const [state, action] = useActionState(saveAddon, undefined);
+  useEffect(() => { if (state?.ok) onSaved?.(); }, [state, onSaved]);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   const k = addon?.id ?? "new";
   return (

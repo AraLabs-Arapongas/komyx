@@ -6,6 +6,8 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { PackageForm, AddonForm } from "./forms";
+import { NewItemMenu } from "./new-item-menu";
+import { EmptyState } from "@/components/ui/page";
 
 export const metadata = { title: "Pacotes" };
 
@@ -19,10 +21,10 @@ export default async function PackagesPage() {
 
   return (
     <>
-      <PageHeader title="Pacotes e adicionais" back="/menu" />
+      <PageHeader title="Pacotes e adicionais" back="/menu" action={<NewItemMenu />} />
       <PageBody>
         <Card>
-          <CardHeader title="Pacotes" subtitle="Preço-base, adultos e crianças incluídos e valor por participante extra" />
+          <CardHeader title="Pacotes" subtitle="Preço-base, participantes incluídos e valor por participante extra" />
           <CardBody className="space-y-3">
             {(packages ?? []).map((p) => (
               <details key={p.id} className="rounded-xl border border-border">
@@ -43,15 +45,12 @@ export default async function PackagesPage() {
                 </div>
               </details>
             ))}
-            <details className="rounded-xl border border-dashed border-border">
-              <summary className="px-3 py-2.5 cursor-pointer list-none text-sm font-medium text-brand">+ Novo pacote</summary>
-              <div className="border-t border-border p-3"><PackageForm /></div>
-            </details>
+            {(packages ?? []).length === 0 ? <EmptyState title="Nenhum pacote cadastrado." description="Use + Novo para criar o primeiro pacote." /> : null}
           </CardBody>
         </Card>
 
         <Card>
-          <CardHeader title="Adicionais" subtitle="Itens opcionais cobrados por unidade no orçamento" />
+          <CardHeader title="Adicionais" subtitle="Itens opcionais cobrados no orçamento" />
           <CardBody className="space-y-3">
             {(addons ?? []).map((a) => (
               <details key={a.id} className="rounded-xl border border-border">
@@ -72,10 +71,7 @@ export default async function PackagesPage() {
                 </div>
               </details>
             ))}
-            <details className="rounded-xl border border-dashed border-border">
-              <summary className="px-3 py-2.5 cursor-pointer list-none text-sm font-medium text-brand">+ Novo adicional</summary>
-              <div className="border-t border-border p-3"><AddonForm /></div>
-            </details>
+            {(addons ?? []).length === 0 ? <EmptyState title="Nenhum adicional cadastrado." description="Use + Novo para criar o primeiro adicional." /> : null}
           </CardBody>
         </Card>
       </PageBody>

@@ -80,6 +80,10 @@ Reativação manual: aniversariantes dos próximos 60 dias com idade, dias resta
 
 Fluxo: lead entra → WhatsApp ou Criar orçamento → Convertida ou Arquivada. O menu lateral mostra um badge laranja com o número de solicitações **Novas** (some quando zero; "Criar orçamento" converte e o badge diminui). Cada solicitação traz a **Ocasião** (Aniversário infantil, Chá revelação, Confraternização, Casamento, Outro); o aniversariante só aparece quando a ocasião é aniversário. O wizard público pergunta a ocasião e só mostra aniversariante/nascimento para aniversário.
 
+### Pacotes e adicionais
+
+Criação fica no cabeçalho fixo: **+ Novo ▾** → Novo pacote / Novo adicional, abrindo o formulário num diálogo. Listas só com nome, resumo e **Editar** (expande o formulário do item). Sem ações de adicionar no fim das listas; vazio orienta a usar + Novo.
+
 ## 2. Cliente (sem login)
 
 ### 2.1 Descobrir
