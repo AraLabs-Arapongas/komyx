@@ -10,7 +10,7 @@ export default async function MenuPage() {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const isOwner = profile.role === "owner";
   const items = [
-    { href: "/notificacoes", label: "Notificações", desc: "Pedidos, reservas, contratos e confirmações", icon: Bell },
+    { href: "/notificacoes", label: "Notificações", desc: "Pedidos de orçamento, reservas online, contratos aceitos", icon: Bell },
     { href: "/orcamentos", label: "Orçamentos", desc: "Todos os orçamentos, PDF e status", icon: FileText },
     { href: "/clientes", label: "Clientes", desc: "Cadastro e histórico", icon: Users },
     { href: "/aniversariantes", label: "Aniversariantes", desc: "Promoções para o próximo ano", icon: Cake },

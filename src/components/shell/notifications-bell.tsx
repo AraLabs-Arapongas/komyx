@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Bell, Inbox, CalendarCheck, FileSignature, Users } from "lucide-react";
+import { Bell, Inbox, CalendarCheck, FileSignature} from "lucide-react";
 import { cn, formatDateTime } from "@/lib/utils";
 
 type Item = { id: string; type: string; title: string; body: string | null; href: string | null; read_at: string | null; created_at: string };
 
-const ICONS: Record<string, typeof Bell> = { request: Inbox, reservation: CalendarCheck, contract_accepted: FileSignature, guest: Users };
+const ICONS: Record<string, typeof Bell> = { request: Inbox, reservation: CalendarCheck, contract_accepted: FileSignature };
 
 /** Bell with unread badge. Polls /api/notifications; opening marks everything read. */
 export function NotificationsBell({ initialUnread }: { initialUnread: number }) {

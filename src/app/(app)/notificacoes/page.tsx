@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, Inbox, CalendarCheck, FileSignature, Users } from "lucide-react";
+import { Bell, Inbox, CalendarCheck, FileSignature} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { markAllNotificationsRead, markNotificationRead } from "@/lib/actions/notifications";
 import { PageBody, PageHeader, EmptyState } from "@/components/ui/page";
@@ -8,7 +8,7 @@ import { cn, formatDateTime } from "@/lib/utils";
 
 export const metadata = { title: "Notificações" };
 
-const ICONS: Record<string, typeof Bell> = { request: Inbox, reservation: CalendarCheck, contract_accepted: FileSignature, guest: Users };
+const ICONS: Record<string, typeof Bell> = { request: Inbox, reservation: CalendarCheck, contract_accepted: FileSignature };
 
 export default async function NotificationsPage() {
   const supabase = await createClient();
@@ -35,7 +35,7 @@ export default async function NotificationsPage() {
               );
             })}
           </ul>
-        ) : <EmptyState title="Nenhuma notificação" description="Pedidos de orçamento, reservas online, contratos aceitos e confirmações de convidados aparecem aqui." />}
+        ) : <EmptyState title="Nenhuma notificação" description="Pedidos de orçamento, reservas online e contratos aceitos aparecem aqui." />}
       </PageBody>
     </>
   );

@@ -34,7 +34,7 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 
 ### 1.2b Rodapé da conta e notificações
 - Rodapé da sidebar (e no Menu no celular): quem está logado, botão sair, **plano e vencimento da fatura** com barra de progresso do ciclo (datas definidas pelo admin do Festeja; fica amarelo a 7 dias e vermelho vencida).
-- **Sino de notificações** (sidebar / canto superior no celular) com contador, lista rápida e página `/notificacoes`. Chegam: pedido de orçamento da página pública, reserva online, contrato aceito, convidado confirmado.
+- **Sino de notificações** (sidebar / canto superior no celular) com contador, lista rápida e página `/notificacoes`. Chegam exatamente três eventos: **pedido de orçamento** da página pública, **reserva online** (aguardando sinal) e **contrato aceito** pelo cliente. Confirmação de convidado não notifica (aparece na ficha do evento).
 
 ### 1.3 Vender uma festa (atendimento)
 1. **Solicitações** (`/solicitacoes`): leads da página pública com origem (Instagram, Google…), pessoas, aniversariante, estimativa. Botão **Criar pré-reserva** já leva tudo preenchido (pacote, adultos/crianças, data, aniversariante); se o lead montou orçamento, o orçamento é criado sozinho.
