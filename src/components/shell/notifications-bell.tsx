@@ -52,12 +52,12 @@ export function NotificationsBell({ initialUnread }: { initialUnread: number }) 
 
   return (
     <div ref={ref} className="relative">
-      <button type="button" onClick={toggle} className="relative h-10 w-10 grid place-items-center rounded-full bg-surface border border-border hover:bg-stone-50" aria-label={unread ? `${unread} notificações não lidas` : "Notificações"} aria-expanded={open}>
+      <button type="button" onClick={toggle} className="relative h-10 w-10 grid place-items-center rounded-lg text-muted hover:text-foreground hover:bg-stone-100" aria-label={unread ? `${unread} notificações não lidas` : "Notificações"} aria-expanded={open}>
         <Bell className="h-5 w-5" />
         {unread > 0 ? <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-brand text-brand-fg text-[11px] font-bold grid place-items-center">{unread > 99 ? "99+" : unread}</span> : null}
       </button>
       {open ? (
-        <div className="absolute right-0 md:left-0 md:right-auto mt-2 w-80 max-w-[90vw] rounded-2xl border border-border bg-surface shadow-xl z-40 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 max-w-[90vw] rounded-2xl border border-border bg-surface shadow-xl z-40 overflow-hidden">
           <div className="px-3 py-2 border-b border-border flex items-center justify-between"><p className="text-sm font-semibold">Notificações</p><Link href="/notificacoes" className="text-xs text-brand font-medium" onClick={() => setOpen(false)}>Ver todas</Link></div>
           {items.length === 0 ? <p className="px-3 py-6 text-sm text-muted text-center">Nada por aqui ainda.</p> : (
             <ul className="divide-y divide-border max-h-96 overflow-y-auto">

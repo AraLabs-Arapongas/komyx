@@ -10,9 +10,10 @@ import { PageBody, PageHeader, Alert } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
+import { Money } from "@/components/ui/money";
 import { eventTitle } from "@/components/events/event-card";
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE } from "@/lib/labels";
-import { appUrl, formatCurrency, formatDateLong, formatDateTime, formatPhone, formatTime, toDateKey, whatsappLink } from "@/lib/utils";
+import { appUrl, formatDateLong, formatDateTime, formatPhone, formatTime, toDateKey, whatsappLink } from "@/lib/utils";
 import { leadSourceLabel } from "@/lib/pricing";
 
 export const metadata = { title: "Início" };
@@ -70,7 +71,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
 
         {/* HOJE: one line */}
         <p className="text-sm text-muted">
-          <b className="text-foreground">Hoje:</b> {today.length} evento{today.length === 1 ? "" : "s"} · {formatCurrency(todayBalance)} a receber · {urgentCount} {urgentCount === 1 ? "ação urgente" : "ações urgentes"}
+          <b className="text-foreground">Hoje:</b> {today.length} evento{today.length === 1 ? "" : "s"} · <Money value={todayBalance} /> a receber · {urgentCount} {urgentCount === 1 ? "ação urgente" : "ações urgentes"}
         </p>
 
         {/* AÇÕES URGENTES */}
@@ -110,7 +111,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium truncate"><Inbox className="inline h-4 w-4 text-muted mr-1.5" />{r.name}</p>
                     <p className="text-xs text-muted">
-                      {r.desired_date ? `${r.desired_date.split("-").reverse().join("/")}${r.desired_time ? ` ${r.desired_time.slice(0, 5)}` : ""}` : "sem data"} · {r.adults != null || r.children != null ? `${r.adults ?? 0}A ${r.children ?? 0}C` : `${r.participants ?? "?"} pessoas`} · {leadSourceLabel(r.source)}{r.estimated_total != null ? ` · ${formatCurrency(r.estimated_total)}` : ""} · {formatPhone(r.whatsapp)}
+                      {r.desired_date ? `${r.desired_date.split("-").reverse().join("/")}${r.desired_time ? ` ${r.desired_time.slice(0, 5)}` : ""}` : "sem data"} · {r.adults != null || r.children != null ? `${r.adults ?? 0}A ${r.children ?? 0}C` : `${r.participants ?? "?"} pessoas`} · {leadSourceLabel(r.source)}{r.estimated_total != null ? ` · $<Money value={r.estimated_total} />` : ""} · {formatPhone(r.whatsapp)}
                     </p>
                   </div>
                   <div className="flex gap-1.5">
@@ -136,7 +137,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{eventTitle(e)} <Badge tone={EVENT_STATUS_TONE[e.status]} className="ml-1">{EVENT_STATUS_LABEL[e.status]}</Badge></p>
                   <p className="text-sm text-muted">{formatTime(e.starts_at)}–{formatTime(e.ends_at)} · {e.customers?.name}{e.customers ? ` · ${formatPhone(e.customers.whatsapp)}` : ""}</p>
-                  <p className="text-sm text-muted">{f?.participants_total ?? 0} confirmados de {e.estimated_participants ?? 0} · {f?.checked_in_total ?? 0} presentes · saldo <b className={Number(f?.balance ?? 0) > 0 ? "text-amber-700" : "text-emerald-700"}>{formatCurrency(f?.balance ?? 0)}</b></p>
+                  <p className="text-sm text-muted">{f?.participants_total ?? 0} confirmados de {e.estimated_participants ?? 0} · {f?.checked_in_total ?? 0} presentes · saldo <b className={Number(f?.balance ?? 0) > 0 ? "text-amber-700" : "text-emerald-700"}><Money value={f?.balance ?? 0} /></b></p>
                 </div>
                 <div className="flex gap-1.5">
                   {e.customers ? <a href={whatsappLink(e.customers.whatsapp)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> WhatsApp</a> : null}
@@ -150,7 +151,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
         {/* PRÓXIMOS 7 DIAS */}
         <section className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Próximos 7 dias <span className="text-muted font-normal text-sm">· {week.length} evento{week.length === 1 ? "" : "s"} · {formatCurrency(dueWeek)} a receber</span></h2>
+            <h2 className="font-semibold">Próximos 7 dias <span className="text-muted font-normal text-sm">· {week.length} evento{week.length === 1 ? "" : "s"} · <Money value={dueWeek} /> a receber</span></h2>
             <Link href="/agenda?view=week" className="text-sm text-brand font-medium">Ver agenda</Link>
           </div>
           {week.length ? (
@@ -162,7 +163,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                     <Link href={`/eventos/${e.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-stone-50">
                       <span className="text-xs font-mono text-muted w-28 shrink-0">{formatDateLong(e.starts_at)} {formatTime(e.starts_at)}</span>
                       <span className="font-medium truncate flex-1">{eventTitle(e)}</span>
-                      {bal > 0 ? <span className="text-xs font-medium text-amber-700 whitespace-nowrap">cobrar {formatCurrency(bal)}</span> : null}
+                      {bal > 0 ? <span className="text-xs font-medium text-amber-700 whitespace-nowrap">cobrar <Money value={bal} /></span> : null}
                       <Badge tone={EVENT_STATUS_TONE[e.status]}>{EVENT_STATUS_LABEL[e.status]}</Badge>
                     </Link>
                   </li>
@@ -175,9 +176,9 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
 
         {/* A RECEBER */}
         <section className="grid grid-cols-3 gap-2">
-          <Link href="/eventos?status=DONE" className="rounded-2xl border border-border bg-surface p-3"><p className="text-xs text-muted">Atrasado</p><p className={`text-lg font-semibold ${overdue > 0 ? "text-red-700" : ""}`}>{formatCurrency(overdue)}</p><p className="text-[11px] text-muted">festas já realizadas</p></Link>
-          <Link href="/agenda?view=week" className="rounded-2xl border border-border bg-surface p-3"><p className="text-xs text-muted">Próximos 7 dias</p><p className="text-lg font-semibold">{formatCurrency(dueWeek)}</p><p className="text-[11px] text-muted">cobrar antes da festa</p></Link>
-          <Link href="/eventos?status=CONFIRMED" className="rounded-2xl border border-border bg-surface p-3"><p className="text-xs text-muted">Total a receber</p><p className="text-lg font-semibold">{formatCurrency(receivableTotal)}</p><p className="text-[11px] text-muted">{owingEvents?.length ?? 0} evento(s)</p></Link>
+          <Link href="/eventos?status=DONE" className="rounded-2xl border border-border bg-surface p-3"><p className="text-xs text-muted">Atrasado</p><p className={`text-lg font-semibold ${overdue > 0 ? "text-red-700" : ""}`}><Money value={overdue} /></p><p className="text-[11px] text-muted">festas já realizadas</p></Link>
+          <Link href="/agenda?view=week" className="rounded-2xl border border-border bg-surface p-3"><p className="text-xs text-muted">Próximos 7 dias</p><p className="text-lg font-semibold"><Money value={dueWeek} /></p><p className="text-[11px] text-muted">cobrar antes da festa</p></Link>
+          <Link href="/eventos?status=CONFIRMED" className="rounded-2xl border border-border bg-surface p-3"><p className="text-xs text-muted">Total a receber</p><p className="text-lg font-semibold"><Money value={receivableTotal} /></p><p className="text-[11px] text-muted">{owingEvents?.length ?? 0} evento(s)</p></Link>
         </section>
       </PageBody>
     </>

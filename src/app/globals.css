@@ -123,3 +123,10 @@ a, button:not(:disabled), [role="button"], summary, label[for], input[type="subm
 @media (prefers-reduced-motion: reduce) {
   .public-theme .marquee { animation: none; overflow-x: auto; }
 }
+
+/* Privacy eye: hide money values */
+html[data-privacy="on"] .money {
+  filter: blur(7px);
+  user-select: none;
+  pointer-events: none;
+}

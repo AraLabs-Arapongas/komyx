@@ -6,7 +6,6 @@ import { Home, CalendarDays, Plus, PartyPopper, Users, Inbox, Settings, Package,
 import { cn } from "@/lib/utils";
 import { buttonClass } from "@/components/ui/button";
 import { AccountFooter, type Billing } from "@/components/shell/account-footer";
-import { NotificationsBell } from "@/components/shell/notifications-bell";
 
 const links = [
   { href: "/home", label: "Início", icon: Home },
@@ -20,13 +19,13 @@ const links = [
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
-export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, billing, unread }: { orgName: string; userName: string; userEmail: string; role: string; isAdmin?: boolean; billing: Billing; unread: number }) {
+export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, billing }: { orgName: string; userName: string; userEmail: string; role: string; isAdmin?: boolean; billing: Billing }) {
   const pathname = usePathname();
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-surface h-screen sticky top-0 self-start overflow-hidden">
-      <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-2">
+      <div className="px-5 py-4 border-b border-border">
         <p className="font-semibold truncate">{orgName}</p>
-        <NotificationsBell initialUnread={unread} />
+        <p className="text-xs text-muted truncate">{role === "owner" ? "Proprietário" : "Equipe"}</p>
       </div>
       <div className="p-3">
         <Link href="/eventos/novo" className={buttonClass("primary", "md", "w-full")}>
