@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { Keyboard, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { normalizePhone } from "@/lib/format";
+import { maskPhoneInput, normalizePhone } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import { Button, Field, Input, Muted, styles } from "@/ui/components";
 import { colors } from "@/ui/theme";
@@ -92,7 +92,7 @@ export default function Entrar() {
       {DEV_ACCOUNTS.length ? (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           {DEV_ACCOUNTS.map((a) => (
-            <Pressable key={a.value} onPress={() => { setId(a.value); setPassword(a.value.includes("@") ? "senha12345" : ""); setCode(""); setCodeSent(false); setError(null); }} style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: colors.surface }}>
+            <Pressable key={a.value} onPress={() => { setId(maskPhoneInput(a.value)); setPassword(a.value.includes("@") ? "senha12345" : ""); setCode(""); setCodeSent(false); setError(null); }} style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: colors.surface }}>
               <Text style={{ fontSize: 12, color: colors.muted }}>{a.label}</Text>
             </Pressable>
           ))}
@@ -100,7 +100,7 @@ export default function Entrar() {
       ) : null}
 
       <Field label="E-mail ou celular">
-        <Input value={id} onChangeText={(v: string) => { setId(v); setError(null); setCodeSent(false); }} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" placeholder="voce@buffet.com ou (11) 99999-0000" returnKeyType="next" editable={!codeSent} />
+        <Input value={id} onChangeText={(v: string) => { setId(maskPhoneInput(v)); setError(null); setCodeSent(false); }} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" placeholder="voce@buffet.com ou (11) 99999-0000" returnKeyType="next" editable={!codeSent} />
       </Field>
       {d.kind === "email" ? (
         <Field label="Senha"><Input value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" onSubmitEditing={go} returnKeyType="go" /></Field>

@@ -53,3 +53,15 @@ export function hoursLeft(iso: string | null | undefined) {
   if (!iso) return null;
   return Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 3_600_000));
 }
+
+/** Live mask for the sign-in field: digits become (DD) 9XXXX-XXXX while typing; anything with letters or @ stays as typed. */
+export function maskPhoneInput(value: string) {
+  if (/[a-zA-Z@]/.test(value)) return value;
+  let d = value.replace(/\D/g, "");
+  if (d.startsWith("55") && d.length > 11) d = d.slice(2);
+  d = d.slice(0, 11);
+  if (d.length <= 2) return d;
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
