@@ -15,7 +15,7 @@ import { buttonClass } from "@/components/ui/button";
 import { Money } from "@/components/ui/money";
 import { eventTitle } from "@/components/events/event-card";
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, QUOTE_STATUS_LABEL, QUOTE_STATUS_TONE, PAYMENT_STATUS_LABEL, PAYMENT_STATUS_TONE, PAYMENT_METHOD_LABEL } from "@/lib/labels";
-import { formatCurrency, formatDate, formatDateLong, formatDateTime, formatPhone, formatTime, shortUrl, whatsappLink } from "@/lib/utils";
+import { cn, formatCurrency, formatDate, formatDateLong, formatDateTime, formatPhone, formatTime, shortUrl, whatsappLink } from "@/lib/utils";
 import { StatusActions } from "./status-actions";
 import { GuestSection } from "./guest-section";
 import { PaymentForm } from "./payment-form";
@@ -33,11 +33,11 @@ export async function generateMetadata({ params }: PageProps<"/eventos/[id]">) {
   return { title: data ? eventTitle(data) : "Evento" };
 }
 
-function Stat({ label, children, strong }: { label: string; children: React.ReactNode; strong?: boolean }) {
+function Stat({ label, children, strong, tone }: { label: string; children: React.ReactNode; strong?: boolean; tone?: "red" | "green" }) {
   return (
     <div className="min-w-0">
       <p className="text-[11px] uppercase tracking-wide text-muted">{label}</p>
-      <p className={strong ? "text-lg font-semibold leading-tight" : "font-medium leading-tight"}>{children}</p>
+      <p className={cn(strong ? "text-lg font-semibold leading-tight" : "font-medium leading-tight", tone === "red" && "text-red-600", tone === "green" && "text-emerald-700")}>{children}</p>
     </div>
   );
 }
@@ -139,7 +139,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                 <Stat label="Extras"><Money value={fin?.extras_total ?? 0} /></Stat>
                 <Stat label="Pago"><Money value={fin?.paid_total ?? 0} /></Stat>
                 <Stat label="Presentes">{fin?.checked_in_total ?? 0}/{fin?.participants_total ?? 0}</Stat>
-                <Stat label="Saldo" strong><Money value={fin?.balance ?? 0} /></Stat>
+                <Stat label={Number(fin?.balance ?? 0) > 0 ? "Falta receber" : "Saldo"} strong tone={Number(fin?.balance ?? 0) > 0 ? "red" : Number(fin?.total ?? 0) > 0 ? "green" : undefined}><Money value={fin?.balance ?? 0} /></Stat>
               </div>
             </div>
             <StatusActions eventId={id} status={event.status} pixTxid={event.pix_txid} depositAmount={latestQuote ? Number([...latestQuote.quote_installments].sort((a, b) => a.sequence - b.sequence)[0]?.amount ?? 0) || null : null} />
