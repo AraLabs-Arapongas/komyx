@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageCircle, Pencil, FileText, Share2, Wallet, FileSignature, Image as ImageIcon, DoorOpen, Copy } from "lucide-react";
+import { MessageCircle, Pencil, FileText, Wallet, FileSignature, Image as ImageIcon, DoorOpen, Link2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/data/session";
 import { createQuoteAndGo } from "@/lib/actions/quotes";
@@ -11,6 +11,7 @@ import { PageBody, PageHeader, Alert } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
+import { Money } from "@/components/ui/money";
 import { eventTitle } from "@/components/events/event-card";
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, QUOTE_STATUS_LABEL, QUOTE_STATUS_TONE, PAYMENT_STATUS_LABEL, PAYMENT_STATUS_TONE, PAYMENT_METHOD_LABEL } from "@/lib/labels";
 import { appUrl, formatCurrency, formatDate, formatDateLong, formatDateTime, formatPhone, formatTime, whatsappLink } from "@/lib/utils";
@@ -28,6 +29,43 @@ export async function generateMetadata({ params }: PageProps<"/eventos/[id]">) {
   const supabase = await createClient();
   const { data } = await supabase.from("events").select("title, customers(name)").eq("id", id).maybeSingle();
   return { title: data ? eventTitle(data) : "Evento" };
+}
+
+function Stat({ label, children, strong }: { label: string; children: React.ReactNode; strong?: boolean }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[11px] uppercase tracking-wide text-muted">{label}</p>
+      <p className={strong ? "text-lg font-semibold leading-tight" : "font-medium leading-tight"}>{children}</p>
+    </div>
+  );
+}
+
+/** Compact public-link row: truncated URL + copy + optional WhatsApp send + optional revoke. */
+function LinkRow({ icon, label, url, send, revoke, generate }: {
+  icon: React.ReactNode; label: string; url: string | null;
+  send?: { href: string; label: string } | null;
+  revoke?: { linkId: string; eventId: string } | null;
+  generate: { eventId: string; type: string; label: string };
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-stone-50 px-3 py-2 text-sm">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <p className="font-medium inline-flex items-center gap-1.5 shrink-0">{icon} {label}</p>
+        {url ? (
+          <>
+            <p className="text-xs text-muted truncate min-w-0 flex-1 basis-40">{url}</p>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <CopyButton text={url} />
+              {send ? <a href={send.href} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> {send.label}</a> : null}
+              {revoke ? <form action={revokePublicLink}><input type="hidden" name="id" value={revoke.linkId} /><input type="hidden" name="event_id" value={revoke.eventId} /><button className="h-9 px-2 text-xs text-muted hover:text-red-600">Revogar</button></form> : null}
+            </div>
+          </>
+        ) : (
+          <form action={ensureEventLink} className="ml-auto"><input type="hidden" name="event_id" value={generate.eventId} /><input type="hidden" name="type" value={generate.type} /><button className={buttonClass("secondary", "sm")}>{generate.label}</button></form>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default async function EventDetailPage({ params, searchParams }: PageProps<"/eventos/[id]">) {
@@ -66,240 +104,214 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
   const latestContract = contracts[0];
   const payStatus = fin?.payment_status ?? null;
   const waMessage = `Olá ${customer.name.split(" ")[0]}! Aqui é do ${org.name}. Sobre a festa de ${formatDate(event.starts_at)} às ${formatTime(event.starts_at)}.`;
+  const reservationUrl = reservationLink ? appUrl(`/r/${reservationLink.token}`) : null;
+  const inviteUrl = inviteLink ? appUrl(`/i/${inviteLink.token}`) : null;
+  const checkinUrl = checkinLink ? appUrl(`/d/${checkinLink.token}`) : null;
+
+  const statusHint =
+    event.status === "PRE_RESERVED" && event.expires_at ? `Data reservada até ${formatDateTime(event.expires_at)}. Confirme ou libere.` :
+    event.status === "EXPIRED" ? "Horário liberado. Renove para bloquear novamente." :
+    event.status === "QUOTE" ? "Só orçamento: a data não está bloqueada na agenda." : null;
 
   return (
     <>
       <PageHeader title={title} subtitle={`${formatDateLong(event.starts_at)} · ${formatTime(event.starts_at)}–${formatTime(event.ends_at)}`} back="/eventos"
         action={<Link href={`/eventos/${id}/editar`} className={buttonClass("ghost", "icon")} aria-label="Editar"><Pencil className="h-5 w-5" /></Link>} />
-      <PageBody>
+      <PageBody className="space-y-3">
         {sp.created === "QUOTE" ? <Alert tone="success">Orçamento criado. A data não está bloqueada; reserve quando o cliente sinalizar.</Alert> : null}
         {sp.created === "PRE_RESERVED" || sp.created === "1" ? <Alert tone="success">Orçamento criado e data reservada. O horário está bloqueado na agenda até o prazo.</Alert> : null}
         {sp.created === "CONFIRMED" ? <Alert tone="success">Orçamento criado e evento confirmado.</Alert> : null}
         {sp.error ? <Alert>{String(sp.error)}</Alert> : null}
 
+        {/* Status strip: status + numbers + actions in one band */}
         <Card>
-          <CardBody className="pt-4">
-            <div className="flex items-start justify-between gap-3">
+          <CardBody className="pt-3 pb-3 space-y-3">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+              <div className="min-w-0 flex-1 basis-56">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
+                  {event.origin === "SELF_SERVICE" ? <Badge tone="brand">Reserva online</Badge> : null}
+                  {payStatus ? <Badge tone={PAYMENT_STATUS_TONE[payStatus]}><Wallet className="h-3 w-3 mr-1" />{PAYMENT_STATUS_LABEL[payStatus]}</Badge> : null}
+                </div>
+                {statusHint ? <p className="text-xs text-muted mt-1.5">{statusHint}</p> : null}
+              </div>
+              <div className="grid grid-cols-5 gap-x-5 text-sm shrink-0">
+                <Stat label="Orçamento"><Money value={fin?.quote_total ?? 0} /></Stat>
+                <Stat label="Extras"><Money value={fin?.extras_total ?? 0} /></Stat>
+                <Stat label="Pago"><Money value={fin?.paid_total ?? 0} /></Stat>
+                <Stat label="Presentes">{fin?.checked_in_total ?? 0}/{fin?.participants_total ?? 0}</Stat>
+                <Stat label="Saldo" strong><Money value={fin?.balance ?? 0} /></Stat>
+              </div>
+            </div>
+            <StatusActions eventId={id} status={event.status} pixTxid={event.pix_txid} depositAmount={latestQuote ? Number([...latestQuote.quote_installments].sort((a, b) => a.sequence - b.sequence)[0]?.amount ?? 0) || null : null} />
+          </CardBody>
+        </Card>
+
+        {/* Row: client · party data · documents */}
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <Card>
+            <CardHeader title="Cliente" action={<Link href={`/clientes/${customer.id}`} className="text-sm text-brand font-medium">Ver ficha</Link>} />
+            <CardBody className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{customer.name}</p>
+                  <p className="text-sm text-muted truncate">{formatPhone(customer.whatsapp)}{customer.email ? ` · ${customer.email}` : ""}{customer.document ? ` · ${customer.document}` : ""}</p>
+                </div>
+                <a href={whatsappLink(customer.whatsapp, waMessage)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm", "shrink-0")}>
+                  <MessageCircle className="h-4 w-4" /> WhatsApp
+                </a>
+              </div>
+              <LinkRow icon={<Link2 className="h-4 w-4" />} label="Página da reserva" url={reservationUrl}
+                send={reservationUrl ? { href: whatsappLink(customer.whatsapp, `Sua reserva no ${org.name} (Pix, orçamento e contrato): ${reservationUrl}`), label: "Reenviar" } : null}
+                generate={{ eventId: id, type: "RESERVATION", label: "Gerar página" }} />
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="Dados da festa" />
+            <CardBody>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+                <div><dt className="text-muted text-xs">Data</dt><dd className="font-medium">{formatDate(event.starts_at)} · {formatTime(event.starts_at)}–{formatTime(event.ends_at)}</dd></div>
+                <div><dt className="text-muted text-xs">Pacote</dt><dd className="font-medium">{event.packages?.name ?? "Personalizado"}</dd></div>
+                <div><dt className="text-muted text-xs">Participantes</dt><dd className="font-medium">{event.adults ?? 0} adultos · {event.children ?? 0} crianças</dd></div>
+                {event.celebrant_name ? <div><dt className="text-muted text-xs">Aniversariante</dt><dd className="font-medium">{event.celebrant_name}{event.celebrant_age != null ? `, ${event.celebrant_age} anos` : ""}</dd></div> : null}
+                {event.space ? <div><dt className="text-muted text-xs">Espaço</dt><dd className="font-medium">{event.space}</dd></div> : null}
+                {event.notes ? <div className="col-span-2"><dt className="text-muted text-xs">Observações</dt><dd className="whitespace-pre-wrap">{event.notes}</dd></div> : null}
+              </dl>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="Documentos" />
+            <CardBody className="space-y-3">
               <div>
-                <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
-                {event.origin === "SELF_SERVICE" ? <Badge tone="brand" className="ml-1">Reserva online</Badge> : null}
-                {event.status === "PRE_RESERVED" && event.expires_at ? <p className="text-xs text-muted mt-2">Data reservada até {formatDateTime(event.expires_at)}. Confirme ou libere.</p> : null}
-                {event.status === "EXPIRED" ? <p className="text-xs text-muted mt-2">Horário liberado. Renove para bloquear novamente.</p> : null}
-                {event.status === "QUOTE" ? <p className="text-xs text-muted mt-2">Só orçamento: a data não está bloqueada na agenda.</p> : null}
-              </div>
-              <div className="text-right">
-                <p className="text-xs text-muted">Saldo</p>
-                <p className="text-lg font-semibold">{formatCurrency(fin?.balance ?? 0)}</p>
-              </div>
-            </div>
-            <div className="mt-4 grid grid-cols-4 gap-2 text-center text-sm">
-              <div className="rounded-xl bg-stone-50 p-2"><p className="text-xs text-muted">Orçamento</p><p className="font-medium">{formatCurrency(fin?.quote_total ?? 0)}</p></div>
-              <div className="rounded-xl bg-stone-50 p-2"><p className="text-xs text-muted">Extras</p><p className="font-medium">{formatCurrency(fin?.extras_total ?? 0)}</p></div>
-              <div className="rounded-xl bg-stone-50 p-2"><p className="text-xs text-muted">Pago</p><p className="font-medium">{formatCurrency(fin?.paid_total ?? 0)}</p></div>
-              <div className="rounded-xl bg-stone-50 p-2"><p className="text-xs text-muted">Presentes</p><p className="font-medium">{fin?.checked_in_total ?? 0}/{fin?.participants_total ?? 0}</p></div>
-            </div>
-            <div className="mt-4">
-              <StatusActions eventId={id} status={event.status} pixTxid={event.pix_txid} depositAmount={latestQuote ? Number([...latestQuote.quote_installments].sort((a, b) => a.sequence - b.sequence)[0]?.amount ?? 0) || null : null} />
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Cliente" action={<Link href={`/clientes/${customer.id}`} className="text-sm text-brand font-medium">Ver ficha</Link>} />
-          <CardBody className="space-y-3">
-            <div>
-              <p className="font-medium">{customer.name}</p>
-              <p className="text-sm text-muted">{formatPhone(customer.whatsapp)}{customer.email ? ` · ${customer.email}` : ""}{customer.document ? ` · ${customer.document}` : ""}</p>
-            </div>
-            <a href={whatsappLink(customer.whatsapp, waMessage)} target="_blank" rel="noopener" className={buttonClass("secondary", "md", "w-full")}>
-              <MessageCircle className="h-4 w-4" /> Chamar no WhatsApp
-            </a>
-            {reservationLink ? (
-              <div className="rounded-xl border border-border bg-stone-50 p-3 text-sm space-y-2">
-                <p className="font-medium">Página da reserva do cliente</p>
-                <p className="text-xs text-muted break-all">{appUrl(`/r/${reservationLink.token}`)}</p>
-                <div className="flex flex-wrap gap-2">
-                  <CopyButton text={appUrl(`/r/${reservationLink.token}`)} />
-                  <a href={whatsappLink(customer.whatsapp, `Sua reserva no ${org.name} (Pix, orçamento e contrato): ${appUrl(`/r/${reservationLink.token}`)}`)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> Reenviar link</a>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium inline-flex items-center gap-1.5"><FileText className="h-4 w-4" /> Orçamento</p>
+                  {latestQuote ? <Link href={`/eventos/${id}/orcamento?quote=${latestQuote.id}`} className="text-sm text-brand font-medium">Abrir</Link> : null}
                 </div>
+                {quotes.length === 0 ? (
+                  <form action={createQuoteAndGo} className="mt-1.5 flex items-center justify-between gap-2">
+                    <input type="hidden" name="event_id" value={id} />
+                    <p className="text-xs text-muted">Parte do pacote e dos participantes.</p>
+                    <button className={buttonClass("primary", "sm")}>Montar orçamento</button>
+                  </form>
+                ) : (
+                  <ul className="divide-y divide-border">
+                    {quotes.map((q) => (
+                      <li key={q.id}>
+                        <Link href={`/eventos/${id}/orcamento?quote=${q.id}`} className="flex items-center justify-between gap-2 py-1.5 text-sm">
+                          <span className="inline-flex items-center gap-2"><Badge tone={QUOTE_STATUS_TONE[q.status]}>{QUOTE_STATUS_LABEL[q.status]}</Badge><span className="text-xs text-muted">{formatDateTime(q.created_at)}</span></span>
+                          <span className="font-medium"><Money value={q.total} /></span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            ) : (
-              <form action={ensureEventLink}><input type="hidden" name="event_id" value={id} /><input type="hidden" name="type" value="RESERVATION" /><button className="text-sm text-brand font-medium">Gerar página da reserva para o cliente (Pix, orçamento, contrato)</button></form>
-            )}
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Dados da festa" />
-          <CardBody>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-              <div><dt className="text-muted text-xs">Data</dt><dd className="font-medium">{formatDate(event.starts_at)}</dd></div>
-              <div><dt className="text-muted text-xs">Horário</dt><dd className="font-medium">{formatTime(event.starts_at)} – {formatTime(event.ends_at)}</dd></div>
-              <div><dt className="text-muted text-xs">Pacote</dt><dd className="font-medium">{event.packages?.name ?? "Personalizado"}</dd></div>
-              <div><dt className="text-muted text-xs">Participantes</dt><dd className="font-medium">{event.adults ?? 0} adultos · {event.children ?? 0} crianças</dd></div>
-              {event.celebrant_name ? <div><dt className="text-muted text-xs">Aniversariante</dt><dd className="font-medium">{event.celebrant_name}{event.celebrant_age != null ? `, ${event.celebrant_age} anos` : ""}</dd></div> : null}
-              {event.space ? <div><dt className="text-muted text-xs">Espaço</dt><dd className="font-medium">{event.space}</dd></div> : null}
-              {event.notes ? <div className="col-span-2"><dt className="text-muted text-xs">Observações</dt><dd className="whitespace-pre-wrap">{event.notes}</dd></div> : null}
-            </dl>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Orçamento" action={latestQuote ? <Link href={`/eventos/${id}/orcamento?quote=${latestQuote.id}`} className="text-sm text-brand font-medium">Abrir</Link> : null} />
-          <CardBody className="space-y-3">
-            {quotes.length === 0 ? (
-              <>
-                <p className="text-sm text-muted">Nenhum orçamento ainda. Ele parte do pacote e dos participantes.</p>
-                <form action={createQuoteAndGo}>
+              <div className="border-t border-border pt-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium inline-flex items-center gap-1.5"><FileSignature className="h-4 w-4" /> Contrato</p>
+                  {latestContract ? <Link href={`/eventos/${id}/contrato?c=${latestContract.id}`} className="text-sm text-brand font-medium">Abrir</Link> : null}
+                </div>
+                {contracts.length > 0 ? (
+                  <ul className="divide-y divide-border">
+                    {contracts.map((c) => (
+                      <li key={c.id}>
+                        <Link href={`/eventos/${id}/contrato?c=${c.id}`} className="flex items-center justify-between gap-2 py-1.5 text-sm">
+                          <span className="min-w-0 truncate">Nº {c.number} <span className="text-xs text-muted">· {c.accepted_at ? `aceito ${formatDateTime(c.accepted_at)}` : formatDateTime(c.created_at)}</span></span>
+                          <Badge tone={CONTRACT_TONE[c.status]}>{CONTRACT_LABEL[c.status]}</Badge>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <form action={generateContractAndGo} className="mt-1.5 flex items-center justify-between gap-2">
                   <input type="hidden" name="event_id" value={id} />
-                  <button className={buttonClass("primary", "md", "w-full")}><FileText className="h-4 w-4" /> Montar orçamento</button>
+                  <p className="text-xs text-muted">{contracts.length ? "Preenchido com evento e orçamento." : "Preenchido automaticamente com evento e orçamento."}</p>
+                  <button className={buttonClass(contracts.length ? "outline" : "primary", "sm")}>{contracts.length ? "Nova versão" : "Gerar contrato"}</button>
                 </form>
-              </>
-            ) : (
-              <ul className="divide-y divide-border">
-                {quotes.map((q) => (
-                  <li key={q.id}>
-                    <Link href={`/eventos/${id}/orcamento?quote=${q.id}`} className="flex items-center justify-between py-2.5">
-                      <div>
-                        <Badge tone={QUOTE_STATUS_TONE[q.status]}>{QUOTE_STATUS_LABEL[q.status]}</Badge>
-                        <p className="text-xs text-muted mt-1">{formatDateTime(q.created_at)}</p>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+
+        {/* Row: payments · extras */}
+        <div className="grid gap-3 xl:grid-cols-2">
+          <Card>
+            <CardHeader title="Pagamentos" subtitle={`Pago ${formatCurrency(fin?.paid_total ?? 0)} · saldo ${formatCurrency(fin?.balance ?? 0)}`} />
+            <CardBody className="space-y-3">
+              {(paymentsRes.data ?? []).length > 0 ? (
+                <ul className="divide-y divide-border">
+                  {paymentsRes.data!.map((p) => (
+                    <li key={p.id} className="flex items-center justify-between py-1.5 gap-3 text-sm">
+                      <div className="min-w-0 truncate">
+                        <span className="font-medium"><Money value={p.amount} /></span> <span className="text-muted">· {PAYMENT_METHOD_LABEL[p.method]} · {formatDate(p.paid_at + "T12:00:00-03:00")}{p.notes ? ` · ${p.notes}` : ""}</span>
                       </div>
-                      <span className="font-medium">{formatCurrency(q.total)}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardBody>
-        </Card>
+                      <form action={removePayment}>
+                        <input type="hidden" name="id" value={p.id} />
+                        <input type="hidden" name="event_id" value={id} />
+                        <button className="text-xs text-muted hover:text-red-600">Remover</button>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-sm text-muted">Nenhum pagamento registrado.</p>}
+              <PaymentForm eventId={id} />
+            </CardBody>
+          </Card>
 
-        <Card>
-          <CardHeader title="Contrato" subtitle="Preenchido automaticamente com os dados do evento e do orçamento"
-            action={latestContract ? <Link href={`/eventos/${id}/contrato?c=${latestContract.id}`} className="text-sm text-brand font-medium">Abrir</Link> : null} />
-          <CardBody className="space-y-3">
-            {contracts.length > 0 ? (
-              <ul className="divide-y divide-border">
-                {contracts.map((c) => (
-                  <li key={c.id}>
-                    <Link href={`/eventos/${id}/contrato?c=${c.id}`} className="flex items-center justify-between py-2.5">
-                      <div>
-                        <p className="font-medium">Contrato nº {c.number}</p>
-                        <p className="text-xs text-muted">{c.accepted_at ? `Aceito em ${formatDateTime(c.accepted_at)}` : formatDateTime(c.created_at)}</p>
+          <Card>
+            <CardHeader title="Pedidos extras na festa" subtitle={`Somam ao saldo · ${formatCurrency(fin?.extras_total ?? 0)}`} />
+            <CardBody className="space-y-3">
+              {(extrasRes.data ?? []).length > 0 ? (
+                <ul className="divide-y divide-border">
+                  {extrasRes.data!.map((x) => (
+                    <li key={x.id} className="flex items-center justify-between gap-3 py-1.5 text-sm">
+                      <div className="min-w-0 truncate">
+                        <span className="font-medium">{x.description}</span> <span className="text-muted">· {Number(x.quantity)} × {formatCurrency(x.unit_price)} · {x.source === "DOOR" ? "portaria" : "equipe"}</span>
                       </div>
-                      <Badge tone={CONTRACT_TONE[c.status]}>{CONTRACT_LABEL[c.status]}</Badge>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : <p className="text-sm text-muted">Nenhum contrato gerado.</p>}
-            <form action={generateContractAndGo}>
-              <input type="hidden" name="event_id" value={id} />
-              <button className={buttonClass(contracts.length ? "outline" : "primary", "md", "w-full")}><FileSignature className="h-4 w-4" /> {contracts.length ? "Gerar nova versão" : "Gerar contrato"}</button>
-            </form>
-          </CardBody>
-        </Card>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="font-medium whitespace-nowrap"><Money value={x.total} /></span>
+                        <form action={removeEventExtra}><input type="hidden" name="id" value={x.id} /><input type="hidden" name="event_id" value={id} /><button className="text-xs text-muted hover:text-red-600">Remover</button></form>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-sm text-muted">Nenhum pedido extra.</p>}
+              <ExtraForm eventId={id} addons={addonsRes.data ?? []} />
+            </CardBody>
+          </Card>
+        </div>
 
-        <Card>
-          <CardHeader title="Convite" subtitle="O cliente pode personalizar com imagem e texto pelo link" />
-          <CardBody className="space-y-3">
-            {event.invite_image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={event.invite_image_url} alt="Convite" className="w-full max-h-72 object-contain rounded-xl border border-border bg-stone-50" />
-            ) : null}
-            <InviteForm eventId={id} title={event.invite_title ?? ""} message={event.invite_message ?? ""} />
-            <div className="rounded-xl border border-border bg-stone-50 p-3 space-y-2 text-sm">
-              <p className="font-medium inline-flex items-center gap-1.5"><ImageIcon className="h-4 w-4" /> Link para o cliente editar o convite</p>
-              {inviteLink ? (
-                <>
-                  <p className="text-xs text-muted break-all">{appUrl(`/i/${inviteLink.token}`)}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <CopyButton text={appUrl(`/i/${inviteLink.token}`)} />
-                    <a href={whatsappLink(customer.whatsapp, `Personalize o convite da festa aqui: ${appUrl(`/i/${inviteLink.token}`)}`)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> Enviar</a>
-                    <form action={revokePublicLink}><input type="hidden" name="id" value={inviteLink.id} /><input type="hidden" name="event_id" value={id} /><button className="h-9 px-3 text-sm text-muted hover:text-red-600">Revogar</button></form>
-                  </div>
-                </>
-              ) : (
-                <form action={ensureEventLink}><input type="hidden" name="event_id" value={id} /><input type="hidden" name="type" value="INVITE_EDIT" /><button className={buttonClass("secondary", "sm")}>Gerar link de edição</button></form>
-              )}
-            </div>
-          </CardBody>
-        </Card>
+        {/* Row: guests · invite */}
+        <div className="grid gap-3 xl:grid-cols-2 pb-2">
+          <Card>
+            <CardHeader title="Convidados" subtitle={`${fin?.guest_count ?? 0} confirmação(ões) · ${fin?.adults_total ?? 0} adultos · ${fin?.children_total ?? 0} crianças · ${fin?.checked_in_total ?? 0} presentes`} />
+            <CardBody className="space-y-3">
+              <LinkRow icon={<DoorOpen className="h-4 w-4" />} label="Portaria (check-in no dia)" url={checkinUrl}
+                revoke={checkinLink ? { linkId: checkinLink.id, eventId: id } : null}
+                generate={{ eventId: id, type: "CHECKIN", label: "Gerar link da portaria" }} />
+              {checkinLink ? <Link href={`/d/${checkinLink.token}`} target="_blank" className={buttonClass("outline", "sm")}><DoorOpen className="h-4 w-4" /> Abrir portaria</Link> : null}
+              <GuestSection eventId={id} guests={guestsRes.data ?? []} guestLink={guestLink ? { id: guestLink.id, url: appUrl(`/g/${guestLink.token}`) } : null} eventTitle={title} customerPhone={customer.whatsapp} />
+            </CardBody>
+          </Card>
 
-        <Card>
-          <CardHeader title="Convidados" subtitle={`${fin?.guest_count ?? 0} confirmação(ões) · ${fin?.adults_total ?? 0} adultos · ${fin?.children_total ?? 0} crianças · ${fin?.checked_in_total ?? 0} presentes`} />
-          <CardBody>
-            <GuestSection eventId={id} guests={guestsRes.data ?? []} guestLink={guestLink ? { id: guestLink.id, url: appUrl(`/g/${guestLink.token}`) } : null} eventTitle={title} customerPhone={customer.whatsapp} />
-            <div className="mt-4 rounded-xl border border-border bg-stone-50 p-3 space-y-2 text-sm">
-              <p className="font-medium inline-flex items-center gap-1.5"><DoorOpen className="h-4 w-4" /> Portaria (check-in no dia)</p>
-              <p className="text-xs text-muted">Quem estiver na porta marca chegadas por nome ou quantidade, adiciona convidado extra e registra pedidos na hora.</p>
-              {checkinLink ? (
-                <div className="flex flex-wrap gap-2 items-center">
-                  <Link href={`/d/${checkinLink.token}`} target="_blank" className={buttonClass("primary", "sm")}><DoorOpen className="h-4 w-4" /> Abrir portaria</Link>
-                  <CopyButton text={appUrl(`/d/${checkinLink.token}`)} />
-                  <form action={revokePublicLink}><input type="hidden" name="id" value={checkinLink.id} /><input type="hidden" name="event_id" value={id} /><button className="h-9 px-3 text-sm text-muted hover:text-red-600">Revogar</button></form>
-                </div>
-              ) : (
-                <form action={ensureEventLink}><input type="hidden" name="event_id" value={id} /><input type="hidden" name="type" value="CHECKIN" /><button className={buttonClass("secondary", "sm")}>Gerar link da portaria</button></form>
-              )}
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Pedidos extras na festa" subtitle={`Somam ao saldo · ${formatCurrency(fin?.extras_total ?? 0)}`} />
-          <CardBody className="space-y-4">
-            {(extrasRes.data ?? []).length > 0 ? (
-              <ul className="divide-y divide-border">
-                {extrasRes.data!.map((x) => (
-                  <li key={x.id} className="flex items-center justify-between gap-3 py-2.5">
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{x.description}</p>
-                      <p className="text-xs text-muted">{Number(x.quantity)} × {formatCurrency(x.unit_price)} · {x.source === "DOOR" ? "portaria" : "equipe"} · {formatDateTime(x.created_at)}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium whitespace-nowrap">{formatCurrency(x.total)}</span>
-                      <form action={removeEventExtra}><input type="hidden" name="id" value={x.id} /><input type="hidden" name="event_id" value={id} /><button className="text-xs text-muted hover:text-red-600">Remover</button></form>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : <p className="text-sm text-muted">Nenhum pedido extra.</p>}
-            <ExtraForm eventId={id} addons={addonsRes.data ?? []} />
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Pagamentos" subtitle="Total pago é a soma dos registros"
-            action={payStatus ? <Badge tone={PAYMENT_STATUS_TONE[payStatus]}><Wallet className="h-3 w-3 mr-1" />{PAYMENT_STATUS_LABEL[payStatus]}</Badge> : null} />
-          <CardBody className="space-y-4">
-            {(paymentsRes.data ?? []).length > 0 ? (
-              <ul className="divide-y divide-border">
-                {paymentsRes.data!.map((p) => (
-                  <li key={p.id} className="flex items-center justify-between py-2.5 gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium">{formatCurrency(p.amount)} <span className="text-muted font-normal text-sm">· {PAYMENT_METHOD_LABEL[p.method]}</span></p>
-                      <p className="text-xs text-muted">{formatDate(p.paid_at + "T12:00:00-03:00")}{p.notes ? ` · ${p.notes}` : ""}</p>
-                    </div>
-                    <form action={removePayment}>
-                      <input type="hidden" name="id" value={p.id} />
-                      <input type="hidden" name="event_id" value={id} />
-                      <button className="text-xs text-muted hover:text-red-600">Remover</button>
-                    </form>
-                  </li>
-                ))}
-              </ul>
-            ) : <p className="text-sm text-muted">Nenhum pagamento registrado.</p>}
-            <PaymentForm eventId={id} />
-          </CardBody>
-        </Card>
-
-        <div className="grid grid-cols-2 gap-2 pb-4">
-          <Link href={`/eventos/${id}/editar`} className={buttonClass("outline", "md")}><Pencil className="h-4 w-4" /> Editar</Link>
-          {guestLink ? (
-            <a href={whatsappLink(customer.whatsapp, `Lista de convidados da festa: ${appUrl(`/g/${guestLink.token}`)}`)} target="_blank" rel="noopener" className={buttonClass("outline", "md")}><Share2 className="h-4 w-4" /> Enviar lista</a>
-          ) : (
-            <span className={buttonClass("outline", "md", "opacity-50")}><Copy className="h-4 w-4" /> Enviar lista</span>
-          )}
+          <Card>
+            <CardHeader title="Convite" subtitle="O cliente personaliza imagem e texto pelo link" />
+            <CardBody className="space-y-3">
+              <LinkRow icon={<ImageIcon className="h-4 w-4" />} label="Link de edição" url={inviteUrl}
+                send={inviteUrl ? { href: whatsappLink(customer.whatsapp, `Personalize o convite da festa aqui: ${inviteUrl}`), label: "Enviar" } : null}
+                revoke={inviteLink ? { linkId: inviteLink.id, eventId: id } : null}
+                generate={{ eventId: id, type: "INVITE_EDIT", label: "Gerar link de edição" }} />
+              <div className={event.invite_image_url ? "grid gap-3 sm:grid-cols-[160px_1fr]" : ""}>
+                {event.invite_image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={event.invite_image_url} alt="Convite" className="w-full max-h-48 object-contain rounded-xl border border-border bg-stone-50" />
+                ) : null}
+                <InviteForm eventId={id} title={event.invite_title ?? ""} message={event.invite_message ?? ""} />
+              </div>
+            </CardBody>
+          </Card>
         </div>
       </PageBody>
     </>

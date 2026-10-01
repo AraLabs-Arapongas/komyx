@@ -95,7 +95,7 @@ test.describe("Dona do buffet", () => {
     await page.goto(eventUrl);
     await expect(page.getByText("Confirmado", { exact: true }).first()).toBeVisible();
     await page.getByLabel("Valor (R$)").fill("1000");
-    await page.getByRole("button", { name: "Adicionar pagamento" }).click();
+    await page.getByLabel("Valor (R$)").locator("xpath=ancestor::form").getByRole("button", { name: "Adicionar" }).click();
     await expect(page.getByText("Pagamento registrado.")).toBeVisible();
     await expect(page.getByText("R$ 3.405,00").first()).toBeVisible(); // saldo
 
@@ -103,7 +103,7 @@ test.describe("Dona do buffet", () => {
     await page.getByLabel("Adicionar convidado").fill("Família Teste");
     await page.getByLabel("Adultos", { exact: true }).last().fill("2");
     await page.getByLabel("Crianças", { exact: true }).last().fill("1");
-    await page.getByRole("button", { name: "Adicionar", exact: true }).click();
+    await page.getByLabel("Adicionar convidado").locator("xpath=ancestor::form").getByRole("button", { name: "Adicionar", exact: true }).click();
     await expect(page.getByText("Família Teste")).toBeVisible();
     await page.getByRole("button", { name: "Gerar link", exact: true }).click();
     await expect(page.getByText(/\/g\/[0-9a-f]{48}/)).toBeVisible();

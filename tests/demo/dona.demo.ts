@@ -86,7 +86,7 @@ test.describe("Vídeo · Dona do buffet", () => {
     await page.goto(eventUrl);
     await caption(page, "Registrar pagamento: o saldo atualiza na hora");
     await page.getByLabel("Valor (R$)").fill("1000");
-    await page.getByRole("button", { name: "Adicionar pagamento" }).click();
+    await page.getByLabel("Valor (R$)").locator("xpath=ancestor::form").getByRole("button", { name: "Adicionar" }).click();
     await expect(page.getByText("Pagamento registrado.")).toBeVisible();
     await page.waitForTimeout(1500);
     await caption(page, "Link de convidados e portaria para o dia da festa");

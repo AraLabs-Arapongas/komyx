@@ -21,29 +21,30 @@ export function GuestSection({ eventId, guests, guestLink, eventTitle, customerP
   useEffect(() => { if (state?.ok) ref.current?.reset(); }, [state]);
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-border bg-stone-50 p-3 space-y-2">
-        <p className="text-sm font-medium inline-flex items-center gap-1.5"><Link2 className="h-4 w-4" /> Link público de confirmação (RSVP)</p>
-        {guestLink ? (
-          <>
-            <p className="text-xs text-muted break-all">{guestLink.url}</p>
-            <div className="flex flex-wrap gap-2">
-              <CopyButton text={guestLink.url} />
-              <a href={whatsappLink(customerPhone, `Confirme presença na ${eventTitle}: ${guestLink.url}`)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> WhatsApp</a>
-              <form action={revokePublicLink}>
-                <input type="hidden" name="id" value={guestLink.id} />
-                <input type="hidden" name="event_id" value={eventId} />
-                <button className="h-9 px-3 text-sm text-muted hover:text-red-600">Revogar</button>
-              </form>
-            </div>
-          </>
-        ) : (
-          <form action={ensureGuestLink}>
-            <input type="hidden" name="event_id" value={eventId} />
-            <p className="text-xs text-muted mb-2">Gere um link seguro para os convidados verem o convite e confirmarem presença.</p>
-            <button className={buttonClass("secondary", "sm")}>Gerar link</button>
-          </form>
-        )}
+    <div className="space-y-3">
+      <div className="rounded-xl border border-border bg-stone-50 px-3 py-2 text-sm">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <p className="font-medium inline-flex items-center gap-1.5 shrink-0"><Link2 className="h-4 w-4" /> Confirmação de presença (RSVP)</p>
+          {guestLink ? (
+            <>
+              <p className="text-xs text-muted truncate min-w-0 flex-1 basis-40">{guestLink.url}</p>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <CopyButton text={guestLink.url} />
+                <a href={whatsappLink(customerPhone, `Confirme presença na ${eventTitle}: ${guestLink.url}`)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> Enviar</a>
+                <form action={revokePublicLink}>
+                  <input type="hidden" name="id" value={guestLink.id} />
+                  <input type="hidden" name="event_id" value={eventId} />
+                  <button className="h-9 px-2 text-xs text-muted hover:text-red-600">Revogar</button>
+                </form>
+              </div>
+            </>
+          ) : (
+            <form action={ensureGuestLink} className="ml-auto">
+              <input type="hidden" name="event_id" value={eventId} />
+              <button className={buttonClass("secondary", "sm")}>Gerar link</button>
+            </form>
+          )}
+        </div>
       </div>
 
       {guests.length > 0 ? (
@@ -51,7 +52,7 @@ export function GuestSection({ eventId, guests, guestLink, eventTitle, customerP
           {guests.map((g) => {
             const arrived = Boolean(g.checked_in_at);
             return (
-              <li key={g.id} className="flex items-center justify-between gap-3 py-2">
+              <li key={g.id} className="flex items-center justify-between gap-3 py-1.5 text-sm">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{arrived ? <Check className="inline h-4 w-4 text-emerald-600 mr-1" /> : null}{g.name} <span className="text-muted font-normal text-sm">· {g.adults}A {g.children}C</span></p>
                   <p className="text-xs text-muted">{SOURCE_LABEL[g.source]}{arrived ? ` · presentes ${g.checked_in_adults + g.checked_in_children}` : ""}{g.notes ? ` · ${g.notes}` : ""}</p>
@@ -76,10 +77,10 @@ export function GuestSection({ eventId, guests, guestLink, eventTitle, customerP
         </ul>
       ) : <p className="text-sm text-muted">Nenhum convidado ainda.</p>}
 
-      <form ref={ref} action={action} className="space-y-3 border-t border-border pt-4">
+      <form ref={ref} action={action} className="space-y-2 border-t border-border pt-3">
         {state && !state.ok ? <Alert>{state.error}</Alert> : null}
         <input type="hidden" name="event_id" value={eventId} />
-        <div className="grid grid-cols-[1fr_72px_72px] gap-2 items-end">
+        <div className="grid grid-cols-[1fr_72px_72px_auto] gap-2 items-end">
           <Field label="Adicionar convidado" htmlFor="guest_name" error={fe.name}>
             <Input id="guest_name" name="name" placeholder="Nome" required />
           </Field>
@@ -89,8 +90,8 @@ export function GuestSection({ eventId, guests, guestLink, eventTitle, customerP
           <Field label="Crianças" htmlFor="guest_children">
             <Input id="guest_children" name="children" type="number" inputMode="numeric" min={0} defaultValue={0} required />
           </Field>
+          <SubmitButton size="md" variant="secondary">Adicionar</SubmitButton>
         </div>
-        <SubmitButton size="sm" variant="secondary">Adicionar</SubmitButton>
       </form>
     </div>
   );
