@@ -15,8 +15,8 @@ const links = [
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/aniversariantes", label: "Aniversariantes", icon: Cake },
   { href: "/solicitacoes", label: "Solicitações", icon: Inbox },
-  { href: "/pacotes", label: "Pacotes", icon: Package },
-  { href: "/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/pacotes", label: "Pacotes", icon: Package, ownerOnly: true },
+  { href: "/configuracoes", label: "Configurações", icon: Settings, ownerOnly: true },
 ];
 
 export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, billing, newRequests = 0 }: { orgName: string; userName: string; userEmail: string; role: string; isAdmin?: boolean; billing: Billing; newRequests?: number }) {
@@ -31,7 +31,7 @@ export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, b
         <NewMenu />
       </div>
       <nav className="px-3 space-y-0.5 overflow-y-auto min-h-0">
-        {links.map(({ href, label, icon: Icon }) => {
+        {links.filter((l) => !("ownerOnly" in l && l.ownerOnly) || role === "owner").map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link key={href} href={href} className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium", active ? "bg-brand-soft text-brand" : "text-foreground hover:bg-stone-100")}>

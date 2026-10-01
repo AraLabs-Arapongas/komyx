@@ -118,5 +118,10 @@ test.describe("Dona do buffet", () => {
     await page.goto("/configuracoes");
     await page.waitForURL(/\/home\?error=forbidden/);
     await expect(page.getByText("Apenas o proprietário")).toBeVisible();
+    // Owner-only areas are not offered in the sidebar for staff
+    const aside = page.locator("aside");
+    await expect(aside.getByRole("link", { name: "Configurações" })).toHaveCount(0);
+    await expect(aside.getByRole("link", { name: "Pacotes" })).toHaveCount(0);
+    await expect(aside.getByRole("link", { name: "Agenda" })).toBeVisible();
   });
 });
