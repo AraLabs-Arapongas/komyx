@@ -36,8 +36,12 @@ Studio local: http://127.0.0.1:54823
 
 | Usuário | Senha | Papel |
 | --- | --- | --- |
-| dona@festabuffet.test | senha12345 | owner |
+| dona@festabuffet.test | senha12345 | owner (Festa & Cia, premium) |
 | ana@festabuffet.test | senha12345 | staff |
+| admin@festeja.test | senha12345 | admin da plataforma (`/admin`) |
+| joao@alegriakids.test | senha12345 | owner de outro buffet (plano básico) |
+
+Fluxos detalhados (dona, cliente, admin): [docs/FLUXOS.md](docs/FLUXOS.md).
 
 Página pública de exemplo: `/p/festa-cia-buffet` (orçamento self-service em `/p/festa-cia-buffet/orcamento?src=instagram`). Link de convidados: `/g/demo-guest-link-julia-0123456789abcdef`.
 
