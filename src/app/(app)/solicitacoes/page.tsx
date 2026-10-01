@@ -13,6 +13,7 @@ export const metadata = { title: "Solicitações" };
 export default async function RequestsPage({ searchParams }: PageProps<"/solicitacoes">) {
   const sp = await searchParams;
   const status = sp.status === "CONVERTED" || sp.status === "ARCHIVED" ? sp.status : "NEW";
+  const focusId = typeof sp.id === "string" ? sp.id : null;
   const supabase = await createClient();
   const { data: requests } = await supabase.from("public_requests").select("*").eq("status", status).order("created_at", { ascending: false }).limit(100);
 
@@ -20,6 +21,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/solicit
     <>
       <PageHeader title="Solicitações" subtitle="Pedidos de orçamento da página pública. Não bloqueiam a agenda." />
       <PageBody>
+        {focusId ? <script dangerouslySetInnerHTML={{ __html: `document.getElementById(${JSON.stringify(focusId)})?.scrollIntoView({block:"start"})` }} /> : null}
         <div className="flex gap-2">
           {[["NEW", "Novas"], ["CONVERTED", "Convertidas"], ["ARCHIVED", "Arquivadas"]].map(([k, l]) => (
             <Link key={k} href={`/solicitacoes?status=${k}`} className={cn("rounded-full px-3.5 py-1.5 text-sm font-medium border", status === k ? "bg-brand text-brand-fg border-brand" : "bg-surface border-border text-muted")}>{l}</Link>
@@ -28,7 +30,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/solicit
         {requests && requests.length > 0 ? (
           <div className="space-y-2">
             {requests.map((r) => (
-              <div key={r.id} className="rounded-2xl border border-border bg-surface p-4 space-y-3">
+              <div key={r.id} id={r.id} className={cn("rounded-2xl border bg-surface p-4 space-y-3 scroll-mt-20", focusId === r.id ? "border-brand ring-2 ring-brand/30" : "border-border")}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-medium">{r.name}</p>

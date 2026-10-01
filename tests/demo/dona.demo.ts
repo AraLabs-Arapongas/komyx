@@ -41,7 +41,7 @@ test.describe("Vídeo · Dona do buffet", () => {
     await page.getByLabel("Aniversariante", { exact: true }).fill("Lua");
     await page.getByLabel("Idade").fill("5");
     await caption(page, "Reservar a data? Sim: a data fica bloqueada até o prazo configurado. O orçamento já nasce junto");
-    await page.getByRole("button", { name: "Criar orçamento" }).click();
+    await page.getByRole("button", { name: "Salvar" }).click();
     await page.waitForURL(/\/eventos\/[0-9a-f-]+\?created=/);
     const eventUrl = page.url().split("?")[0];
     await caption(page, "Ficha única do evento: status, cliente, orçamento, contrato, convite, convidados, pagamentos", 3500);

@@ -38,7 +38,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     supabase.from("events").select(EVENT_SELECT).gt("starts_at", endOfToday).lte("starts_at", in7d).in("status", ["CONFIRMED", "PRE_RESERVED"]).order("starts_at"),
     supabase.from("events").select(EVENT_SELECT).eq("status", "PRE_RESERVED").lte("expires_at", in48h).order("expires_at").limit(5),
     supabase.from("events").select(EVENT_SELECT).eq("origin", "SELF_SERVICE").eq("status", "PRE_RESERVED").order("created_at", { ascending: false }).limit(5),
-    supabase.from("public_requests").select("id, name, whatsapp, desired_date, desired_time, adults, children, participants, source, estimated_total, created_at").eq("status", "NEW").order("created_at", { ascending: false }).limit(4),
+    supabase.from("public_requests").select("id, name, whatsapp, desired_date, desired_time, adults, children, participants, source, estimated_total, message, created_at").eq("status", "NEW").order("created_at", { ascending: false }).limit(4),
     supabase.from("packages").select("id", { count: "exact", head: true }),
     supabase.from("events").select("id", { count: "exact", head: true }),
     supabase.from("event_financials").select("event_id, balance").eq("organization_id", profile.organization_id).gt("balance", 0),
@@ -59,7 +59,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const dueWeek = (owingEvents ?? []).filter((e) => e.starts_at >= now.toISOString() && e.starts_at <= in7d).reduce((a, e) => a + (balanceOf.get(e.id) ?? 0), 0);
   const receivableTotal = (owingEvents ?? []).reduce((a, e) => a + (balanceOf.get(e.id) ?? 0), 0);
 
-  const urgentCount = expiring.length + online.length + requests.length;
+  const urgentCount = expiring.length + online.length;
   const todayBalance = today.reduce((a, e) => a + Number(finMap.get(e.id)?.balance ?? 0), 0);
 
   return (
@@ -71,18 +71,18 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
 
         {/* HOJE: one line */}
         <p className="text-sm text-muted">
-          <b className="text-foreground">Hoje:</b> {today.length} evento{today.length === 1 ? "" : "s"} · <Money value={todayBalance} /> a receber · {urgentCount} {urgentCount === 1 ? "ação urgente" : "ações urgentes"}
+          <b className="text-foreground">Hoje:</b> {today.length} evento{today.length === 1 ? "" : "s"} · <Money value={todayBalance} /> a receber · {urgentCount} {urgentCount === 1 ? "ação urgente" : "ações urgentes"} · {requests.length} {requests.length === 1 ? "nova solicitação" : "novas solicitações"}
         </p>
 
         {/* AÇÕES URGENTES */}
         {expiring.length || online.length ? (
           <Card className="border-amber-200 bg-amber-50/60">
-            <CardHeader title="Ação urgente" subtitle="Resolva aqui mesmo" />
+            <CardHeader title="Ação urgente" subtitle="Reservas aguardando confirmação: confirme ou libere a data" />
             <CardBody className="space-y-2">
               {online.map((e) => (
                 <div key={e.id} className="rounded-xl bg-surface border border-border px-3 py-2.5 flex flex-wrap items-center gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate"><Badge tone="brand" className="mr-1.5">Reserva online</Badge>{eventTitle(e)}</p>
+                    <p className="font-medium truncate"><Badge tone="brand" className="mr-1.5">Reserva online</Badge><Link href={`/eventos/${e.id}`} className="text-brand hover:underline underline-offset-4">{eventTitle(e)}</Link>{e.customers ? <span className="text-muted font-normal"> · {e.customers.name}</span> : null}</p>
                     <p className="text-xs text-muted">{formatDateLong(e.starts_at)} · aguardando sinal · código <b>{e.pix_txid}</b>{e.expires_at ? ` · até ${formatDateTime(e.expires_at)}` : ""}</p>
                   </div>
                   <Link href={`/eventos/${e.id}`} className={buttonClass("primary", "sm")}>Conferir Pix e confirmar</Link>
@@ -91,8 +91,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
               {expiring.map((e) => (
                 <div key={e.id} className="rounded-xl bg-surface border border-border px-3 py-2.5 flex flex-wrap items-center gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate"><AlertTriangle className="inline h-4 w-4 text-amber-600 mr-1.5" /><Link href={`/eventos/${e.id}`} className="hover:underline">{eventTitle(e)}</Link></p>
-                    <p className="text-xs text-muted">Reserva expira {e.expires_at && toDateKey(e.expires_at) === todayKey ? `hoje às ${formatTime(e.expires_at)}` : formatDateTime(e.expires_at!)} · festa {formatDateLong(e.starts_at)}</p>
+                    <p className="font-medium truncate"><AlertTriangle className="inline h-4 w-4 text-amber-600 mr-1.5" /><Link href={`/eventos/${e.id}`} className="text-brand hover:underline underline-offset-4">{eventTitle(e)}</Link>{e.customers ? <span className="text-muted font-normal"> · {e.customers.name} · {formatPhone(e.customers.whatsapp)}</span> : null}</p>
+                    <p className="text-xs text-muted">Reserva aguardando confirmação · data fica reservada até {e.expires_at && toDateKey(e.expires_at) === todayKey ? `hoje às ${formatTime(e.expires_at)}` : formatDateTime(e.expires_at!)} · festa {formatDateLong(e.starts_at)}</p>
                   </div>
                   <PreReservationQuickActions eventId={e.id} />
                 </div>
@@ -109,7 +109,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
               {requests.map((r) => (
                 <div key={r.id} className="py-2.5 flex flex-wrap items-center gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate"><Inbox className="inline h-4 w-4 text-muted mr-1.5" />{r.name}</p>
+                    <Link href={`/solicitacoes?id=${r.id}`} className="font-medium truncate block text-brand hover:underline underline-offset-4"><Inbox className="inline h-4 w-4 mr-1.5" />{r.name}</Link>
+                    {r.message ? <p className="text-sm truncate" title={r.message}>“{r.message}”</p> : null}
                     <p className="text-xs text-muted">
                       {r.desired_date ? `${r.desired_date.split("-").reverse().join("/")}${r.desired_time ? ` ${r.desired_time.slice(0, 5)}` : ""}` : "sem data"} · {r.adults != null || r.children != null ? `${r.adults ?? 0}A ${r.children ?? 0}C` : `${r.participants ?? "?"} pessoas`} · {leadSourceLabel(r.source)}{r.estimated_total != null ? ` · $<Money value={r.estimated_total} />` : ""} · {formatPhone(r.whatsapp)}
                     </p>

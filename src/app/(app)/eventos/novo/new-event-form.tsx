@@ -22,6 +22,7 @@ type Props = {
   defaults: { date: string; start: string; durationMinutes: number; validityHours: number };
   sameDayWarning?: string | null;
   isOwner: boolean;
+  initialStatus?: "QUOTE" | "PRE_RESERVED" | "CONFIRMED";
 };
 
 function addMinutesToTime(time: string, minutes: number) {
@@ -30,7 +31,7 @@ function addMinutesToTime(time: string, minutes: number) {
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
-export function NewEventForm({ packages, customer, request, defaults, sameDayWarning, isOwner }: Props) {
+export function NewEventForm({ packages, customer, request, defaults, sameDayWarning, isOwner, initialStatus = "PRE_RESERVED" }: Props) {
   const [state, action] = useActionState(createEvent, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   const [start, setStart] = useState(defaults.start);
@@ -128,7 +129,7 @@ export function NewEventForm({ packages, customer, request, defaults, sameDayWar
             <Textarea id="notes" name="notes" defaultValue={request?.message ?? ""} />
           </Field>
           <Field label="Reservar a data?" htmlFor="status" hint="Orçamento sempre é criado. Reservar bloqueia a agenda; sem reserva, outro cliente pode fechar o dia.">
-            <Select id="status" name="status" defaultValue="PRE_RESERVED">
+            <Select id="status" name="status" defaultValue={initialStatus}>
               <option value="PRE_RESERVED">Sim, segurar a data por {defaults.validityHours}h (reserva)</option>
               <option value="QUOTE">Não, só o orçamento (não bloqueia a agenda)</option>
               <option value="CONFIRMED">Já está fechado: confirmar evento</option>
@@ -139,7 +140,7 @@ export function NewEventForm({ packages, customer, request, defaults, sameDayWar
 
       <div className="sticky bottom-20 md:bottom-0 z-10 -mx-4 px-4 py-3 bg-background/95 backdrop-blur border-t border-border flex gap-2">
         <Link href="/agenda" className="h-12 px-4 inline-flex items-center rounded-xl border border-border bg-surface text-sm font-medium">Cancelar</Link>
-        <SubmitButton size="lg" className="flex-1" pendingText="Salvando...">Criar orçamento</SubmitButton>
+        <SubmitButton size="lg" className="flex-1" pendingText="Salvando...">Salvar</SubmitButton>
       </div>
     </form>
   );

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarDays, Plus, PartyPopper, Users, Inbox, Settings, Package, FileText, Cake, ShieldCheck } from "lucide-react";
+import { Home, CalendarDays, PartyPopper, Users, Inbox, Settings, Package, FileText, Cake, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { buttonClass } from "@/components/ui/button";
+import { NewMenu } from "@/components/shell/new-menu";
 import { AccountFooter, type Billing } from "@/components/shell/account-footer";
 
 const links = [
@@ -28,9 +28,7 @@ export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, b
         <p className="text-xs text-muted truncate">{role === "owner" ? "Proprietário" : "Equipe"}</p>
       </div>
       <div className="p-3">
-        <Link href="/eventos/novo" className={buttonClass("primary", "md", "w-full")}>
-          <Plus className="h-4 w-4" /> Novo orçamento
-        </Link>
+        <NewMenu />
       </div>
       <nav className="px-3 space-y-0.5 overflow-y-auto min-h-0">
         {links.map(({ href, label, icon: Icon }) => {

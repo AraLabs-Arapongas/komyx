@@ -7,7 +7,7 @@ export type DiscountType = Database["public"]["Enums"]["discount_type"];
 
 export const EVENT_STATUS_LABEL: Record<EventStatus, string> = {
   QUOTE: "Orçamento",
-  PRE_RESERVED: "Data reservada",
+  PRE_RESERVED: "Aguardando confirmação",
   CONFIRMED: "Confirmado",
   DONE: "Realizado",
   CANCELLED: "Cancelado",

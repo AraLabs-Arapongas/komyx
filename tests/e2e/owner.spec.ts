@@ -39,7 +39,7 @@ test.describe("Dona do buffet", () => {
     await expect(page.getByText(/Extras além do pacote/)).toBeVisible();
     await page.getByLabel("Aniversariante", { exact: true }).fill("Lua");
     await page.getByLabel("Idade").fill("5");
-    await page.getByRole("button", { name: "Criar orçamento" }).click();
+    await page.getByRole("button", { name: "Salvar" }).click();
     await page.waitForURL(/\/eventos\/[0-9a-f-]+\?created=PRE_RESERVED/);
     await expect(page.getByText(/Orçamento criado e data reservada/)).toBeVisible();
     await expect(page.getByText("35 adultos · 30 crianças")).toBeVisible();

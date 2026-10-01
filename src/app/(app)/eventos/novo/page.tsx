@@ -11,6 +11,8 @@ export default async function NewEventPage({ searchParams }: PageProps<"/eventos
   const [org, profile] = await Promise.all([getOrganization(), requireProfile()]);
   const supabase = await createClient();
   const another = sp.another === "1";
+  const initialStatus = sp.status === "QUOTE" || sp.status === "CONFIRMED" ? sp.status : "PRE_RESERVED";
+  const title = initialStatus === "QUOTE" ? "Novo orçamento" : initialStatus === "CONFIRMED" ? "Novo evento" : "Nova reserva";
 
   const customerId = typeof sp.customer === "string" ? sp.customer : undefined;
   const requestId = typeof sp.request === "string" ? sp.request : undefined;
@@ -27,7 +29,7 @@ export default async function NewEventPage({ searchParams }: PageProps<"/eventos
 
   return (
     <>
-      <PageHeader title="Novo orçamento" subtitle="Cliente, data, pacote. Você decide se reserva a data." back="/agenda" />
+      <PageHeader title={title} subtitle="Cliente, data, pacote. O orçamento nasce junto; você decide se reserva a data." back="/agenda" />
       <PageBody>
         <NewEventForm
           packages={packagesRes.data ?? []}
@@ -39,6 +41,7 @@ export default async function NewEventPage({ searchParams }: PageProps<"/eventos
           defaults={{ date, start, durationMinutes: org.default_event_duration_minutes, validityHours: org.pre_reservation_validity_hours }}
           sameDayWarning={another ? "já marcado na agenda" : null}
           isOwner={profile.role === "owner"}
+          initialStatus={initialStatus}
         />
       </PageBody>
     </>

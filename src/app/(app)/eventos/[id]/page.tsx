@@ -83,7 +83,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
               <div>
                 <Badge tone={EVENT_STATUS_TONE[event.status]}>{EVENT_STATUS_LABEL[event.status]}</Badge>
                 {event.origin === "SELF_SERVICE" ? <Badge tone="brand" className="ml-1">Reserva online</Badge> : null}
-                {event.status === "PRE_RESERVED" && event.expires_at ? <p className="text-xs text-muted mt-2">Expira em {formatDateTime(event.expires_at)}</p> : null}
+                {event.status === "PRE_RESERVED" && event.expires_at ? <p className="text-xs text-muted mt-2">Data reservada até {formatDateTime(event.expires_at)}. Confirme ou libere.</p> : null}
                 {event.status === "EXPIRED" ? <p className="text-xs text-muted mt-2">Horário liberado. Renove para bloquear novamente.</p> : null}
                 {event.status === "QUOTE" ? <p className="text-xs text-muted mt-2">Só orçamento: a data não está bloqueada na agenda.</p> : null}
               </div>
