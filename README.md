@@ -1,6 +1,6 @@
 # Festeja — SaaS para buffet
 
-Sistema simples para **vender, organizar e realizar festas**: agenda, pré-reservas, clientes, pacotes, orçamentos, convidados, pagamentos básicos, página pública e PWA. Centrado no evento; multiempresa desde o início.
+Sistema simples para **vender, organizar e realizar festas**: agenda, pré-reservas, clientes, pacotes (adultos/crianças), orçamentos com plano de pagamento, contrato automático em PDF, convite personalizável, portaria com check-in, aniversariantes, página pública com orçamento self-service e PWA. Centrado no evento; multiempresa desde o início.
 
 ## Stack
 
@@ -39,7 +39,18 @@ Studio local: http://127.0.0.1:54823
 | dona@festabuffet.test | senha12345 | owner |
 | ana@festabuffet.test | senha12345 | staff |
 
-Página pública de exemplo: `/p/festa-cia-buffet`. Link de convidados: `/g/demo-guest-link-julia-0123456789abcdef`.
+Página pública de exemplo: `/p/festa-cia-buffet` (orçamento self-service em `/p/festa-cia-buffet/orcamento?src=instagram`). Link de convidados: `/g/demo-guest-link-julia-0123456789abcdef`.
+
+## Fluxos além do MVP original
+
+- **Orçamento**: aba `/orcamentos`, PDF (`/eventos/[id]/orcamento/pdf`), link público `/q/[token]` (+ `/pdf`). Pacotes têm adultos/crianças inclusos e preço por extra; o orçamento recalcula linhas de pacote/extras a partir dos participantes.
+- **Plano de pagamento**: parcelas por % (no aceite, X dias antes da festa ou data fixa). Padrão por buffet em Configurações; cada orçamento pode ajustar. Valores recalculam por trigger.
+- **Contrato**: gerado do modelo editável do buffet com `{{placeholders}}` (dados do buffet, cliente, evento, itens, plano). Versões numeradas, PDF (`/eventos/[id]/contrato/pdf`), link público `/c/[token]` com aceite (nome + data/hora; não é assinatura certificada).
+- **Convite**: cliente edita imagem e texto em `/i/[token]`; convidados veem o convite e confirmam (adultos/crianças) em `/g/[token]`.
+- **Portaria**: `/d/[token]` marca chegadas por nome ou quantidade, adiciona convidado que chegou sem confirmar e registra pedidos extras (somam ao saldo).
+- **Aniversariantes**: data de nascimento do aniversariante vira lista em `/aniversariantes` com mensagem de promoção pronta no WhatsApp.
+- **Origem do lead**: `?src=instagram` no link da bio (ou campo no formulário) é gravado na solicitação e no cliente.
+- **Self-service**: `/p/[slug]/orcamento` monta pacote + pessoas + adicionais com total ao vivo; ao converter em pré-reserva o orçamento é criado automaticamente.
 
 ## Estrutura
 

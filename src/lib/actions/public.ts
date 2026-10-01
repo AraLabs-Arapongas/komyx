@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
-import { dateSchema, optionalText, phoneSchema, zodFieldErrors } from "./helpers";
+import { dateSchema, optionalText, phoneSchema, zodFieldErrors, UUID_RE, uuid } from "./helpers";
 import { buildQuoteLines, sumLines } from "@/lib/pricing";
 
 /**
@@ -64,7 +64,7 @@ const requestSchema = z.object({
   source: z.string().optional().transform((v) => (v && v.trim() ? v.trim().slice(0, 40) : null)),
   celebrant_name: optionalText,
   celebrant_birth_date: z.union([dateSchema, z.literal("")]).optional().transform((v) => v || null),
-  package_id: z.string().optional().transform((v) => (v && z.string().uuid().safeParse(v).success ? v : null)),
+  package_id: z.string().optional().transform((v) => (v && UUID_RE.test(v) ? v : null)),
   addons: z.string().optional().transform((v) => {
     if (!v) return null;
     try {
@@ -186,7 +186,7 @@ export async function updateInviteByToken(_prev: ActionResult | undefined, formD
 // ------------------------------------------------------------
 const doorCheckinSchema = z.object({
   token: z.string().min(20),
-  guest_id: z.string().uuid(),
+  guest_id: uuid,
   checked_in_adults: count,
   checked_in_children: count,
 });
@@ -240,7 +240,7 @@ export async function doorAddGuest(_prev: ActionResult | undefined, formData: Fo
 
 const doorExtraSchema = z.object({
   token: z.string().min(20),
-  addon_id: z.string().optional().transform((v) => (v && z.string().uuid().safeParse(v).success ? v : null)),
+  addon_id: z.string().optional().transform((v) => (v && UUID_RE.test(v) ? v : null)),
   description: z.string().trim().optional().default(""),
   quantity: z.string().optional().transform((v) => Number(String(v || "1").replace(",", "."))).refine((v) => v > 0 && v <= 999, "Quantidade inválida"),
   unit_price: z.string().optional().transform((v) => Number(String(v || "0").replace(",", "."))).refine((v) => v >= 0, "Valor inválido"),

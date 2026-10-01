@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrganization, requireProfile } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { addHours, localToIso } from "@/lib/utils";
-import { dateSchema, formToObject, optionalText, phoneSchema, timeSchema, uuid, zodFieldErrors } from "./helpers";
+import { dateSchema, formToObject, optionalText, phoneSchema, timeSchema, uuid, zodFieldErrors, UUID_RE } from "./helpers";
 import { upsertCustomerByPhone } from "./customers";
 import { buildQuoteLines } from "@/lib/pricing";
 
@@ -17,7 +17,7 @@ const intOrNull = z
   .transform((v) => (v && v.trim() !== "" ? Number(v) : null))
   .refine((v) => v === null || (Number.isInteger(v) && v >= 0), "Número inválido");
 
-const uuidOrNull = z.string().optional().transform((v) => (v ? v : null)).refine((v) => v === null || z.string().uuid().safeParse(v).success, "Inválido");
+const uuidOrNull = z.string().optional().transform((v) => (v ? v : null)).refine((v) => v === null || UUID_RE.test(v), "Inválido");
 
 const preReservationSchema = z.object({
   customer_id: uuidOrNull,

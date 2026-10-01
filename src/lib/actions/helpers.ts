@@ -24,7 +24,9 @@ export const moneySchema = z
 
 export const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida");
 export const timeSchema = z.string().regex(/^\d{2}:\d{2}$/, "Hora inválida");
-export const uuid = z.string().uuid();
+export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Postgres accepts any 8-4-4-4-12 hex id (seed ids are not RFC v4), so do not use z.uuid() here.
+export const uuid = z.string().regex(UUID_RE, "Identificador inválido");
 
 export function formToObject(formData: FormData) {
   const obj: Record<string, unknown> = {};
