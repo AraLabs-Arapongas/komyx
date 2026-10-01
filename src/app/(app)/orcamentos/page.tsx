@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, MessageCircle, Plus, CalendarCheck } from "lucide-react";
+import { FileText, MessageCircle, Plus, CalendarCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/data/session";
 import { PageBody, PageHeader, EmptyState } from "@/components/ui/page";
@@ -32,9 +32,26 @@ function visible(q: Row): Visible {
   return "WAITING";
 }
 
+const MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+function shiftMonth(month: string, delta: number) {
+  const [y, m] = month.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
 export default async function QuotesPage({ searchParams }: PageProps<"/orcamentos">) {
   const sp = await searchParams;
   const filter = typeof sp.status === "string" && FILTERS.some(([k]) => k === sp.status) ? sp.status : "ALL";
+  const currentMonth = toDateKey(new Date()).slice(0, 7);
+  const month = sp.m === "all" ? "all" : typeof sp.m === "string" && /^\d{4}-\d{2}$/.test(sp.m) ? sp.m : currentMonth;
+  const href = (over: { status?: string; m?: string }) => {
+    const q = new URLSearchParams();
+    const st = over.status ?? filter; const mm = over.m ?? month;
+    if (st !== "ALL") q.set("status", st);
+    if (mm !== currentMonth) q.set("m", mm);
+    const qs = q.toString();
+    return `/orcamentos${qs ? `?${qs}` : ""}`;
+  };
   const [org, supabase] = await Promise.all([getOrganization(), createClient()]);
 
   const { data } = await supabase
@@ -54,15 +71,14 @@ export default async function QuotesPage({ searchParams }: PageProps<"/orcamento
     return qlink ? appUrl(`/q/${qlink.token}`) : null;
   };
 
-  // Top cards: current month, by creation date.
-  const monthKey = toDateKey(new Date()).slice(0, 7);
-  const month = all.filter(({ q }) => toDateKey(q.created_at).startsWith(monthKey));
-  const sum = (v: Visible) => month.filter((x) => x.v === v).reduce((a, x) => a + Number(x.q.total), 0);
-  const count = (v: Visible) => month.filter((x) => x.v === v).length;
-  const monthRaw = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "America/Sao_Paulo" }).format(new Date());
-  const monthLabel = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1);
+  // Month (by creation date) drives the cards and the list. "all" shows every month.
+  const inMonth = month === "all" ? all : all.filter(({ q }) => toDateKey(q.created_at).startsWith(month));
+  const sum = (v: Visible) => inMonth.filter((x) => x.v === v).reduce((a, x) => a + Number(x.q.total), 0);
+  const count = (v: Visible) => inMonth.filter((x) => x.v === v).length;
+  const [my, mm] = month === "all" ? [0, 0] : month.split("-").map(Number);
+  const monthLabel = month === "all" ? "Todos os meses" : `${MONTHS[mm - 1].charAt(0).toUpperCase()}${MONTHS[mm - 1].slice(1)} de ${my}`;
 
-  const rows = all
+  const rows = inMonth
     .filter((x) => filter === "ALL" || x.v === filter)
     .sort((a, b) => {
       if (ORDER[a.v] !== ORDER[b.v]) return ORDER[a.v] - ORDER[b.v];
@@ -78,8 +94,18 @@ export default async function QuotesPage({ searchParams }: PageProps<"/orcamento
       <PageHeader title="Orçamentos" subtitle="Propostas comerciais do buffet"
         action={<Link href="/eventos/novo?status=QUOTE" className={buttonClass("primary", "sm", "whitespace-nowrap")}><Plus className="h-4 w-4" /> Novo orçamento</Link>} />
       <PageBody>
-        <div>
-          <p className="text-xs text-muted mb-2">Mês atual · {monthLabel}</p>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1">
+              <Link href={href({ m: shiftMonth(month === "all" ? currentMonth : month, -1) })} className="h-10 w-10 grid place-items-center rounded-lg hover:bg-stone-100" aria-label="Mês anterior"><ChevronLeft className="h-5 w-5" /></Link>
+              <span className="font-semibold min-w-40 text-center text-base">{monthLabel}</span>
+              <Link href={href({ m: shiftMonth(month === "all" ? currentMonth : month, 1) })} className="h-10 w-10 grid place-items-center rounded-lg hover:bg-stone-100" aria-label="Próximo mês"><ChevronRight className="h-5 w-5" /></Link>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              {month !== currentMonth ? <Link href={href({ m: currentMonth })} className="text-brand font-medium">Mês atual</Link> : null}
+              {month !== "all" ? <Link href={href({ m: "all" })} className="text-muted hover:text-foreground">Todos os meses</Link> : null}
+            </div>
+          </div>
           <div className="grid grid-cols-3 gap-2 text-center text-sm">
             {(["WAITING", "ACCEPTED", "REJECTED"] as Visible[]).map((v) => (
               <div key={v} className="rounded-2xl border border-border bg-surface p-3">
@@ -93,7 +119,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/orcamento
 
         <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
           {FILTERS.map(([k, l]) => (
-            <Link key={k} href={k === "ALL" ? "/orcamentos" : `/orcamentos?status=${k}`} className={cn("whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium border", filter === k ? "bg-brand text-brand-fg border-brand" : "bg-surface border-border text-muted")}>{l}</Link>
+            <Link key={k} href={href({ status: k })} className={cn("whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium border", filter === k ? "bg-brand text-brand-fg border-brand" : "bg-surface border-border text-muted")}>{l}</Link>
           ))}
         </div>
 
@@ -139,7 +165,7 @@ export default async function QuotesPage({ searchParams }: PageProps<"/orcamento
             })}
           </ul>
         ) : (
-          <EmptyState title="Nenhum orçamento" description={filter === "ALL" ? "Crie a primeira proposta: cliente, data, pacote e valor." : "Nada neste filtro."} action={filter === "ALL" ? <Link href="/eventos/novo?status=QUOTE" className={buttonClass("primary", "sm")}><Plus className="h-4 w-4" /> Novo orçamento</Link> : null} />
+          <EmptyState title="Nenhum orçamento" description={filter === "ALL" ? (month === "all" ? "Crie a primeira proposta: cliente, data, pacote e valor." : "Nenhum orçamento criado neste mês.") : "Nada neste filtro."} action={filter === "ALL" ? <Link href="/eventos/novo?status=QUOTE" className={buttonClass("primary", "sm")}><Plus className="h-4 w-4" /> Novo orçamento</Link> : null} />
         )}
       </PageBody>
     </>
