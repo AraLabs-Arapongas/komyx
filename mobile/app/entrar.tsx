@@ -42,7 +42,8 @@ export default function Entrar() {
   const codeRef = useRef<TextInput>(null);
   const d = useMemo(() => detect(id), [id]);
 
-  async function go() {
+  async function go(codeOverride?: string) {
+    const otp = (codeOverride ?? code).trim();
     setError(null);
     Keyboard.dismiss();
     if (d.kind === "token") {
@@ -68,7 +69,7 @@ export default function Entrar() {
         setTimeout(() => codeRef.current?.focus(), 100);
         return;
       }
-      const { error } = await supabase.auth.verifyOtp({ phone: toE164(id), token: code.trim(), type: "sms" });
+      const { error } = await supabase.auth.verifyOtp({ phone: toE164(id), token: otp, type: "sms" });
       setBusy(false);
       if (error) { setError("Código inválido ou vencido. Peça um novo."); return; }
       router.replace("/cliente");
@@ -103,15 +104,15 @@ export default function Entrar() {
         <Input value={id} onChangeText={(v: string) => { setId(maskPhoneInput(v)); setError(null); setCodeSent(false); }} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" placeholder="voce@buffet.com ou (11) 99999-0000" returnKeyType="next" editable={!codeSent} />
       </Field>
       {d.kind === "email" ? (
-        <Field label="Senha"><Input value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" onSubmitEditing={go} returnKeyType="go" /></Field>
+        <Field label="Senha"><Input value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" onSubmitEditing={() => go()} returnKeyType="go" /></Field>
       ) : null}
       {d.kind === "phone" && codeSent ? (
         <Field label={`Código enviado por SMS para ${id}`}>
-          <Input ref={codeRef} value={code} onChangeText={setCode} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="sms-otp" placeholder="123456" maxLength={6} onSubmitEditing={go} returnKeyType="go" style={{ letterSpacing: 6, textAlign: "center", fontSize: 22 }} />
+          <Input ref={codeRef} value={code} onChangeText={(v: string) => { const digits = v.replace(/\D/g, "").slice(0, 6); setCode(digits); if (digits.length === 6) setTimeout(() => go(digits), 50); }} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="sms-otp" placeholder="123456" maxLength={6} onSubmitEditing={() => go()} returnKeyType="go" style={{ letterSpacing: 6, textAlign: "center", fontSize: 22 }} />
         </Field>
       ) : null}
       {error ? <Text style={{ color: colors.red }}>{error}</Text> : null}
-      <Button title={cta} size="lg" onPress={go} loading={busy} disabled={d.kind === "unknown" || (codeSent && code.length < 6)} />
+      <Button title={cta} size="lg" onPress={() => go()} loading={busy} disabled={d.kind === "unknown" || (codeSent && code.length < 6)} />
       {codeSent ? <Button title="Não recebi · reenviar ou trocar número" variant="ghost" size="sm" onPress={() => { setCodeSent(false); setCode(""); }} /> : null}
     </SafeAreaView>
   );
