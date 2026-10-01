@@ -10,7 +10,6 @@ import { formToObject, moneySchema, optionalText, phoneSchema, uuid, zodFieldErr
 
 const orgSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome"),
-  slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use letras minúsculas, números e hífens"),
   whatsapp: z.string().optional().transform((v) => (v ? v : "")).pipe(z.union([z.literal(""), phoneSchema])).transform((v) => v || null),
   address: optionalText,
   instagram: z.string().trim().optional().transform((v) => (v ? v.replace(/^@/, "") : null)),
@@ -69,7 +68,7 @@ export async function updateOrganization(_prev: ActionResult | undefined, formDa
   const { error } = await supabase.from("organizations").update(parsed.data).eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
   revalidatePath("/configuracoes");
-  revalidatePath(`/p/${parsed.data.slug}`);
+  revalidatePath("/p/[slug]", "page");
   return { ok: true, message: "Dados salvos." };
 }
 

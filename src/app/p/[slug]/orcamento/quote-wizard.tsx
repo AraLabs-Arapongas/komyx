@@ -24,9 +24,13 @@ type Props = {
   durationMinutes: number;
   showPrices: boolean;
   selfBooking: boolean;
+  validityHours: number;
+  depositPercent: number | null;
+  depositLabel: string | null;
 };
 
-const STEPS = ["Pacote", "Data", "Pessoas", "Seus dados"] as const;
+const STEPS = ["Pacote", "Data", "Pessoas", "Seus dados", "Revisão"] as const;
+function known_source_default(src: string) { return LEAD_SOURCES.some((s) => s.value === src) ? src : ""; }
 const MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 const WEEKDAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
@@ -44,7 +48,7 @@ function addMinutes(time: string, minutes: number) {
 }
 function fmtDate(key: string) { const [y, m, d] = key.split("-"); return `${d}/${m}/${y}`; }
 
-export function QuoteWizard({ slug, packages, addons, defaultSource, preselectedPackage, today, durationMinutes, showPrices, selfBooking }: Props) {
+export function QuoteWizard({ slug, packages, addons, defaultSource, preselectedPackage, today, durationMinutes, showPrices, selfBooking, validityHours, depositPercent, depositLabel }: Props) {
   const [state, action] = useActionState<ActionResult<PublicSubmitResult> | undefined, FormData>(submitPublicRequest, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   const initial = packages.find((p) => p.id === preselectedPackage) ?? null;
@@ -57,6 +61,7 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
   const [date, setDate] = useState<string>("");
   const [time, setTime] = useState("15:00");
   const [busy, setBusy] = useState<Record<string, string[]>>({});
+  const [contact, setContact] = useState({ name: "", whatsapp: "", celebrant_name: "", celebrant_birth_date: "", source: known_source_default(defaultSource), message: "" });
   const loadingMonth = !busy[month];
 
   const pkg = packages.find((p) => p.id === packageId) ?? null;
@@ -149,7 +154,10 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
   }
 
   const busyDays = new Set(busy[month] ?? []);
-  const canNext = step === 0 ? true : step === 1 ? Boolean(date) : step === 2 ? adults + children > 0 : true;
+  const canNext = step === 0 ? true : step === 1 ? Boolean(date) : step === 2 ? adults + children > 0 : step === 3 ? contact.name.trim().length >= 2 && contact.whatsapp.replace(/\D/g, "").length >= 10 : true;
+  const depositAmount = depositPercent != null ? Math.round(total * depositPercent) / 100 : null;
+  const addonLines = lines.filter((l) => l.kind === "ADDON");
+  const upd = (k: keyof typeof contact) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setContact((c) => ({ ...c, [k]: e.target.value }));
 
   return (
     <form action={action} className="space-y-4">
@@ -161,7 +169,12 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
       <input type="hidden" name="desired_time" value={time} />
       <input type="hidden" name="adults" value={adults} />
       <input type="hidden" name="children" value={children} />
-      {defaultSource && !known ? <input type="hidden" name="source" value={defaultSource} /> : null}
+      {defaultSource && !known ? <input type="hidden" name="source" value={defaultSource} /> : <input type="hidden" name="source" value={contact.source} />}
+      <input type="hidden" name="name" value={contact.name} />
+      <input type="hidden" name="whatsapp" value={contact.whatsapp} />
+      <input type="hidden" name="celebrant_name" value={contact.celebrant_name} />
+      <input type="hidden" name="celebrant_birth_date" value={contact.celebrant_birth_date} />
+      <input type="hidden" name="message" value={contact.message} />
 
       {/* Stepper */}
       <ol className="flex items-center gap-1 text-xs font-bold" aria-label="Etapas">
@@ -263,22 +276,47 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
         {step === 3 ? (
           <>
             <h2 className="display font-extrabold text-2xl">Pra quem mandamos a resposta?</h2>
-            {selfBooking && date ? <p className="text-sm rounded-xl px-3 py-2" style={{ background: "var(--paper-2)" }}><b>Quer garantir {fmtDate(date)} agora?</b> Clique em “Reservar esta data”: a data fica segura por um prazo enquanto você paga o sinal por Pix. Sem compromisso até o pagamento.</p> : null}
-            <Field label="Seu nome" htmlFor="name" error={fe.name}><Input id="name" name="name" autoComplete="name" required /></Field>
-            <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp}><Input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" placeholder="(11) 99999-9999" required /></Field>
+
+            <Field label="Seu nome" htmlFor="name" error={fe.name}><Input id="name" value={contact.name} onChange={upd("name")} autoComplete="name" required /></Field>
+            <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp}><Input id="whatsapp" value={contact.whatsapp} onChange={upd("whatsapp")} type="tel" inputMode="tel" autoComplete="tel" placeholder="(11) 99999-9999" required /></Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Aniversariante" htmlFor="celebrant_name"><Input id="celebrant_name" name="celebrant_name" placeholder="Nome" /></Field>
-              <Field label="Nascimento" htmlFor="celebrant_birth_date"><Input id="celebrant_birth_date" name="celebrant_birth_date" type="date" /></Field>
+              <Field label="Aniversariante" htmlFor="celebrant_name"><Input id="celebrant_name" value={contact.celebrant_name} onChange={upd("celebrant_name")} placeholder="Nome" /></Field>
+              <Field label="Nascimento" htmlFor="celebrant_birth_date"><Input id="celebrant_birth_date" value={contact.celebrant_birth_date} onChange={upd("celebrant_birth_date")} type="date" /></Field>
             </div>
             {defaultSource && !known ? null : (
               <Field label="Como nos conheceu?" htmlFor="source">
-                <Select id="source" name="source" defaultValue={known ? defaultSource : ""}>
+                <Select id="source" value={contact.source} onChange={upd("source")}>
                   <option value="">Selecione</option>
                   {LEAD_SOURCES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </Select>
               </Field>
             )}
-            <Field label="Observações" htmlFor="message"><Textarea id="message" name="message" placeholder="Tema, restrições, dúvidas..." className="min-h-16" /></Field>
+            <Field label="Observações" htmlFor="message"><Textarea id="message" value={contact.message} onChange={upd("message")} placeholder="Tema, restrições, dúvidas..." className="min-h-16" /></Field>
+          </>
+        ) : null}
+        {step === 4 ? (
+          <>
+            <h2 className="display font-extrabold text-2xl">Confira antes de enviar</h2>
+            <dl className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-2 text-sm">
+              <dt style={{ color: "var(--muted-ink)" }}>Pacote</dt><dd className="font-bold">{pkg ? pkg.name : "Sem pacote (personalizado)"}{pkg && showPrices ? ` · ${formatCurrency(pkg.base_price)}` : ""}</dd>
+              <dt style={{ color: "var(--muted-ink)" }}>Data</dt><dd className="font-bold">{date ? `${fmtDate(date)}, das ${time} às ${addMinutes(time, durationMinutes)}` : "A combinar"}</dd>
+              <dt style={{ color: "var(--muted-ink)" }}>Pessoas</dt><dd className="font-bold">{adults} adultos · {children} crianças{pkg && (adults > pkg.included_adults || children > pkg.included_children) ? <span className="font-normal" style={{ color: "var(--muted-ink)" }}> (com extras além do pacote)</span> : null}</dd>
+              <dt style={{ color: "var(--muted-ink)" }}>Adicionais</dt><dd className="font-bold">{addonLines.length ? addonLines.map((l) => `${l.description} × ${l.quantity}`).join(", ") : "Nenhum"}</dd>
+              <dt style={{ color: "var(--muted-ink)" }}>Contato</dt><dd className="font-bold">{contact.name} · {contact.whatsapp}</dd>
+              {contact.celebrant_name ? <><dt style={{ color: "var(--muted-ink)" }}>Aniversariante</dt><dd className="font-bold">{contact.celebrant_name}</dd></> : null}
+              {showPrices ? <><dt style={{ color: "var(--muted-ink)" }}>Total estimado</dt><dd className="display font-extrabold text-xl" style={{ color: "var(--berry)" }}>{formatCurrency(total)}</dd></> : null}
+            </dl>
+            {selfBooking && date ? (
+              <div className="rounded-2xl p-4 text-sm space-y-1" style={{ background: "var(--paper-2)" }}>
+                <p className="display font-bold text-lg">Como funciona a reserva</p>
+                <p>Ao clicar em <b>Reservar esta data</b>, {fmtDate(date)} fica segura para você por <b>{validityHours} horas</b>.</p>
+                <p>Nesse prazo você paga o sinal{depositAmount != null && showPrices ? <> de <b style={{ color: "var(--berry)" }}>{formatCurrency(depositAmount)}</b> ({depositPercent}%)</> : depositPercent != null ? <> de <b>{depositPercent}%</b></> : null} por Pix{depositLabel ? ` (${depositLabel.toLowerCase()})` : ""}. Sem o pagamento, a data volta a ficar livre automaticamente.</p>
+                <p>Prefere só receber o valor e decidir depois? Use <b>Só o orçamento</b>.</p>
+              </div>
+            ) : (
+              <p className="text-sm rounded-2xl p-4" style={{ background: "var(--paper-2)" }}>Enviamos o orçamento e a disponibilidade da data pelo seu WhatsApp. Enviar não reserva a data.</p>
+            )}
+            <button type="button" onClick={() => setStep(3)} className="text-sm font-bold underline-offset-4 hover:underline" style={{ color: "var(--berry)" }}>Corrigir algo</button>
           </>
         ) : null}
       </div>

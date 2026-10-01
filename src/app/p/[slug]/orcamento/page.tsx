@@ -14,7 +14,7 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
   const src = typeof sp.src === "string" ? sp.src : typeof sp.utm_source === "string" ? sp.utm_source : "";
   const preselected = typeof sp.package === "string" ? sp.package : "";
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("id, name, slug, logo_url, whatsapp, default_event_duration_minutes, plan, theme, show_prices_public, self_booking_enabled").eq("slug", slug).maybeSingle();
+  const { data: org } = await admin.from("organizations").select("id, name, slug, logo_url, whatsapp, default_event_duration_minutes, plan, theme, show_prices_public, self_booking_enabled, pre_reservation_validity_hours, payment_plan").eq("slug", slug).maybeSingle();
   if (!org) notFound();
   const [{ data: packages }, { data: addons }] = await Promise.all([
     admin.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price, description").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name"),
@@ -38,7 +38,7 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
             </div>
           </div>
         </div>
-        <QuoteWizard slug={org.slug} packages={packages ?? []} addons={addons ?? []} defaultSource={src} preselectedPackage={preselected} today={toDateKey(new Date())} durationMinutes={org.default_event_duration_minutes} showPrices={org.show_prices_public} selfBooking={org.self_booking_enabled} />
+        <QuoteWizard slug={org.slug} packages={packages ?? []} addons={addons ?? []} defaultSource={src} preselectedPackage={preselected} today={toDateKey(new Date())} durationMinutes={org.default_event_duration_minutes} showPrices={org.show_prices_public} selfBooking={org.self_booking_enabled} validityHours={org.pre_reservation_validity_hours} depositPercent={(() => { const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { percent?: number }[]) : []; return plan[0]?.percent ?? null; })()} depositLabel={(() => { const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { label?: string }[]) : []; return plan[0]?.label ?? null; })()} />
       </div>
       <PublicFooter variant="light" orgName={org.name} />
     </main>
