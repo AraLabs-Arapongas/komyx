@@ -20,6 +20,7 @@ import { GuestSection } from "./guest-section";
 import { PaymentForm } from "./payment-form";
 import { ExtraForm, InviteForm } from "./extra-forms";
 import { CopyButton } from "@/components/ui/copy-button";
+import { Installments } from "./installments";
 
 const CONTRACT_LABEL: Record<string, string> = { DRAFT: "Rascunho", SENT: "Enviado", ACCEPTED: "Aceito", CANCELLED: "Cancelado" };
 const CONTRACT_TONE: Record<string, "amber" | "green" | "slate" | "red" | "zinc"> = { DRAFT: "zinc", SENT: "amber", ACCEPTED: "green", CANCELLED: "red" };
@@ -84,7 +85,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
     supabase.from("guests").select("id, name, adults, children, participants, source, notes, checked_in_at, checked_in_adults, checked_in_children, created_at").eq("event_id", id).order("created_at"),
     supabase.from("payments").select("id, amount, paid_at, method, notes").eq("event_id", id).order("paid_at", { ascending: false }),
     supabase.from("public_links").select("id, token, type, active, created_at").eq("event_id", id).eq("active", true),
-    supabase.from("quotes").select("id, status, total, created_at, quote_installments(amount, sequence)").eq("event_id", id).order("created_at", { ascending: false }),
+    supabase.from("quotes").select("id, status, total, created_at, decided_at, quote_installments(sequence, label, percent, amount, rule, days_before, due_date)").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("contracts").select("id, number, status, created_at, accepted_at").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("event_extras").select("id, description, quantity, unit_price, total, source, created_at").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("package_addons").select("id, name, price").eq("active", true).order("sort_order").order("name"),
@@ -240,6 +241,13 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
           <Card>
             <CardHeader title="Pagamentos" subtitle={`Pago ${formatCurrency(fin?.paid_total ?? 0)} · saldo ${formatCurrency(fin?.balance ?? 0)}`} />
             <CardBody className="space-y-3">
+              {latestQuote && latestQuote.quote_installments.length > 0 ? (
+                <div>
+                  <p className="text-sm font-medium">Parcelas do orçamento</p>
+                  <Installments eventId={id} installments={latestQuote.quote_installments} paidTotal={Number(fin?.paid_total ?? 0)} eventStartsAt={event.starts_at} acceptedAt={latestQuote.decided_at} />
+                </div>
+              ) : null}
+              <p className="text-sm font-medium">Recebimentos</p>
               {(paymentsRes.data ?? []).length > 0 ? (
                 <ul className="divide-y divide-border">
                   {paymentsRes.data!.map((p) => (

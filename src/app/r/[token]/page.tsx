@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { appUrl, formatCurrency, formatDateLong, formatDateTime, formatTime, whatsappLink } from "@/lib/utils";
 import { installmentDueLabel } from "@/lib/contract";
+import { allocateInstallments } from "@/lib/installments";
 import { RememberReservation } from "./remember";
 
 export const metadata = { title: "Minha reserva" };
@@ -88,7 +89,7 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
             {org.show_prices_public ? <p className="flex justify-between text-lg font-extrabold border-t pt-2" style={{ borderColor: "#ece7dc" }}><span>Total</span><span>{formatCurrency(quote.total)}</span></p> : null}
             {quote.installments.length ? (
               <ol className="text-sm space-y-1">
-                {quote.installments.map((i, idx) => <li key={idx} className="flex justify-between gap-3"><span style={{ color: "var(--muted-ink)" }}>{idx + 1}. {i.label} · {installmentDueLabel(i, ev.starts_at)}</span>{org.show_prices_public ? <span className="font-bold">{formatCurrency(i.amount)}</span> : null}</li>)}
+                {allocateInstallments(quote.installments, r.paid, ev.starts_at, quote.decided_at).map((i, idx) => <li key={idx} className="flex justify-between gap-3"><span style={{ color: "var(--muted-ink)" }}>{idx + 1}. {i.label} · {installmentDueLabel(i, ev.starts_at, quote.decided_at)}{i.status === "PAID" ? <span className="ml-1 font-bold text-emerald-700">· paga ✓</span> : null}</span>{org.show_prices_public ? <span className="font-bold">{formatCurrency(i.amount)}</span> : null}</li>)}
               </ol>
             ) : null}
             {r.paid > 0 && org.show_prices_public ? <p className="text-sm text-emerald-700">Pago até agora: {formatCurrency(r.paid)}</p> : null}

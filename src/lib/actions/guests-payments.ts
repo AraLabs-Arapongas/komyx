@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { dateSchema, moneySchema, optionalText, uuid, zodFieldErrors } from "./helpers";
+import { toDateKey } from "@/lib/utils";
 
 function revalidateEvent(eventId: string) {
   revalidatePath(`/eventos/${eventId}`);
@@ -59,6 +60,22 @@ export async function addPayment(_prev: ActionResult | undefined, formData: Form
   if (error) return fail(translateDbError(error));
   revalidateEvent(parsed.data.event_id);
   return { ok: true, message: "Pagamento registrado." };
+}
+
+/** One-click "parcela recebida": registers a payment for the installment's remaining amount. */
+export async function confirmInstallment(formData: FormData) {
+  const parsed = paymentSchema.safeParse({
+    event_id: formData.get("event_id"),
+    amount: formData.get("amount"),
+    paid_at: formData.get("paid_at") || toDateKey(new Date()),
+    method: formData.get("method") || "PIX",
+    notes: formData.get("notes") || "",
+  });
+  if (!parsed.success) return;
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  await supabase.from("payments").insert({ ...parsed.data, organization_id: profile.organization_id, created_by: profile.id });
+  revalidateEvent(parsed.data.event_id);
 }
 
 export async function removePayment(formData: FormData) {

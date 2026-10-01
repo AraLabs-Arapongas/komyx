@@ -18,7 +18,7 @@ export async function loadReservation(token: string) {
   const ev = link.events;
   const org = ev.organizations;
   const [{ data: quote }, { data: contract }, { data: quoteLink }, { data: payments }] = await Promise.all([
-    admin.from("quotes").select("id, status, total, quote_items(description, quantity, unit_price, total, sort_order), quote_installments(label, percent, amount, rule, days_before, due_date, sequence)").eq("event_id", ev.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    admin.from("quotes").select("id, status, total, decided_at, quote_items(description, quantity, unit_price, total, sort_order), quote_installments(label, percent, amount, rule, days_before, due_date, sequence)").eq("event_id", ev.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     admin.from("contracts").select("token, status, number").eq("event_id", ev.id).in("status", ["SENT", "ACCEPTED"]).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     admin.from("public_links").select("token").eq("event_id", ev.id).eq("type", "QUOTE").eq("active", true).maybeSingle(),
     admin.from("payments").select("amount").eq("event_id", ev.id),
