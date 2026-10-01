@@ -64,6 +64,10 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 
 Fluxo visível: Solicitação → Orçamento → Aguardando confirmação → Evento confirmado → Realizado/Cancelado. Um evento só "existe" para a dona depois da confirmação; antes é um orçamento com data e horário (mesmo registro no banco). Estados na página: Rascunho, Aguardando confirmação (orçamento enviado; pode segurar a data até o prazo), Aceito, Recusado, Expirado (prazo venceu, data liberada). "Enviado" é ação, não estado. Ações por estado: Continuar orçamento · Cobrar no WhatsApp / Abrir orçamento · Abrir evento. Cards do topo somam o mês atual. Sem gráficos, CRM ou financeiro.
 
+### Cobrar saldo e extras
+
+Ficha do evento: botão **Cobrar R$ X** em Pagamentos abre o WhatsApp com os itens em aberto (parcelas restantes e extras), total, chave Pix, identificador `FESTA…` e Pix copia-e-cola do valor exato, mais o link curto da reserva. Portaria (`/d/`): aba Pedidos tem **Fechar conta** com QR Pix dos extras em aberto e botões "Recebido · Pix/Dinheiro/Cartão" que registram o pagamento. Página da reserva (`/r/`): após confirmada, mostra **Conta da festa** com os extras e o Pix do saldo. "Marcar como realizado" com saldo em aberto pede confirmação. Admin do Festeja pertence a uma organização `kind = platform`: cai direto em `/admin` e não aparece nas listas de buffets. Um link público ativo por tipo por evento (índice único).
+
 ### Links curtos
 
 Os links públicos de um evento (reserva, RSVP, convite, portaria) **sempre existem**: são criados ao abrir a ficha, sem botão "Gerar"; a ação é só Copiar/Enviar/Revogar. O contrato é gerado automaticamente quando o orçamento é aceito (ou quando o sinal da reserva online é confirmado); na ficha fica "Abrir" e "Nova versão". Extras pedidos na festa aparecem como linha própria em Parcelas, com o que falta e botão Recebida.

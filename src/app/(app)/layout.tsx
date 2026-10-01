@@ -1,4 +1,5 @@
 import { requireProfile, getOrganization, getBilling } from "@/lib/data/session";
+import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/shell/bottom-nav";
 import { Sidebar } from "@/components/shell/sidebar";
 import { NotificationsBell } from "@/components/shell/notifications-bell";
@@ -7,6 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
+  // The Festeja team's own org is the platform: its members only use /admin.
+  if (org.kind === "platform") redirect("/admin");
   const supabase = await createClient();
   const [{ data: unread }, { count: newRequests }, bill] = await Promise.all([
     supabase.rpc("unread_notifications_count"),

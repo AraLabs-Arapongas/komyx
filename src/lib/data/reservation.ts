@@ -17,11 +17,12 @@ export async function loadReservation(token: string) {
   if (!link?.events?.organizations) return null;
   const ev = link.events;
   const org = ev.organizations;
-  const [{ data: quote }, { data: contract }, { data: quoteLink }, { data: payments }] = await Promise.all([
+  const [{ data: quote }, { data: contract }, { data: quoteLink }, { data: payments }, { data: extras }] = await Promise.all([
     admin.from("quotes").select("id, status, total, decided_at, quote_items(description, quantity, unit_price, total, sort_order), quote_installments(label, percent, amount, rule, days_before, due_date, sequence)").eq("event_id", ev.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     admin.from("contracts").select("token, status, number").eq("event_id", ev.id).in("status", ["SENT", "ACCEPTED"]).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     admin.from("public_links").select("token").eq("event_id", ev.id).eq("type", "QUOTE").eq("active", true).maybeSingle(),
     admin.from("payments").select("amount").eq("event_id", ev.id),
+    admin.from("event_extras").select("description, quantity, unit_price, total").eq("event_id", ev.id).order("created_at"),
   ]);
   const installments = quote ? [...quote.quote_installments].sort((a, b) => a.sequence - b.sequence) : [];
   const deposit = installments[0] ? Number(installments[0].amount) : null;
@@ -37,5 +38,18 @@ export async function loadReservation(token: string) {
       pixQr = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
     } catch { pixQr = null; }
   }
-  return { event: ev, org, quote: quote ? { ...quote, items: [...quote.quote_items].sort((a, b) => a.sort_order - b.sort_order), installments } : null, contract, quoteToken: quoteLink?.token ?? null, deposit, paid, pixPayload, pixQr };
+  // After confirmation, whatever is still open (installments + extras) gets its own Pix.
+  const extrasTotal = (extras ?? []).reduce((a, x) => a + Number(x.total), 0);
+  const total = Number(quote?.total ?? 0) + extrasTotal;
+  const balance = Math.max(0, Math.round((total - paid) * 100) / 100);
+  let balancePayload: string | null = null;
+  let balanceQr: string | null = null;
+  if (org.pix_key && (ev.status === "CONFIRMED" || ev.status === "DONE") && balance > 0) {
+    balancePayload = buildPixPayload({ key: org.pix_key, merchantName: org.legal_name || org.name, merchantCity: (org.city || "SAO PAULO").split("/")[0], amount: balance, txid: ev.pix_txid ?? `FESTA${ev.id.replace(/-/g, "").slice(0, 10).toUpperCase()}`, description: `${ev.pix_txid ?? "FESTA"} saldo festa` });
+    try {
+      const svg = await QRCode.toString(balancePayload, { type: "svg", margin: 1, width: 240, errorCorrectionLevel: "M" });
+      balanceQr = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+    } catch { balanceQr = null; }
+  }
+  return { extras: (extras ?? []).map((x) => ({ ...x, total: Number(x.total), quantity: Number(x.quantity) })), balance, balancePayload, balanceQr, event: ev, org, quote: quote ? { ...quote, items: [...quote.quote_items].sort((a, b) => a.sort_order - b.sort_order), installments } : null, contract, quoteToken: quoteLink?.token ?? null, deposit, paid, pixPayload, pixQr };
 }

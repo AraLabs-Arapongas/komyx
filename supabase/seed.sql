@@ -139,7 +139,7 @@ begin
   values (gen_random_uuid(), '33333333-3333-3333-3333-333333333333', '33333333-3333-3333-3333-333333333333',
     '{"sub":"33333333-3333-3333-3333-333333333333","email":"admin@festeja.test","email_verified":true}', 'email', now(), now(), now());
   update public.profiles set is_platform_admin = true where id = '33333333-3333-3333-3333-333333333333';
-  update public.organizations set plan = 'premium' where slug = 'festeja';
+  update public.organizations set plan = 'premium', kind = 'platform' where slug = 'festeja';
 
   -- A second buffet (basic plan) so the admin list has variety
   insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change)

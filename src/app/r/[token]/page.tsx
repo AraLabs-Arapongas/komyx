@@ -75,6 +75,31 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
           </section>
         ) : null}
 
+        {r.balance > 0 && (ev.status === "CONFIRMED" || ev.status === "DONE") ? (
+          <section className="rounded-3xl p-5 space-y-3" style={{ background: "var(--paper-2)" }}>
+            <p className="display font-bold text-xl">Conta da festa{org.show_prices_public ? <> · falta <span style={{ color: "var(--berry)" }}>{formatCurrency(r.balance)}</span></> : null}</p>
+            {r.extras.length ? (
+              <ul className="text-sm divide-y" style={{ borderColor: "#ece7dc" }}>
+                {r.extras.map((x, i) => <li key={i} className="flex justify-between gap-3 py-1.5"><span>{x.description}{x.quantity !== 1 ? ` × ${x.quantity}` : ""} <span style={{ color: "var(--muted-ink)" }}>· extra no dia</span></span>{org.show_prices_public ? <b>{formatCurrency(x.total)}</b> : null}</li>)}
+              </ul>
+            ) : null}
+            {r.balancePayload ? (
+              <div className="grid gap-3 sm:grid-cols-[150px_1fr] sm:items-start">
+                {r.balanceQr ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={r.balanceQr} alt="QR Code Pix do saldo" className="h-[150px] w-[150px] rounded-xl bg-white p-1 border" style={{ borderColor: "#ece7dc" }} />
+                ) : null}
+                <div className="space-y-2 text-sm">
+                  <p>Pix do saldo para <b>{org.name}</b></p>
+                  <p className="flex flex-wrap items-center gap-2">Chave: <code className="rounded bg-white px-1.5 py-0.5">{org.pix_key}</code> <CopyButton text={org.pix_key!} label="Copiar chave" /></p>
+                  <p className="flex flex-wrap items-center gap-2">Pix copia e cola <CopyButton text={r.balancePayload} label="Copiar código" /></p>
+                  {waBuffet ? <a href={waBuffet} target="_blank" rel="noopener" className="inline-flex h-10 items-center gap-2 rounded-full px-4 font-extrabold text-white" style={{ background: "var(--berry)" }}><MessageCircle className="h-4 w-4" /> Enviar comprovante</a> : null}
+                </div>
+              </div>
+            ) : <p className="text-sm" style={{ color: "var(--muted-ink)" }}>Combine o pagamento com o buffet pelo WhatsApp.</p>}
+          </section>
+        ) : null}
+
         {quote ? (
           <section className="rounded-3xl bg-white border p-5 space-y-3" style={{ borderColor: "#ece7dc" }}>
             <div className="flex items-center justify-between gap-3">

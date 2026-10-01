@@ -713,6 +713,7 @@ export type Database = {
           highlights: string[]
           id: string
           instagram: string | null
+          kind: string
           legal_name: string | null
           logo_url: string | null
           name: string
@@ -748,6 +749,7 @@ export type Database = {
           highlights?: string[]
           id?: string
           instagram?: string | null
+          kind?: string
           legal_name?: string | null
           logo_url?: string | null
           name: string
@@ -783,6 +785,7 @@ export type Database = {
           highlights?: string[]
           id?: string
           instagram?: string | null
+          kind?: string
           legal_name?: string | null
           logo_url?: string | null
           name?: string

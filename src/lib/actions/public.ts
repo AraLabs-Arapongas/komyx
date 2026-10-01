@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
@@ -444,3 +446,28 @@ export async function acceptContract(_prev: ActionResult | undefined, formData: 
   return { ok: true, message: "Contrato aceito. Obrigado!" };
 }
 
+
+const doorPaySchema = z.object({
+  token: z.string().min(10),
+  amount: z.string().transform((v) => Number(String(v).replace(/\./g, "").replace(",", "."))).refine((v) => v > 0, "Valor inválido"),
+  method: z.enum(["PIX", "CASH", "CARD", "TRANSFER", "OTHER"]).default("PIX"),
+});
+
+/** Door: records a payment received when closing the party account (extras). */
+export async function doorRegisterPayment(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const parsed = doorPaySchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return fail("Verifique o valor.");
+  const ctx = await eventByLink(parsed.data.token, "CHECKIN");
+  if (!ctx) return fail("Este link não está mais disponível.");
+  const { error } = await ctx.admin.from("payments").insert({
+    organization_id: ctx.link.organization_id,
+    event_id: ctx.link.event_id,
+    amount: parsed.data.amount,
+    method: parsed.data.method,
+    notes: "Fechamento da conta na portaria",
+  });
+  if (error) return fail(translateDbError(error));
+  revalidatePath(`/d/${parsed.data.token}`);
+  revalidatePath(`/eventos/${ctx.link.event_id}`);
+  return { ok: true, message: "Recebimento registrado." };
+}

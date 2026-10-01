@@ -10,9 +10,14 @@ export async function ensureEventLinks(supabase: SupabaseClient<Database>, orgId
   const have = new Set((existing ?? []).map((l) => l.type));
   const missing = types.filter((t) => !have.has(t));
   if (missing.length === 0) return (existing ?? []) as PublicLinkRow[];
-  const { data: created } = await supabase
+  const { data: created, error } = await supabase
     .from("public_links")
     .insert(missing.map((type) => ({ organization_id: orgId, event_id: eventId, type, created_by: createdBy ?? null })))
     .select("id, token, short, type");
+  if (error) {
+    // Another request created them first (unique index on event_id + type while active): read back.
+    const { data: again } = await supabase.from("public_links").select("id, token, short, type").eq("event_id", eventId).eq("active", true);
+    return (again ?? []) as PublicLinkRow[];
+  }
   return [...(existing ?? []), ...(created ?? [])] as PublicLinkRow[];
 }

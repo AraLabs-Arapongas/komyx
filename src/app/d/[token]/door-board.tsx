@@ -3,17 +3,20 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Search, UserPlus, ShoppingBag, Minus, Plus } from "lucide-react";
-import { doorCheckIn, doorAddGuest, doorAddExtra } from "@/lib/actions/public";
+import { doorCheckIn, doorAddGuest, doorAddExtra, doorRegisterPayment } from "@/lib/actions/public";
 import { Field, Input, Select } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
+import { CopyButton } from "@/components/ui/copy-button";
 import { cn, formatCurrency } from "@/lib/utils";
 
 type Guest = { id: string; name: string; adults: number; children: number; checked_in_at: string | null; checked_in_adults: number; checked_in_children: number; source: string; notes: string | null };
 type Extra = { id: string; description: string; quantity: number; unit_price: number; total: number; created_at: string };
 type Addon = { id: string; name: string; price: number };
 
-export function DoorBoard({ token, guests, extras, extrasTotalLabel, addons }: { token: string; guests: Guest[]; extras: Extra[]; extrasTotalLabel: string; addons: Addon[] }) {
+type Account = { extrasTotal: number; extrasPaid: number; extrasOpen: number; pixKey: string | null; payload: string | null; qr: string | null; txid: string };
+
+export function DoorBoard({ token, account, guests, extras, extrasTotalLabel, addons }: { token: string; account: Account; guests: Guest[]; extras: Extra[]; extrasTotalLabel: string; addons: Addon[] }) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"pending" | "arrived" | "extras">("pending");
@@ -63,6 +66,7 @@ export function DoorBoard({ token, guests, extras, extrasTotalLabel, addons }: {
             )}
           </div>
           <AddExtraForm token={token} addons={addons} onDone={() => router.refresh()} />
+          <CloseAccount token={token} account={account} onDone={() => router.refresh()} />
         </>
       )}
     </div>
@@ -184,5 +188,48 @@ function AddExtraForm({ token, addons, onDone }: { token: string; addons: Addon[
       <Field label="Quantidade" htmlFor="door_qty" error={fe.quantity}><Input id="door_qty" name="quantity" inputMode="decimal" defaultValue={1} className="w-28" /></Field>
       <SubmitButton size="sm" variant="secondary">Registrar pedido</SubmitButton>
     </form>
+  );
+}
+
+/** "Fechar conta": what the extras add up to, what is still open, Pix QR for the exact amount, and one-tap "received". */
+function CloseAccount({ token, account, onDone }: { token: string; account: Account; onDone: () => void }) {
+  const [state, action] = useActionState(doorRegisterPayment, undefined);
+  useEffect(() => { if (state?.ok) onDone(); }, [state, onDone]);
+  if (account.extrasTotal <= 0) return null;
+  const settled = account.extrasOpen <= 0.005;
+  return (
+    <div className={`rounded-2xl border p-4 space-y-3 ${settled ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}>
+      <div className="flex items-center justify-between gap-3">
+        <p className="font-medium">Fechar conta</p>
+        <span className={`font-semibold ${settled ? "text-emerald-700" : "text-amber-800"}`}>{settled ? "Extras quitados" : `Falta ${formatCurrency(account.extrasOpen)}`}</span>
+      </div>
+      <p className="text-xs text-muted">Extras {formatCurrency(account.extrasTotal)} · já pago {formatCurrency(account.extrasPaid)}</p>
+      {!settled ? (
+        <>
+          {account.payload ? (
+            <div className="grid gap-3 sm:grid-cols-[120px_1fr] sm:items-start">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {account.qr ? <img src={account.qr} alt="QR Code Pix" className="h-[120px] w-[120px] rounded-xl bg-white p-1 border border-border" /> : null}
+              <div className="text-sm space-y-1">
+                <p>Pix de <b>{formatCurrency(account.extrasOpen)}</b> · chave <code className="rounded bg-white px-1.5 py-0.5">{account.pixKey}</code></p>
+                <p className="text-xs text-muted">Identificador {account.txid}. Confira no extrato antes de marcar como recebido.</p>
+                <CopyButton text={account.payload} label="Copiar Pix copia e cola" />
+              </div>
+            </div>
+          ) : <p className="text-xs text-muted">Buffet sem chave Pix cadastrada: receba em dinheiro ou cartão.</p>}
+          {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+          <div className="flex flex-wrap gap-2">
+            {(["PIX", "CASH", "CARD"] as const).map((m) => (
+              <form key={m} action={action}>
+                <input type="hidden" name="token" value={token} />
+                <input type="hidden" name="amount" value={account.extrasOpen.toFixed(2).replace(".", ",")} />
+                <input type="hidden" name="method" value={m} />
+                <SubmitButton size="sm" variant={m === "PIX" ? "primary" : "outline"} pendingText="Registrando...">Recebido · {m === "PIX" ? "Pix" : m === "CASH" ? "Dinheiro" : "Cartão"}</SubmitButton>
+              </form>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
   );
 }

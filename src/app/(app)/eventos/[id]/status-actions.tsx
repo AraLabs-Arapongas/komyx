@@ -6,7 +6,7 @@ import { Alert } from "@/components/ui/page";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { EventStatus } from "@/lib/labels";
 
-export function StatusActions({ eventId, status, pixTxid, depositAmount }: { eventId: string; status: EventStatus; pixTxid?: string | null; depositAmount?: number | null }) {
+export function StatusActions({ eventId, status, pixTxid, depositAmount, balance = 0 }: { eventId: string; status: EventStatus; pixTxid?: string | null; depositAmount?: number | null; balance?: number }) {
   const [state, action] = useActionState(changeEventStatus, undefined);
   const [extState, extendAction] = useActionState(extendPreReservation, undefined);
   const [depState, depositAction] = useActionState(confirmDeposit, undefined);
@@ -51,7 +51,7 @@ export function StatusActions({ eventId, status, pixTxid, depositAmount }: { eve
         ) : null}
         {status === "CONFIRMED" ? (
           <>
-            <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="DONE" /><SubmitButton size="sm">Marcar como realizado</SubmitButton></form>
+            <form action={action} onSubmit={(e) => { if (balance > 0 && !window.confirm(`Ainda faltam ${balance.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} para receber. Marcar como realizado mesmo assim? Use "Cobrar" em Pagamentos para enviar o Pix.`)) e.preventDefault(); }}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="DONE" /><SubmitButton size="sm">Marcar como realizado</SubmitButton></form>
             <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="PRE_RESERVED" /><SubmitButton size="sm" variant="outline">Voltar a reserva</SubmitButton></form>
             <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CANCELLED" /><SubmitButton size="sm" variant="ghost" className="text-red-600">Cancelar</SubmitButton></form>
           </>

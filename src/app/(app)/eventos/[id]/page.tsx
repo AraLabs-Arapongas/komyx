@@ -22,6 +22,8 @@ import { PaymentForm } from "./payment-form";
 import { ExtraForm, InviteForm } from "./extra-forms";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Installments } from "./installments";
+import { allocateInstallments, type InstallmentLike } from "@/lib/installments";
+import { balancePix, chargeMessage, eventTxid } from "@/lib/charge";
 
 const CONTRACT_LABEL: Record<string, string> = { DRAFT: "Rascunho", SENT: "Enviado", ACCEPTED: "Aceito", CANCELLED: "Cancelado" };
 const CONTRACT_TONE: Record<string, "amber" | "green" | "slate" | "red" | "zinc"> = { DRAFT: "zinc", SENT: "amber", ACCEPTED: "green", CANCELLED: "red" };
@@ -107,6 +109,18 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
   const inviteUrl = inviteLink ? shortUrl(inviteLink.short) : null;
   const checkinUrl = checkinLink ? shortUrl(checkinLink.short) : null;
 
+  // What is still open: installments not covered + extras not covered, for the WhatsApp charge
+  const balance = Number(fin?.balance ?? 0);
+  const alloc = latestQuote ? allocateInstallments(latestQuote.quote_installments as InstallmentLike[], Number(fin?.paid_total ?? 0), event.starts_at, latestQuote.decided_at) : [];
+  const planTotal = alloc.reduce((a, i) => a + i.amountNum, 0);
+  const extrasOpen = Math.max(0, Number(fin?.extras_total ?? 0) - Math.max(0, Number(fin?.paid_total ?? 0) - planTotal));
+  const openItems = [
+    ...alloc.filter((i) => i.remaining > 0.005).map((i) => ({ label: i.label, amount: i.remaining })),
+    ...(extrasOpen > 0.005 ? [{ label: "Pedidos extras na festa", amount: extrasOpen }] : []),
+  ];
+  const chargePayload = balance > 0 ? balancePix(org, event, balance) : null;
+  const chargeHref = balance > 0 ? whatsappLink(customer.whatsapp, chargeMessage({ firstName: customer.name.split(" ")[0], orgName: org.name, eventTitle: title, eventDate: event.starts_at, items: openItems.length ? openItems : [{ label: "Saldo da festa", amount: balance }], total: balance, pixKey: org.pix_key, pixPayload: chargePayload, txid: eventTxid(event), link: reservationUrl })) : null;
+
   const statusHint =
     event.status === "PRE_RESERVED" && event.expires_at ? `Data reservada até ${formatDateTime(event.expires_at)}. Confirme ou libere.` :
     event.status === "EXPIRED" ? "Horário liberado. Renove para bloquear novamente." :
@@ -142,7 +156,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                 <Stat label={Number(fin?.balance ?? 0) > 0 ? "Falta receber" : "Saldo"} strong tone={Number(fin?.balance ?? 0) > 0 ? "red" : Number(fin?.total ?? 0) > 0 ? "green" : undefined}><Money value={fin?.balance ?? 0} /></Stat>
               </div>
             </div>
-            <StatusActions eventId={id} status={event.status} pixTxid={event.pix_txid} depositAmount={latestQuote ? Number([...latestQuote.quote_installments].sort((a, b) => a.sequence - b.sequence)[0]?.amount ?? 0) || null : null} />
+            <StatusActions eventId={id} status={event.status} pixTxid={event.pix_txid} balance={balance} depositAmount={latestQuote ? Number([...latestQuote.quote_installments].sort((a, b) => a.sequence - b.sequence)[0]?.amount ?? 0) || null : null} />
           </CardBody>
         </Card>
 
@@ -239,7 +253,8 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
         {/* Row: payments · extras */}
         <div className="grid gap-3 xl:grid-cols-2">
           <Card>
-            <CardHeader title="Pagamentos" subtitle={`Pago ${formatCurrency(fin?.paid_total ?? 0)} · falta receber ${formatCurrency(fin?.balance ?? 0)}`} />
+            <CardHeader title="Pagamentos" subtitle={`Pago ${formatCurrency(fin?.paid_total ?? 0)} · falta receber ${formatCurrency(fin?.balance ?? 0)}`}
+              action={chargeHref ? <a href={chargeHref} target="_blank" rel="noopener" className={buttonClass("primary", "sm", "whitespace-nowrap")}><MessageCircle className="h-4 w-4" /> Cobrar {formatCurrency(balance)}</a> : null} />
             <CardBody className="space-y-3">
               {(latestQuote && latestQuote.quote_installments.length > 0) || Number(fin?.extras_total ?? 0) > 0 ? (
                 <div>

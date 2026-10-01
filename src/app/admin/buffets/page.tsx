@@ -13,7 +13,7 @@ export default async function AdminBuffetsPage({ searchParams }: PageProps<"/adm
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
   const status = sp.status === "suspended" ? "suspended" : sp.status === "active" ? "active" : "all";
   const admin = createAdminClient();
-  let query = admin.from("organizations").select("id, name, slug, plan, status, created_at, whatsapp").order("created_at", { ascending: false }).limit(200);
+  let query = admin.from("organizations").select("id, name, slug, plan, status, created_at, whatsapp").eq("kind", "buffet").order("created_at", { ascending: false }).limit(200);
   if (q) query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%`);
   if (status !== "all") query = query.eq("status", status);
   const [{ data: orgs }, { data: stats }, { data: owners }] = await Promise.all([
