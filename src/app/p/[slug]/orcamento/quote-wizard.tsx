@@ -322,22 +322,22 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
       </div>
 
       {/* Summary + nav */}
-      <div className="sticky bottom-3 z-10 rounded-3xl p-3 sm:p-4 flex flex-row items-center gap-3 shadow-[0_12px_40px_rgba(27,31,58,0.35)]" style={{ background: "var(--ink)", color: "var(--paper)" }}>
-        <div className="flex-1 text-sm" style={{ color: "#cfd2e6" }}>
+      <div className="sticky bottom-3 z-10 rounded-3xl p-3 sm:p-4 flex flex-wrap items-center gap-3 shadow-[0_12px_40px_rgba(27,31,58,0.35)]" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+        <div className="flex-1 min-w-[12rem] text-sm" style={{ color: "#cfd2e6" }}>
           {showPrices ? <p><b className="display text-2xl text-white">{formatCurrency(total)}</b> estimado</p> : <p className="display text-lg text-white">Valor enviado no WhatsApp</p>}
           <p className="truncate">{pkg ? pkg.name : "Sem pacote"}{date ? ` · ${fmtDate(date)} ${time}` : ""} · {adults}A {children}C{lines.filter((l) => l.kind === "ADDON").length ? ` · ${lines.filter((l) => l.kind === "ADDON").length} adicional(is)` : ""}</p>
         </div>
-        <div className="flex gap-2">
-          {step > 0 ? <button type="button" onClick={() => setStep((s) => s - 1)} className="h-11 px-4 rounded-full font-bold ring-2 ring-inset ring-white/30">Voltar</button> : null}
+        <div className="flex gap-2 ml-auto">
+          {step > 0 ? <button type="button" onClick={() => setStep((s) => s - 1)} className="h-11 px-4 rounded-full font-bold ring-2 ring-inset ring-white/30 whitespace-nowrap">Voltar</button> : null}
           {step < STEPS.length - 1 ? (
-            <button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)} className="h-11 px-5 rounded-full font-extrabold disabled:opacity-40" style={{ background: "var(--berry)", color: "#fff" }}>Continuar</button>
+            <button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)} className="h-11 px-5 rounded-full font-extrabold disabled:opacity-40 whitespace-nowrap" style={{ background: "var(--berry)", color: "#fff" }}>Continuar</button>
           ) : selfBooking && date ? (
             <>
-              <SubmitButton name="mode" value="lead" size="md" variant="ghost" className="rounded-full font-bold text-white ring-2 ring-inset ring-white/30 hover:bg-white/10" pendingText="Enviando...">Só o orçamento</SubmitButton>
-              <SubmitButton name="mode" value="reserve" size="lg" className="rounded-full font-extrabold" style={{ background: "var(--berry)" }} pendingText="Reservando...">Reservar esta data</SubmitButton>
+              <SubmitButton name="mode" value="lead" size="md" variant="ghost" className="rounded-full font-bold text-white ring-2 ring-inset ring-white/30 hover:bg-white/10 whitespace-nowrap" pendingText="Enviando...">Só orçamento</SubmitButton>
+              <SubmitButton name="mode" value="reserve" size="lg" className="rounded-full font-extrabold whitespace-nowrap" style={{ background: "var(--berry)" }} pendingText="Reservando...">Reservar esta data</SubmitButton>
             </>
           ) : (
-            <SubmitButton name="mode" value="lead" size="lg" className="rounded-full font-extrabold" style={{ background: "var(--berry)" }} pendingText="Enviando...">Enviar pedido</SubmitButton>
+            <SubmitButton name="mode" value="lead" size="lg" className="rounded-full font-extrabold whitespace-nowrap" style={{ background: "var(--berry)" }} pendingText="Enviando...">Enviar pedido</SubmitButton>
           )}
         </div>
       </div>
