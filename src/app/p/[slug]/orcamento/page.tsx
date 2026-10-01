@@ -14,8 +14,8 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
   const src = typeof sp.src === "string" ? sp.src : typeof sp.utm_source === "string" ? sp.utm_source : "";
   const preselected = typeof sp.package === "string" ? sp.package : "";
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("id, name, slug, logo_url, whatsapp, default_event_duration_minutes, plan, theme, show_prices_public, self_booking_enabled, pre_reservation_validity_hours, payment_plan").eq("slug", slug).maybeSingle();
-  if (!org) notFound();
+  const { data: org } = await admin.from("organizations").select("id, name, slug, logo_url, whatsapp, default_event_duration_minutes, plan, theme, show_prices_public, self_booking_enabled, pre_reservation_validity_hours, payment_plan, status").eq("slug", slug).maybeSingle();
+  if (!org || org.status !== "active") notFound();
   const [{ data: packages }, { data: addons }] = await Promise.all([
     admin.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price, description").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name"),
     admin.from("package_addons").select("id, name, price, description").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name"),

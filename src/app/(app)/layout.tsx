@@ -6,7 +6,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   return (
     <div className="flex min-h-screen">
-      <Sidebar orgName={org.name} userName={profile.name} role={profile.role} />
+      <Sidebar orgName={org.name} userName={profile.name} role={profile.role} isAdmin={profile.is_platform_admin} />
       <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0">{children}</div>
       <BottomNav />
     </div>

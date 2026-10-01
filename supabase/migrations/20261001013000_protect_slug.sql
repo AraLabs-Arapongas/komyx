@@ -7,7 +7,7 @@ set search_path = ''
 as $$
 begin
   if new.slug is distinct from old.slug
-     and coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
+     and coalesce(current_setting('request.jwt.claim.role', true), '') in ('authenticated', 'anon') then
     raise exception 'O endereço público só pode ser alterado pelo suporte do Festeja.' using errcode = '42501';
   end if;
   return new;

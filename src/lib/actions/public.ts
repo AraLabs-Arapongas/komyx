@@ -115,8 +115,8 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
   if (!parsed.success) return fail("Verifique os campos.", zodFieldErrors(parsed.error));
   const d = parsed.data;
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("id, name, legal_name, city, whatsapp, pix_key, self_booking_enabled, one_event_per_day, pre_reservation_validity_hours, default_event_duration_minutes").eq("slug", d.slug).maybeSingle();
-  if (!org) return fail("Buffet não encontrado.");
+  const { data: org } = await admin.from("organizations").select("id, name, legal_name, city, whatsapp, pix_key, self_booking_enabled, one_event_per_day, pre_reservation_validity_hours, default_event_duration_minutes, status").eq("slug", d.slug).maybeSingle();
+  if (!org || org.status !== "active") return fail("Buffet não encontrado.");
 
   let estimated_total: number | null = null;
   let addonsSnapshot: { addon_id: string; name: string; price: number; quantity: number }[] | null = null;

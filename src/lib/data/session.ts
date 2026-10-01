@@ -10,6 +10,7 @@ export type Profile = {
   name: string;
   email: string;
   role: "owner" | "staff";
+  is_platform_admin: boolean;
 };
 
 /**
@@ -24,7 +25,7 @@ export const requireProfile = cache(async (): Promise<Profile> => {
 
   const { data: profile } = await timed(
     "profiles.select",
-    supabase.from("profiles").select("id, organization_id, name, email, role").eq("id", userId).maybeSingle(),
+    supabase.from("profiles").select("id, organization_id, name, email, role, is_platform_admin").eq("id", userId).maybeSingle(),
   );
 
   if (!profile) {
@@ -44,5 +45,13 @@ export const getOrganization = cache(async () => {
   const profile = await requireProfile();
   const supabase = await createClient();
   const { data } = await supabase.from("organizations").select("*").eq("id", profile.organization_id).single();
+  if (data?.status === "suspended" && !profile.is_platform_admin) redirect("/suspenso");
   return data!;
+});
+
+/** Festeja staff only. */
+export const requireAdmin = cache(async (): Promise<Profile> => {
+  const profile = await requireProfile();
+  if (!profile.is_platform_admin) redirect("/home?error=forbidden");
+  return profile;
 });

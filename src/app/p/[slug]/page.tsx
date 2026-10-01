@@ -33,10 +33,10 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
   const admin = createAdminClient();
   const { data: org } = await admin
     .from("organizations")
-    .select("id, name, slug, logo_url, cover_url, cover_caption, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, show_prices_public")
+    .select("id, name, slug, logo_url, cover_url, cover_caption, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, show_prices_public, status")
     .eq("slug", slug)
     .maybeSingle();
-  if (!org) notFound();
+  if (!org || org.status !== "active") notFound();
   const { data: packages } = await admin.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price, description").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name");
 
   const gallery = (Array.isArray(org.gallery) ? org.gallery : []) as GalleryItem[];
@@ -100,6 +100,11 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
       </section>
 
       <ReservationRecall orgName={org.name} />
+      {waUrl ? (
+        <a href={waUrl} target="_blank" rel="noopener" aria-label="Falar no WhatsApp" className="md:hidden fixed bottom-4 right-4 z-30 h-14 w-14 rounded-full grid place-items-center shadow-lg" style={{ background: "#25D366", color: "#fff" }}>
+          <MessageCircle className="h-7 w-7" />
+        </a>
+      ) : null}
 
       {/* HIGHLIGHTS */}
       {highlights.length ? (

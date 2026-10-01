@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { requireProfile } from "@/lib/data/session";
 import { expirePreReservations } from "@/lib/actions/events";
 import { attachFinancials } from "@/lib/data/financials";
+import { getOrganization } from "@/lib/data/session";
+import { Onboarding } from "@/components/home/onboarding";
+import { appUrl } from "@/lib/utils";
 import { PageBody, PageHeader, EmptyState, Alert } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { buttonClass } from "@/components/ui/button";
@@ -16,7 +19,7 @@ const EVENT_SELECT = "id, title, starts_at, ends_at, status, expires_at, estimat
 
 export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const sp = await searchParams;
-  const profile = await requireProfile();
+  const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   await expirePreReservations();
   const supabase = await createClient();
 
@@ -26,13 +29,17 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const endOfToday = new Date(`${todayKey}T23:59:59-03:00`).toISOString();
   const in48h = new Date(now.getTime() + 48 * 3_600_000).toISOString();
 
-  const [todayRes, upcomingRes, expiring, pendingQuotes, receivables, requests] = await Promise.all([
+  const [todayRes, upcomingRes, expiring, pendingQuotes, receivables, requests, onlinePending, pkgCount, photoCount, eventCount] = await Promise.all([
     supabase.from("events").select(EVENT_SELECT).gte("starts_at", startOfToday).lte("starts_at", endOfToday).in("status", ["CONFIRMED", "PRE_RESERVED"]).order("starts_at"),
     supabase.from("events").select(EVENT_SELECT).gt("starts_at", endOfToday).in("status", ["CONFIRMED", "PRE_RESERVED"]).order("starts_at").limit(5),
     supabase.from("events").select("id, title, expires_at, starts_at, customers(name)").eq("status", "PRE_RESERVED").lte("expires_at", in48h).order("expires_at").limit(5),
     supabase.from("quotes").select("id, status, total, event_id, events(id, title, starts_at, customers(name))").in("status", ["DRAFT", "SENT"]).order("created_at", { ascending: false }).limit(5),
     supabase.from("event_financials").select("event_id, balance, quote_total, paid_total").eq("organization_id", profile.organization_id).gt("balance", 0),
     supabase.from("public_requests").select("id", { count: "exact", head: true }).eq("status", "NEW"),
+    supabase.from("events").select("id, title, starts_at, expires_at, pix_txid, customers(name, whatsapp)").eq("origin", "SELF_SERVICE").eq("status", "PRE_RESERVED").order("created_at", { ascending: false }).limit(5),
+    supabase.from("packages").select("id", { count: "exact", head: true }),
+    Promise.resolve({ count: Array.isArray(org.gallery) ? org.gallery.length : 0 }),
+    supabase.from("events").select("id", { count: "exact", head: true }),
   ]);
 
   const [today, upcoming] = await Promise.all([attachFinancials(supabase, todayRes.data), attachFinancials(supabase, upcomingRes.data)]);
@@ -46,6 +53,24 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       } />
       <PageBody>
         {sp.error === "forbidden" ? <Alert>Apenas o proprietário pode acessar essa área.</Alert> : null}
+        <Onboarding isOwner={profile.role === "owner"} s={{ hasPackages: (pkgCount.count ?? 0) > 0, hasPix: Boolean(org.pix_key), hasPhotos: (photoCount.count ?? 0) > 0, hasWhatsapp: Boolean(org.whatsapp), hasEvent: (eventCount.count ?? 0) > 0, publicUrl: appUrl(`/p/${org.slug}`) }} />
+
+        {onlinePending.data && onlinePending.data.length > 0 ? (
+          <Card className="border-brand/40">
+            <CardHeader title="Reservas online aguardando sinal" subtitle="Confira o Pix no extrato pelo código e confirme" />
+            <CardBody className="space-y-2">
+              {onlinePending.data.map((e) => (
+                <Link key={e.id} href={`/eventos/${e.id}`} className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2.5">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{eventTitle(e)}</p>
+                    <p className="text-xs text-muted">{formatDateLong(e.starts_at)} · código <b>{e.pix_txid}</b>{e.expires_at ? ` · até ${formatDateTime(e.expires_at)}` : ""}</p>
+                  </div>
+                  <span className="text-xs text-brand font-medium whitespace-nowrap">Confirmar</span>
+                </Link>
+              ))}
+            </CardBody>
+          </Card>
+        ) : null}
 
         <div className="grid grid-cols-2 gap-3">
           <Link href="/eventos?status=CONFIRMED" className="rounded-2xl bg-surface border border-border p-4">

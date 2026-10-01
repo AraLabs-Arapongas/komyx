@@ -44,7 +44,12 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
           <p className="inline-flex items-center gap-2 font-bold"><CalendarDays className="h-5 w-5" style={{ color: "var(--berry)" }} /> {formatDateLong(ev.starts_at)} · {formatTime(ev.starts_at)}–{formatTime(ev.ends_at)}</p>
           <p className="text-sm" style={{ color: "var(--muted-ink)" }}>{ev.adults ?? 0} adultos · {ev.children ?? 0} crianças{org.address ? ` · ${org.address}` : ""}</p>
           {ev.status === "PRE_RESERVED" && ev.expires_at && !expired ? <p className="text-sm">Data segura até <b>{formatDateTime(ev.expires_at)}</b>. Pague o sinal até lá para confirmar.</p> : null}
-          {expired ? <p className="text-sm text-red-700">O prazo do sinal passou e a data voltou a ficar livre. Fale com o buffet para tentar reservar de novo.</p> : null}
+          {expired ? (
+            <div className="text-sm text-red-700 space-y-2">
+              <p>O prazo do sinal passou e a data voltou a ficar livre.</p>
+              <a href={`/p/${org.slug}/orcamento`} className={buttonClass("primary", "sm")}>Tentar reservar de novo</a>
+            </div>
+          ) : null}
           {ev.status === "CONFIRMED" ? <p className="text-sm text-emerald-700">Sinal recebido. Sua festa está confirmada!</p> : null}
           <div className="flex flex-wrap gap-2 pt-1 text-xs items-center" style={{ color: "var(--muted-ink)" }}>
             <span>Link desta página:</span><span className="break-all">{selfUrl}</span><CopyButton text={selfUrl} label="Copiar" />

@@ -9,7 +9,14 @@ import { Alert } from "@/components/ui/page";
 export function GuestForm({ token }: { token: string }) {
   const [state, action] = useActionState(confirmGuest, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
-  if (state?.ok) return <Alert tone="success">{state.message}</Alert>;
+  if (state?.ok) {
+    return (
+      <div className="space-y-3">
+        <Alert tone="success">{state.message}</Alert>
+        <a href={`/g/${token}/evento.ics`} className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-border bg-surface font-medium">Adicionar ao meu calendário</a>
+      </div>
+    );
+  }
   return (
     <form action={action} className="space-y-4">
       <p className="font-medium">Confirme sua presença</p>
