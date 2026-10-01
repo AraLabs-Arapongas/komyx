@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { Money } from "@/components/ui/money";
 import { eventTitle } from "@/components/events/event-card";
-import { appUrl, cn, formatDate, formatDateLong, formatDateTime, formatTime, toDateKey, whatsappLink } from "@/lib/utils";
+import { cn, formatDate, shortUrl, formatDateLong, formatDateTime, formatTime, toDateKey, whatsappLink } from "@/lib/utils";
 
 export const metadata = { title: "Orçamentos" };
 
@@ -63,12 +63,12 @@ export default async function QuotesPage({ searchParams }: PageProps<"/orcamento
 
   // Links to put in the WhatsApp nudge (reservation page first, public quote second).
   const eventIds = all.map(({ q }) => q.event_id);
-  const { data: links } = eventIds.length ? await supabase.from("public_links").select("event_id, type, token").in("event_id", eventIds).in("type", ["RESERVATION", "QUOTE"]).eq("active", true) : { data: [] as { event_id: string; type: string; token: string }[] };
+  const { data: links } = eventIds.length ? await supabase.from("public_links").select("event_id, type, short").in("event_id", eventIds).in("type", ["RESERVATION", "QUOTE"]).eq("active", true) : { data: [] as { event_id: string; type: string; short: string }[] };
   const linkFor = (eventId: string) => {
     const r = (links ?? []).find((l) => l.event_id === eventId && l.type === "RESERVATION");
-    if (r) return appUrl(`/r/${r.token}`);
+    if (r) return shortUrl(r.short);
     const qlink = (links ?? []).find((l) => l.event_id === eventId && l.type === "QUOTE");
-    return qlink ? appUrl(`/q/${qlink.token}`) : null;
+    return qlink ? shortUrl(qlink.short) : null;
   };
 
   // Month (by creation date) drives the cards and the list. "all" shows every month.
@@ -131,7 +131,20 @@ export default async function QuotesPage({ searchParams }: PageProps<"/orcamento
               const quoteHref = `/eventos/${q.event_id}/orcamento?quote=${q.id}`;
               const reservedUntil = v === "WAITING" && ev?.status === "PRE_RESERVED" && ev.expires_at ? `Data reservada até ${formatDate(ev.expires_at, { day: "2-digit", month: "2-digit" })} às ${formatTime(ev.expires_at)}` : null;
               const url = linkFor(q.event_id);
-              const nudge = customer ? whatsappLink(customer.whatsapp, `Olá ${customer.name.split(" ")[0]}! Aqui é do ${org.name}. Seu orçamento para a festa de ${ev ? formatDate(ev.starts_at) : ""} está aguardando sua confirmação.${url ? ` Veja aqui: ${url}` : ""}`) : null;
+              const shortDay = (iso: string) => {
+                const parts = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "short" }).formatToParts(new Date(iso));
+                const get = (t: string) => parts.find((x) => x.type === t)?.value ?? "";
+                return `${get("day")}/${get("month").replace(".", "")}`;
+              };
+              const nudge = customer ? whatsappLink(customer.whatsapp, [
+                `Oi, ${customer.name.split(" ")[0]}! Tudo bem?`,
+                "",
+                `Estou passando para saber se conseguiu ver o orçamento ${ev ? `da ${eventTitle(ev)}, dia ${shortDay(ev.starts_at)}` : ""}.`,
+                ...(ev?.status === "PRE_RESERVED" && ev.expires_at ? ["", `A data está reservada até ${shortDay(ev.expires_at)} às ${formatTime(ev.expires_at)}.`] : []),
+                ...(url ? ["", "Você pode conferir a proposta aqui:", url] : []),
+                "",
+                `Qualquer dúvida, estou à disposição. ${org.name}`,
+              ].join("\n")) : null;
               return (
                 <li key={q.id} className="px-4 py-3 hover:bg-stone-50">
                   <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">

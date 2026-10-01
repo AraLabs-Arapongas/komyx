@@ -106,7 +106,7 @@ test.describe("Dona do buffet", () => {
     await page.getByLabel("Adicionar convidado").locator("xpath=ancestor::form").getByRole("button", { name: "Adicionar", exact: true }).click();
     await expect(page.getByText("Família Teste")).toBeVisible();
     await page.getByRole("button", { name: "Gerar link", exact: true }).click();
-    await expect(page.getByText(/\/g\/[0-9a-f]{48}/)).toBeVisible();
+    await expect(page.getByText(/\/o\/[A-Za-z0-9]{8}/)).toBeVisible();
 
     // Aparece na aba Orçamentos e na lista de aniversariantes
     await page.goto("/orcamentos");

@@ -165,23 +165,24 @@ export async function changeQuoteStatus(_prev: ActionResult | undefined, formDat
 }
 
 /** Ensures there is an active QUOTE public link for the event; returns its token. */
+/** Returns the short code of the public quote link (creates it when missing). */
 export async function ensureQuoteLink(eventId: string) {
   const profile = await requireProfile();
   const supabase = await createClient();
   const { data: existing } = await supabase
     .from("public_links")
-    .select("token")
+    .select("short")
     .eq("event_id", eventId)
     .eq("type", "QUOTE")
     .eq("active", true)
     .maybeSingle();
-  if (existing) return existing.token;
+  if (existing) return existing.short;
   const { data } = await supabase
     .from("public_links")
     .insert({ organization_id: profile.organization_id, event_id: eventId, type: "QUOTE", created_by: profile.id })
-    .select("token")
+    .select("short")
     .single();
-  return data?.token ?? null;
+  return data?.short ?? null;
 }
 
 const installmentsSchema = z.object({ quote_id: uuid, event_id: uuid });

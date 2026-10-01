@@ -14,7 +14,7 @@ import { buttonClass } from "@/components/ui/button";
 import { Money } from "@/components/ui/money";
 import { eventTitle } from "@/components/events/event-card";
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, QUOTE_STATUS_LABEL, QUOTE_STATUS_TONE, PAYMENT_STATUS_LABEL, PAYMENT_STATUS_TONE, PAYMENT_METHOD_LABEL } from "@/lib/labels";
-import { appUrl, formatCurrency, formatDate, formatDateLong, formatDateTime, formatPhone, formatTime, whatsappLink } from "@/lib/utils";
+import { formatCurrency, formatDate, formatDateLong, formatDateTime, formatPhone, formatTime, shortUrl, whatsappLink } from "@/lib/utils";
 import { StatusActions } from "./status-actions";
 import { GuestSection } from "./guest-section";
 import { PaymentForm } from "./payment-form";
@@ -84,7 +84,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
   const [guestsRes, paymentsRes, linksRes, quotesRes, contractsRes, extrasRes, addonsRes, fin] = await Promise.all([
     supabase.from("guests").select("id, name, adults, children, participants, source, notes, checked_in_at, checked_in_adults, checked_in_children, created_at").eq("event_id", id).order("created_at"),
     supabase.from("payments").select("id, amount, paid_at, method, notes").eq("event_id", id).order("paid_at", { ascending: false }),
-    supabase.from("public_links").select("id, token, type, active, created_at").eq("event_id", id).eq("active", true),
+    supabase.from("public_links").select("id, token, short, type, active, created_at").eq("event_id", id).eq("active", true),
     supabase.from("quotes").select("id, status, total, created_at, decided_at, quote_installments(sequence, label, percent, amount, rule, days_before, due_date)").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("contracts").select("id, number, status, created_at, accepted_at").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("event_extras").select("id, description, quantity, unit_price, total, source, created_at").eq("event_id", id).order("created_at", { ascending: false }),
@@ -105,9 +105,9 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
   const latestContract = contracts[0];
   const payStatus = fin?.payment_status ?? null;
   const waMessage = `Olá ${customer.name.split(" ")[0]}! Aqui é do ${org.name}. Sobre a festa de ${formatDate(event.starts_at)} às ${formatTime(event.starts_at)}.`;
-  const reservationUrl = reservationLink ? appUrl(`/r/${reservationLink.token}`) : null;
-  const inviteUrl = inviteLink ? appUrl(`/i/${inviteLink.token}`) : null;
-  const checkinUrl = checkinLink ? appUrl(`/d/${checkinLink.token}`) : null;
+  const reservationUrl = reservationLink ? shortUrl(reservationLink.short) : null;
+  const inviteUrl = inviteLink ? shortUrl(inviteLink.short) : null;
+  const checkinUrl = checkinLink ? shortUrl(checkinLink.short) : null;
 
   const statusHint =
     event.status === "PRE_RESERVED" && event.expires_at ? `Data reservada até ${formatDateTime(event.expires_at)}. Confirme ou libere.` :
@@ -300,7 +300,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                 revoke={checkinLink ? { linkId: checkinLink.id, eventId: id } : null}
                 generate={{ eventId: id, type: "CHECKIN", label: "Gerar link da portaria" }} />
               {checkinLink ? <Link href={`/d/${checkinLink.token}`} target="_blank" className={buttonClass("outline", "sm")}><DoorOpen className="h-4 w-4" /> Abrir portaria</Link> : null}
-              <GuestSection eventId={id} guests={guestsRes.data ?? []} guestLink={guestLink ? { id: guestLink.id, url: appUrl(`/g/${guestLink.token}`) } : null} eventTitle={title} customerPhone={customer.whatsapp} />
+              <GuestSection eventId={id} guests={guestsRes.data ?? []} guestLink={guestLink ? { id: guestLink.id, url: shortUrl(guestLink.short) } : null} eventTitle={title} customerPhone={customer.whatsapp} />
             </CardBody>
           </Card>
 

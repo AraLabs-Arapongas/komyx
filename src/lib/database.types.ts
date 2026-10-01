@@ -991,6 +991,7 @@ export type Database = {
           expires_at: string | null
           id: string
           organization_id: string
+          short: string
           token: string
           type: Database["public"]["Enums"]["public_link_type"]
         }
@@ -1002,6 +1003,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           organization_id: string
+          short?: string
           token?: string
           type?: Database["public"]["Enums"]["public_link_type"]
         }
@@ -1013,6 +1015,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           organization_id?: string
+          short?: string
           token?: string
           type?: Database["public"]["Enums"]["public_link_type"]
         }
@@ -1480,7 +1483,20 @@ export type Database = {
         Args: { p_from: string; p_slug: string; p_to: string }
         Returns: string[]
       }
+      confirm_guest: {
+        Args: {
+          p_adults: number
+          p_children: number
+          p_name: string
+          p_notes?: string
+          p_token: string
+        }
+        Returns: undefined
+      }
       expire_pre_reservations: { Args: never; Returns: number }
+      guest_link: { Args: { p_token: string }; Returns: Json }
+      my_reservations: { Args: never; Returns: Json }
+      reservation_by_token: { Args: { p_token: string }; Returns: Json }
       unread_notifications_count: { Args: never; Returns: number }
     }
     Enums: {

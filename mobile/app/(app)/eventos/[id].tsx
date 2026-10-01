@@ -23,7 +23,7 @@ async function loadEvent(id: string) {
     supabase.from("guests").select("id, name, adults, children, source, notes, checked_in_at, checked_in_adults, checked_in_children").eq("event_id", id).order("created_at"),
     supabase.from("payments").select("id, amount, paid_at, method, notes").eq("event_id", id).order("paid_at", { ascending: false }),
     supabase.from("quotes").select("id, status, total, decided_at, created_at, quote_installments(sequence, label, percent, amount, rule, days_before, due_date)").eq("event_id", id).order("created_at", { ascending: false }).limit(1),
-    supabase.from("public_links").select("id, token, type").eq("event_id", id).eq("active", true),
+    supabase.from("public_links").select("id, token, short, type").eq("event_id", id).eq("active", true),
     supabase.from("event_extras").select("id, description, quantity, unit_price, total, source").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("event_financials").select("*").eq("event_id", id).maybeSingle(),
   ]);
@@ -96,18 +96,17 @@ export default function EventDetail() {
   const ensureLink = useMutation({
     mutationFn: async (type: "RESERVATION" | "GUEST_CONFIRM" | "CHECKIN") => {
       const existing = q.data?.links.find((l) => l.type === type);
-      if (existing) return existing.token as string;
-      const { data, error } = await supabase.from("public_links").insert({ organization_id: profile!.organization_id, event_id: id, type, created_by: profile!.id }).select("token").single();
+      if (existing) return existing.short as string;
+      const { data, error } = await supabase.from("public_links").insert({ organization_id: profile!.organization_id, event_id: id, type, created_by: profile!.id }).select("short").single();
       if (error) throw new Error(error.message);
-      return data.token as string;
+      return data.short as string;
     },
     onSuccess: invalidate,
   });
 
   async function shareLink(type: "RESERVATION" | "GUEST_CONFIRM" | "CHECKIN") {
-    const token = await ensureLink.mutateAsync(type);
-    const path = type === "RESERVATION" ? "r" : type === "GUEST_CONFIRM" ? "g" : "d";
-    const url = `${WEB_URL}/${path}/${token}`;
+    const short = await ensureLink.mutateAsync(type);
+    const url = `${WEB_URL}/o/${short}`;
     const label = type === "RESERVATION" ? `Sua reserva no ${org?.name} (Pix, orçamento e contrato): ` : type === "GUEST_CONFIRM" ? `Confirme presença: ` : `Portaria da festa: `;
     await Share.share({ message: `${label}${url}` });
   }
@@ -244,7 +243,7 @@ export default function EventDetail() {
             <Muted>adultos · crianças</Muted>
             <Button title="Adicionar" size="sm" variant="secondary" loading={addGuest.isPending} onPress={() => addGuest.mutate()} />
           </Row>
-          <Button title="Abrir portaria na web (check-in no dia)" size="sm" variant="outline" onPress={async () => { const t = await ensureLink.mutateAsync("CHECKIN"); Linking.openURL(`${WEB_URL}/d/${t}`); }} />
+          <Button title="Abrir portaria na web (check-in no dia)" size="sm" variant="outline" onPress={async () => { const sc = await ensureLink.mutateAsync("CHECKIN"); Linking.openURL(`${WEB_URL}/o/${sc}`); }} />
         </Card>
 
         <Card>

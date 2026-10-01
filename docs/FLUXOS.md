@@ -64,6 +64,10 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 
 Fluxo visível: Solicitação → Orçamento → Aguardando confirmação → Evento confirmado → Realizado/Cancelado. Um evento só "existe" para a dona depois da confirmação; antes é um orçamento com data e horário (mesmo registro no banco). Estados na página: Rascunho, Aguardando confirmação (orçamento enviado; pode segurar a data até o prazo), Aceito, Recusado, Expirado (prazo venceu, data liberada). "Enviado" é ação, não estado. Ações por estado: Continuar orçamento · Cobrar no WhatsApp / Abrir orçamento · Abrir evento. Cards do topo somam o mês atual. Sem gráficos, CRM ou financeiro.
 
+### Links curtos
+
+Todo link público tem um código curto aleatório de 8 caracteres (`public_links.short`): `/o/<curto>` redireciona para a página longa (`/r/`, `/q/`, `/g/`, `/i/`, `/d/`). O app, a ficha do evento, o orçamento e a cobrança no WhatsApp usam o curto; os links longos continuam válidos. Sem serviço externo. Com domínio próprio curto fica `https://festaecia.com/o/a8K2mQ7x`.
+
 ## 2. Cliente (sem login)
 
 ### 2.1 Descobrir

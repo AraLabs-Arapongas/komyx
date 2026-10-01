@@ -82,6 +82,11 @@ export function appUrl(path = "") {
   return `${base.replace(/\/$/, "")}${path}`;
 }
 
+/** Short public URL for a public_links row (/o/<short>). */
+export function shortUrl(short: string) {
+  return appUrl(`/o/${short}`);
+}
+
 export function slugify(input: string) {
   return input
     .normalize("NFD")

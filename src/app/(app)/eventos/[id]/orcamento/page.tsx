@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { eventTitle } from "@/components/events/event-card";
 import { QUOTE_STATUS_LABEL, QUOTE_STATUS_TONE } from "@/lib/labels";
-import { appUrl, formatCurrency, formatDate, formatTime, whatsappLink } from "@/lib/utils";
+import { formatCurrency, formatDate, formatTime, whatsappLink, shortUrl } from "@/lib/utils";
 import { installmentDueLabel } from "@/lib/contract";
 import { QuoteItemForm, DiscountForm, QuoteStatusForm, ShareQuote, ParticipantsForm, InstallmentsForm } from "./quote-forms";
 
@@ -47,8 +47,8 @@ export default async function QuotePage({ params, searchParams }: PageProps<"/ev
   const items = [...quote.quote_items].sort((a, b) => a.sort_order - b.sort_order);
   const installments = [...quote.quote_installments].sort((a, b) => a.sequence - b.sequence);
   const locked = quote.status === "ACCEPTED" || quote.status === "REJECTED";
-  const token = quote.status !== "DRAFT" ? await ensureQuoteLink(id) : null;
-  const publicUrl = token ? appUrl(`/q/${token}`) : null;
+  const short = quote.status !== "DRAFT" ? await ensureQuoteLink(id) : null;
+  const publicUrl = short ? shortUrl(short) : null;
   const pdfUrl = `/eventos/${id}/orcamento/pdf?quote=${quote.id}`;
   const customer = event.customers!;
   const message = `Olá ${customer.name.split(" ")[0]}! Segue o orçamento do ${org.name} para ${eventTitle(event)} em ${formatDate(event.starts_at)} às ${formatTime(event.starts_at)}: ${formatCurrency(quote.total)}.${publicUrl ? ` Veja os detalhes: ${publicUrl}` : ""}`;
