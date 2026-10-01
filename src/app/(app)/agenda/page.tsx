@@ -15,7 +15,7 @@ export default async function AgendaPage({ searchParams }: PageProps<"/agenda">)
 
   const todayKey = toDateKey(new Date());
   const monthParam = typeof sp.m === "string" && /^\d{4}-\d{2}$/.test(sp.m) ? sp.m : todayKey.slice(0, 7);
-  const view = sp.view === "month" || sp.view === "week" ? sp.view : "list";
+  const view = sp.view === "month" || sp.view === "week" || sp.view === "list" ? sp.view : null;
 
   // Load a wide window (previous month .. next month) so navigation stays snappy.
   const [y, m] = monthParam.split("-").map(Number);
