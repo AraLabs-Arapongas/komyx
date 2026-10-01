@@ -80,8 +80,9 @@ test.describe("Dona do buffet", () => {
     expect(pdf.status()).toBe(200);
     expect(pdf.headers()["content-type"]).toContain("application/pdf");
 
-    // Contrato gerado e preenchido
-    await page.getByRole("button", { name: "Gerar contrato" }).first().click();
+    // Contrato gerado automaticamente no aceite e preenchido
+    await page.goto(eventUrl);
+    await page.locator('a[href*="/contrato?c="]').first().click();
     await page.waitForURL(/\/contrato\?c=/);
     const content = (await page.locator("textarea[name=content]").inputValue()).replace(/\u00a0/g, " ");
     expect(content).toContain(customerName);
@@ -105,8 +106,7 @@ test.describe("Dona do buffet", () => {
     await page.getByLabel("Crianças", { exact: true }).last().fill("1");
     await page.getByLabel("Adicionar convidado").locator("xpath=ancestor::form").getByRole("button", { name: "Adicionar", exact: true }).click();
     await expect(page.getByText("Família Teste")).toBeVisible();
-    await page.getByRole("button", { name: "Gerar link", exact: true }).click();
-    await expect(page.getByText(/\/o\/[A-Za-z0-9]{8}/)).toBeVisible();
+    await expect(page.getByText(/\/o\/[A-Za-z0-9]{8}/)).toHaveCount(4); // reserva, RSVP, convite e portaria sempre existem
 
     // Aparece na aba Orçamentos e na lista de aniversariantes
     await page.goto("/orcamentos");

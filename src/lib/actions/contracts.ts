@@ -92,3 +92,11 @@ export async function changeContractStatus(_prev: ActionResult | undefined, form
   revalidate(parsed.data.event_id);
   return { ok: true, message: "Status atualizado." };
 }
+
+/** Creates the first contract for an event when none exists yet (called when a quote is accepted). */
+export async function ensureContract(eventId: string) {
+  const supabase = await createClient();
+  const { count } = await supabase.from("contracts").select("id", { count: "exact", head: true }).eq("event_id", eventId).neq("status", "CANCELLED");
+  if ((count ?? 0) > 0) return;
+  await generateContract(eventId);
+}

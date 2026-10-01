@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { Link2, MessageCircle, Trash2, Check } from "lucide-react";
-import { addGuest, removeGuest, ensureGuestLink, revokePublicLink, checkInGuest } from "@/lib/actions/guests-payments";
+import { addGuest, removeGuest, revokePublicLink, checkInGuest } from "@/lib/actions/guests-payments";
 import { Field, Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -38,12 +38,7 @@ export function GuestSection({ eventId, guests, guestLink, eventTitle, customerP
                 </form>
               </div>
             </>
-          ) : (
-            <form action={ensureGuestLink} className="ml-auto">
-              <input type="hidden" name="event_id" value={eventId} />
-              <button className={buttonClass("secondary", "sm")}>Gerar link</button>
-            </form>
-          )}
+          ) : <span className="text-xs text-muted ml-auto">Link revogado</span>}
         </div>
       </div>
 

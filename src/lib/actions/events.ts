@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { ensureContract } from "./contracts";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -307,6 +308,7 @@ export async function confirmDeposit(_prev: ActionResult | undefined, formData: 
   if (quote && quote.status !== "ACCEPTED") await supabase.from("quotes").update({ status: "ACCEPTED" }).eq("id", quote.id);
   const { error } = await supabase.from("events").update({ status: "CONFIRMED", expires_at: null }).eq("id", id.data);
   if (error) return fail(translateDbError(error));
+  await ensureContract(id.data);
   revalidateEvents(id.data);
-  return { ok: true, message: "Sinal registrado e evento confirmado." };
+  return { ok: true, message: "Sinal registrado, evento confirmado e contrato gerado." };
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { ensureContract } from "./contracts";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -159,9 +160,10 @@ export async function changeQuoteStatus(_prev: ActionResult | undefined, formDat
       if (evErr) return fail(`Orçamento aceito, mas não foi possível confirmar o evento: ${translateDbError(evErr)}`);
     }
     revalidatePath("/agenda");
+    await ensureContract(d.event_id);
   }
   revalidateQuote(d.event_id);
-  return { ok: true, message: "Orçamento atualizado." };
+  return { ok: true, message: d.status === "ACCEPTED" ? "Orçamento aceito. Contrato gerado a partir dele." : "Orçamento atualizado." };
 }
 
 /** Ensures there is an active QUOTE public link for the event; returns its token. */

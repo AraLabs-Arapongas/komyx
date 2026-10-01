@@ -5,8 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/data/session";
 import { createQuoteAndGo } from "@/lib/actions/quotes";
 import { generateContractAndGo } from "@/lib/actions/contracts";
-import { removePayment, removeEventExtra, ensureEventLink, revokePublicLink } from "@/lib/actions/guests-payments";
+import { removePayment, removeEventExtra, revokePublicLink } from "@/lib/actions/guests-payments";
 import { loadEventFinancials } from "@/lib/data/financials";
+import { ensureEventLinks } from "@/lib/data/links";
 import { PageBody, PageHeader, Alert } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,11 +43,10 @@ function Stat({ label, children, strong }: { label: string; children: React.Reac
 }
 
 /** Compact public-link row: truncated URL + copy + optional WhatsApp send + optional revoke. */
-function LinkRow({ icon, label, url, send, revoke, generate }: {
+function LinkRow({ icon, label, url, send, revoke }: {
   icon: React.ReactNode; label: string; url: string | null;
   send?: { href: string; label: string } | null;
   revoke?: { linkId: string; eventId: string } | null;
-  generate: { eventId: string; type: string; label: string };
 }) {
   return (
     <div className="rounded-xl border border-border bg-stone-50 px-3 py-2 text-sm">
@@ -61,9 +61,7 @@ function LinkRow({ icon, label, url, send, revoke, generate }: {
               {revoke ? <form action={revokePublicLink}><input type="hidden" name="id" value={revoke.linkId} /><input type="hidden" name="event_id" value={revoke.eventId} /><button className="h-9 px-2 text-xs text-muted hover:text-red-600">Revogar</button></form> : null}
             </div>
           </>
-        ) : (
-          <form action={ensureEventLink} className="ml-auto"><input type="hidden" name="event_id" value={generate.eventId} /><input type="hidden" name="type" value={generate.type} /><button className={buttonClass("secondary", "sm")}>{generate.label}</button></form>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -81,10 +79,10 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
     .maybeSingle();
   if (!event) notFound();
 
-  const [guestsRes, paymentsRes, linksRes, quotesRes, contractsRes, extrasRes, addonsRes, fin] = await Promise.all([
+  const [guestsRes, paymentsRes, links, quotesRes, contractsRes, extrasRes, addonsRes, fin] = await Promise.all([
     supabase.from("guests").select("id, name, adults, children, participants, source, notes, checked_in_at, checked_in_adults, checked_in_children, created_at").eq("event_id", id).order("created_at"),
     supabase.from("payments").select("id, amount, paid_at, method, notes").eq("event_id", id).order("paid_at", { ascending: false }),
-    supabase.from("public_links").select("id, token, short, type, active, created_at").eq("event_id", id).eq("active", true),
+    ensureEventLinks(supabase, org.id, id, ["RESERVATION", "GUEST_CONFIRM", "INVITE_EDIT", "CHECKIN"]),
     supabase.from("quotes").select("id, status, total, created_at, decided_at, quote_installments(sequence, label, percent, amount, rule, days_before, due_date)").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("contracts").select("id, number, status, created_at, accepted_at").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("event_extras").select("id, description, quantity, unit_price, total, source, created_at").eq("event_id", id).order("created_at", { ascending: false }),
@@ -94,7 +92,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
 
   const customer = event.customers!;
   const title = eventTitle(event);
-  const link = (type: string) => (linksRes.data ?? []).find((l) => l.type === type);
+  const link = (type: string) => links.find((l) => l.type === type);
   const guestLink = link("GUEST_CONFIRM");
   const inviteLink = link("INVITE_EDIT");
   const checkinLink = link("CHECKIN");
@@ -163,8 +161,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                 </a>
               </div>
               <LinkRow icon={<Link2 className="h-4 w-4" />} label="Página da reserva" url={reservationUrl}
-                send={reservationUrl ? { href: whatsappLink(customer.whatsapp, `Sua reserva no ${org.name} (Pix, orçamento e contrato): ${reservationUrl}`), label: "Reenviar" } : null}
-                generate={{ eventId: id, type: "RESERVATION", label: "Gerar página" }} />
+                send={reservationUrl ? { href: whatsappLink(customer.whatsapp, `Sua reserva no ${org.name} (Pix, orçamento e contrato): ${reservationUrl}`), label: "Reenviar" } : null} />
             </CardBody>
           </Card>
 
@@ -226,11 +223,13 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                     ))}
                   </ul>
                 ) : null}
-                <form action={generateContractAndGo} className="mt-1.5 flex items-center justify-between gap-2">
-                  <input type="hidden" name="event_id" value={id} />
-                  <p className="text-xs text-muted">{contracts.length ? "Preenchido com evento e orçamento." : "Preenchido automaticamente com evento e orçamento."}</p>
-                  <button className={buttonClass(contracts.length ? "outline" : "primary", "sm", "whitespace-nowrap")}>{contracts.length ? "Nova versão" : "Gerar contrato"}</button>
-                </form>
+                <div className="mt-1.5 flex items-center justify-between gap-2">
+                  <p className="text-xs text-muted">{contracts.length ? "Gerado do orçamento aceito. Se o orçamento mudar, gere uma nova versão." : latestQuote?.status === "ACCEPTED" ? "Pronto para gerar a partir do orçamento aceito." : "Gerado automaticamente quando o orçamento for aceito."}</p>
+                  <form action={generateContractAndGo}>
+                    <input type="hidden" name="event_id" value={id} />
+                    <button className={buttonClass(contracts.length ? "outline" : "ghost", "sm", "whitespace-nowrap")}>{contracts.length ? "Nova versão" : "Gerar agora"}</button>
+                  </form>
+                </div>
               </div>
             </CardBody>
           </Card>
@@ -241,10 +240,10 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
           <Card>
             <CardHeader title="Pagamentos" subtitle={`Pago ${formatCurrency(fin?.paid_total ?? 0)} · falta receber ${formatCurrency(fin?.balance ?? 0)}`} />
             <CardBody className="space-y-3">
-              {latestQuote && latestQuote.quote_installments.length > 0 ? (
+              {(latestQuote && latestQuote.quote_installments.length > 0) || Number(fin?.extras_total ?? 0) > 0 ? (
                 <div>
-                  <p className="text-sm font-medium">Parcelas do orçamento</p>
-                  <Installments eventId={id} installments={latestQuote.quote_installments} paidTotal={Number(fin?.paid_total ?? 0)} eventStartsAt={event.starts_at} acceptedAt={latestQuote.decided_at} />
+                  <p className="text-sm font-medium">Parcelas</p>
+                  <Installments eventId={id} installments={latestQuote?.quote_installments ?? []} paidTotal={Number(fin?.paid_total ?? 0)} extrasTotal={Number(fin?.extras_total ?? 0)} eventStartsAt={event.starts_at} acceptedAt={latestQuote?.decided_at} />
                 </div>
               ) : null}
               <p className="text-sm font-medium">Recebimentos</p>
@@ -297,8 +296,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
             <CardHeader title="Convidados" subtitle={`${fin?.guest_count ?? 0} confirmação(ões) · ${fin?.adults_total ?? 0} adultos · ${fin?.children_total ?? 0} crianças · ${fin?.checked_in_total ?? 0} presentes`} />
             <CardBody className="space-y-3">
               <LinkRow icon={<DoorOpen className="h-4 w-4" />} label="Portaria (check-in no dia)" url={checkinUrl}
-                revoke={checkinLink ? { linkId: checkinLink.id, eventId: id } : null}
-                generate={{ eventId: id, type: "CHECKIN", label: "Gerar link da portaria" }} />
+                revoke={checkinLink ? { linkId: checkinLink.id, eventId: id } : null} />
               {checkinLink ? <Link href={`/d/${checkinLink.token}`} target="_blank" className={buttonClass("outline", "sm")}><DoorOpen className="h-4 w-4" /> Abrir portaria</Link> : null}
               <GuestSection eventId={id} guests={guestsRes.data ?? []} guestLink={guestLink ? { id: guestLink.id, url: shortUrl(guestLink.short) } : null} eventTitle={title} customerPhone={customer.whatsapp} />
             </CardBody>
@@ -309,8 +307,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
             <CardBody className="space-y-3">
               <LinkRow icon={<ImageIcon className="h-4 w-4" />} label="Link de edição" url={inviteUrl}
                 send={inviteUrl ? { href: whatsappLink(customer.whatsapp, `Personalize o convite da festa aqui: ${inviteUrl}`), label: "Enviar" } : null}
-                revoke={inviteLink ? { linkId: inviteLink.id, eventId: id } : null}
-                generate={{ eventId: id, type: "INVITE_EDIT", label: "Gerar link de edição" }} />
+                revoke={inviteLink ? { linkId: inviteLink.id, eventId: id } : null} />
               <div className={event.invite_image_url ? "grid gap-3 sm:grid-cols-[160px_1fr]" : ""}>
                 {event.invite_image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element

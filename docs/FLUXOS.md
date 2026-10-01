@@ -66,6 +66,8 @@ Fluxo visível: Solicitação → Orçamento → Aguardando confirmação → Ev
 
 ### Links curtos
 
+Os links públicos de um evento (reserva, RSVP, convite, portaria) **sempre existem**: são criados ao abrir a ficha, sem botão "Gerar"; a ação é só Copiar/Enviar/Revogar. O contrato é gerado automaticamente quando o orçamento é aceito (ou quando o sinal da reserva online é confirmado); na ficha fica "Abrir" e "Nova versão". Extras pedidos na festa aparecem como linha própria em Parcelas, com o que falta e botão Recebida.
+
 Todo link público tem um código curto aleatório de 8 caracteres (`public_links.short`): `/o/<curto>` redireciona para a página longa (`/r/`, `/q/`, `/g/`, `/i/`, `/d/`). O app, a ficha do evento, o orçamento e a cobrança no WhatsApp usam o curto; os links longos continuam válidos. Sem serviço externo. Com domínio próprio curto fica `https://festaecia.com/o/a8K2mQ7x`.
 
 ### Clientes

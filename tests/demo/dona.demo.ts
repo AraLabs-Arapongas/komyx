@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { test, caption, clearCaption, installCaptions, saveVideo, spotlight } from "./caption";
-import { ACCOUNTS, DEMO_SLUG, brDate, cleanupCustomerByPhone, login, pickFreeDate, uniq, uniquePhone } from "../e2e/helpers";
+import {ACCOUNTS, DEMO_SLUG, brDate, cleanupCustomerByPhone, pickFreeDate, uniq, uniquePhone } from "../e2e/helpers";
 
 test.describe("Vídeo · Dona do buffet", () => {
   const phone = uniquePhone();
@@ -76,8 +76,9 @@ test.describe("Vídeo · Dona do buffet", () => {
     await expect(page.getByText("Aceito", { exact: true }).first()).toBeVisible();
     await page.waitForTimeout(1200);
 
-    await caption(page, "Gerar contrato: modelo do buffet preenchido com cliente, evento, itens e parcelas");
-    await page.getByRole("button", { name: "Gerar contrato" }).first().click();
+    await caption(page, "Contrato gerado sozinho no aceite: modelo do buffet preenchido com cliente, evento, itens e parcelas");
+    await page.goto(eventUrl);
+    await page.locator('a[href*="/contrato?c="]').first().click();
     await page.waitForURL(/\/contrato\?c=/);
     await caption(page, "Texto editável, PDF e link para o cliente aceitar online", 3500);
     await page.mouse.wheel(0, 500);
@@ -90,9 +91,7 @@ test.describe("Vídeo · Dona do buffet", () => {
     await expect(page.getByText("Pagamento registrado.")).toBeVisible();
     await page.waitForTimeout(1500);
     await caption(page, "Link de convidados e portaria para o dia da festa");
-    await page.getByRole("button", { name: "Gerar link", exact: true }).click();
     await page.waitForTimeout(1500);
-    await page.getByRole("button", { name: "Gerar link da portaria" }).click();
     await page.waitForTimeout(1500);
 
     await page.goto("/aniversariantes");

@@ -2,21 +2,29 @@ import { Check } from "lucide-react";
 import { confirmInstallment } from "@/lib/actions/guests-payments";
 import { Badge } from "@/components/ui/badge";
 import { Money } from "@/components/ui/money";
-import { allocateInstallments, dueShort, INSTALLMENT_STATUS_LABEL, INSTALLMENT_STATUS_TONE, type InstallmentLike } from "@/lib/installments";
+import { allocateInstallments, dueShort, INSTALLMENT_STATUS_LABEL, INSTALLMENT_STATUS_TONE, type InstallmentLike, type InstallmentStatus } from "@/lib/installments";
 import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
 import { toDateKey } from "@/lib/utils";
 
 /** Installment plan of the latest quote with paid/pending status and a one-click "Recebida" per open installment. */
-export function Installments({ eventId, installments, paidTotal, eventStartsAt, acceptedAt }: { eventId: string; installments: InstallmentLike[]; paidTotal: number; eventStartsAt: string; acceptedAt?: string | null }) {
-  if (installments.length === 0) return null;
-  const rows = allocateInstallments(installments, paidTotal, eventStartsAt, acceptedAt);
+export function Installments({ eventId, installments, paidTotal, extrasTotal = 0, eventStartsAt, acceptedAt }: { eventId: string; installments: InstallmentLike[]; paidTotal: number; extrasTotal?: number; eventStartsAt: string; acceptedAt?: string | null }) {
+  if (installments.length === 0 && extrasTotal <= 0) return null;
+  const base = allocateInstallments(installments, paidTotal, eventStartsAt, acceptedAt);
+  // Whatever was paid beyond the quote installments goes to the on-site extras.
+  const planTotal = base.reduce((a, i) => a + i.amountNum, 0);
+  const extrasPaid = Math.min(extrasTotal, Math.max(0, paidTotal - planTotal));
+  const extrasRemaining = Math.max(0, Math.round((extrasTotal - extrasPaid) * 100) / 100);
+  const extrasStatus: InstallmentStatus = extrasRemaining <= 0.005 ? "PAID" : extrasPaid > 0 ? "PARTIAL" : "PENDING";
+  const rows: (typeof base[number] & { isExtras?: boolean })[] = extrasTotal > 0
+    ? [...base, { label: "Pedidos extras na festa", amount: extrasTotal, rule: "DAYS_BEFORE_EVENT", days_before: 0, due_date: null, amountNum: extrasTotal, paid: extrasPaid, remaining: extrasRemaining, due: null, status: extrasStatus, isExtras: true }]
+    : base;
   return (
     <ul className="divide-y divide-border">
       {rows.map((i, idx) => (
         <li key={idx} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 py-1.5 text-sm">
           <div className="min-w-0 flex items-center gap-2">
             {i.status === "PAID" ? <Check className="h-4 w-4 text-emerald-600 shrink-0" /> : <span className="h-4 w-4 shrink-0 rounded-full border border-border" />}
-            <span className="truncate"><span className="font-medium">{idx + 1}. {i.label}</span> <span className="text-muted">· {dueShort(i.due)}</span></span>
+            <span className="truncate"><span className="font-medium">{idx + 1}. {i.label}</span> <span className="text-muted">· {i.isExtras ? "no dia da festa" : dueShort(i.due)}</span></span>
             <Badge tone={INSTALLMENT_STATUS_TONE[i.status]}>{INSTALLMENT_STATUS_LABEL[i.status]}</Badge>
           </div>
           <div className="flex items-center gap-2 shrink-0">
