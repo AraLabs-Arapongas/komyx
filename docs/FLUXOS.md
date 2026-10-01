@@ -104,3 +104,7 @@ Acesso só para perfis com `is_platform_admin` (flag que só a service role alte
 - Conciliação automática do Pix (API de PSP). Hoje: código `FESTA…` no extrato + 1 clique.
 - Domínio próprio por buffet no Premium.
 - Impersonar buffet pelo admin (entrar como owner).
+
+## 4. App mobile (Expo)
+
+Mesmos fluxos, no celular. Dona/equipe: Início (ações urgentes, solicitações, hoje, 7 dias, a receber) → Agenda → Evento (status, parcelas com "Recebida", recebimentos, check-in, extras, enviar página da reserva/RSVP). Cliente: "Sou cliente" → WhatsApp + data ou link → reserva (Pix QR + copia-e-cola, parcelas, contrato) e convite (RSVP). Deep links `festeja://r/<token>` e `festeja://g/<token>`. Orçamento, contrato e convite continuam sendo editados na web.

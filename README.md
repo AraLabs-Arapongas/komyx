@@ -112,3 +112,7 @@ supabase migration new <nome>   # cria arquivo
 supabase db reset               # reaplica tudo + seed
 supabase gen types typescript --local > src/lib/database.types.ts
 ```
+
+## App mobile (Expo)
+
+Em `mobile/` há o app React Native para dona/equipe (login) e clientes (sem conta). Veja [mobile/README.md](mobile/README.md). Usa o mesmo Supabase; o lado cliente passa por funções `security definer` (`find_reservation`, `reservation_by_token`, `guest_link`, `confirm_guest`).
