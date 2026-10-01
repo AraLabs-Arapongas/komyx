@@ -193,9 +193,9 @@ function MonthGrid({ month, byDay, today, onOpen }: { month: string; byDay: Map<
           return (
             <button key={key} type="button" onClick={() => onOpen(key)}
               className={cn("min-h-0 overflow-hidden rounded-lg border text-left px-1 py-0.5 flex flex-col gap-0.5",
-                inMonth ? "bg-surface border-border hover:border-brand/50" : "bg-stone-50/60 border-transparent text-muted",
+                "bg-surface border-border hover:border-brand/50", !inMonth && "text-muted",
                 isToday && "border-brand ring-1 ring-brand/40")}>
-              <span className={cn("text-xs leading-none", isToday ? "font-bold text-brand" : "font-medium")}>{Number(key.slice(-2))}</span>
+              <span className={cn("text-xs leading-none", isToday ? "font-bold text-brand" : inMonth ? "font-medium" : "text-stone-400")}>{Number(key.slice(-2))}</span>
               {list.slice(0, 2).map((e) => (
                 <span key={e.id} className={cn("hidden sm:block truncate rounded border px-1 text-[11px] leading-4", pillClass[e.status])}>{formatTime(e.starts_at)} {label(e)}</span>
               ))}
