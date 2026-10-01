@@ -45,3 +45,6 @@ next-env.d.ts
 /playwright-report
 /test-results
 /videos
+
+# expo cache (mobile lint run from root)
+.expo/
