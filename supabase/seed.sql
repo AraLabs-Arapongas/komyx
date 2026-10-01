@@ -117,6 +117,12 @@ begin
     (v_org, 'aaaaaaaa-0000-0000-0000-000000000002', 'bbbbbbbb-0000-0000-0000-000000000002', 'Theo', (current_date + 12) - interval '3 years'),
     (v_org, 'aaaaaaaa-0000-0000-0000-000000000004', null, 'Paulo', current_date + 40 - interval '50 years');
 
-  update public.organizations set legal_name = 'Festa & Cia Eventos Ltda', document = 'CNPJ 12.345.678/0001-90', city = 'São Paulo/SP', pix_key = '12.345.678/0001-90' where id = v_org;
+  update public.organizations set legal_name = 'Festa & Cia Eventos Ltda', document = 'CNPJ 12.345.678/0001-90', city = 'São Paulo/SP', pix_key = '12.345.678/0001-90',
+    tagline = 'A festa que seu filho vai lembrar. E você vai curtir.',
+    highlights = array['Espaço climatizado', 'Brinquedão e piscina de bolinhas', 'Monitores o tempo todo', 'Estacionamento gratuito', 'Cardápio para alérgicos'],
+    founded_year = 2014, capacity = 120,
+    gallery = '[{"url":"/demo/festa-1.jpg","caption":"Salão principal pronto para a festa"},{"url":"/demo/festa-2.jpg","caption":"Mesa do bolo tema safári"},{"url":"/demo/festa-3.jpg","caption":"Brinquedão com monitores"},{"url":"/demo/festa-4.jpg","caption":"Hora do parabéns"}]'::jsonb,
+    testimonials = '[{"name":"Renata, mãe do Pedro","text":"Não precisei me preocupar com nada. As monitoras cuidaram das crianças e eu consegui curtir a festa do meu filho pela primeira vez."},{"name":"Carla, mãe da Júlia","text":"Fechamos pelo WhatsApp em 10 minutos e o orçamento veio certinho, sem surpresa no dia."},{"name":"Marcos, pai do Theo","text":"Comida boa de verdade, não aquele salgadinho de festa. Os adultos repetiram."}]'::jsonb
+  where id = v_org;
   update public.customers set document = 'CPF 123.456.789-00', source = 'indicacao' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
 end $$;

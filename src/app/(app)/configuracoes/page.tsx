@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/ui/copy-button";
 import { appUrl } from "@/lib/utils";
 import { CONTRACT_PLACEHOLDERS } from "@/lib/contract";
-import { OrganizationForm, ImageUploadForm, StaffForm, PaymentPlanForm, ContractTemplateForm } from "./forms";
+import { OrganizationForm, ImageUploadForm, StaffForm, PaymentPlanForm, ContractTemplateForm, PublicProfileForm, GalleryForm } from "./forms";
 
 export const metadata = { title: "Configurações" };
 
@@ -36,6 +36,16 @@ export default async function SettingsPage() {
             <div className="flex items-center justify-between gap-2"><span className="text-muted break-all">{publicUrl}?src=instagram</span><CopyButton text={`${publicUrl}?src=instagram`} label="Bio Instagram" /></div>
             <div className="flex items-center justify-between gap-2"><span className="text-muted break-all">{publicUrl}/orcamento?src=instagram</span><CopyButton text={`${publicUrl}/orcamento?src=instagram`} label="Orçamento direto" /></div>
           </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="Conteúdo da página pública" subtitle="Frase principal, destaques, depoimentos e regra de agenda" />
+          <CardBody><PublicProfileForm profile={{ tagline: org.tagline, highlights: org.highlights ?? [], testimonials: (Array.isArray(org.testimonials) ? org.testimonials : []) as { name: string; text: string }[], founded_year: org.founded_year, capacity: org.capacity, one_event_per_day: org.one_event_per_day }} /></CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="Galeria de fotos" subtitle="Até 12 fotos de festas reais (JPG, PNG ou WebP até 8MB)" />
+          <CardBody><GalleryForm gallery={(Array.isArray(org.gallery) ? org.gallery : []) as { url: string; caption?: string | null }[]} /></CardBody>
         </Card>
 
         <Card>

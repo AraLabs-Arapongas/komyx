@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useState } from "react";
-import { updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate } from "@/lib/actions/settings";
+import { updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage } from "@/lib/actions/settings";
 import { Trash2 } from "lucide-react";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -122,5 +122,69 @@ export function ContractTemplateForm({ template }: { template: string }) {
       <Textarea name="contract_template" defaultValue={template} className="min-h-96 font-mono text-xs leading-relaxed" />
       <SubmitButton size="sm">Salvar modelo</SubmitButton>
     </form>
+  );
+}
+
+type PublicProfile = { tagline: string | null; highlights: string[]; testimonials: { name: string; text: string }[]; founded_year: number | null; capacity: number | null; one_event_per_day: boolean };
+
+export function PublicProfileForm({ profile }: { profile: PublicProfile }) {
+  const [state, action] = useActionState(updatePublicProfile, undefined);
+  const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
+  return (
+    <form action={action} className="space-y-4">
+      {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+      {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
+      <Field label="Frase principal (título da página)" htmlFor="tagline" hint="Curta e emocional. Ex.: A festa que seu filho vai lembrar. E você vai curtir.">
+        <Input id="tagline" name="tagline" defaultValue={profile.tagline ?? ""} maxLength={90} />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Capacidade (pessoas)" htmlFor="capacity" error={fe.capacity}><Input id="capacity" name="capacity" type="number" min={1} defaultValue={profile.capacity ?? ""} /></Field>
+        <Field label="Ano de fundação" htmlFor="founded_year" error={fe.founded_year}><Input id="founded_year" name="founded_year" type="number" min={1950} max={2100} defaultValue={profile.founded_year ?? ""} /></Field>
+      </div>
+      <Field label="Destaques" htmlFor="highlights" hint="Um por linha. Ex.: Espaço climatizado, Monitores o tempo todo, Estacionamento.">
+        <Textarea id="highlights" name="highlights" defaultValue={profile.highlights.join("\n")} className="min-h-24" />
+      </Field>
+      <Field label="Depoimentos" htmlFor="testimonials" hint="Um por linha no formato: Nome — texto do depoimento.">
+        <Textarea id="testimonials" name="testimonials" defaultValue={profile.testimonials.map((t) => `${t.name} — ${t.text}`).join("\n")} className="min-h-28" />
+      </Field>
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="one_event_per_day" defaultChecked={profile.one_event_per_day} className="mt-1 h-4 w-4" />
+        <span><b>Um evento por dia.</b> A equipe não consegue marcar dois eventos no mesmo dia; só a proprietária, confirmando o aviso.</span>
+      </label>
+      <SubmitButton pendingText="Salvando...">Salvar página pública</SubmitButton>
+    </form>
+  );
+}
+
+export function GalleryForm({ gallery }: { gallery: { url: string; caption?: string | null }[] }) {
+  const [state, action] = useActionState(uploadGalleryImages, undefined);
+  return (
+    <div className="space-y-4">
+      {gallery.length ? (
+        <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {gallery.map((g) => (
+            <li key={g.url} className="rounded-xl border border-border overflow-hidden bg-stone-50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={g.url} alt="" className="h-28 w-full object-cover" />
+              <form action={updateGalleryCaption} className="flex gap-1 p-2">
+                <input type="hidden" name="url" value={g.url} />
+                <input name="caption" defaultValue={g.caption ?? ""} placeholder="Legenda" className="h-9 min-w-0 flex-1 rounded-lg border border-border px-2 text-sm" />
+                <button className="h-9 px-2 text-xs font-medium text-brand">Salvar</button>
+              </form>
+              <form action={removeGalleryImage} className="px-2 pb-2">
+                <input type="hidden" name="url" value={g.url} />
+                <button className="text-xs text-muted hover:text-red-600">Remover foto</button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      ) : <p className="text-sm text-muted">Nenhuma foto ainda. Fotos de festas reais convertem muito mais que texto.</p>}
+      <form action={action} className="space-y-2">
+        {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+        {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
+        <input name="files" type="file" accept="image/jpeg,image/png,image/webp" multiple className="block w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-brand-soft file:px-3 file:py-1.5 file:text-brand file:font-medium" required />
+        <SubmitButton size="sm" variant="outline" pendingText="Enviando...">Adicionar fotos</SubmitButton>
+      </form>
+    </div>
   );
 }

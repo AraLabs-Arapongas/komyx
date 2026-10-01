@@ -26,6 +26,12 @@ export function EditEventForm({ event, packages }: Props) {
         <CardBody className="pt-4 space-y-4">
           <Field label="Nome do evento" htmlFor="title"><Input id="title" name="title" defaultValue={event.title} /></Field>
           <Field label="Data" htmlFor="date" error={fe.date}><Input id="date" name="date" type="date" defaultValue={event.date} required /></Field>
+          {state && !state.ok && state.fieldErrors?.same_day ? (
+            <label className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm">
+              <input type="checkbox" name="force_same_day" className="mt-0.5 h-4 w-4" />
+              <span><b>Já tem evento neste dia</b> ({state.fieldErrors.same_day}). Sei disso e quero mover mesmo assim.</span>
+            </label>
+          ) : null}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Início" htmlFor="start_time" error={fe.start_time}><Input id="start_time" name="start_time" type="time" defaultValue={event.start} step={900} required /></Field>
             <Field label="Fim" htmlFor="end_time" error={fe.end_time}><Input id="end_time" name="end_time" type="time" defaultValue={event.end} step={900} required /></Field>

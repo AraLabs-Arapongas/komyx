@@ -20,6 +20,8 @@ type Props = {
     celebrant_name: string | null; celebrant_birth_date: string | null; package_id: string | null; estimated_total: number | string | null;
   } | null;
   defaults: { date: string; start: string; durationMinutes: number };
+  sameDayWarning?: string | null;
+  isOwner: boolean;
 };
 
 function addMinutesToTime(time: string, minutes: number) {
@@ -28,13 +30,14 @@ function addMinutesToTime(time: string, minutes: number) {
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
-export function NewEventForm({ packages, customer, request, defaults }: Props) {
+export function NewEventForm({ packages, customer, request, defaults, sameDayWarning, isOwner }: Props) {
   const [state, action] = useActionState(createEvent, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   const [start, setStart] = useState(defaults.start);
   const [end, setEnd] = useState(addMinutesToTime(defaults.start, defaults.durationMinutes));
   const [selectedCustomer, setSelectedCustomer] = useState(customer);
   const endMin = useMemo(() => addMinutesToTime(start, 30), [start]);
+  const sameDay = sameDayWarning ?? (state && !state.ok ? state.fieldErrors?.same_day : undefined);
 
   return (
     <form action={action} className="space-y-4">
@@ -82,6 +85,12 @@ export function NewEventForm({ packages, customer, request, defaults }: Props) {
           <Field label="Data" htmlFor="date" error={fe.date}>
             <Input id="date" name="date" type="date" defaultValue={defaults.date} required />
           </Field>
+          {sameDay && isOwner ? (
+            <label className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm">
+              <input type="checkbox" name="force_same_day" className="mt-0.5 h-4 w-4" defaultChecked={Boolean(sameDayWarning)} />
+              <span><b>Já tem evento neste dia</b> ({sameDay}). Sei disso e quero marcar outro mesmo assim.</span>
+            </label>
+          ) : null}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Início" htmlFor="start_time" error={fe.start_time}>
               <Input id="start_time" name="start_time" type="time" value={start} step={900} required

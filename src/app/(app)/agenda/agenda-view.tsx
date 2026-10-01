@@ -69,7 +69,7 @@ function label(e: AgendaEvent) {
   return e.title?.trim() || (e.customers ? `Festa de ${e.customers.name}` : "Evento");
 }
 
-export function AgendaView({ events, month, today, initialView }: { events: AgendaEvent[]; month: string; today: string; initialView: "list" | "month" | "week" }) {
+export function AgendaView({ events, month, today, initialView, isOwner }: { events: AgendaEvent[]; month: string; today: string; initialView: "list" | "month" | "week"; isOwner: boolean }) {
   const [view, setView] = useState<"list" | "month" | "week">(initialView);
   const [selected, setSelected] = useState<string>(today.startsWith(month) ? today : dayKey(month, 1));
 
@@ -117,7 +117,7 @@ export function AgendaView({ events, month, today, initialView }: { events: Agen
         ) : (
           <div className="space-y-4">
             {Array.from(byDay.entries()).filter(([k]) => k.startsWith(month)).sort().map(([day, list]) => (
-              <DayGroup key={day} day={day} list={list} today={today} />
+              <DayGroup key={day} day={day} list={list} today={today} isOwner={isOwner} />
             ))}
           </div>
         )
@@ -141,18 +141,18 @@ export function AgendaView({ events, month, today, initialView }: { events: Agen
               );
             })}
           </div>
-          <DayGroup day={selected} list={byDay.get(selected) ?? []} today={today} showEmpty />
+          <DayGroup day={selected} list={byDay.get(selected) ?? []} today={today} showEmpty isOwner={isOwner} />
         </div>
       ) : null}
 
       {view === "week" ? (
-        <WeekView selected={selected} setSelected={setSelected} byDay={byDay} today={today} />
+        <WeekView selected={selected} setSelected={setSelected} byDay={byDay} today={today} isOwner={isOwner} />
       ) : null}
     </div>
   );
 }
 
-function WeekView({ selected, setSelected, byDay, today }: { selected: string; setSelected: (k: string) => void; byDay: Map<string, AgendaEvent[]>; today: string }) {
+function WeekView({ selected, setSelected, byDay, today, isOwner }: { selected: string; setSelected: (k: string) => void; byDay: Map<string, AgendaEvent[]>; today: string; isOwner: boolean }) {
   const start = shiftDay(selected, -weekdayOf(selected));
   const days = Array.from({ length: 7 }, (_, i) => shiftDay(start, i));
   return (
@@ -164,21 +164,26 @@ function WeekView({ selected, setSelected, byDay, today }: { selected: string; s
       </div>
       <div className="space-y-2">
         {days.map((d) => (
-          <DayGroup key={d} day={d} list={byDay.get(d) ?? []} today={today} showEmpty compact />
+          <DayGroup key={d} day={d} list={byDay.get(d) ?? []} today={today} showEmpty compact isOwner={isOwner} />
         ))}
       </div>
     </div>
   );
 }
 
-function DayGroup({ day, list, today, showEmpty = false, compact = false }: { day: string; list: AgendaEvent[]; today: string; showEmpty?: boolean; compact?: boolean }) {
+function DayGroup({ day, list, today, showEmpty = false, compact = false, isOwner }: { day: string; list: AgendaEvent[]; today: string; showEmpty?: boolean; compact?: boolean; isOwner: boolean }) {
   const [y, m, d] = day.split("-");
   const wd = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"][weekdayOf(day)];
   return (
     <section>
       <div className="flex items-center justify-between mb-1.5">
         <h3 className={cn("text-sm font-semibold", day === today && "text-brand")}>{wd}, {d}/{m}{compact ? "" : `/${y}`}{day === today ? " · hoje" : ""}</h3>
-        <Link href={`/eventos/novo?date=${day}`} className="text-xs text-brand font-medium inline-flex items-center gap-1"><Plus className="h-3.5 w-3.5" /> horário</Link>
+        {(() => {
+          const blocking = list.some((e) => e.status === "CONFIRMED" || (e.status === "PRE_RESERVED" && e.expires_at && new Date(e.expires_at) > new Date()));
+          if (!blocking) return <Link href={`/eventos/novo?date=${day}`} className="text-xs text-brand font-medium inline-flex items-center gap-1"><Plus className="h-3.5 w-3.5" /> evento</Link>;
+          if (!isOwner) return <span className="text-xs text-muted">dia ocupado</span>;
+          return <Link href={`/eventos/novo?date=${day}&another=1`} className="text-xs text-amber-700 font-medium inline-flex items-center gap-1" title="Já existe evento neste dia"><Plus className="h-3.5 w-3.5" /> outro evento</Link>;
+        })()}
       </div>
       {list.length === 0 ? (
         showEmpty ? <p className="text-sm text-muted rounded-xl border border-dashed border-border px-3 py-2">Livre</p> : null

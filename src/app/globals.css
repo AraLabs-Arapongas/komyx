@@ -47,3 +47,50 @@ input, select, textarea {
 a, button:not(:disabled), [role="button"], summary, label[for], input[type="submit"], input[type="file"], select {
   cursor: pointer;
 }
+
+/* ---------- Public buffet pages (invitation look) ---------- */
+.public-theme {
+  --ink: #1b1f3a;
+  --paper: #fffdf7;
+  --paper-2: #fff4e3;
+  --berry: #e8356d;
+  --berry-deep: #c2184f;
+  --sun: #ffc43d;
+  --sky: #4cb5f5;
+  --mint: #2ec4a6;
+  --muted-ink: #5b5f7a;
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+.public-theme .display {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+  letter-spacing: -0.02em;
+}
+.public-theme .scallop {
+  --r: 12px;
+  background: var(--paper);
+  mask:
+    radial-gradient(var(--r) at 50% 0, #0000 98%, #000) 50% 0 / calc(var(--r) * 2.4) 100% repeat-x,
+    linear-gradient(#000 0 0);
+  mask-composite: intersect;
+  -webkit-mask:
+    radial-gradient(var(--r) at 50% 0, #0000 98%, #000) 50% 0 / calc(var(--r) * 2.4) 100% repeat-x,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: source-in;
+}
+@keyframes bunting-sway {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50% { transform: rotate(1.2deg); }
+}
+.public-theme .bunting {
+  transform-origin: 50% 0;
+  animation: bunting-sway 7s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-theme .bunting { animation: none; }
+}
+.public-theme .polaroid {
+  transition: transform 0.25s ease;
+}
+.public-theme .polaroid:hover { transform: rotate(0deg) scale(1.03) !important; }

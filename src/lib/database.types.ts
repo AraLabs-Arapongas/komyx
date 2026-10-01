@@ -538,6 +538,7 @@ export type Database = {
       organizations: {
         Row: {
           address: string | null
+          capacity: number | null
           city: string | null
           contract_template: string
           cover_url: string | null
@@ -545,20 +546,27 @@ export type Database = {
           default_event_duration_minutes: number
           description: string | null
           document: string | null
+          founded_year: number | null
+          gallery: Json
+          highlights: string[]
           id: string
           instagram: string | null
           legal_name: string | null
           logo_url: string | null
           name: string
+          one_event_per_day: boolean
           payment_plan: Json
           pix_key: string | null
           pre_reservation_validity_hours: number
           slug: string
+          tagline: string | null
+          testimonials: Json
           updated_at: string
           whatsapp: string | null
         }
         Insert: {
           address?: string | null
+          capacity?: number | null
           city?: string | null
           contract_template?: string
           cover_url?: string | null
@@ -566,20 +574,27 @@ export type Database = {
           default_event_duration_minutes?: number
           description?: string | null
           document?: string | null
+          founded_year?: number | null
+          gallery?: Json
+          highlights?: string[]
           id?: string
           instagram?: string | null
           legal_name?: string | null
           logo_url?: string | null
           name: string
+          one_event_per_day?: boolean
           payment_plan?: Json
           pix_key?: string | null
           pre_reservation_validity_hours?: number
           slug: string
+          tagline?: string | null
+          testimonials?: Json
           updated_at?: string
           whatsapp?: string | null
         }
         Update: {
           address?: string | null
+          capacity?: number | null
           city?: string | null
           contract_template?: string
           cover_url?: string | null
@@ -587,15 +602,21 @@ export type Database = {
           default_event_duration_minutes?: number
           description?: string | null
           document?: string | null
+          founded_year?: number | null
+          gallery?: Json
+          highlights?: string[]
           id?: string
           instagram?: string | null
           legal_name?: string | null
           logo_url?: string | null
           name?: string
+          one_event_per_day?: boolean
           payment_plan?: Json
           pix_key?: string | null
           pre_reservation_validity_hours?: number
           slug?: string
+          tagline?: string | null
+          testimonials?: Json
           updated_at?: string
           whatsapp?: string | null
         }
@@ -1216,6 +1237,10 @@ export type Database = {
       }
     }
     Functions: {
+      busy_days: {
+        Args: { p_from: string; p_slug: string; p_to: string }
+        Returns: string[]
+      }
       expire_pre_reservations: { Args: never; Returns: number }
     }
     Enums: {

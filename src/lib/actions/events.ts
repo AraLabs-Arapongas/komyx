@@ -37,7 +37,29 @@ const preReservationSchema = z.object({
   notes: optionalText,
   status: z.enum(["PRE_RESERVED", "CONFIRMED"]).default("PRE_RESERVED"),
   request_id: uuidOrNull,
+  force_same_day: z.string().optional().transform((v) => v === "on" || v === "1"),
 });
+
+/**
+ * Buffets usually host one event per day. Staff is blocked; the owner can confirm.
+ * Returns an ActionResult failure when the rule applies, otherwise null.
+ */
+async function checkSameDay(orgOneEventPerDay: boolean, role: "owner" | "staff", date: string, force: boolean, excludeId?: string): Promise<ActionResult | null> {
+  if (!orgOneEventPerDay) return null;
+  const supabase = await createClient();
+  const dayStart = localToIso(date, "00:00");
+  const dayEnd = new Date(new Date(dayStart).getTime() + 86_400_000).toISOString();
+  let q = supabase.from("events").select("id, title, status, expires_at, customers(name)").gte("starts_at", dayStart).lt("starts_at", dayEnd).in("status", ["CONFIRMED", "PRE_RESERVED"]);
+  if (excludeId) q = q.neq("id", excludeId);
+  const { data } = await q;
+  const blocking = (data ?? []).filter((e) => e.status === "CONFIRMED" || (e.expires_at && new Date(e.expires_at) > new Date()));
+  if (blocking.length === 0) return null;
+  const other = blocking[0];
+  const label = other.title?.trim() || (other.customers ? `Festa de ${other.customers.name}` : "outro evento");
+  if (role !== "owner") return fail(`Já existe evento neste dia (${label}). O buffet faz um evento por dia; peça à proprietária para liberar.`, { date: "Dia já ocupado" });
+  if (!force) return fail(`Já existe evento neste dia (${label}). Marque "sei que já tem evento neste dia" para criar mesmo assim.`, { same_day: label });
+  return null;
+}
 
 function revalidateEvents(id?: string) {
   revalidatePath("/home");
@@ -55,6 +77,9 @@ export async function createEvent(_prev: ActionResult | undefined, formData: For
 
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const supabase = await createClient();
+
+  const sameDay = await checkSameDay(org.one_event_per_day, profile.role, d.date, d.force_same_day);
+  if (sameDay) return sameDay;
 
   let customerId = d.customer_id;
   if (!customerId) {
@@ -143,6 +168,7 @@ const updateSchema = z.object({
   celebrant_age: intOrNull,
   space: z.string().trim().optional().default(""),
   notes: optionalText,
+  force_same_day: z.string().optional().transform((v) => v === "on" || v === "1"),
 });
 
 export async function updateEvent(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
@@ -150,6 +176,10 @@ export async function updateEvent(_prev: ActionResult | undefined, formData: For
   if (!parsed.success) return fail("Verifique os campos.", zodFieldErrors(parsed.error));
   const d = parsed.data;
   if (d.end_time <= d.start_time) return fail("Verifique os horários.", { end_time: "O fim deve ser maior que o início." });
+
+  const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
+  const sameDay = await checkSameDay(org.one_event_per_day, profile.role, d.date, d.force_same_day, d.id);
+  if (sameDay) return sameDay;
 
   const supabase = await createClient();
   const { error } = await supabase

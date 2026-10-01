@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { expirePreReservations } from "@/lib/actions/events";
+import { requireProfile } from "@/lib/data/session";
 import { PageBody, PageHeader } from "@/components/ui/page";
 import { AgendaView, type AgendaEvent } from "./agenda-view";
 import { toDateKey } from "@/lib/utils";
@@ -8,6 +9,7 @@ export const metadata = { title: "Agenda" };
 
 export default async function AgendaPage({ searchParams }: PageProps<"/agenda">) {
   const sp = await searchParams;
+  const profile = await requireProfile();
   await expirePreReservations();
   const supabase = await createClient();
 
@@ -32,7 +34,7 @@ export default async function AgendaPage({ searchParams }: PageProps<"/agenda">)
     <>
       <PageHeader title="Agenda" />
       <PageBody>
-        <AgendaView events={(data ?? []) as AgendaEvent[]} month={monthParam} today={todayKey} initialView={view} />
+        <AgendaView events={(data ?? []) as AgendaEvent[]} month={monthParam} today={todayKey} initialView={view} isOwner={profile.role === "owner"} />
       </PageBody>
     </>
   );

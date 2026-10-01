@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getOrganization } from "@/lib/data/session";
+import { getOrganization, requireProfile } from "@/lib/data/session";
 import { PageBody, PageHeader } from "@/components/ui/page";
 import { NewEventForm } from "./new-event-form";
 import { toDateKey } from "@/lib/utils";
@@ -8,8 +8,9 @@ export const metadata = { title: "Nova pré-reserva" };
 
 export default async function NewEventPage({ searchParams }: PageProps<"/eventos/novo">) {
   const sp = await searchParams;
-  const org = await getOrganization();
+  const [org, profile] = await Promise.all([getOrganization(), requireProfile()]);
   const supabase = await createClient();
+  const another = sp.another === "1";
 
   const customerId = typeof sp.customer === "string" ? sp.customer : undefined;
   const requestId = typeof sp.request === "string" ? sp.request : undefined;
@@ -36,6 +37,8 @@ export default async function NewEventPage({ searchParams }: PageProps<"/eventos
             source: req.source, celebrant_name: req.celebrant_name, celebrant_birth_date: req.celebrant_birth_date, package_id: req.package_id, estimated_total: req.estimated_total,
           } : null}
           defaults={{ date, start, durationMinutes: org.default_event_duration_minutes }}
+          sameDayWarning={another ? "já marcado na agenda" : null}
+          isOwner={profile.role === "owner"}
         />
       </PageBody>
     </>

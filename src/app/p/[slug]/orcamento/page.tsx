@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { QuoteBuilder } from "./quote-builder";
+import { toDateKey } from "@/lib/utils";
+import { QuoteWizard } from "./quote-wizard";
 
 export const metadata = { title: "Monte seu orçamento" };
 
@@ -11,7 +12,7 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
   const src = typeof sp.src === "string" ? sp.src : typeof sp.utm_source === "string" ? sp.utm_source : "";
   const preselected = typeof sp.package === "string" ? sp.package : "";
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("id, name, slug, logo_url, whatsapp").eq("slug", slug).maybeSingle();
+  const { data: org } = await admin.from("organizations").select("id, name, slug, logo_url, whatsapp, default_event_duration_minutes").eq("slug", slug).maybeSingle();
   if (!org) notFound();
   const [{ data: packages }, { data: addons }] = await Promise.all([
     admin.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price, description").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name"),
@@ -19,23 +20,22 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
   ]);
 
   return (
-    <main className="flex-1 bg-background">
-      <div className="mx-auto max-w-2xl px-4 py-6 space-y-5">
+    <main className="flex-1">
+      <div className="mx-auto max-w-2xl px-4 py-5 sm:py-8 space-y-5">
         <div className="flex items-center gap-3">
-          <Link href={`/p/${org.slug}`} className="h-10 w-10 grid place-items-center rounded-xl border border-border bg-surface" aria-label="Voltar"><ChevronLeft className="h-5 w-5" /></Link>
+          <Link href={`/p/${org.slug}`} className="h-10 w-10 grid place-items-center rounded-full bg-white border" style={{ borderColor: "#ece7dc" }} aria-label="Voltar"><ChevronLeft className="h-5 w-5" /></Link>
           <div className="flex items-center gap-3">
             {org.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={org.logo_url} alt="" className="h-10 w-10 rounded-xl object-cover border border-border" />
+              <img src={org.logo_url} alt="" className="h-10 w-10 rounded-full object-cover" />
             ) : null}
             <div>
-              <h1 className="text-xl font-semibold leading-tight">Monte seu orçamento</h1>
-              <p className="text-sm text-muted">{org.name}</p>
+              <h1 className="display font-extrabold text-2xl leading-tight">Monte seu orçamento</h1>
+              <p className="text-sm" style={{ color: "var(--muted-ink)" }}>{org.name}</p>
             </div>
           </div>
         </div>
-        <QuoteBuilder slug={org.slug} packages={packages ?? []} addons={addons ?? []} defaultSource={src} preselectedPackage={preselected} />
-        <p className="text-center text-xs text-muted">Valores estimados com a tabela atual. O buffet confirma disponibilidade e fecha o orçamento com você.</p>
+        <QuoteWizard slug={org.slug} packages={packages ?? []} addons={addons ?? []} defaultSource={src} preselectedPackage={preselected} today={toDateKey(new Date())} durationMinutes={org.default_event_duration_minutes} />
       </div>
     </main>
   );
