@@ -418,6 +418,7 @@ export type Database = {
           invite_title: string | null
           invite_updated_at: string | null
           notes: string | null
+          occasion: string | null
           organization_id: string
           origin: string
           package_id: string | null
@@ -448,6 +449,7 @@ export type Database = {
           invite_title?: string | null
           invite_updated_at?: string | null
           notes?: string | null
+          occasion?: string | null
           organization_id: string
           origin?: string
           package_id?: string | null
@@ -478,6 +480,7 @@ export type Database = {
           invite_title?: string | null
           invite_updated_at?: string | null
           notes?: string | null
+          occasion?: string | null
           organization_id?: string
           origin?: string
           package_id?: string | null
@@ -1071,6 +1074,7 @@ export type Database = {
           id: string
           message: string | null
           name: string
+          occasion: string | null
           organization_id: string
           package_id: string | null
           participants: number | null
@@ -1093,6 +1097,7 @@ export type Database = {
           id?: string
           message?: string | null
           name: string
+          occasion?: string | null
           organization_id: string
           package_id?: string | null
           participants?: number | null
@@ -1115,6 +1120,7 @@ export type Database = {
           id?: string
           message?: string | null
           name?: string
+          occasion?: string | null
           organization_id?: string
           package_id?: string | null
           participants?: number | null

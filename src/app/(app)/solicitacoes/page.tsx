@@ -6,6 +6,7 @@ import { PageBody, PageHeader, EmptyState } from "@/components/ui/page";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { cn, formatCurrency, formatDateTime, formatPhone, whatsappLink } from "@/lib/utils";
+import { occasionLabel } from "@/lib/labels";
 import { leadSourceLabel } from "@/lib/pricing";
 
 export const metadata = { title: "Solicitações" };
@@ -43,7 +44,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/solicit
                   <div><dt className="text-xs text-muted">Horário</dt><dd className="font-medium">{r.desired_time ? r.desired_time.slice(0, 5) : "—"}</dd></div>
                   <div><dt className="text-xs text-muted">Pessoas</dt><dd className="font-medium">{r.adults != null || r.children != null ? `${r.adults ?? 0}A ${r.children ?? 0}C` : r.participants ?? "—"}</dd></div>
                   <div><dt className="text-xs text-muted">Origem</dt><dd className="font-medium">{leadSourceLabel(r.source)}</dd></div>
-                  <div><dt className="text-xs text-muted">Aniversariante</dt><dd className="font-medium">{r.celebrant_name ?? "—"}</dd></div>
+                  <div><dt className="text-xs text-muted">Ocasião</dt><dd className="font-medium">{occasionLabel(r.occasion ?? (r.celebrant_name ? "BIRTHDAY" : null))}{(r.occasion ?? "BIRTHDAY") === "BIRTHDAY" && r.celebrant_name ? <span className="text-muted font-normal"> · {r.celebrant_name}</span> : null}</dd></div>
                   <div><dt className="text-xs text-muted">Estimativa</dt><dd className="font-medium">{r.estimated_total != null ? formatCurrency(r.estimated_total) : "—"}</dd></div>
                 </dl>
                 {r.message ? <p className="text-sm whitespace-pre-wrap bg-stone-50 rounded-xl p-3">{r.message}</p> : null}

@@ -76,6 +76,10 @@ Lista = tabela no desktop (Cliente, WhatsApp, Próximo/último evento, Eventos; 
 
 Reativação manual: aniversariantes dos próximos 60 dias com idade, dias restantes, responsável e última festa. "Enviar WhatsApp" abre um texto editável (variáveis nome do responsável, aniversariante e idade) e só então o WhatsApp; nada é enviado sozinho. "Não enviar promoção" oculta só aquele lembrete até o dia seguinte ao aniversário (`promo_muted_until`), sem apagar nada. Cliente com `marketing_opt_in = false` (ficha do cliente) não mostra o botão. Sem campanhas, disparo em massa ou painel.
 
+### Solicitações
+
+Fluxo: lead entra → WhatsApp ou Criar orçamento → Convertida ou Arquivada. O menu lateral mostra um badge laranja com o número de solicitações **Novas** (some quando zero; "Criar orçamento" converte e o badge diminui). Cada solicitação traz a **Ocasião** (Aniversário infantil, Chá revelação, Confraternização, Casamento, Outro); o aniversariante só aparece quando a ocasião é aniversário. O wizard público pergunta a ocasião e só mostra aniversariante/nascimento para aniversário.
+
 ## 2. Cliente (sem login)
 
 ### 2.1 Descobrir

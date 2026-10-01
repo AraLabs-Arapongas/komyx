@@ -111,9 +111,9 @@ begin
     (v_org, 'bbbbbbbb-0000-0000-0000-000000000001', 'demo-guest-link-julia-0123456789abcdef', 'GUEST_CONFIRM', '11111111-1111-1111-1111-111111111111'),
     (v_org, 'bbbbbbbb-0000-0000-0000-000000000002', 'demo-quote-link-theo-0123456789abcdef', 'QUOTE', '22222222-2222-2222-2222-222222222222');
 
-  insert into public.public_requests (organization_id, name, whatsapp, desired_date, desired_time, participants, adults, children, message, source, celebrant_name, celebrant_birth_date) values
-    (v_org, 'Mariana Costa', '11966660005', current_date + 25, '15:00', 50, 20, 30, 'Aniversário de 1 ano, tema safári. Vocês têm espaço kids?', 'instagram', 'Lorenzo', current_date + 25 - interval '1 year'),
-    (v_org, 'João Pereira', '11955550006', null, null, 30, 30, 0, 'Quero um orçamento para confraternização da empresa em dezembro.', 'google', null, null);
+  insert into public.public_requests (organization_id, name, whatsapp, desired_date, desired_time, participants, adults, children, message, source, celebrant_name, celebrant_birth_date, occasion) values
+    (v_org, 'Mariana Costa', '11966660005', current_date + 25, '15:00', 50, 20, 30, 'Aniversário de 1 ano, tema safári. Vocês têm espaço kids?', 'instagram', 'Lorenzo', current_date + 25 - interval '1 year', 'BIRTHDAY'),
+    (v_org, 'João Pereira', '11955550006', null, null, 30, 30, 0, 'Quero um orçamento para confraternização da empresa em dezembro.', 'google', null, null, 'CORPORATE');
 
   insert into public.celebrants (organization_id, customer_id, event_id, name, birth_date) values
     (v_org, 'aaaaaaaa-0000-0000-0000-000000000001', 'bbbbbbbb-0000-0000-0000-000000000001', 'Júlia', (current_date + 5) - interval '6 years'),

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { Check } from "lucide-react";
+import { OCCASIONS } from "@/lib/labels";
 import { MonthPicker } from "@/components/calendar/month-picker";
 import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -52,7 +53,7 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
   const [date, setDate] = useState<string>("");
   const [time, setTime] = useState("15:00");
   const [busy, setBusy] = useState<Record<string, string[]>>({});
-  const [contact, setContact] = useState({ name: "", whatsapp: "", celebrant_name: "", celebrant_birth_date: "", source: known_source_default(defaultSource), message: "" });
+  const [contact, setContact] = useState({ name: "", whatsapp: "", occasion: "BIRTHDAY", celebrant_name: "", celebrant_birth_date: "", source: known_source_default(defaultSource), message: "" });
   const loadingMonth = !busy[month];
 
   const pkg = packages.find((p) => p.id === packageId) ?? null;
@@ -162,7 +163,8 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
       {defaultSource && !known ? <input type="hidden" name="source" value={defaultSource} /> : <input type="hidden" name="source" value={contact.source} />}
       <input type="hidden" name="name" value={contact.name} />
       <input type="hidden" name="whatsapp" value={contact.whatsapp} />
-      <input type="hidden" name="celebrant_name" value={contact.celebrant_name} />
+      <input type="hidden" name="occasion" value={contact.occasion} />
+            <input type="hidden" name="celebrant_name" value={contact.celebrant_name} />
       <input type="hidden" name="celebrant_birth_date" value={contact.celebrant_birth_date} />
       <input type="hidden" name="message" value={contact.message} />
 
@@ -247,10 +249,17 @@ export function QuoteWizard({ slug, packages, addons, defaultSource, preselected
 
             <Field label="Seu nome" htmlFor="name" error={fe.name}><Input id="name" value={contact.name} onChange={upd("name")} autoComplete="name" required /></Field>
             <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp}><Input id="whatsapp" value={contact.whatsapp} onChange={upd("whatsapp")} type="tel" inputMode="tel" autoComplete="tel" placeholder="(11) 99999-9999" required /></Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Aniversariante" htmlFor="celebrant_name"><Input id="celebrant_name" value={contact.celebrant_name} onChange={upd("celebrant_name")} placeholder="Nome" /></Field>
-              <Field label="Nascimento" htmlFor="celebrant_birth_date"><Input id="celebrant_birth_date" value={contact.celebrant_birth_date} onChange={upd("celebrant_birth_date")} type="date" /></Field>
-            </div>
+            <Field label="Ocasião" htmlFor="occasion">
+              <Select id="occasion" value={contact.occasion} onChange={upd("occasion")}>
+                {OCCASIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </Select>
+            </Field>
+            {contact.occasion === "BIRTHDAY" ? (
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Aniversariante" htmlFor="celebrant_name"><Input id="celebrant_name" value={contact.celebrant_name} onChange={upd("celebrant_name")} placeholder="Nome" /></Field>
+                <Field label="Nascimento" htmlFor="celebrant_birth_date"><Input id="celebrant_birth_date" value={contact.celebrant_birth_date} onChange={upd("celebrant_birth_date")} type="date" /></Field>
+              </div>
+            ) : null}
             {defaultSource && !known ? null : (
               <Field label="Como nos conheceu?" htmlFor="source">
                 <Select id="source" value={contact.source} onChange={upd("source")}>

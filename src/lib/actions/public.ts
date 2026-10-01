@@ -6,6 +6,7 @@ import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { dateSchema, optionalText, phoneSchema, zodFieldErrors, UUID_RE, uuid } from "./helpers";
 import { buildQuoteLines, sumLines } from "@/lib/pricing";
 import { localToIso, appUrl } from "@/lib/utils";
+import { occasionLabel } from "@/lib/labels";
 import { buildPixPayload } from "@/lib/pix";
 import QRCode from "qrcode";
 
@@ -65,6 +66,7 @@ const requestSchema = z.object({
   adults: optionalCount,
   children: optionalCount,
   source: z.string().optional().transform((v) => (v && v.trim() ? v.trim().slice(0, 40) : null)),
+  occasion: z.enum(["BIRTHDAY", "GENDER_REVEAL", "CORPORATE", "WEDDING", "OTHER"]).optional().or(z.literal("")).transform((v) => v || null),
   celebrant_name: optionalText,
   celebrant_birth_date: z.union([dateSchema, z.literal("")]).optional().transform((v) => v || null),
   package_id: z.string().optional().transform((v) => (v && UUID_RE.test(v) ? v : null)),
@@ -113,6 +115,7 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
   const parsed = requestSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return fail("Verifique os campos.", zodFieldErrors(parsed.error));
   const d = parsed.data;
+  const isBirthday = !d.occasion || d.occasion === "BIRTHDAY";
   const admin = createAdminClient();
   const { data: org } = await admin.from("organizations").select("id, name, legal_name, city, whatsapp, pix_key, self_booking_enabled, one_event_per_day, pre_reservation_validity_hours, default_event_duration_minutes, status").eq("slug", d.slug).maybeSingle();
   if (!org || org.status !== "active") return fail("Buffet não encontrado.");
@@ -144,8 +147,9 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
     adults: d.adults,
     children: d.children,
     source: d.source,
-    celebrant_name: d.celebrant_name,
-    celebrant_birth_date: d.celebrant_birth_date,
+    occasion: d.occasion,
+    celebrant_name: isBirthday ? d.celebrant_name : null,
+    celebrant_birth_date: isBirthday ? d.celebrant_birth_date : null,
     package_id: pkg?.id ?? null,
     addons: addonsSnapshot,
     estimated_total,
@@ -183,7 +187,8 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
     .insert({
       organization_id: org.id,
       customer_id: customerId,
-      title: d.celebrant_name ? `Aniversário de ${d.celebrant_name}` : null,
+      title: isBirthday && d.celebrant_name ? `Aniversário de ${d.celebrant_name}` : d.occasion && d.occasion !== "BIRTHDAY" ? occasionLabel(d.occasion) : null,
+      occasion: d.occasion,
       starts_at,
       ends_at,
       status: "PRE_RESERVED",
@@ -191,7 +196,7 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
       package_id: pkg?.id ?? null,
       adults: d.adults ?? 0,
       children: d.children ?? 0,
-      celebrant_name: d.celebrant_name,
+      celebrant_name: isBirthday ? d.celebrant_name : null,
       notes: `Reserva feita pelo cliente na página pública.${d.message ? ` Mensagem: ${d.message}` : ""}`,
       origin: "SELF_SERVICE",
     })

@@ -56,3 +56,15 @@ export const PAYMENT_STATUS_TONE: Record<string, "amber" | "green" | "slate" | "
   PARTIAL: "amber",
   PAID: "green",
 };
+
+export type Occasion = "BIRTHDAY" | "GENDER_REVEAL" | "CORPORATE" | "WEDDING" | "OTHER";
+export const OCCASIONS: { value: Occasion; label: string }[] = [
+  { value: "BIRTHDAY", label: "Aniversário infantil" },
+  { value: "GENDER_REVEAL", label: "Chá revelação" },
+  { value: "CORPORATE", label: "Confraternização" },
+  { value: "WEDDING", label: "Casamento" },
+  { value: "OTHER", label: "Outro" },
+];
+export function occasionLabel(value: string | null | undefined) {
+  return OCCASIONS.find((o) => o.value === value)?.label ?? "—";
+}
