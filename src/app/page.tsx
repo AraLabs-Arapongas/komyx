@@ -3,6 +3,7 @@ import { Check, MessageCircle, Sparkles } from "lucide-react";
 import { PartyScene } from "@/components/marketing/party-scene";
 import { PublicFooter } from "@/components/public/public-footer";
 import { HeroSlides } from "@/components/marketing/hero-slides";
+import { HeroStickers } from "@/components/marketing/hero-stickers";
 import { AppMocks } from "@/components/marketing/app-mocks";
 import { PolaroidMocks } from "@/components/marketing/polaroid-mocks";
 import { ScrollCue } from "@/components/marketing/scroll-cue";
@@ -46,8 +47,9 @@ export default function LandingPage() {
               <Link href="/signup" className="max-md:hidden inline-flex h-10 items-center rounded-full px-4 text-sm font-extrabold whitespace-nowrap" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
             </nav>
           </header>
-          <div className="mx-auto w-full max-w-5xl px-4 pt-10 pb-6 max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center max-md:pb-20">
-            <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-6xl leading-[1.02] max-w-3xl">A festa se vende sozinha. Você só confirma.</h1>
+          <div className="relative mx-auto w-full max-w-5xl px-4 pt-10 pb-6 max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center max-md:pb-20">
+            <HeroStickers />
+            <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-6xl leading-[1.02] max-w-3xl lg:max-w-2xl">A festa se vende sozinha. Você só confirma.</h1>
             <p className="mt-5 text-lg/relaxed max-w-prose" style={{ color: "#cfd2e6" }}>Agenda, orçamento, Pix, contrato, convite e portaria em um lugar só, feito para buffet infantil e de eventos. Sem planilha, sem caderno, sem perder festa no WhatsApp.</p>
             <div className="mt-7 flex flex-col sm:flex-row gap-3">
               <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98]" style={{ background: "var(--berry)", color: "#fff" }}><Sparkles className="h-5 w-5" /> Criar meu buffet</Link>

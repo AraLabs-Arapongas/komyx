@@ -30,12 +30,13 @@ function Balloon({ color }: { color: string }) {
 
 export function PartyScene() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden hidden sm:block" aria-hidden="true">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* Phones get half the confetti and two smaller balloons (see .balloon in globals.css). */}
       {PIECES.map((p, i) => (
-        <span key={i} className="confetti-piece absolute top-0" style={{ left: `${p.left}%`, width: p.shape === 2 ? p.size * 0.5 : p.size, height: p.shape === 2 ? p.size * 2.2 : p.size, background: p.color, borderRadius: p.shape === 1 ? "999px" : "2px", animationDelay: `${p.delay}s`, animationDuration: `${p.duration}s`, transform: `rotate(${p.rotate}deg)`, opacity: 0.85 } as React.CSSProperties} />
+        <span key={i} className={`confetti-piece absolute top-0 ${i % 2 ? "max-sm:hidden" : ""}`} style={{ left: `${p.left}%`, width: p.shape === 2 ? p.size * 0.5 : p.size, height: p.shape === 2 ? p.size * 2.2 : p.size, background: p.color, borderRadius: p.shape === 1 ? "999px" : "2px", animationDelay: `${p.delay}s`, animationDuration: `${p.duration}s`, transform: `rotate(${p.rotate}deg)`, opacity: 0.85 } as React.CSSProperties} />
       ))}
       {BALLOONS.map((b, i) => (
-        <div key={i} className="balloon absolute" style={{ left: b.left, right: b.right, bottom: b.bottom, transform: `scale(${b.scale})`, animationDelay: b.delay, animationDuration: b.duration, opacity: 0.9 }}>
+        <div key={i} className={`balloon absolute ${i % 2 ? "max-sm:hidden" : ""}`} style={{ left: b.left, right: b.right, bottom: b.bottom, ["--s" as string]: b.scale, animationDelay: b.delay, animationDuration: b.duration, opacity: 0.9 }}>
           <Balloon color={b.color} />
         </div>
       ))}
