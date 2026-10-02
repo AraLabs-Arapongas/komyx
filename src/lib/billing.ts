@@ -1,5 +1,9 @@
-/** Festeja subscription plans (what the buffet pays). Charging itself is not wired yet; support handles changes. */
-export const PLAN_PRICES: Record<string, number> = { basic: 99, premium: 199 };
+/**
+ * Festeja subscription (what the buffet pays). Launch offer: whoever joins now has Premium at the Básico price, for good,
+ * so both plans cost the same today. Charging itself is not wired yet; support handles changes.
+ */
+export const LAUNCH_PRICE = 99;
+export const PLAN_PRICES: Record<string, number> = { basic: LAUNCH_PRICE, premium: LAUNCH_PRICE };
 export const PLAN_LABEL: Record<string, string> = { basic: "Básico", premium: "Premium" };
 export const BILLING_STATUS_LABEL: Record<string, string> = { ok: "Em dia", due: "Vence em breve", overdue: "Em atraso", trial: "Período de teste" };
 export const INVOICE_STATUS_LABEL: Record<string, string> = { open: "Em aberto", paid: "Paga", overdue: "Em atraso", cancelled: "Cancelada" };

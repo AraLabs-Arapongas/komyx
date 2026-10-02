@@ -156,9 +156,9 @@ declare v_org uuid;
 begin
   select id into v_org from public.organizations where slug = 'festa-cia-buffet';
   insert into public.saas_invoices (organization_id, description, amount, due_at, paid_at, status, method) values
-    (v_org, 'Festeja Premium · mensalidade', 199.00, current_date - 39, current_date - 41, 'paid', 'PIX'),
-    (v_org, 'Festeja Premium · mensalidade', 199.00, current_date - 9, current_date - 10, 'paid', 'PIX'),
-    (v_org, 'Festeja Premium · mensalidade', 199.00, (select due_at from public.organization_billing where organization_id = v_org), null, 'open', null);
+    (v_org, 'Festeja · mensalidade', 99.00, current_date - 39, current_date - 41, 'paid', 'PIX'),
+    (v_org, 'Festeja · mensalidade', 99.00, current_date - 9, current_date - 10, 'paid', 'PIX'),
+    (v_org, 'Festeja · mensalidade', 99.00, (select due_at from public.organization_billing where organization_id = v_org), null, 'open', null);
 end $$;
 
 -- Party themes for the demo buffet (photos reuse the demo gallery)

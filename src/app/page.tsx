@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarDays, FileSignature, MessageCircle, QrCode, Smartphone, Sparkles, Check } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
 import { PublicFooter } from "@/components/public/public-footer";
-import { PLAN_PRICES } from "@/lib/billing";
+import { LAUNCH_PRICE } from "@/lib/billing";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata = { title: "Festeja · agenda, orçamento, contrato e convite do seu buffet", description: "Venda, organize e realize festas em um só lugar. Página pública que vende sozinha, orçamento em 2 minutos, reserva com Pix, contrato automático e portaria no celular." };
@@ -26,9 +26,9 @@ const FEATURES = [
   [Sparkles, "Página que vende", "Fotos, destaques, depoimentos e orçamento online. No Premium, com as cores do seu buffet."],
 ] as const;
 
+const ALL_FEATURES = ["Agenda, orçamentos e eventos", "Clientes e aniversariantes", "Contratos e Pix com identificador", "Página pública com orçamento online", "Site com suas cores, fonte, logo e capa", "Temas de festa com fotos", "Portaria no celular", "Proprietária + equipe", "App para o cliente acompanhar a festa"];
+
 export default function LandingPage() {
-  const basic = [`Agenda, orçamentos e eventos`, `Clientes e aniversariantes`, `Contratos e Pix`, `Página pública com orçamento online`, `Portaria no celular`, `1 proprietária + equipe`];
-  const premium = [`Tudo do Básico`, `Site com suas cores e fonte`, `Logo e capa personalizadas`, `Temas de festa com fotos`, `Prioridade no suporte`];
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between">
@@ -78,16 +78,14 @@ export default function LandingPage() {
 
       <section id="precos" className="bg-surface border-y border-border">
         <div className="mx-auto max-w-6xl px-4 py-14">
-          <h2 className="text-2xl font-bold mb-2">Preços simples</h2>
+          <h2 className="text-2xl font-bold mb-2">Um plano, tudo incluído</h2>
           <p className="text-muted mb-8">Mensalidade fixa, sem taxa por festa e sem fidelidade. Cancele e reative quando quiser.</p>
-          <div className="grid gap-4 md:grid-cols-2 max-w-3xl">
-            {[["Básico", PLAN_PRICES.basic, basic, "outline"], ["Premium", PLAN_PRICES.premium, premium, "primary"]].map(([name, price, items, variant]) => (
-              <div key={String(name)} className={`rounded-3xl border p-6 space-y-4 ${name === "Premium" ? "border-brand shadow-sm" : "border-border"}`}>
-                <div className="flex items-baseline justify-between"><p className="text-lg font-semibold">{String(name)}</p><p className="text-2xl font-bold">{formatCurrency(Number(price))}<span className="text-sm font-normal text-muted">/mês</span></p></div>
-                <ul className="space-y-2 text-sm">{(items as string[]).map((i) => <li key={i} className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" /> {i}</li>)}</ul>
-                <Link href={`/signup?plan=${name === "Premium" ? "premium" : "basic"}`} className={buttonClass(variant as "outline" | "primary", "md", "w-full")}>Começar no {String(name)}</Link>
-              </div>
-            ))}
+          <div className="max-w-xl rounded-3xl border border-brand bg-surface p-6 shadow-sm space-y-4">
+            <p className="inline-flex items-center gap-2 rounded-full bg-brand-soft text-brand px-3 py-1 text-xs font-semibold">Oferta de lançamento</p>
+            <div className="flex items-baseline justify-between gap-3 flex-wrap"><p className="text-lg font-semibold">Festeja completo</p><p className="text-3xl font-bold">{formatCurrency(LAUNCH_PRICE)}<span className="text-sm font-normal text-muted">/mês</span></p></div>
+            <p className="text-sm text-muted">Quem entra agora fica com todos os recursos, inclusive os que virarão Premium, por este preço. Para sempre.</p>
+            <ul className="grid sm:grid-cols-2 gap-2 text-sm">{ALL_FEATURES.map((i) => <li key={i} className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" /> {i}</li>)}</ul>
+            <Link href="/signup" className={buttonClass("primary", "lg", "w-full")}>Criar meu buffet por {formatCurrency(LAUNCH_PRICE)}/mês</Link>
           </div>
         </div>
       </section>
