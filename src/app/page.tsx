@@ -10,7 +10,7 @@ import { PolaroidMocks } from "@/components/marketing/polaroid-mocks";
 import { ScrollCue } from "@/components/marketing/scroll-cue";
 import { Reveal } from "@/components/marketing/reveal";
 import { publicFontClass } from "@/lib/fonts";
-import { LAUNCH_PRICE } from "@/lib/billing";
+import { LAUNCH_PRICE, LIST_PRICE, MONTHLY_PRICE } from "@/lib/billing";
 import { PriceCard } from "@/components/marketing/price-card";
 import { formatCurrency } from "@/lib/utils";
 
@@ -56,10 +56,10 @@ export default function LandingPage() {
             <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-[3.25rem] leading-[1.02] max-w-3xl lg:max-w-2xl">A festa se vende sozinha. Você só confirma.</h1>
             <p className="mt-5 text-lg/relaxed max-w-prose" style={{ color: "#cfd2e6" }}>Agenda, orçamento, Pix, contrato, convite e portaria em um lugar só, feito para buffet infantil e de eventos. Sem planilha, sem caderno, sem perder festa no WhatsApp.</p>
             <div className="mt-7 flex flex-col sm:flex-row gap-3">
-              <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98]" style={{ background: "var(--berry)", color: "#fff" }}><Sparkles className="h-5 w-5" /> Criar meu buffet</Link>
+              <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98]" style={{ background: "var(--berry)", color: "#fff" }}><Sparkles className="h-5 w-5" /> Testar 1 mês grátis</Link>
               <Link href="/p/festa-cia-buffet" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold text-base ring-2 ring-inset ring-white/30 hover:bg-white/10">Ver uma página de buffet</Link>
             </div>
-            <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}>Tudo incluído, a partir de {formatCurrency(LAUNCH_PRICE)}/mês no plano anual.</p>
+            <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}><span className="font-extrabold" style={{ color: "var(--sun)" }}>1 mês grátis.</span> Depois, de <s>{formatCurrency(LIST_PRICE)}</s> por {formatCurrency(MONTHLY_PRICE)}/mês, ou {formatCurrency(LAUNCH_PRICE)}/mês no anual.</p>
           </div>
         </div>
         <div className="snap-page relative mx-auto w-full max-w-5xl px-4 pb-14 sm:pb-20 pt-2 max-md:py-5 max-md:flex max-md:flex-col max-md:justify-center">
@@ -112,8 +112,8 @@ export default function LandingPage() {
         <Reveal className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-center max-md:gap-5">
           <div data-stagger>
             <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: "var(--ink)" }}>Oferta de lançamento</p>
-            <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4 max-md:mt-3">Um plano, tudo incluído. Você escolhe o período.</h2>
-            <p className="mt-3 max-md:mt-2 max-md:text-sm max-md:line-clamp-3" style={{ color: "var(--muted-ink)" }}>Todos os recursos em qualquer período, inclusive os que um dia virarão Premium. Quanto maior o período, menor o valor por mês: de R$ 149 no mensal a R$ 99 no anual. Sem taxa por festa; ao fim do período, renova ou para, você decide.</p>
+            <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4 max-md:mt-3 max-md:text-2xl">1 mês grátis. Depois, um plano com tudo e o período que você escolher.</h2>
+            <p className="mt-3 max-md:mt-2 max-md:text-sm max-md:line-clamp-2" style={{ color: "var(--muted-ink)" }}>Comece sem cartão e use tudo por 30 dias. Depois, todos os recursos em qualquer período, inclusive os que um dia virarão Premium: de R$ 199 por R$ 149 no mensal, até R$ 99/mês no anual. Sem taxa por festa; ao fim do período, renova ou para.</p>
           </div>
           <div data-stagger><PriceCard features={ALL_FEATURES} /></div>
         </Reveal>

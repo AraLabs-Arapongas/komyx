@@ -14,6 +14,7 @@ export function SignupForm() {
   return (
     <Card>
       <CardBody className="pt-5 space-y-4">
+        <div className="rounded-xl bg-brand-soft px-3 py-2 text-sm"><span className="font-semibold">1 mês grátis, sem cartão.</span> Você usa tudo por 30 dias; depois escolhe o período e paga a partir de R$ 99/mês.</div>
         <form action={action} className="space-y-4">
           {state && !state.ok ? <Alert>{state.error}</Alert> : null}
           {state && state.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}

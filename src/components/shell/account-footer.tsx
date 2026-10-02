@@ -19,7 +19,7 @@ export function AccountFooter({ name, email, role, billing, compact = false }: {
   const p = cycleProgress(billing);
   const overdue = billing.status === "overdue" || (p !== null && p.daysLeft < 0);
   const soon = p !== null && p.daysLeft >= 0 && p.daysLeft <= 7;
-  const barColor = overdue ? "bg-red-500" : soon ? "bg-amber-500" : "bg-emerald-500";
+  const barColor = billing.status === "trial" ? "bg-brand" : overdue ? "bg-red-500" : soon ? "bg-amber-500" : "bg-emerald-500";
   return (
     <div className={compact ? "space-y-3" : "space-y-3 border-t border-border p-3"}>
       {role === "owner" ? <Link href="/conta#assinatura" className="block px-1" title="Minha conta · assinatura">
@@ -27,7 +27,7 @@ export function AccountFooter({ name, email, role, billing, compact = false }: {
           <span className="font-medium inline-flex items-center gap-1.5 min-w-0"><CreditCard className="h-3.5 w-3.5 text-muted shrink-0" /> {billing.plan === "premium" ? "Premium" : "Básico"}</span>
           {p ? (
             <span className={overdue ? "text-red-600 font-medium" : soon ? "text-amber-700 font-medium" : "text-muted"}>
-              {overdue ? `Vencida há ${Math.abs(p.daysLeft)} dias` : p.daysLeft === 0 ? "Vence hoje" : `Vence em ${p.daysLeft} dias`}
+              {billing.status === "trial" ? (p.daysLeft < 0 ? "Teste encerrado" : p.daysLeft === 0 ? "Teste termina hoje" : `Teste grátis · ${p.daysLeft} dias`) : overdue ? `Vencida há ${Math.abs(p.daysLeft)} dias` : p.daysLeft === 0 ? "Vence hoje" : `Vence em ${p.daysLeft} dias`}
             </span>
           ) : <span className="text-muted">{billing.status === "trial" ? "Período de teste" : "Sem fatura"}</span>}
         </div>

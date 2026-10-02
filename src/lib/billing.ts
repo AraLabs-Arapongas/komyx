@@ -11,6 +11,10 @@ export const BILLING_PERIODS = [
   { months: 12, label: "Anual", perMonth: 99 },
 ] as const;
 export const MONTHLY_PRICE = 149;
+/** "De" price shown struck through next to the monthly price. */
+export const LIST_PRICE = 199;
+/** Free trial length for every new buffet (see migration trial_billing). */
+export const TRIAL_DAYS = 30;
 /** Cheapest per-month price (annual), used in "a partir de" copy. */
 export const LAUNCH_PRICE = 99;
 export const PLAN_PRICES: Record<string, number> = { basic: MONTHLY_PRICE, premium: MONTHLY_PRICE };

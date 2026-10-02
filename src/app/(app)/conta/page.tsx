@@ -47,7 +47,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
                 <dl className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-sm">
                   <div><dt className="text-xs text-muted">Plano atual</dt><dd className="font-medium">{PLAN_LABEL[org.plan] ?? org.plan}{org.plan === "premium" ? <span className="block text-xs text-muted font-normal">Oferta de lançamento: Premium pelo preço do Básico, para sempre.</span> : null}</dd></div>
                   <div><dt className="text-xs text-muted">Valor mensal</dt><dd className="font-medium">{formatCurrency(price)}</dd></div>
-                  <div><dt className="text-xs text-muted">Próxima cobrança</dt><dd className="font-medium">{bill?.due_at ? dayDate(bill.due_at) : "—"}</dd></div>
+                  <div><dt className="text-xs text-muted">{bill?.status === "trial" ? "Fim do teste grátis" : "Próxima cobrança"}</dt><dd className="font-medium">{bill?.due_at ? dayDate(bill.due_at) : "—"}</dd></div>
                   <div><dt className="text-xs text-muted">Status</dt><dd>{org.status === "cancelled" ? <Badge tone="red">Cancelada</Badge> : <Badge tone={bill?.status === "overdue" ? "red" : bill?.status === "due" ? "amber" : bill?.status === "trial" ? "brand" : "green"}>{BILLING_STATUS_LABEL[bill?.status ?? "ok"] ?? bill?.status}</Badge>}</dd></div>
                 </dl>
                 {sp.reativada === "1" ? <Alert tone="success">Assinatura reativada. Tudo voltou como estava.</Alert> : null}
