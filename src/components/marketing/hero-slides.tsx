@@ -12,7 +12,7 @@ function Pill({ children, color = "var(--mint)" }: { children: ReactNode; color?
   return <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-extrabold" style={{ background: color, color: ink }}>{children}</span>;
 }
 
-const SLIDES: Slide[] = [
+function slides(pixQr: string): Slide[] { return [
   {
     icon: <Calculator className="h-4 w-4" />, eyebrow: "Orçamento online",
     title: "O cliente monta o orçamento em 2 minutos.",
@@ -30,13 +30,15 @@ const SLIDES: Slide[] = [
     title: "A data fica segura com o sinal por Pix.",
     text: "QR e copia-e-cola com o valor do sinal e um identificador. Prazo que você define; passou, a data volta a ficar livre sozinha.",
     mock: (
-      <div className="grid grid-cols-[88px_1fr] gap-3 items-center">
-        <div className="h-22 w-22 rounded-lg p-1.5 bg-white" aria-hidden="true"><div className="h-full w-full" style={{ backgroundImage: "repeating-linear-gradient(0deg, #1b1f3a 0 6px, transparent 6px 12px), repeating-linear-gradient(90deg, #1b1f3a 0 6px, transparent 6px 12px)", backgroundBlendMode: "multiply", opacity: 0.85 }} /></div>
+      <div className="grid grid-cols-[120px_1fr] gap-3 items-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={pixQr} alt="QR Code Pix" className="h-[120px] w-[120px] rounded-lg bg-white p-1" />
         <div className="text-sm space-y-1">
           <p className="font-extrabold">Sinal · R$ 1.170,00</p>
           <p style={{ color: muted }}>Data segura até <b style={{ color: ink }}>sáb 17:32</b></p>
           <p className="text-xs rounded-lg px-2 py-1 bg-white inline-block">Identificador <b>FESTA9F2A1C</b></p>
-          <Pill>Confirmada ao cair o Pix</Pill>
+          <p className="text-xs" style={{ color: muted }}>Chave <b style={{ color: ink }}>12.345.678/0001-90</b></p>
+          <p className="flex flex-wrap gap-1.5 pt-1"><span className="rounded-full px-2.5 py-1 text-[11px] font-extrabold text-white" style={{ background: "var(--berry)" }}>Copiar Pix copia e cola</span><Pill>Confirma ao cair</Pill></p>
         </div>
       </div>
     ),
@@ -89,10 +91,10 @@ const SLIDES: Slide[] = [
       </div>
     ),
   },
-];
+]; }
 
 /** Hero carousel: one slide per core feature, with a hand-built mock. Auto-advances, pauses on hover. */
-export function HeroSlides() {
+export function HeroSlides({ pixQr }: { pixQr: string }) {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   useEffect(() => {
@@ -100,27 +102,30 @@ export function HeroSlides() {
     const t = setInterval(() => setI((v) => (v + 1) % SLIDES.length), 6000);
     return () => clearInterval(t);
   }, [paused]);
+  const SLIDES = slides(pixQr);
   const s = SLIDES[i];
   return (
     <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} aria-roledescription="carrossel" aria-label="Principais recursos">
       <div className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-center">
-        <div key={`t${i}`} className="hero-fade">
-          <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: ink }}>{s.icon} {s.eyebrow}</p>
-          <h2 className="display font-extrabold text-3xl sm:text-4xl leading-[1.05] mt-4">{s.title}</h2>
-          <p className="mt-3 text-base/relaxed" style={{ color: "#cfd2e6" }}>{s.text}</p>
-        </div>
-        <div key={`m${i}`} className="hero-fade polaroid bg-white p-3 pb-4 rounded-sm shadow-[0_24px_60px_rgba(0,0,0,0.45)] mx-auto w-full max-w-sm" style={{ transform: "rotate(-1.5deg)", color: ink }}>
-          <div className="rounded-xl p-3" style={{ background: "var(--paper)" }}>{s.mock}</div>
-          <p className="mt-3 text-sm font-semibold">{s.eyebrow}</p>
-        </div>
-      </div>
-      <div className="mt-6 flex items-center gap-3">
+        <div className="md:min-h-[280px] flex flex-col justify-center">
+          <div key={`t${i}`} className="hero-fade">
+            <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: ink }}>{s.icon} {s.eyebrow}</p>
+            <h2 className="display font-extrabold text-3xl sm:text-4xl leading-[1.05] mt-4">{s.title}</h2>
+            <p className="mt-3 text-base/relaxed" style={{ color: "#cfd2e6" }}>{s.text}</p>
+          </div>
+          <div className="mt-6 flex items-center gap-3">
         <button type="button" onClick={() => setI((i - 1 + SLIDES.length) % SLIDES.length)} className="h-10 w-10 rounded-full grid place-items-center ring-2 ring-inset ring-white/30 hover:bg-white/10" aria-label="Anterior"><ChevronLeft className="h-5 w-5" /></button>
         <div className="flex gap-2" role="tablist">
           {SLIDES.map((sl, k) => <button key={sl.eyebrow} type="button" role="tab" aria-selected={k === i} aria-label={sl.eyebrow} onClick={() => setI(k)} className="h-2.5 rounded-full transition-all" style={{ width: k === i ? 28 : 10, background: k === i ? "var(--sun)" : "rgba(255,255,255,0.35)" }} />)}
         </div>
         <button type="button" onClick={() => setI((i + 1) % SLIDES.length)} className="h-10 w-10 rounded-full grid place-items-center ring-2 ring-inset ring-white/30 hover:bg-white/10" aria-label="Próximo"><ChevronRight className="h-5 w-5" /></button>
-        <span className="text-xs ml-auto" style={{ color: "#9da1bd" }}>{i + 1}/{SLIDES.length}</span>
+            <span className="text-xs ml-auto tabular-nums" style={{ color: "#9da1bd" }}>{i + 1}/{SLIDES.length}</span>
+          </div>
+        </div>
+        <div key={`m${i}`} className="hero-fade polaroid bg-white p-3 pb-4 rounded-sm shadow-[0_24px_60px_rgba(0,0,0,0.45)] mx-auto w-full max-w-sm" style={{ transform: "rotate(-1.5deg)", color: ink }}>
+          <div className="rounded-xl p-3 min-h-[230px] flex flex-col justify-center" style={{ background: "var(--paper)" }}>{s.mock}</div>
+          <p className="mt-3 text-sm font-semibold">{s.eyebrow}</p>
+        </div>
       </div>
     </div>
   );
