@@ -43,3 +43,33 @@ src/ui/              theme, components
 ```
 
 Funções SQL usadas pelo cliente: `my_reservations` (telefone autenticado), `reservation_by_token`, `guest_link`, `confirm_guest`. SMS: Supabase phone auth + hook `send_sms` → `src/app/api/auth/send-sms` → Comtele (`SMS_PROVIDER`, `COMTELE_API_KEY` no `.env.local` da raiz).
+
+## Modo quiosque (tablet na portaria · plano Komyx Balcão)
+
+O app vira a portaria da festa do dia em tela cheia. Só a dona configura (Menu → Modo quiosque):
+define um PIN (4–6 dígitos, fica no aparelho via SecureStore) e liga. A partir daí o app sempre abre
+em `/(app)/quiosque`, que carrega `/o/<link CHECKIN>` do evento de hoje numa WebView. "Sou a dona"
+pede o PIN e abre o app normal; o cadeado pede o PIN e desliga o quiosque.
+
+Bloqueio do sistema (Android): o módulo local `modules/kiosk` (Expo Modules, Kotlin) chama
+`startLockTask()`. Em Expo Go ele não existe e tudo vira no-op; é preciso um **dev build / APK**:
+
+```bash
+npx eas build -p android --profile preview
+```
+
+### Preparar um tablet Komyx (bloqueio total, sem diálogo do Android)
+
+1. Tablet novo ou com reset de fábrica; **não** adicione conta Google no assistente inicial (pule).
+2. Ative Opções do desenvolvedor → Depuração USB; instale o APK (`adb install komyx.apk`).
+3. Torne o Komyx dono do aparelho:
+   ```bash
+   adb shell dpm set-device-owner com.aralabs.komyx/com.aralabs.komyx.kiosk.KioskDeviceAdminReceiver
+   ```
+4. Abra o app, entre com a conta da dona, Menu → Modo quiosque → PIN → Ligar.
+   Início/recentes/notificações ficam travados até sair com o PIN.
+
+Sem o passo 3, o Android mostra "Fixar este app?" na primeira vez e permite desafixar com o gesto
+Voltar+Recentes; o PIN do app continua sendo a barreira. Para remover o dono do aparelho:
+`adb shell dpm remove-active-admin com.aralabs.komyx/com.aralabs.komyx.kiosk.KioskDeviceAdminReceiver`
+(só funciona se o app liberar; na prática, reset de fábrica).

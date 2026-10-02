@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check, MessageCircle, Sparkles } from "lucide-react";
+import { Check, MessageCircle, Sparkles, Tablet } from "lucide-react";
 import { PartyScene } from "@/components/marketing/party-scene";
 import { PublicFooter } from "@/components/public/public-footer";
 import { HeroSlides } from "@/components/marketing/hero-slides";
@@ -10,9 +10,9 @@ import { PolaroidMocks } from "@/components/marketing/polaroid-mocks";
 import { ScrollCue } from "@/components/marketing/scroll-cue";
 import { Reveal } from "@/components/marketing/reveal";
 import { publicFontClass } from "@/lib/fonts";
-import { LAUNCH_PRICE, LIST_PRICE, MONTHLY_PRICE } from "@/lib/billing";
+import { LAUNCH_PRICE, LIST_PRICE, MONTHLY_PRICE, TABLET_PLAN_PER_MONTH, SUPPORT_WHATSAPP } from "@/lib/billing";
 import { PriceCard } from "@/components/marketing/price-card";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, whatsappLink } from "@/lib/utils";
 
 export const metadata = { title: "Komyx · Gestão para buffets: agenda, orçamento, contrato e convite", description: "O cliente monta o orçamento e reserva com Pix pela sua página. Você confirma, gera o contrato e cobra pelo WhatsApp." };
 
@@ -119,6 +119,27 @@ export default function LandingPage() {
         </Reveal>
       </section>
 
+      {/* TABLET PLAN */}
+      <section id="tablet" className="snap-page relative overflow-hidden max-md:flex max-md:flex-col max-md:justify-center" style={{ background: "var(--paper-2)" }}>
+        <Reveal className="mx-auto w-full max-w-5xl px-4 py-14 max-md:py-8 grid gap-8 md:grid-cols-[1.1fr_0.9fr] md:items-center max-md:gap-5">
+          <div data-stagger>
+            <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--ink)", color: "var(--sun)" }}><Tablet className="h-3.5 w-3.5" /> Komyx Balcão</p>
+            <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4 max-md:mt-3 max-md:text-2xl">Um tablet na portaria, pronto para a festa.</h2>
+            <p className="mt-3 max-md:mt-2 max-md:text-sm" style={{ color: "var(--muted-ink)" }}>A gente entrega um tablet de 10&quot; já configurado em modo quiosque: ele abre direto na portaria da festa do dia e não sai dali. Quem está na porta marca quem chegou e fecha a conta dos extras; a dona destrava com um PIN para ver agenda e pagamentos. Sem instalar nada, sem depender do celular da equipe.</p>
+            <ul className="mt-4 grid gap-1.5 text-sm max-md:text-xs" style={{ color: "var(--ink)" }}>
+              {['Tablet 10" + suporte, em comodato (continua nosso)', "Modo quiosque: só o Komyx, travado com PIN", "Entrega configurado, com chip 4G opcional", "Troca em caso de defeito dentro do plano"].map((t) => <li key={t} className="flex gap-2"><Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--mint)" }} /> {t}</li>)}
+            </ul>
+          </div>
+          <div data-stagger className="rounded-3xl p-6 max-md:p-4 space-y-3" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+            <p className="display font-extrabold text-xl">Komyx Balcão</p>
+            <p className="text-sm" style={{ color: "#cfd2e6" }}>Komyx completo no plano anual + tablet na portaria.</p>
+            <p className="display font-extrabold text-4xl" style={{ color: "var(--sun)" }}>{formatCurrency(TABLET_PLAN_PER_MONTH)}<span className="text-sm font-bold" style={{ color: "#cfd2e6" }}>/mês</span></p>
+            <p className="text-xs" style={{ color: "#9da1bd" }}>{formatCurrency(TABLET_PLAN_PER_MONTH * 12)} por 12 meses. O primeiro mês de teste vale também: você experimenta o sistema antes de pedir o tablet.</p>
+            <a href={whatsappLink(SUPPORT_WHATSAPP, "Oi! Quero o Komyx Balcão com tablet na portaria.")} target="_blank" rel="noopener" className="inline-flex w-full items-center justify-center h-12 rounded-full font-extrabold" style={{ background: "var(--sun)", color: "var(--ink)" }}>Quero o tablet na portaria</a>
+          </div>
+        </Reveal>
+      </section>
+
       {/* CTA + FOOTER (one phone page) */}
       <div className="snap-page max-md:flex max-md:flex-col">
         <section className="relative overflow-hidden max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center" style={{ background: "var(--ink)", color: "var(--paper)" }}>
@@ -128,7 +149,7 @@ export default function LandingPage() {
             <p className="max-md:text-sm" style={{ color: "#cfd2e6" }}>Crie o buffet, cadastre dois pacotes e mande o link para o próximo cliente que perguntar o preço.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
               <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
-              <a href="https://wa.me/5511999999999?text=Oi!%20Quero%20conhecer%20o%20Komyx" target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10"><MessageCircle className="h-5 w-5" /> Falar com a gente</a>
+              <a href={whatsappLink(SUPPORT_WHATSAPP, "Oi! Quero conhecer o Komyx.")} target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10"><MessageCircle className="h-5 w-5" /> Falar com a gente</a>
             </div>
           </Reveal>
         </section>

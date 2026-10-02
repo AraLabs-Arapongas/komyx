@@ -150,3 +150,10 @@ Acesso só para perfis com `is_platform_admin` (flag que só a service role alte
 ## 4. App mobile (Expo)
 
 Mesmos fluxos, no celular. Tela "Entrar" única: e-mail → senha (buffet); celular → código SMS (cliente). Dona/equipe: Início (ações urgentes, solicitações, hoje, 7 dias, a receber) → Agenda → Evento (status, parcelas com "Recebida", recebimentos, check-in, extras, enviar página da reserva/RSVP). Cliente: entra com o celular (código por SMS, enviado pela Comtele via hook do Supabase) ou abre o link do buffet → "Minhas festas" → reserva (Pix QR + copia-e-cola, parcelas, contrato) e convite (RSVP). Deep links `komyx://r/<token>` e `komyx://g/<token>`. Orçamento, contrato e convite continuam sendo editados na web.
+
+## Planos, teste grátis e tablet (2026-10-02)
+
+- Todo buffet novo nasce em **teste grátis de 30 dias**: trigger `organizations_start_trial` cria `organization_billing` com `status = 'trial'` e `due_at = hoje + 30`. Rodapé da sidebar e Minha conta mostram "Teste grátis · N dias".
+- Um plano com tudo; o valor por mês depende do período (`BILLING_PERIODS` em `src/lib/billing.ts`): mensal R$ 149 (de R$ 199), 3 meses R$ 134, 6 meses R$ 119, anual R$ 99. Landing mostra o seletor; o signup recebe `?periodo=N` mas ainda não grava (cobrança é manual pelo suporte/admin).
+- **Komyx Balcão**: anual + tablet 10" em comodato configurado em modo quiosque, R$ 149/mês (`TABLET_PLAN_PER_MONTH`). Contratação pelo WhatsApp. O modo quiosque está no app (ver `mobile/README.md`).
+

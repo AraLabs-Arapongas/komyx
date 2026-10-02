@@ -14,6 +14,8 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="eventos/[id]" options={{ title: "Evento" }} />
       <Stack.Screen name="notificacoes" options={{ title: "Notificações" }} />
+      <Stack.Screen name="quiosque" options={{ headerShown: false, gestureEnabled: false }} />
+      <Stack.Screen name="quiosque-config" options={{ title: "Modo quiosque" }} />
     </Stack>
   );
 }

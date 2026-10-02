@@ -1,0 +1,16 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <!-- Device admin receiver: lets the tablet be provisioned with this app as device owner
+         (adb shell dpm set-device-owner com.aralabs.komyx/com.aralabs.komyx.kiosk.KioskDeviceAdminReceiver),
+         which unlocks silent lock-task mode. -->
+    <receiver
+      android:name="com.aralabs.komyx.kiosk.KioskDeviceAdminReceiver"
+      android:exported="true"
+      android:permission="android.permission.BIND_DEVICE_ADMIN">
+      <meta-data android:name="android.app.device_admin" android:resource="@xml/kiosk_device_admin" />
+      <intent-filter>
+        <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+      </intent-filter>
+    </receiver>
+  </application>
+</manifest>
