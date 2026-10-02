@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Check, MessageCircle, QrCode, Calendar, FileSignature, DoorOpen, Calculator } from "lucide-react";
 
-type Slide = { icon: ReactNode; eyebrow: string; title: string; text: string; mock: ReactNode };
+type Slide = { icon: ReactNode; eyebrow: string; title: string; text: string; mock: ReactNode; phone?: boolean; caption?: string };
 
 const ink = "var(--ink)";
 const muted = "var(--muted-ink)";
@@ -26,19 +26,22 @@ function slides(): Slide[] { return [
     ),
   },
   {
-    icon: <QrCode className="h-4 w-4" />, eyebrow: "Reserva com Pix",
+    icon: <QrCode className="h-4 w-4" />, eyebrow: "Reserva com Pix", phone: true, caption: "No celular do cliente",
     title: "A data fica segura com o sinal por Pix.",
     text: "QR e copia-e-cola com o valor do sinal e um identificador. Prazo que você define; passou, a data volta a ficar livre sozinha.",
     mock: (
-      <div className="grid grid-cols-[110px_1fr] gap-3 items-center rounded-2xl p-3" style={{ background: "#e9f8f3", border: "1px solid #bfeadb" }}>
-        <span className="h-[100px] w-[100px] rounded-xl bg-white grid place-items-center" aria-hidden="true"><QrCode className="h-16 w-16" style={{ color: ink }} /></span>
-        <div className="text-sm space-y-1">
-          <p className="font-extrabold">Sinal · R$ 1.170,00</p>
-          <p style={{ color: muted }}>Data segura até <b style={{ color: ink }}>sáb 17:32</b></p>
-          <p className="text-xs rounded-lg px-2 py-1 bg-white inline-block">Identificador <b>FESTA9F2A1C</b></p>
-          <p className="text-xs" style={{ color: muted }}>Chave <b style={{ color: ink }}>12.345.678/0001-90</b></p>
-          <p className="flex flex-wrap gap-1.5 pt-1"><span className="rounded-full px-2.5 py-1 text-[11px] font-extrabold text-white" style={{ background: "var(--berry)" }}>Copiar Pix copia e cola</span><Pill>Confirma ao cair</Pill></p>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between"><span className="font-extrabold">Festa do Theo</span><Pill color="var(--sun)">Reservada</Pill></div>
+        <div className="rounded-2xl p-2.5 flex items-center gap-2.5" style={{ background: "#e9f8f3", border: "1px solid #bfeadb" }}>
+          <span className="h-[64px] w-[64px] shrink-0 rounded-xl bg-white grid place-items-center" aria-hidden="true"><QrCode className="h-10 w-10" style={{ color: ink }} /></span>
+          <div className="min-w-0 text-[11px] leading-snug">
+            <p className="font-extrabold text-[13px] whitespace-nowrap">Sinal · R$ 1.170</p>
+            <p className="whitespace-nowrap" style={{ color: muted }}>Até <b style={{ color: ink }}>sáb 17:32</b></p>
+            <p className="whitespace-nowrap" style={{ color: muted }}>Id. <b style={{ color: ink }}>FESTA9F2A1C</b></p>
+          </div>
         </div>
+        <span className="block text-center rounded-full py-1.5 text-[11px] font-extrabold text-white" style={{ background: "var(--berry)" }}>Copiar Pix copia e cola</span>
+        <p className="text-[11px] whitespace-nowrap" style={{ color: muted }}>Orçamento · Pacote Prata · <b style={{ color: ink }}>R$ 3.900</b></p>
       </div>
     ),
   },
@@ -80,13 +83,14 @@ function slides(): Slide[] { return [
     ),
   },
   {
-    icon: <DoorOpen className="h-4 w-4" />, eyebrow: "Portaria",
+    icon: <DoorOpen className="h-4 w-4" />, eyebrow: "Portaria", phone: true, caption: "No celular de quem está na porta",
     title: "Quem está na porta resolve no celular.",
     text: "Marca quem chegou, adiciona convidado de última hora, registra o bolo extra e fecha a conta com Pix antes de a festa acabar.",
     mock: (
-      <div className="space-y-1.5 text-sm">
-        {[["Família Oliveira", "2A 2C", true], ["Tia Lúcia", "2A", true], ["Pedro e Bia", "2A 1C", false]].map(([n, p, ok]) => <div key={String(n)} className="flex items-center justify-between rounded-xl bg-white px-3 py-1.5"><span className="font-bold">{ok ? <Check className="inline h-4 w-4 mr-1" style={{ color: "var(--mint)" }} /> : null}{String(n)} <span style={{ color: muted }}>· {String(p)}</span></span><span className="rounded-full px-2 py-0.5 text-[11px] font-extrabold" style={{ background: ok ? "var(--paper-2)" : ink, color: ok ? muted : "#fff" }}>{ok ? "Chegou" : "Marcar"}</span></div>)}
-        <div className="flex items-center justify-between rounded-xl px-3 py-1.5 text-xs font-extrabold" style={{ background: "var(--sun)", color: ink }}><span>Fechar conta · extras R$ 220</span><span>Recebido · Pix</span></div>
+      <div className="space-y-1.5 text-[12px]">
+        <div className="flex items-center justify-between"><span className="font-extrabold">Portaria · Júlia</span><Pill>42 presentes</Pill></div>
+        {[["Família Oliveira", "2A 2C", true], ["Tia Lúcia", "2A", true], ["Pedro e Bia", "2A 1C", false]].map(([n, p, ok]) => <div key={String(n)} className="flex items-center justify-between rounded-xl bg-white px-2 py-1.5"><span className="font-bold truncate min-w-0">{ok ? <Check className="inline h-3.5 w-3.5 mr-1" style={{ color: "var(--mint)" }} /> : null}{String(n)} <span className="font-normal" style={{ color: muted }}>· {String(p)}</span></span><span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold" style={{ background: ok ? "var(--paper-2)" : ink, color: ok ? muted : "#fff" }}>{ok ? "Chegou" : "Marcar"}</span></div>)}
+        <div className="flex items-center justify-between gap-2 rounded-xl px-2 py-1.5 text-[10px] font-extrabold whitespace-nowrap" style={{ background: "var(--sun)", color: ink }}><span>Fechar conta · R$ 220</span><span className="rounded-full bg-white/70 px-1.5 py-0.5">Recebido · Pix</span></div>
       </div>
     ),
   },
@@ -122,8 +126,17 @@ export function HeroSlides() {
           </div>
         </div>
         <div key={`m${i}`} className="hero-fade polaroid bg-white p-3 pb-4 rounded-sm shadow-[0_24px_60px_rgba(0,0,0,0.45)] mx-auto w-full max-w-sm" style={{ transform: "rotate(-1.5deg)", color: ink }}>
-          <div className="rounded-xl p-3 min-h-[230px] flex flex-col justify-center" style={{ background: "var(--paper)" }}>{s.mock}</div>
-          <p className="mt-3 text-sm font-semibold">{s.eyebrow}</p>
+          <div className="rounded-xl p-3 h-[270px] flex flex-col justify-center overflow-hidden" style={{ background: s.phone ? "var(--paper-2)" : "var(--paper)" }}>
+            {s.phone ? (
+              <div className="mx-auto w-[230px] rounded-[1.7rem] p-1.5 shadow-[0_14px_30px_rgba(27,31,58,0.25)]" style={{ background: ink }}>
+                <div className="relative rounded-[1.4rem] px-2.5 pb-3 pt-5 text-[12px]" style={{ background: "var(--paper)" }}>
+                  <span className="absolute left-1/2 top-1.5 h-1.5 w-14 -translate-x-1/2 rounded-full" style={{ background: ink }} />
+                  {s.mock}
+                </div>
+              </div>
+            ) : s.mock}
+          </div>
+          <p className="mt-3 text-sm font-semibold">{s.caption ?? s.eyebrow}</p>
         </div>
       </div>
     </div>
