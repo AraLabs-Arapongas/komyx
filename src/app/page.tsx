@@ -4,8 +4,6 @@ import { Bunting } from "@/components/public/bunting";
 import { PolaroidGallery } from "@/components/public/polaroid-gallery";
 import { PublicFooter } from "@/components/public/public-footer";
 import { HeroSlides } from "@/components/marketing/hero-slides";
-import QRCode from "qrcode";
-import { buildPixPayload } from "@/lib/pix";
 import { AppMocks } from "@/components/marketing/app-mocks";
 import { publicFontClass } from "@/lib/fonts";
 import { LAUNCH_PRICE } from "@/lib/billing";
@@ -32,9 +30,7 @@ const GALLERY = [
 ];
 const ALL_FEATURES = ["Agenda, orçamentos e eventos", "Clientes e aniversariantes", "Contratos e Pix com identificador", "Página pública com orçamento online", "Site com suas cores, fonte, logo e capa", "Temas de festa com fotos", "Portaria no celular", "Proprietária + equipe", "App para o cliente acompanhar a festa"];
 
-export default async function LandingPage() {
-  const payload = buildPixPayload({ key: "12.345.678/0001-90", merchantName: "Festa & Cia Eventos", merchantCity: "Sao Paulo", amount: 1170, txid: "FESTA9F2A1C", description: "FESTA9F2A1C sinal festa" });
-  const pixQr = `data:image/svg+xml;utf8,${encodeURIComponent(await QRCode.toString(payload, { type: "svg", margin: 0, width: 240, errorCorrectionLevel: "M" }))}`;
+export default function LandingPage() {
   return (
     <main className={`${publicFontClass} public-theme font-festa flex-1 flex flex-col`}>
       {/* HERO */}
@@ -57,7 +53,7 @@ export default async function LandingPage() {
           <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}>{formatCurrency(LAUNCH_PRICE)}/mês, tudo incluído. Cancele quando quiser.</p>
         </div>
         <div className="mx-auto max-w-5xl px-4 pb-14 sm:pb-20 pt-6">
-          <HeroSlides pixQr={pixQr} />
+          <HeroSlides />
         </div>
       </section>
 

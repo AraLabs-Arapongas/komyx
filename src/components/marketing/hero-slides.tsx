@@ -12,7 +12,7 @@ function Pill({ children, color = "var(--mint)" }: { children: ReactNode; color?
   return <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-extrabold" style={{ background: color, color: ink }}>{children}</span>;
 }
 
-function slides(pixQr: string): Slide[] { return [
+function slides(): Slide[] { return [
   {
     icon: <Calculator className="h-4 w-4" />, eyebrow: "Orçamento online",
     title: "O cliente monta o orçamento em 2 minutos.",
@@ -30,9 +30,8 @@ function slides(pixQr: string): Slide[] { return [
     title: "A data fica segura com o sinal por Pix.",
     text: "QR e copia-e-cola com o valor do sinal e um identificador. Prazo que você define; passou, a data volta a ficar livre sozinha.",
     mock: (
-      <div className="grid grid-cols-[120px_1fr] gap-3 items-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={pixQr} alt="QR Code Pix" className="h-[120px] w-[120px] rounded-lg bg-white p-1" />
+      <div className="grid grid-cols-[110px_1fr] gap-3 items-center rounded-2xl p-3" style={{ background: "#e9f8f3", border: "1px solid #bfeadb" }}>
+        <span className="h-[100px] w-[100px] rounded-xl bg-white grid place-items-center" aria-hidden="true"><QrCode className="h-16 w-16" style={{ color: ink }} /></span>
         <div className="text-sm space-y-1">
           <p className="font-extrabold">Sinal · R$ 1.170,00</p>
           <p style={{ color: muted }}>Data segura até <b style={{ color: ink }}>sáb 17:32</b></p>
@@ -94,7 +93,7 @@ function slides(pixQr: string): Slide[] { return [
 ]; }
 
 /** Hero carousel: one slide per core feature, with a hand-built mock. Auto-advances, pauses on hover. */
-export function HeroSlides({ pixQr }: { pixQr: string }) {
+export function HeroSlides() {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   useEffect(() => {
@@ -102,7 +101,7 @@ export function HeroSlides({ pixQr }: { pixQr: string }) {
     const t = setInterval(() => setI((v) => (v + 1) % SLIDES.length), 6000);
     return () => clearInterval(t);
   }, [paused]);
-  const SLIDES = slides(pixQr);
+  const SLIDES = slides();
   const s = SLIDES[i];
   return (
     <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} aria-roledescription="carrossel" aria-label="Principais recursos">
