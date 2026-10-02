@@ -7,7 +7,8 @@ export type Addon = { id: string; name: string; price: number; description: stri
 export type Reservation = {
   event: { id: string; title: string | null; starts_at: string; ends_at: string; status: string; expires_at: string | null; adults: number | null; children: number | null; celebrant_name: string | null; celebrant_age: number | null; pix_txid: string | null; invite_title: string | null; invite_message: string | null; invite_image_url: string | null; theme: string | null; customer: { name: string; whatsapp: string } };
   org: { name: string; legal_name: string | null; city: string | null; slug: string; logo_url: string | null; whatsapp: string | null; pix_key: string | null; address: string | null; show_prices_public: boolean; pre_reservation_validity_hours: number };
-  quote: { id: string; status: string; total: number; decided_at: string | null; items: { description: string; quantity: number; unit_price: number; total: number }[]; installments: { label: string; percent: number; amount: number; rule: string; days_before: number | null; due_date: string | null; sequence: number }[] } | null;
+  package: { name: string; included_adults: number; included_children: number; extra_adult_price: number; extra_child_price: number } | null;
+  quote: { id: string; status: string; total: number; decided_at: string | null; adults: number; children: number; items: { description: string; quantity: number; unit_price: number; total: number }[]; installments: { label: string; percent: number; amount: number; rule: string; days_before: number | null; due_date: string | null; sequence: number }[] } | null;
   extras: { id: string; description: string; quantity: number; unit_price: number; total: number }[];
   contract: { number: number; status: string; token: string } | null;
   quote_token: string | null;

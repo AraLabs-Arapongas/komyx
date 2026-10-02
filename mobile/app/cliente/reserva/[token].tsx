@@ -161,6 +161,39 @@ export default function Reserva() {
       {/* GUESTS */}
       <Card>
         <CardTitle title="Convidados" subtitle={`${r.guests.length} ${r.guests.length === 1 ? "confirmação" : "confirmações"} · ${guestsPeople} pessoas`} />
+        {/* Capacity: contracted vs confirmed, what is left and what going over costs */}
+        {(() => {
+          const contractedA = ev.adults ?? 0, contractedC = ev.children ?? 0;
+          const confA = r.guests.reduce((a, g) => a + g.adults, 0), confC = r.guests.reduce((a, g) => a + g.children, 0);
+          const overA = Math.max(0, confA - contractedA), overC = Math.max(0, confC - contractedC);
+          const leftA = Math.max(0, contractedA - confA), leftC = Math.max(0, contractedC - confC);
+          const priceA = Number(r.package?.extra_adult_price ?? 0), priceC = Number(r.package?.extra_child_price ?? 0);
+          const overCost = overA * priceA + overC * priceC;
+          const pct = (c: number, t: number) => (t > 0 ? Math.min(100, Math.round((c / t) * 100)) : 0);
+          const pendingPeople = pending.some((x) => x.kind === "PEOPLE");
+          return (
+            <View style={{ gap: 8, padding: 12, borderRadius: 14, backgroundColor: colors.stone50, borderWidth: 1, borderColor: colors.border }}>
+              {[["Adultos", contractedA, confA, leftA, overA], ["Crianças", contractedC, confC, leftC, overC]].map(([label, t, c, left, over]) => (
+                <View key={String(label)} style={{ gap: 4 }}>
+                  <Row style={{ justifyContent: "space-between" }}>
+                    <Text style={styles.text}>{label}: <Text style={{ fontWeight: "700" }}>{c}</Text> de {t} contratados</Text>
+                    <Text style={{ fontSize: 13, fontWeight: "600", color: Number(over) > 0 ? colors.red : Number(left) > 0 ? colors.muted : colors.green }}>{Number(over) > 0 ? `${over} a mais` : Number(left) > 0 ? `faltam ${left}` : "completo"}</Text>
+                  </Row>
+                  <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.border, overflow: "hidden" }}><View style={{ height: "100%", width: `${pct(Number(c), Number(t))}%`, backgroundColor: Number(over) > 0 ? colors.red : colors.green }} /></View>
+                </View>
+              ))}
+              {overA + overC > 0 ? (
+                <View style={{ gap: 6 }}>
+                  <Text style={{ color: colors.amber, fontSize: 13 }}>
+                    {overA > 0 ? `${overA} adulto${overA > 1 ? "s" : ""}` : ""}{overA > 0 && overC > 0 ? " e " : ""}{overC > 0 ? `${overC} criança${overC > 1 ? "s" : ""}` : ""} além do contratado
+                    {showPrices && overCost > 0 ? ` · extra estimado ${formatCurrency(overCost)}${priceA ? ` (adulto ${formatCurrency(priceA)}` : ""}${priceA && priceC ? ", " : priceA ? ")" : ""}${priceC ? `${priceA ? "" : " ("}criança ${formatCurrency(priceC)})` : ""}` : ""}.
+                  </Text>
+                  <Button title={pendingPeople ? "Pedido de inclusão enviado" : `Pedir ao buffet para incluir ${overA + overC} pessoa${overA + overC > 1 ? "s" : ""}`} size="sm" variant="secondary" disabled={pendingPeople} loading={ask.isPending} onPress={() => ask.mutate({ kind: "PEOPLE", message: `${first} pediu para incluir ${confA} adultos e ${confC} crianças (contratado: ${contractedA} e ${contractedC}).`, payload: { adults: confA, children: confC, over_adults: overA, over_children: overC, estimated_extra: overCost } })} />
+                </View>
+              ) : leftA + leftC > 0 ? <Muted>Ainda cabem {leftA > 0 ? `${leftA} adulto${leftA > 1 ? "s" : ""}` : ""}{leftA > 0 && leftC > 0 ? " e " : ""}{leftC > 0 ? `${leftC} criança${leftC > 1 ? "s" : ""}` : ""} no que você contratou.</Muted> : <Muted>Lista completa dentro do contratado.</Muted>}
+            </View>
+          );
+        })()}
         {r.guests.map((g) => (
           <Row key={g.id} style={{ justifyContent: "space-between" }}>
             <View style={{ flex: 1 }}>
