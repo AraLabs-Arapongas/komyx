@@ -4,6 +4,7 @@ import { PartyScene } from "@/components/marketing/party-scene";
 import { PublicFooter } from "@/components/public/public-footer";
 import { HeroSlides } from "@/components/marketing/hero-slides";
 import { HeroStickers } from "@/components/marketing/hero-stickers";
+import { KomyxMark } from "@/components/brand/komyx-logo";
 import { AppMocks } from "@/components/marketing/app-mocks";
 import { PolaroidMocks } from "@/components/marketing/polaroid-mocks";
 import { ScrollCue } from "@/components/marketing/scroll-cue";
@@ -41,8 +42,8 @@ export default function LandingPage() {
         <div className="snap-page relative flex flex-col">
           <header className="mx-auto w-full max-w-5xl px-4 pt-6 flex items-center justify-between gap-3">
             <Link href="/" className="flex items-center gap-2.5" style={{ color: "var(--sun)" }}>
-              <span className="h-9 w-9 rounded-full grid place-items-center display text-lg" style={{ background: "var(--sun)", color: "var(--ink)" }}>K</span>
-              <span className="leading-none"><span className="block font-extrabold tracking-wide uppercase text-sm">Komyx</span><span className="block text-[11px] font-semibold mt-0.5" style={{ color: "#cfd2e6" }}>Gestão para buffets</span></span>
+              <KomyxMark className="h-9 w-9" />
+              <span className="leading-none"><span className="block display font-extrabold tracking-tight text-lg">Komyx</span><span className="block text-[11px] font-semibold mt-0.5" style={{ color: "#cfd2e6" }}>Gestão para buffets</span></span>
             </Link>
             {/* Only "Entrar" here: the big hero CTA right below is the one "Criar meu buffet". */}
             <nav className="flex items-center gap-2">

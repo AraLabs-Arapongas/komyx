@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   description: "Agenda, reservas, orçamentos, convidados e pagamentos para o seu buffet.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Komyx" },
-  icons: { icon: "/icons/icon-192.png", apple: "/icons/icon-192.png" },
 };
 
 export const viewport: Viewport = {
