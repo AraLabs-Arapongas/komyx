@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, router } from "expo-router";
 import { Pressable, Text, View } from "react-native";
+import { FestiveNavHeader } from "@/ui/festive-nav-header";
 import { colors, fonts } from "@/ui/theme";
 
 /** Round "+" in the middle of the tab bar: the owner's most common action, a new quote. */
@@ -17,7 +18,7 @@ function PlusButton() {
 
 export default function TabsLayout() {
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: colors.sun, tabBarInactiveTintColor: "#9da1bd", tabBarStyle: { backgroundColor: colors.ink, borderTopColor: "rgba(255,255,255,0.08)", height: 66, paddingTop: 6 }, tabBarLabelStyle: { fontSize: 11, fontFamily: fonts.bold }, headerStyle: { backgroundColor: colors.background }, headerShadowVisible: false, headerTitleStyle: { color: colors.foreground, fontFamily: fonts.extrabold, fontSize: 18 }, sceneStyle: { backgroundColor: colors.background } }}>
+    <Tabs screenOptions={{ tabBarActiveTintColor: colors.sun, tabBarInactiveTintColor: "#9da1bd", tabBarStyle: { backgroundColor: colors.ink, borderTopColor: "rgba(255,255,255,0.08)", height: 66, paddingTop: 6 }, tabBarLabelStyle: { fontSize: 11, fontFamily: fonts.bold }, header: (p) => <FestiveNavHeader {...p} />, sceneStyle: { backgroundColor: colors.background } }}>
       <Tabs.Screen name="home" options={{ title: "Início", tabBarLabel: "Início", headerShown: false, tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" color={color} size={size} /> }} />
       <Tabs.Screen name="agenda" options={{ title: "Agenda", tabBarLabel: "Agenda", tabBarIcon: ({ color, size }) => <Ionicons name="calendar-outline" color={color} size={size} /> }} />
       <Tabs.Screen name="novo" options={{ title: "Novo orçamento", tabBarLabel: "", tabBarButton: () => <PlusButton /> }} listeners={{ tabPress: (e) => { e.preventDefault(); router.push("/(app)/novo-orcamento"); } }} />

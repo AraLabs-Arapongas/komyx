@@ -9,9 +9,9 @@ import { KomyxLogo } from "@/ui/brand";
 import { PartyBackdrop, party } from "@/ui/party";
 
 const SLIDES: { icon: keyof typeof Ionicons.glyphMap; color: string; title: string; text: string }[] = [
-  { icon: "calculator-outline", color: party.sun, title: "A festa se vende sozinha.", text: "O cliente monta o orçamento na sua página: pacote, tema, data livre e quantas pessoas. Chega pronto para virar evento." },
-  { icon: "qr-code-outline", color: party.mint, title: "Pix, contrato e convite, automáticos.", text: "Sinal por Pix com identificador no extrato, contrato preenchido e aceito pelo link, convite com confirmação dos convidados." },
-  { icon: "tablet-landscape-outline", color: party.berry, title: "No dia da festa, todo mundo no celular.", text: "Quem está na porta marca quem chegou e fecha a conta com Pix. O cliente acompanha reserva, contrato e convite pelo celular dele." },
+  { icon: "balloon-outline", color: party.sun, title: "Sua festa, no seu bolso.", text: "Veja a reserva, a data, o que já pagou e o que falta. O Pix do buffet com o valor certo, sem pedir no WhatsApp." },
+  { icon: "people-outline", color: party.mint, title: "Convidados sem grupo de WhatsApp.", text: "Mande o link do convite, veja quem confirmou, quantos ainda cabem no pacote e personalize o convite com foto e mensagem." },
+  { icon: "chatbubble-ellipses-outline", color: party.berry, title: "Peça ao buffet pelo app.", text: "Bolo extra, mais convidados, um aviso de pagamento: você pede aqui e o buffet confirma. Tudo registrado na sua festa." },
 ];
 
 export default function Onboarding() {
@@ -34,7 +34,7 @@ export default function Onboarding() {
       <PartyBackdrop density={0.6} />
       <SafeAreaView style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingTop: 36 }}>
-          <KomyxLogo size={34} tagline={null} />
+          <KomyxLogo size={34} tagline="Sua festa, organizada" />
           {!last ? <Pressable onPress={() => finish()} hitSlop={10}><Text style={{ color: "#cfd2e6", fontWeight: "700" }}>Pular</Text></Pressable> : null}
         </View>
         <ScrollView ref={ref} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={onScroll} onScroll={onScroll} scrollEventThrottle={64} style={{ flex: 1 }}>
@@ -48,25 +48,32 @@ export default function Onboarding() {
             </View>
           ))}
         </ScrollView>
-        <View style={{ padding: 24, gap: 18 }}>
+        <View style={{ padding: 24, gap: 16 }}>
           <View style={{ flexDirection: "row", gap: 8, justifyContent: "center" }}>
             {SLIDES.map((_, k) => <View key={k} style={{ height: 8, width: k === i ? 28 : 8, borderRadius: 999, backgroundColor: k === i ? party.sun : "rgba(255,255,255,0.35)" }} />)}
           </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            {i > 0 ? (
+              <Pressable onPress={() => ref.current?.scrollTo({ x: (i - 1) * width, animated: true })} hitSlop={8} accessibilityLabel="Voltar" style={({ pressed }) => ({ width: 56, height: 56, borderRadius: 999, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.35)", alignItems: "center", justifyContent: "center", opacity: pressed ? 0.7 : 1 })}>
+                <Ionicons name="arrow-back" size={22} color="#fff" />
+              </Pressable>
+            ) : null}
+            {last ? (
+              <Pressable onPress={() => finish("cliente")} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 999, backgroundColor: party.berry, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.85 : 1 })}>
+                <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>Ver minha festa</Text>
+              </Pressable>
+            ) : (
+              <Pressable onPress={() => ref.current?.scrollTo({ x: (i + 1) * width, animated: true })} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 999, backgroundColor: party.berry, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.85 : 1 })}>
+                <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>Próximo</Text>
+              </Pressable>
+            )}
+          </View>
           {last ? (
-            <View style={{ gap: 10 }}>
-              <Pressable onPress={() => finish("buffet")} style={({ pressed }) => ({ height: 56, borderRadius: 999, backgroundColor: party.berry, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.85 : 1 })}>
-                <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>Entrar no meu buffet</Text>
-              </Pressable>
-              <Pressable onPress={() => finish("cliente")} style={({ pressed }) => ({ height: 56, borderRadius: 999, borderWidth: 2, borderColor: "rgba(255,255,255,0.35)", alignItems: "center", justifyContent: "center", opacity: pressed ? 0.85 : 1 })}>
-                <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Sou cliente, tenho uma festa</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <Pressable onPress={() => ref.current?.scrollTo({ x: (i + 1) * width, animated: true })} style={({ pressed }) => ({ height: 56, borderRadius: 999, backgroundColor: party.berry, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.85 : 1 })}>
-              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 17 }}>Próximo</Text>
+            <Pressable onPress={() => finish("buffet")} hitSlop={8} style={{ alignItems: "center", marginTop: -8 }}>
+              <Text style={{ color: "#cfd2e6", fontWeight: "700", fontSize: 14 }}>Entrar com e-mail e senha</Text>
             </Pressable>
-          )}
-          <Text style={{ color: "#9da1bd", fontSize: 12, textAlign: "center" }}>{last ? "Buffet: e-mail e senha · Cliente: o celular da reserva, com código por SMS" : "1 mês grátis para buffets · clientes entram com o celular da reserva"}</Text>
+          ) : null}
+          {!last ? <Text style={{ color: "#9da1bd", fontSize: 12, textAlign: "center" }}>Acompanhe sua festa pelo celular, do sinal ao parabéns.</Text> : null}
         </View>
       </SafeAreaView>
     </View>

@@ -5,7 +5,7 @@ import { useCallback, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { AnimatedSplash } from "@/ui/animated-splash";
 import { applyAppFont, useAppFonts } from "@/ui/fonts";
-import { fonts } from "@/ui/theme";
+import { FestiveNavHeader } from "@/ui/festive-nav-header";
 import { colors } from "@/ui/theme";
 
 // The native splash stays until the animated one takes over (it calls hideAsync on mount).
@@ -21,7 +21,7 @@ function Shell() {
   const onDone = useCallback(() => setSplashDone(true), []);
   return (
     <>
-      <Stack screenOptions={{ headerStyle: { backgroundColor: colors.background }, headerTintColor: colors.brand, headerTitleStyle: { color: colors.foreground, fontFamily: fonts.extrabold, fontSize: 18 }, headerBackTitleStyle: { fontFamily: fonts.semibold }, headerShadowVisible: false, contentStyle: { backgroundColor: colors.background } }}>
+      <Stack screenOptions={{ header: (p) => <FestiveNavHeader {...p} />, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="entrar" options={{ headerShown: false }} />
