@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
-import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { Bunting, PartyBackdrop, party } from "./party";
@@ -21,17 +22,23 @@ function Balloon({ color, size, style }: { color: string; size: number; style: o
  * Ink banner with bunting and balloons at the top of Início, Minhas festas and Menu. Sits under
  * the status bar (safe-area aware). `animated` adds floating balloons and confetti rain.
  */
-export function FestiveHeader({ eyebrow, title, subtitle, right, children, compact, animated }: { eyebrow?: string; title: string; subtitle?: string; right?: ReactNode; children?: ReactNode; compact?: boolean; animated?: boolean }) {
+export function FestiveHeader({ eyebrow, title, subtitle, right, children, compact, animated, bleed = true, onBack, backIcon = "arrow-back", topInset }: { eyebrow?: string; title: string; subtitle?: string; right?: ReactNode; children?: ReactNode; compact?: boolean; animated?: boolean; /** Pull over the Screen's 16px padding (default). Off when rendered by the navigator. */ bleed?: boolean; onBack?: () => void; backIcon?: "arrow-back" | "close"; /** Overrides the safe-area top (modals sit below the status bar). */ topInset?: number }) {
   const { width } = useWindowDimensions();
-  const { top } = useSafeAreaInsets();
-  const height = top + (compact ? 96 : 132) + (children ? 0 : 0);
+  const insets = useSafeAreaInsets();
+  const top = topInset ?? insets.top;
+  const height = top + (compact ? 96 : 132);
   return (
-    <View style={{ backgroundColor: party.ink, overflow: "hidden", marginHorizontal: -16, marginTop: -16, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, minHeight: height }}>
+    <View style={{ backgroundColor: party.ink, overflow: "hidden", marginHorizontal: bleed ? -16 : 0, marginTop: bleed ? -16 : 0, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, minHeight: height }}>
       {animated ? <View style={StyleSheet.absoluteFill}><PartyBackdrop density={0.35} bunting={false} height={height} /></View> : null}
       <Bunting width={width} y={top - 2} flags={9} size={0.9} />
       <Balloon color={party.berry} size={74} style={{ right: 14, top: top + 26, transform: [{ rotate: "6deg" }], opacity: 0.95 }} />
       <Balloon color={party.sky} size={52} style={{ right: 58, top: top + 48, transform: [{ rotate: "-8deg" }], opacity: 0.9 }} />
       <View style={{ paddingTop: top + 38, paddingHorizontal: 16, paddingBottom: compact ? 18 : 22, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
+        {onBack ? (
+          <Pressable onPress={onBack} hitSlop={10} accessibilityLabel="Voltar" style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.12)", marginBottom: 2, opacity: pressed ? 0.7 : 1 })}>
+            <Ionicons name={backIcon} size={22} color="#fff" />
+          </Pressable>
+        ) : null}
         <View style={{ flex: 1, paddingRight: 70 }}>
           {eyebrow ? <Text style={{ color: party.sun, fontSize: 12, fontWeight: "800", letterSpacing: 1, textTransform: "uppercase" }}>{eyebrow}</Text> : null}
           <Text style={{ color: "#fff", fontSize: compact ? 22 : 28, fontWeight: "900", letterSpacing: -0.5, marginTop: 4 }} numberOfLines={2}>{title}</Text>
