@@ -177,3 +177,9 @@ html[data-privacy="on"] .money {
   .public-theme .reveal, .public-theme .reveal [data-stagger] { opacity: 1; transform: none; transition: none; }
   .public-theme .float-slow { animation: none; }
 }
+
+/* Landing on phones: one full-viewport "page" per block, mandatory vertical snap. Desktop scrolls normally. */
+@media (width < 48rem) {
+  html:has(.landing-snap) { scroll-snap-type: y mandatory; }
+  .landing-snap .snap-page { min-height: 100svh; scroll-snap-align: start; scroll-snap-stop: always; }
+}

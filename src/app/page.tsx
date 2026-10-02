@@ -32,57 +32,64 @@ const GALLERY = [
 ];
 const ALL_FEATURES = ["Agenda, orçamentos e eventos", "Clientes e aniversariantes", "Contratos e Pix com identificador", "Página pública com orçamento online", "Site com suas cores, fonte, logo e capa", "Temas de festa com fotos", "Portaria no celular", "Proprietária + equipe", "App para o cliente acompanhar a festa"];
 
+/**
+ * Landing page. On phones (< md) every block is a full-viewport "page" with mandatory vertical
+ * scroll-snap (`.landing-snap .snap-page`, see globals.css); on desktop it is a regular long page.
+ */
 export default function LandingPage() {
   return (
-    <main className={`${publicFontClass} public-theme font-festa flex-1 flex flex-col`}>
+    <main className={`${publicFontClass} public-theme font-festa landing-snap flex-1 flex flex-col`}>
       {/* HERO */}
-      <section className="relative overflow-hidden" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+      {/* No overflow-hidden here: it would turn the section into a scroll container and steal the snap pages from the document. */}
+      <section className="relative" style={{ background: "var(--ink)", color: "var(--paper)" }}>
         <PartyScene />
-        <header className="relative mx-auto max-w-5xl px-4 pt-6 flex items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-2 font-extrabold tracking-wide uppercase text-sm" style={{ color: "var(--sun)" }}><span className="h-9 w-9 rounded-full grid place-items-center display text-lg" style={{ background: "var(--sun)", color: "var(--ink)" }}>F</span> Festeja</Link>
-          <nav className="flex items-center gap-2">
-            <Link href="/login" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10">Entrar</Link>
-            <Link href="/signup" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-extrabold" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
-          </nav>
-        </header>
-        <div className="relative mx-auto max-w-5xl px-4 pt-10 pb-6">
-          <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-6xl leading-[1.02] max-w-3xl">A festa se vende sozinha. Você só confirma.</h1>
-          <p className="mt-5 text-lg/relaxed max-w-prose" style={{ color: "#cfd2e6" }}>Agenda, orçamento, Pix, contrato, convite e portaria em um lugar só, feito para buffet infantil e de eventos. Sem planilha, sem caderno, sem perder festa no WhatsApp.</p>
-          <div className="mt-7 flex flex-col sm:flex-row gap-3">
-            <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98]" style={{ background: "var(--berry)", color: "#fff" }}><Sparkles className="h-5 w-5" /> Criar meu buffet</Link>
-            <Link href="/p/festa-cia-buffet" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold text-base ring-2 ring-inset ring-white/30 hover:bg-white/10">Ver uma página de buffet</Link>
+        <div className="snap-page relative flex flex-col">
+          <header className="mx-auto w-full max-w-5xl px-4 pt-6 flex items-center justify-between gap-3">
+            <Link href="/" className="flex items-center gap-2 font-extrabold tracking-wide uppercase text-sm" style={{ color: "var(--sun)" }}><span className="h-9 w-9 rounded-full grid place-items-center display text-lg" style={{ background: "var(--sun)", color: "var(--ink)" }}>F</span> Festeja</Link>
+            <nav className="flex items-center gap-2">
+              <Link href="/login" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10">Entrar</Link>
+              <Link href="/signup" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-extrabold" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
+            </nav>
+          </header>
+          <div className="mx-auto w-full max-w-5xl px-4 pt-10 pb-6 max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center max-md:pb-20">
+            <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-6xl leading-[1.02] max-w-3xl">A festa se vende sozinha. Você só confirma.</h1>
+            <p className="mt-5 text-lg/relaxed max-w-prose" style={{ color: "#cfd2e6" }}>Agenda, orçamento, Pix, contrato, convite e portaria em um lugar só, feito para buffet infantil e de eventos. Sem planilha, sem caderno, sem perder festa no WhatsApp.</p>
+            <div className="mt-7 flex flex-col sm:flex-row gap-3">
+              <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98]" style={{ background: "var(--berry)", color: "#fff" }}><Sparkles className="h-5 w-5" /> Criar meu buffet</Link>
+              <Link href="/p/festa-cia-buffet" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold text-base ring-2 ring-inset ring-white/30 hover:bg-white/10">Ver uma página de buffet</Link>
+            </div>
+            <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}>{formatCurrency(LAUNCH_PRICE)}/mês, tudo incluído. Cancele quando quiser.</p>
           </div>
-          <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}>{formatCurrency(LAUNCH_PRICE)}/mês, tudo incluído. Cancele quando quiser.</p>
         </div>
-        <div className="relative mx-auto max-w-5xl px-4 pb-14 sm:pb-20 pt-6">
+        <div className="snap-page relative mx-auto w-full max-w-5xl px-4 pb-14 sm:pb-20 pt-6 max-md:py-5 max-md:flex max-md:flex-col max-md:justify-center">
           <HeroSlides />
         </div>
         <ScrollCue href="#destaques" />
       </section>
 
-      {/* HIGHLIGHTS */}
-      <section id="destaques" className="mx-auto max-w-5xl px-4 py-8 scroll-mt-4">
-        <Reveal as="ul" className="flex flex-wrap gap-2">
-          {HIGHLIGHTS.map((h) => <li key={h} data-stagger className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-bold" style={{ background: "var(--paper-2)", color: "var(--ink)" }}><Check className="h-4 w-4" style={{ color: "var(--mint)" }} /> {h}</li>)}
+      {/* HIGHLIGHTS + GALLERY (one phone page) */}
+      <div className="snap-page max-md:flex max-md:flex-col max-md:justify-center">
+        <section id="destaques" className="mx-auto w-full max-w-5xl px-4 py-8 max-md:py-3 scroll-mt-4">
+          <Reveal as="ul" className="flex flex-wrap gap-2">
+            {HIGHLIGHTS.map((h) => <li key={h} data-stagger className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-bold max-md:text-xs max-md:px-3 max-md:py-1.5" style={{ background: "var(--paper-2)", color: "var(--ink)" }}><Check className="h-4 w-4" style={{ color: "var(--mint)" }} /> {h}</li>)}
+          </Reveal>
+        </section>
+        <Reveal as="section" className="mx-auto w-full max-w-5xl px-4 py-6 max-md:py-3">
+          <h2 className="display font-extrabold text-3xl sm:text-4xl mb-2">Bonito por fora, organizado por dentro</h2>
+          <p className="mb-2" style={{ color: "var(--muted-ink)" }}>A página do buffet tem cara de convite. O painel da dona tem cara de trabalho feito.</p>
+          <PolaroidGallery items={GALLERY} />
         </Reveal>
-      </section>
+      </div>
 
-      {/* GALLERY */}
-      <Reveal as="section" className="mx-auto max-w-5xl px-4 py-6">
-        <h2 className="display font-extrabold text-3xl sm:text-4xl mb-2">Bonito por fora, organizado por dentro</h2>
-        <p className="mb-2" style={{ color: "var(--muted-ink)" }}>A página do buffet tem cara de convite. O painel da dona tem cara de trabalho feito.</p>
-        <PolaroidGallery items={GALLERY} />
-      </Reveal>
-
-      {/* HOW IT WORKS */}
+      {/* HOW IT WORKS (two phone pages) */}
       <section style={{ background: "var(--ink)", color: "var(--paper)" }}>
-        <Reveal className="mx-auto max-w-5xl px-4 pt-12 pb-16 grid gap-8 md:grid-cols-2 md:items-start">
-          <div data-stagger>
+        <Reveal className="mx-auto max-w-5xl px-4 pt-12 pb-16 grid gap-8 md:grid-cols-2 md:items-start max-md:p-0 max-md:gap-0">
+          <div data-stagger className="snap-page max-md:px-4 max-md:flex max-md:flex-col max-md:justify-center">
             <h2 className="display font-extrabold text-3xl sm:text-4xl">Para quem vende a festa</h2>
             <ol className="mt-6 space-y-4">{STEPS_OWNER.map(([t, d], i) => <li key={t} className="flex gap-3"><span className="h-8 w-8 shrink-0 rounded-full grid place-items-center display font-extrabold" style={{ background: "var(--sun)", color: "var(--ink)" }}>{i + 1}</span><div><p className="font-extrabold">{t}</p><p className="text-sm" style={{ color: "#cfd2e6" }}>{d}</p></div></li>)}</ol>
           </div>
-          <div data-stagger className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8" style={{ color: "var(--ink)" }}>
-            <h2 className="display font-extrabold text-2xl mb-4">Para quem compra a festa</h2>
+          <div data-stagger className="snap-page scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8 max-md:rounded-none max-md:flex max-md:flex-col max-md:justify-center" style={{ color: "var(--ink)" }}>
+            <h2 className="display font-extrabold text-2xl mb-4 max-md:text-3xl">Para quem compra a festa</h2>
             <ol className="space-y-4">{STEPS_CLIENT.map(([t, d], i) => <li key={t} className="flex gap-3"><span className="h-8 w-8 shrink-0 rounded-full grid place-items-center display font-extrabold text-white" style={{ background: "var(--berry)" }}>{i + 1}</span><div><p className="font-extrabold">{t}</p><p className="text-sm" style={{ color: "var(--muted-ink)" }}>{d}</p></div></li>)}</ol>
           </div>
         </Reveal>
@@ -92,34 +99,36 @@ export default function LandingPage() {
       <AppMocks />
 
       {/* PRICE */}
-      <section id="precos" className="mx-auto max-w-5xl px-4 py-14">
-        <Reveal className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-center">
+      <section id="precos" className="snap-page mx-auto w-full max-w-5xl px-4 py-14 max-md:py-6 max-md:flex max-md:flex-col max-md:justify-center">
+        <Reveal className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-center max-md:gap-5">
           <div data-stagger>
             <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: "var(--ink)" }}>Oferta de lançamento</p>
-            <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4">Um plano, tudo incluído.</h2>
-            <p className="mt-3" style={{ color: "var(--muted-ink)" }}>Quem entra agora fica com todos os recursos, inclusive os que um dia virarão Premium, por este preço. Para sempre. Sem taxa por festa, sem fidelidade: cancele e reative quando quiser.</p>
+            <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4 max-md:mt-3">Um plano, tudo incluído.</h2>
+            <p className="mt-3 max-md:mt-2 max-md:text-sm" style={{ color: "var(--muted-ink)" }}>Quem entra agora fica com todos os recursos, inclusive os que um dia virarão Premium, por este preço. Para sempre. Sem taxa por festa, sem fidelidade: cancele e reative quando quiser.</p>
           </div>
-          <div data-stagger className="rounded-3xl bg-white border-2 p-6 space-y-4 shadow-[0_18px_50px_rgba(27,31,58,0.12)]" style={{ borderColor: "var(--berry)" }}>
+          <div data-stagger className="rounded-3xl bg-white border-2 p-6 max-md:p-4 space-y-4 max-md:space-y-3 shadow-[0_18px_50px_rgba(27,31,58,0.12)]" style={{ borderColor: "var(--berry)" }}>
             <div className="flex items-baseline justify-between gap-3 flex-wrap"><p className="display font-extrabold text-xl">Festeja completo</p><p className="display font-extrabold text-4xl" style={{ color: "var(--berry)" }}>{formatCurrency(LAUNCH_PRICE)}<span className="text-sm font-bold" style={{ color: "var(--muted-ink)" }}>/mês</span></p></div>
-            <ul className="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">{ALL_FEATURES.map((i) => <li key={i} className="flex gap-2"><Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--mint)" }} /> {i}</li>)}</ul>
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm max-md:gap-x-3 max-md:gap-y-1.5 max-md:text-xs">{ALL_FEATURES.map((i) => <li key={i} className="flex gap-2"><Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--mint)" }} /> {i}</li>)}</ul>
             <Link href="/signup" className="inline-flex w-full items-center justify-center h-14 rounded-full font-extrabold text-base" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet por {formatCurrency(LAUNCH_PRICE)}/mês</Link>
           </div>
         </Reveal>
       </section>
 
-      {/* CTA */}
-      <section className="relative overflow-hidden" style={{ background: "var(--ink)", color: "var(--paper)" }}>
-        <PartyScene />
-        <Reveal className="relative mx-auto max-w-5xl px-4 pt-16 pb-16 text-center space-y-4">
-          <h2 className="display font-extrabold text-3xl sm:text-5xl">Pronta para parar de perder festa no WhatsApp?</h2>
-          <p style={{ color: "#cfd2e6" }}>Crie o buffet, cadastre dois pacotes e mande o link para o próximo cliente que perguntar o preço.</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
-            <a href="https://wa.me/5511999999999?text=Oi!%20Quero%20conhecer%20o%20Festeja" target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10"><MessageCircle className="h-5 w-5" /> Falar com a gente</a>
-          </div>
-        </Reveal>
-      </section>
-      <PublicFooter />
+      {/* CTA + FOOTER (one phone page) */}
+      <div className="snap-page max-md:flex max-md:flex-col">
+        <section className="relative overflow-hidden max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+          <PartyScene />
+          <Reveal className="relative mx-auto max-w-5xl px-4 pt-16 pb-16 max-md:pt-8 max-md:pb-6 text-center space-y-4 max-md:space-y-3">
+            <h2 className="display font-extrabold text-3xl sm:text-5xl max-md:text-2xl">Pronta para parar de perder festa no WhatsApp?</h2>
+            <p className="max-md:text-sm" style={{ color: "#cfd2e6" }}>Crie o buffet, cadastre dois pacotes e mande o link para o próximo cliente que perguntar o preço.</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+              <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
+              <a href="https://wa.me/5511999999999?text=Oi!%20Quero%20conhecer%20o%20Festeja" target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10"><MessageCircle className="h-5 w-5" /> Falar com a gente</a>
+            </div>
+          </Reveal>
+        </section>
+        <PublicFooter />
+      </div>
     </main>
   );
 }

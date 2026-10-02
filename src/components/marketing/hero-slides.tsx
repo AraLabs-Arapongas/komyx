@@ -204,14 +204,14 @@ export function HeroSlides() {
   const s = SLIDES[i];
   return (
     <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} aria-roledescription="carrossel" aria-label="Principais recursos">
-      <div className="grid gap-6 md:grid-cols-[0.95fr_1.05fr] md:items-center">
+      <div className="grid gap-6 max-md:gap-3 md:grid-cols-[0.95fr_1.05fr] md:items-center">
         <div className="md:min-h-[380px] flex flex-col justify-center">
           <div key={`t${i}`} className="hero-fade">
             <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: "var(--ink)" }}>{s.icon} {s.eyebrow}</p>
-            <h2 className="display font-extrabold text-3xl sm:text-4xl leading-[1.05] mt-4">{s.title}</h2>
-            <p className="mt-3 text-base/relaxed" style={{ color: "#cfd2e6" }}>{s.text}</p>
+            <h2 className="display font-extrabold text-2xl sm:text-4xl leading-[1.05] mt-3 md:mt-4">{s.title}</h2>
+            <p className="mt-2 md:mt-3 text-sm md:text-base/relaxed max-md:line-clamp-3" style={{ color: "#cfd2e6" }}>{s.text}</p>
           </div>
-          <div className="mt-6 flex items-center gap-3">
+          <div className="mt-4 md:mt-6 flex items-center gap-3">
             <button type="button" onClick={() => setI((i - 1 + SLIDES.length) % SLIDES.length)} className="h-10 w-10 rounded-full grid place-items-center ring-2 ring-inset ring-white/30 hover:bg-white/10" aria-label="Anterior"><ChevronLeft className="h-5 w-5" /></button>
             <div className="flex gap-2" role="tablist">
               {SLIDES.map((sl, k) => <button key={sl.key} type="button" role="tab" aria-selected={k === i} aria-label={sl.eyebrow} onClick={() => setI(k)} className="h-2.5 rounded-full transition-all" style={{ width: k === i ? 28 : 10, background: k === i ? "var(--sun)" : "rgba(255,255,255,0.35)" }} />)}
@@ -222,7 +222,7 @@ export function HeroSlides() {
         </div>
         <div key={`m${i}`} className="hero-fade mx-auto w-full max-w-md" style={{ fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif" }}>
           <Device s={s} />
-          <p className="mt-3 text-sm font-semibold flex items-center justify-center gap-1.5" style={{ color: "#cfd2e6" }}>{s.phone ? <Users className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />} {s.caption}</p>
+          <p className="mt-3 max-md:mt-2 text-sm max-md:text-xs font-semibold flex items-center justify-center gap-1.5" style={{ color: "#cfd2e6" }}>{s.phone ? <Users className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />} {s.caption}</p>
         </div>
       </div>
     </div>

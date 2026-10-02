@@ -7,11 +7,11 @@ const muted = "var(--muted-ink)";
 /** CSS phone frame; content is plain JSX styled like the real app. */
 function Phone({ title, children, tint = "var(--berry)" }: { title: string; children: React.ReactNode; tint?: string }) {
   return (
-    <figure data-stagger className="float-slow mx-auto w-[250px]">
+    <figure data-stagger className="float-slow mx-auto w-[250px] max-md:shrink-0 max-md:snap-center">
       <div className="rounded-[2.2rem] p-2 shadow-[0_24px_60px_rgba(27,31,58,0.35)]" style={{ background: ink }}>
         <div className="rounded-[1.8rem] overflow-hidden bg-[#faf7f2] text-[#1c1917]" style={{ fontFamily: "ui-sans-serif, system-ui, sans-serif" }}>
           <div className="h-6 flex items-center justify-center"><span className="h-4 w-20 rounded-full" style={{ background: ink }} /></div>
-          <div className="px-3 pb-3 min-h-[380px] text-[11px] leading-snug">{children}</div>
+          <div className="px-3 pb-3 min-h-[380px] max-md:min-h-[340px] text-[11px] leading-snug">{children}</div>
           <div className="flex items-center justify-around py-2 border-t border-[#e7e2da] text-[9px]" style={{ color: "#78716c" }}>
             <span className="flex flex-col items-center" style={{ color: tint }}><Home className="h-4 w-4" />Início</span>
             <span className="flex flex-col items-center"><Calendar className="h-4 w-4" />Agenda</span>
@@ -20,7 +20,7 @@ function Phone({ title, children, tint = "var(--berry)" }: { title: string; chil
           </div>
         </div>
       </div>
-      <figcaption className="mt-4 text-center font-extrabold" style={{ color: ink }}>{title}</figcaption>
+      <figcaption className="mt-4 max-md:mt-2 text-center font-extrabold" style={{ color: ink }}>{title}</figcaption>
     </figure>
   );
 }
@@ -35,13 +35,15 @@ const Btn = ({ children, solid }: { children: React.ReactNode; solid?: boolean }
 /** "Tem app" section: owner day to day, door on party day, client following the booking. */
 export function AppMocks() {
   return (
-    <section className="mx-auto max-w-5xl px-4 py-14">
+    <section className="snap-page mx-auto w-full max-w-5xl px-4 py-14 max-md:py-4 max-md:flex max-md:flex-col max-md:justify-center">
       <Reveal className="text-center max-w-2xl mx-auto">
         <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: ink }}>Tem app</p>
-        <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4">No celular da dona, da portaria e do cliente.</h2>
-        <p className="mt-3" style={{ color: muted }}>O mesmo Festeja em três mãos: quem vende confirma de qualquer lugar, quem está na porta resolve a festa em tempo real, e o cliente acompanha tudo sem ligar para perguntar.</p>
+        <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4 max-md:mt-2 max-md:text-2xl">No celular da dona, da portaria e do cliente.</h2>
+        <p className="mt-3 max-md:mt-1.5 max-md:text-xs" style={{ color: muted }}>O mesmo Festeja em três mãos: quem vende confirma de qualquer lugar, quem está na porta resolve a festa em tempo real, e o cliente acompanha tudo sem ligar para perguntar.</p>
+        <p className="mt-1.5 text-xs font-bold md:hidden" style={{ color: muted }}>Deslize para o lado para ver os três →</p>
       </Reveal>
-      <Reveal className="mt-10 grid gap-10 md:grid-cols-3 md:items-start">
+      {/* Phones: horizontal snap strip on phones, three columns on desktop. */}
+      <Reveal className="mt-10 max-md:mt-4 md:grid md:gap-10 md:grid-cols-3 md:items-start max-md:flex max-md:gap-6 max-md:overflow-x-auto max-md:snap-x max-md:snap-mandatory max-md:-mx-4 max-md:px-4 max-md:pb-3 max-md:[scrollbar-width:none]">
         <Phone title="A dona, no dia a dia">
           <div className="flex items-center justify-between py-2"><b className="text-sm">Olá, Dona</b><Bell className="h-4 w-4" /></div>
           <p className="mb-2" style={{ color: "#78716c" }}><b className="text-[#1c1917]">Hoje:</b> 1 evento · 1 ação urgente · 2 novas solicitações</p>
