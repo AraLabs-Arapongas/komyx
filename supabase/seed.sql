@@ -172,3 +172,44 @@ begin
     (v_org, 'Super-heróis', 'Cores vivas, painel de cidade e capas para a turma.', '/demo/festa-3.jpg', 3),
     (v_org, 'Frozen', 'Azul gelo, flocos de neve e boneco de neve cenográfico.', '/demo/festa-4.jpg', 4);
 end $$;
+
+-- Confirmed party with only the deposit paid: balance open, Pix for the rest, guests, links.
+do $$
+declare v_org uuid;
+begin
+  select id into v_org from public.organizations where slug = 'festa-cia-buffet';
+  if v_org is null then return; end if;
+  if exists (select 1 from public.events where id = 'bbbbbbbb-0000-0000-0000-000000000007') then return; end if;
+
+  insert into public.customers (id, organization_id, name, whatsapp, email, notes) values
+    ('aaaaaaaa-0000-0000-0000-000000000005', v_org, 'Ana Beatriz Rocha', '11999990003', 'anabia@example.com', 'Filha Alice, 5 anos.')
+  on conflict (id) do nothing;
+
+  insert into public.events (id, organization_id, customer_id, title, starts_at, ends_at, status, package_id, adults, children, celebrant_name, celebrant_age, notes, expires_at, pix_txid, created_by) values
+    ('bbbbbbbb-0000-0000-0000-000000000007', v_org, 'aaaaaaaa-0000-0000-0000-000000000005', 'Festa da Alice',
+      ((current_date + 26) + time '15:00') at time zone 'America/Sao_Paulo', ((current_date + 26) + time '19:00') at time zone 'America/Sao_Paulo',
+      'CONFIRMED', (select id from public.packages where organization_id = v_org and name = 'Pacote Prata'), 30, 30, 'Alice', 5, 'Tema: unicórnio. Bolo rosa.', null, 'FESTAALICE000007', '11111111-1111-1111-1111-111111111111');
+
+  insert into public.quotes (id, organization_id, event_id, package_id, adults, children, status, decided_at, created_by)
+  values ('cccccccc-0000-0000-0000-000000000007', v_org, 'bbbbbbbb-0000-0000-0000-000000000007',
+    (select id from public.packages where organization_id = v_org and name = 'Pacote Prata'), 30, 30, 'ACCEPTED', now() - interval '6 days', '11111111-1111-1111-1111-111111111111');
+  insert into public.quote_items (organization_id, quote_id, kind, description, quantity, unit_price, sort_order) values
+    (v_org, 'cccccccc-0000-0000-0000-000000000007', 'PACKAGE', 'Pacote Prata', 1, 3900, 0),
+    (v_org, 'cccccccc-0000-0000-0000-000000000007', 'ADDON', 'Máquina de algodão-doce', 1, 350, 5);
+
+  -- Only the 30% deposit (R$ 1.275,00 of R$ 4.250,00) was paid.
+  insert into public.payments (organization_id, event_id, amount, paid_at, method, notes, created_by) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 1275, current_date - 6, 'PIX', 'Entrada 30% · FESTAALICE000007', '11111111-1111-1111-1111-111111111111');
+
+  insert into public.guests (organization_id, event_id, name, adults, children, source) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'Vovó Neide', 1, 0, 'PUBLIC'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'Família Castro', 2, 2, 'PUBLIC');
+
+  insert into public.public_links (organization_id, event_id, token, type, created_by) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'demo-reservation-link-alice-0123456789abcd', 'RESERVATION', '11111111-1111-1111-1111-111111111111'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'demo-guest-link-alice-0123456789abcdef00', 'GUEST_CONFIRM', '11111111-1111-1111-1111-111111111111'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'demo-invite-link-alice-0123456789abcdef0', 'INVITE_EDIT', '11111111-1111-1111-1111-111111111111');
+
+  insert into public.celebrants (organization_id, customer_id, event_id, name, birth_date) values
+    (v_org, 'aaaaaaaa-0000-0000-0000-000000000005', 'bbbbbbbb-0000-0000-0000-000000000007', 'Alice', (current_date + 26) - interval '5 years');
+end $$;

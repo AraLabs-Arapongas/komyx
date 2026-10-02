@@ -4,7 +4,8 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, T
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, radius, space, tones } from "./theme";
 
-export function Screen({ children, refreshing, onRefresh, padded = true, scroll = true }: { children: ReactNode; refreshing?: boolean; onRefresh?: () => void; padded?: boolean; scroll?: boolean }) {
+/** `safeTop` pads the status bar / notch too: use it on screens without a native header. */
+export function Screen({ children, refreshing, onRefresh, padded = true, scroll = true, safeTop = false }: { children: ReactNode; refreshing?: boolean; onRefresh?: () => void; padded?: boolean; scroll?: boolean; safeTop?: boolean }) {
   const content = scroll ? (
     <ScrollView contentContainerStyle={[padded && styles.padded, { paddingBottom: 40 }]} keyboardShouldPersistTaps="handled"
       refreshControl={onRefresh ? <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} tintColor={colors.brand} /> : undefined}>
@@ -13,7 +14,7 @@ export function Screen({ children, refreshing, onRefresh, padded = true, scroll 
   ) : (
     <View style={[{ flex: 1 }, padded && styles.padded]}>{children}</View>
   );
-  return <SafeAreaView edges={["bottom"]} style={styles.screen}>{content}</SafeAreaView>;
+  return <SafeAreaView edges={safeTop ? ["top", "bottom"] : ["bottom"]} style={styles.screen}>{content}</SafeAreaView>;
 }
 
 export function Card({ children, style, tone }: { children: ReactNode; style?: ViewStyle; tone?: "amber" | "brand" }) {

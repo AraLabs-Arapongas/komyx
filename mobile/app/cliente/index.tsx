@@ -42,7 +42,7 @@ export default function MinhasFestas() {
 
 
   return (
-    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()}>
+    <Screen safeTop refreshing={q.isFetching} onRefresh={() => q.refetch()}>
       <Text style={styles.title}>Minhas festas</Text>
       <Muted>{session?.user.phone ? `Celular ${formatPhone(session.user.phone.replace(/^\+?55/, ""))}` : ""}</Muted>
       {q.isLoading ? <Loading /> : parties.length === 0 ? (

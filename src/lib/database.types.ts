@@ -260,6 +260,81 @@ export type Database = {
           },
         ]
       }
+      event_change_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          event_id: string
+          id: string
+          kind: string
+          message: string | null
+          organization_id: string
+          payload: Json | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          event_id: string
+          id?: string
+          kind: string
+          message?: string | null
+          organization_id: string
+          payload?: Json | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          event_id?: string
+          id?: string
+          kind?: string
+          message?: string | null
+          organization_id?: string
+          payload?: Json | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_change_requests_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_change_requests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_financials"
+            referencedColumns: ["event_id"]
+          },
+          {
+            foreignKeyName: "event_change_requests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_change_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "admin_org_stats"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "event_change_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_extras: {
         Row: {
           addon_id: string | null
@@ -1672,7 +1747,29 @@ export type Database = {
       expire_pre_reservations: { Args: never; Returns: number }
       guest_link: { Args: { p_token: string }; Returns: Json }
       my_reservations: { Args: never; Returns: Json }
+      reservation_add_guest: {
+        Args: {
+          p_adults: number
+          p_children: number
+          p_name: string
+          p_token: string
+        }
+        Returns: string
+      }
       reservation_by_token: { Args: { p_token: string }; Returns: Json }
+      reservation_remove_guest: {
+        Args: { p_guest_id: string; p_token: string }
+        Returns: boolean
+      }
+      reservation_request_change: {
+        Args: {
+          p_kind: string
+          p_message: string
+          p_payload?: Json
+          p_token: string
+        }
+        Returns: string
+      }
       search_customers: {
         Args: {
           p_dir?: string
@@ -1695,7 +1792,7 @@ export type Database = {
         | "DONE"
         | "CANCELLED"
         | "EXPIRED"
-      guest_source: "MANUAL" | "PUBLIC" | "DOOR"
+      guest_source: "MANUAL" | "PUBLIC" | "DOOR" | "CLIENT"
       installment_rule: "ON_ACCEPT" | "DAYS_BEFORE_EVENT" | "FIXED_DATE"
       org_plan: "basic" | "premium"
       org_status: "active" | "suspended" | "cancelled"
@@ -1850,7 +1947,7 @@ export const Constants = {
         "CANCELLED",
         "EXPIRED",
       ],
-      guest_source: ["MANUAL", "PUBLIC", "DOOR"],
+      guest_source: ["MANUAL", "PUBLIC", "DOOR", "CLIENT"],
       installment_rule: ["ON_ACCEPT", "DAYS_BEFORE_EVENT", "FIXED_DATE"],
       org_plan: ["basic", "premium"],
       org_status: ["active", "suspended", "cancelled"],

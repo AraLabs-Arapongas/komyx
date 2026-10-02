@@ -157,3 +157,11 @@ Mesmos fluxos, no celular. Tela "Entrar" única: e-mail → senha (buffet); celu
 - Um plano com tudo; o valor por mês depende do período (`BILLING_PERIODS` em `src/lib/billing.ts`): mensal R$ 149 (de R$ 199), 3 meses R$ 134, 6 meses R$ 119, anual R$ 99. Landing mostra o seletor; o signup recebe `?periodo=N` mas ainda não grava (cobrança é manual pelo suporte/admin).
 - **Komyx Balcão**: anual + tablet 10" em comodato configurado em modo quiosque, R$ 149/mês (`TABLET_PLAN_PER_MONTH`). Contratação pelo WhatsApp. O modo quiosque está no app (ver `mobile/README.md`).
 
+## Painel da festa para o cliente (app, 2026-10-02)
+
+Tela `cliente/reserva/[token]` do app: tudo da festa pelo link de reserva. Localização do buffet (Como chegar / Compartilhar local), status e contagem regressiva, pagamento (orçamento + extras − pago = falta) com Pix do saldo (identificador do evento), parcelas, itens incluídos, **pedidos ao buffet** (extra do catálogo ou texto, mudar número de pessoas, outro; e "já paguei") que viram `event_change_requests` + notificação `client_request` para o buffet; **convidados** (adicionar/remover os que ainda não chegaram, enviar link de confirmação, personalizar convite); contrato; link da página.
+
+RPCs (security definer, por token RESERVATION ativo): `reservation_by_token` (estendida), `reservation_add_guest`, `reservation_remove_guest`, `reservation_request_change`. Pendente: tela para o buffet aprovar/recusar os pedidos (hoje chegam como notificação).
+
+Seed: "Festa da Alice" (cliente Ana Beatriz Rocha, celular `11999990003` com código de teste) confirmada só com o sinal pago (R$ 1.275 de R$ 4.250). Link: `/r/demo-reservation-link-alice-0123456789abcd`.
+
