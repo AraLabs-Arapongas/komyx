@@ -423,3 +423,20 @@ enabled = true
 # declarative_schema_path = "./schemas"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# ---------------------------------------------------------------------------
+# Production overrides (applied by `supabase config push` when linked to this project).
+# The send_sms hook secret is read from the shell: export SEND_SMS_HOOK_SECRET before pushing
+# and put the same value in Vercel.
+# ---------------------------------------------------------------------------
+[remotes.production]
+project_id = "ggvkgxxadvhekmvccceu"
+
+[remotes.production.auth]
+site_url = "https://komyx.vercel.app"
+additional_redirect_urls = ["https://komyx.vercel.app", "https://komyx.vercel.app/**", "komyx://**"]
+
+[remotes.production.auth.hook.send_sms]
+enabled = true
+uri = "https://komyx.vercel.app/api/auth/send-sms"
+secrets = "env(SEND_SMS_HOOK_SECRET)"
