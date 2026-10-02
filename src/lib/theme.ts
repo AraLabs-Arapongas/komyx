@@ -12,7 +12,7 @@ export type OrgTheme = {
 export const DEFAULT_THEME: OrgTheme = { primary: "#e8356d", accent: "#ffc43d", ink: "#1b1f3a", paper: "#fffdf7", font: "festa" };
 
 export const FONT_PRESETS: Record<FontPreset, { label: string; description: string }> = {
-  festa: { label: "Festa", description: "Bricolage Grotesque + Nunito. Alegre e redondo." },
+  festa: { label: "Festa", description: "Nunito, títulos bem pesados. Alegre e redondo, sem serifa." },
   elegante: { label: "Elegante", description: "Fraunces + Source Sans 3. Para buffets de casamento e eventos sociais." },
   moderno: { label: "Moderno", description: "Space Grotesk + Inter. Reto e minimalista." },
 };

@@ -68,7 +68,7 @@ a, button:not(:disabled), [role="button"], summary, label[for], input[type="subm
   --background: var(--paper);
   --foreground: var(--ink);
   --muted: var(--muted-ink);
-  --font-display: var(--font-festa-display);
+  --font-display: var(--font-festa-body);
   --font-body: var(--font-festa-body);
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   background: var(--paper);
@@ -76,7 +76,8 @@ a, button:not(:disabled), [role="button"], summary, label[for], input[type="subm
 }
 .public-theme .font-elegante { --font-display: var(--font-elegante-display); --font-body: var(--font-elegante-body); font-family: var(--font-body), serif; }
 .public-theme .font-moderno { --font-display: var(--font-moderno-display); --font-body: var(--font-moderno-body); font-family: var(--font-body), sans-serif; }
-.public-theme .font-festa { --font-display: var(--font-festa-display); --font-body: var(--font-festa-body); }
+.public-theme .font-festa { --font-display: var(--font-festa-body); --font-body: var(--font-festa-body); }
+.public-theme .font-festa .display { font-weight: 900; }
 .public-theme .display {
   font-family: var(--font-display), var(--font-body), sans-serif;
   letter-spacing: -0.02em;
