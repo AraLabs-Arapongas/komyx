@@ -3,7 +3,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 
 export type Profile = { id: string; organization_id: string; name: string; email: string; role: "owner" | "staff"; is_platform_admin: boolean };
-export type Org = { id: string; name: string; slug: string; whatsapp: string | null; pix_key: string | null; pre_reservation_validity_hours: number; status: string; plan: string; one_event_per_day: boolean; billing_due_at?: string | null };
+export type Org = { id: string; name: string; slug: string; whatsapp: string | null; pix_key: string | null; pre_reservation_validity_hours: number; status: string; plan: string; default_event_duration_minutes: number; one_event_per_day: boolean; billing_due_at?: string | null };
 
 type AuthState = { session: Session | null; profile: Profile | null; org: Org | null; loading: boolean; refresh: () => Promise<void>; signOut: () => Promise<void> };
 
@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: p } = await supabase.from("profiles").select("id, organization_id, name, email, role, is_platform_admin").eq("id", s.user.id).maybeSingle();
     setProfile((p as Profile) ?? null);
     if (p) {
-      const { data: o } = await supabase.from("organizations").select("id, name, slug, whatsapp, pix_key, pre_reservation_validity_hours, status, plan, one_event_per_day").eq("id", p.organization_id).maybeSingle();
+      const { data: o } = await supabase.from("organizations").select("id, name, slug, whatsapp, pix_key, pre_reservation_validity_hours, status, plan, one_event_per_day, default_event_duration_minutes").eq("id", p.organization_id).maybeSingle();
       let billingDue: string | null = null;
       if (o && p.role === "owner") {
         const { data: b } = await supabase.from("organization_billing").select("due_at").eq("organization_id", p.organization_id).maybeSingle();

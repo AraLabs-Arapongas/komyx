@@ -44,6 +44,15 @@ src/ui/              theme, components
 
 Funções SQL usadas pelo cliente: `my_reservations` (telefone autenticado), `reservation_by_token`, `guest_link`, `confirm_guest`. SMS: Supabase phone auth + hook `send_sms` → `src/app/api/auth/send-sms` → Comtele (`SMS_PROVIDER`, `COMTELE_API_KEY` no `.env.local` da raiz).
 
+## Novo orçamento (nativo)
+
+Botão redondo "+ Orçamento" na barra inferior → `app/(app)/novo-orcamento.tsx`: cliente (WhatsApp ou
+nome acha o cliente ou cria), pacote + tema + adicionais, data (calendário com dias ocupados via RPC
+`busy_days`) e horário, pessoas e aniversariante, revisão com o que fazer com a data (reservar /
+só orçamento / confirmar). Espelha `createEvent` do web: insere `events`, `quotes` e `quote_items`;
+parcelas e totais vêm dos triggers do banco. `src/lib/pricing.ts` é cópia de `src/lib/pricing.ts` do
+web; manter em sincronia.
+
 ## Modo quiosque (tablet na portaria · plano Komyx Balcão)
 
 O app vira a portaria da festa do dia em tela cheia. Só a dona configura (Menu → Modo quiosque):

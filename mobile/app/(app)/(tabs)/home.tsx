@@ -109,7 +109,7 @@ export default function Home() {
                       <Text style={styles.h3}>{r.name} <Muted>· {people ? `${people} pessoas` : "sem quantidade"}{when ? ` · ${when}` : ""}</Muted></Text>
                       <Row>
                         <Button title="Responder" size="sm" variant="secondary" onPress={() => Linking.openURL(whatsappUrl(r.whatsapp, `Olá ${r.name.split(" ")[0]}! Aqui é do ${org?.name}. Recebemos seu pedido de orçamento.`))} />
-                        <Button title="Criar orçamento" size="sm" onPress={() => router.push({ pathname: "/(app)/novo", params: { request: r.id, name: r.name, whatsapp: r.whatsapp } })} />
+                        <Button title="Criar orçamento" size="sm" onPress={() => router.push({ pathname: "/(app)/novo-orcamento", params: { request: r.id, name: r.name, whatsapp: r.whatsapp } })} />
                       </Row>
                     </View>
                   );

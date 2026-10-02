@@ -1,6 +1,4 @@
-import { Redirect } from "expo-router";
-
-/** Placeholder tab: the round "+" button opens the Novo orçamento sheet; the tab itself never shows. */
+/** Placeholder tab behind the round "+" button. Never shown: the tab press is intercepted in the layout. */
 export default function NovoTab() {
-  return <Redirect href="/(app)/novo" />;
+  return null;
 }
