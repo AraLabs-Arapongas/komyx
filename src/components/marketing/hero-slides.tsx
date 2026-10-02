@@ -157,8 +157,8 @@ function PortariaScreen() {
         <div className="flex items-center gap-1.5 rounded-lg px-2 py-1" style={{ border: `1px dashed ${ui.line}`, color: ui.muted, fontSize: 9 }}><Plus className="h-3 w-3" /> Convidado extra</div>
       </div>
       <div className="mx-3 mb-2 mt-1.5 rounded-xl px-2.5 py-1.5" style={{ background: ui.amberBg, border: "1px solid #fcd34d" }}>
-        <div className="flex items-center justify-between gap-2"><p className="whitespace-nowrap" style={{ fontSize: 10, fontWeight: 800, color: ui.amber }}>Fechar conta · R$ 180</p><span className="rounded-md whitespace-nowrap" style={{ background: "#059669", color: "#fff", fontSize: 9, fontWeight: 700, padding: "3px 7px" }}>Recebido · Pix</span></div>
-        <p style={{ fontSize: 8, color: ui.amber }}>Bolo cenográfico · extra no dia</p>
+        <div className="flex items-center justify-between gap-2"><p className="whitespace-nowrap" style={{ fontSize: 10, fontWeight: 800, color: ui.amber }}>Fechar conta · R$ 180</p><span className="rounded-md whitespace-nowrap" style={{ background: "#059669", color: "#fff", fontSize: 9, fontWeight: 700, padding: "3px 7px" }}>Recebido</span></div>
+        <p style={{ fontSize: 8, color: ui.amber }}>Bolo cenográfico · extra no dia · Pix, dinheiro ou cartão</p>
       </div>
     </div>
   );
