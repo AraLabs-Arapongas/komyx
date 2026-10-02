@@ -23,7 +23,7 @@ const FEATURES = [
   [FileSignature, "Contrato automático", "Modelo do buffet preenchido com cliente, itens e parcelas. Cliente aceita pelo link."],
   [Smartphone, "Portaria no celular", "Quem está na porta marca chegadas, adiciona convidado e fecha a conta dos extras."],
   [MessageCircle, "Tudo pelo WhatsApp", "Solicitações, cobranças e lembretes de aniversário com mensagem pronta. Você decide quando enviar."],
-  [Sparkles, "Página que vende", "Fotos, destaques, depoimentos e orçamento online. No Premium, com as cores do seu buffet."],
+  [Sparkles, "Página que vende", "Fotos, destaques, depoimentos e orçamento online, com as cores e a fonte do seu buffet."],
 ] as const;
 
 const ALL_FEATURES = ["Agenda, orçamentos e eventos", "Clientes e aniversariantes", "Contratos e Pix com identificador", "Página pública com orçamento online", "Site com suas cores, fonte, logo e capa", "Temas de festa com fotos", "Portaria no celular", "Proprietária + equipe", "App para o cliente acompanhar a festa"];
