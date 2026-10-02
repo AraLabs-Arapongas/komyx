@@ -46,6 +46,10 @@ export const getOrganization = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase.from("organizations").select("*").eq("id", profile.organization_id).single();
   if (data?.status === "suspended" && !profile.is_platform_admin) redirect("/suspenso");
+  if (data?.status === "cancelled" && !profile.is_platform_admin) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (!data.access_until || data.access_until < today) redirect("/cancelada");
+  }
   return data!;
 });
 

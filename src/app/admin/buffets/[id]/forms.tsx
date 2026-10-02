@@ -17,7 +17,7 @@ export function OrgAdminForm({ org }: { org: { id: string; slug: string; plan: s
       <div className="grid grid-cols-3 gap-3">
         <Field label="Slug (/p/…)" htmlFor="slug" error={fe.slug}><Input id="slug" name="slug" defaultValue={org.slug} required /></Field>
         <Field label="Plano" htmlFor="plan"><Select id="plan" name="plan" defaultValue={org.plan}><option value="basic">Básico</option><option value="premium">Premium</option></Select></Field>
-        <Field label="Status" htmlFor="status"><Select id="status" name="status" defaultValue={org.status}><option value="active">Ativo</option><option value="suspended">Suspenso</option></Select></Field>
+        <Field label="Status" htmlFor="status"><Select id="status" name="status" defaultValue={org.status}><option value="active">Ativo</option><option value="suspended">Suspenso</option><option value="cancelled">Cancelado (pela dona)</option></Select></Field>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <Field label="Início do ciclo" htmlFor="billing_cycle_start"><Input id="billing_cycle_start" name="billing_cycle_start" type="date" defaultValue={org.billing_cycle_start ?? ""} /></Field>

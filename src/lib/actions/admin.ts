@@ -17,7 +17,7 @@ const orgAdminSchema = z.object({
   id: uuid,
   slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use letras minúsculas, números e hífens"),
   plan: z.enum(["basic", "premium"]),
-  status: z.enum(["active", "suspended"]),
+  status: z.enum(["active", "suspended", "cancelled"]),
   notes: optionalText,
   billing_cycle_start: dateOrNull,
   billing_due_at: dateOrNull,

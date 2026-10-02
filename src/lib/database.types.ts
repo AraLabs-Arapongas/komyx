@@ -698,7 +698,10 @@ export type Database = {
       }
       organizations: {
         Row: {
+          access_until: string | null
           address: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
           capacity: number | null
           city: string | null
           contract_template: string
@@ -734,7 +737,10 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          access_until?: string | null
           address?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
           capacity?: number | null
           city?: string | null
           contract_template?: string
@@ -770,7 +776,10 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          access_until?: string | null
           address?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
           capacity?: number | null
           city?: string | null
           contract_template?: string
@@ -1689,7 +1698,7 @@ export type Database = {
       guest_source: "MANUAL" | "PUBLIC" | "DOOR"
       installment_rule: "ON_ACCEPT" | "DAYS_BEFORE_EVENT" | "FIXED_DATE"
       org_plan: "basic" | "premium"
-      org_status: "active" | "suspended"
+      org_status: "active" | "suspended" | "cancelled"
       payment_method: "PIX" | "CASH" | "CARD" | "TRANSFER" | "OTHER"
       public_link_type:
         | "GUEST_CONFIRM"
@@ -1844,7 +1853,7 @@ export const Constants = {
       guest_source: ["MANUAL", "PUBLIC", "DOOR"],
       installment_rule: ["ON_ACCEPT", "DAYS_BEFORE_EVENT", "FIXED_DATE"],
       org_plan: ["basic", "premium"],
-      org_status: ["active", "suspended"],
+      org_status: ["active", "suspended", "cancelled"],
       payment_method: ["PIX", "CASH", "CARD", "TRANSFER", "OTHER"],
       public_link_type: [
         "GUEST_CONFIRM",

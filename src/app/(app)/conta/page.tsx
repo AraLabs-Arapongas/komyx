@@ -8,11 +8,14 @@ import { buttonClass } from "@/components/ui/button";
 import { formatCurrency, formatDate, whatsappLink } from "@/lib/utils";
 import { PLAN_LABEL, PLAN_PRICES, BILLING_STATUS_LABEL, INVOICE_STATUS_LABEL, INVOICE_STATUS_TONE, SUPPORT_WHATSAPP } from "@/lib/billing";
 import { NameForm, PasswordForm } from "./account-forms";
+import { CancelSubscription } from "./cancel-subscription";
+import { reactivateSubscription } from "@/lib/actions/subscription";
+import { Alert } from "@/components/ui/page";
 
 export const metadata = { title: "Minha conta" };
 
-export default async function AccountPage() {
-  const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
+export default async function AccountPage({ searchParams }: PageProps<"/conta">) {
+  const [profile, org, sp] = await Promise.all([requireProfile(), getOrganization(), searchParams]);
   const isOwner = profile.role === "owner";
   const bill = await getBilling(profile);
   const supabase = await createClient();
@@ -45,13 +48,22 @@ export default async function AccountPage() {
                   <div><dt className="text-xs text-muted">Plano atual</dt><dd className="font-medium">{PLAN_LABEL[org.plan] ?? org.plan}</dd></div>
                   <div><dt className="text-xs text-muted">Valor mensal</dt><dd className="font-medium">{formatCurrency(price)}</dd></div>
                   <div><dt className="text-xs text-muted">Próxima cobrança</dt><dd className="font-medium">{bill?.due_at ? dayDate(bill.due_at) : "—"}</dd></div>
-                  <div><dt className="text-xs text-muted">Status</dt><dd><Badge tone={bill?.status === "overdue" ? "red" : bill?.status === "due" ? "amber" : bill?.status === "trial" ? "brand" : "green"}>{BILLING_STATUS_LABEL[bill?.status ?? "ok"] ?? bill?.status}</Badge></dd></div>
+                  <div><dt className="text-xs text-muted">Status</dt><dd>{org.status === "cancelled" ? <Badge tone="red">Cancelada</Badge> : <Badge tone={bill?.status === "overdue" ? "red" : bill?.status === "due" ? "amber" : bill?.status === "trial" ? "brand" : "green"}>{BILLING_STATUS_LABEL[bill?.status ?? "ok"] ?? bill?.status}</Badge>}</dd></div>
                 </dl>
-                <div className="flex flex-wrap gap-2">
-                  <a href={support(`Olá! Sou do ${org.name} (${org.slug}) e quero alterar a forma de pagamento da assinatura Festeja.`)} target="_blank" rel="noopener" className={buttonClass("outline", "sm")}><MessageCircle className="h-4 w-4" /> Alterar forma de pagamento</a>
-                  <a href={support(`Olá! Sou do ${org.name} (${org.slug}) e quero cancelar a assinatura Festeja.`)} target="_blank" rel="noopener" className={buttonClass("ghost", "sm", "text-red-600")}>Cancelar assinatura</a>
-                </div>
-                <p className="text-xs text-muted">Alterações de plano e pagamento são feitas com o suporte Festeja pelo WhatsApp. O ciclo atual vai de {bill?.cycle_start ? dayDate(bill.cycle_start) : "—"} até {bill?.due_at ? dayDate(bill.due_at) : "—"}.</p>
+                {sp.reativada === "1" ? <Alert tone="success">Assinatura reativada. Tudo voltou como estava.</Alert> : null}
+                {org.status === "cancelled" ? (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm space-y-2">
+                    <p className="font-medium text-red-700">Assinatura cancelada{org.cancelled_at ? ` em ${dayDate(org.cancelled_at.slice(0, 10))}` : ""}.</p>
+                    <p className="text-red-700/80">{org.access_until ? `Acesso até ${dayDate(org.access_until)}. ` : ""}Página pública fora do ar. Dados guardados por 90 dias depois do fim do acesso.</p>
+                    <form action={reactivateSubscription}><button className={buttonClass("primary", "sm")}>Reativar assinatura</button></form>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    <a href={support(`Olá! Sou do ${org.name} (${org.slug}) e quero alterar a forma de pagamento da assinatura Festeja.`)} target="_blank" rel="noopener" className={buttonClass("outline", "sm")}><MessageCircle className="h-4 w-4" /> Alterar forma de pagamento</a>
+                    <CancelSubscription accessHint={bill?.due_at ? `Você continua com acesso até ${dayDate(bill.due_at)}, fim do período já pago.` : "Você continua com acesso por 7 dias."} />
+                  </div>
+                )}
+                <p className="text-xs text-muted">Alterações de plano e forma de pagamento são feitas com o suporte Festeja pelo WhatsApp; o cancelamento é por aqui mesmo. O ciclo atual vai de {bill?.cycle_start ? dayDate(bill.cycle_start) : "—"} até {bill?.due_at ? dayDate(bill.due_at) : "—"}.</p>
               </CardBody>
             </Card>
 

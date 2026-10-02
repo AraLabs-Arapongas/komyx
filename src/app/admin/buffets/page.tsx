@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminBuffetsPage({ searchParams }: PageProps<"/admin/buffets">) {
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
-  const status = sp.status === "suspended" ? "suspended" : sp.status === "active" ? "active" : "all";
+  const status = sp.status === "suspended" ? "suspended" : sp.status === "active" ? "active" : sp.status === "cancelled" ? "cancelled" : "all";
   const admin = createAdminClient();
   let query = admin.from("organizations").select("id, name, slug, plan, status, created_at, whatsapp").eq("kind", "buffet").order("created_at", { ascending: false }).limit(200);
   if (q) query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%`);
@@ -34,7 +34,7 @@ export default async function AdminBuffetsPage({ searchParams }: PageProps<"/adm
           <button className={buttonClass("outline", "md")}>Buscar</button>
         </form>
         <div className="flex gap-2">
-          {[["all", "Todos"], ["active", "Ativos"], ["suspended", "Suspensos"]].map(([k, l]) => (
+          {[["all", "Todos"], ["active", "Ativos"], ["suspended", "Suspensos"], ["cancelled", "Cancelados"]].map(([k, l]) => (
             <Link key={k} href={`/admin/buffets?status=${k}${q ? `&q=${encodeURIComponent(q)}` : ""}`} className={cn("rounded-full px-3.5 py-1.5 text-sm font-medium border", status === k ? "bg-brand text-brand-fg border-brand" : "bg-surface border-border text-muted")}>{l}</Link>
           ))}
         </div>

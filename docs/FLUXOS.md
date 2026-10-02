@@ -98,6 +98,8 @@ Criação fica no cabeçalho fixo: **+ Novo ▾** → Novo pacote / Novo adicion
 
 ### Minha conta (`/conta`)
 
+**Cancelar assinatura** é self-service (diálogo com motivo opcional e confirmação digitando CANCELAR): status `cancelled`, acesso até o fim do período pago (`access_until`, ou 7 dias), página pública sai do ar, dados guardados por 90 dias depois; faixa vermelha no app com "Reativar". Passado o acesso, o app mostra `/cancelada` com o botão **Reativar assinatura** (só proprietária), que volta tudo como estava. Alterar forma de pagamento continua pelo suporte. A home do Festeja (landing com preços e cadastro) fica em `/`.
+
 Separada de Configurações: pessoa logada e cobrança do SaaS. Acesso pelo nome/avatar no rodapé da sidebar e pelo card do plano (abre em Assinatura). Perfil: nome, e-mail (login, troca via suporte), alterar senha (confirma a atual). Proprietário vê também Assinatura (plano, valor mensal, próxima cobrança, status, alterar forma de pagamento / cancelar via WhatsApp do suporte) e Pagamentos (tabela `saas_invoices`: data, descrição, valor, status, recibo). Equipe vê só o perfil. Nada disso se mistura com pagamentos das festas.
 
 ## 2. Cliente (sem login)

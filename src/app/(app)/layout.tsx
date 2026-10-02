@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireProfile, getOrganization, getBilling } from "@/lib/data/session";
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/shell/bottom-nav";
@@ -25,6 +26,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           <PrivacyToggle />
           <NotificationsBell initialUnread={unread ?? 0} />
         </div>
+        {org.status === "cancelled" ? (
+          <div className="bg-red-50 border-b border-red-200 text-red-700 text-sm px-4 py-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
+            <span>Assinatura cancelada{org.access_until ? ` · acesso até ${org.access_until.split("-").reverse().join("/")}` : ""} · página pública fora do ar.</span>
+            {profile.role === "owner" ? <Link href="/conta#assinatura" className="font-semibold underline underline-offset-2">Reativar</Link> : null}
+          </div>
+        ) : null}
         {children}
       </div>
       <BottomNav />
