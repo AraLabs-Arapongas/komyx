@@ -1,11 +1,15 @@
 import Link from "next/link";
-import { CalendarDays, FileSignature, MessageCircle, QrCode, Smartphone, Sparkles, Check } from "lucide-react";
-import { buttonClass } from "@/components/ui/button";
+import { Check, MessageCircle, Sparkles } from "lucide-react";
+import { Bunting } from "@/components/public/bunting";
+import { PolaroidGallery } from "@/components/public/polaroid-gallery";
 import { PublicFooter } from "@/components/public/public-footer";
+import { HeroSlides } from "@/components/marketing/hero-slides";
+import { AppMocks } from "@/components/marketing/app-mocks";
+import { publicFontClass } from "@/lib/fonts";
 import { LAUNCH_PRICE } from "@/lib/billing";
 import { formatCurrency } from "@/lib/utils";
 
-export const metadata = { title: "Festeja · agenda, orçamento, contrato e convite do seu buffet", description: "Venda, organize e realize festas em um só lugar. Página pública que vende sozinha, orçamento em 2 minutos, reserva com Pix, contrato automático e portaria no celular." };
+export const metadata = { title: "Festeja · agenda, orçamento, contrato e convite do seu buffet", description: "O cliente monta o orçamento e reserva com Pix pela sua página. Você confirma, gera o contrato e cobra pelo WhatsApp." };
 
 const STEPS_OWNER = [
   ["Cadastre pacotes e temas", "Preço-base, adultos e crianças incluídos, adicionais e fotos das decorações."],
@@ -13,89 +17,106 @@ const STEPS_OWNER = [
   ["Confirme e cobre", "Sinal por Pix com identificador, contrato gerado sozinho, parcelas e extras com um toque."],
 ];
 const STEPS_CLIENT = [
-  ["Monta o orçamento em 2 minutos", "Escolhe pacote, tema, data no calendário e quantas pessoas."],
-  ["Reserva a data com Pix", "QR e copia-e-cola com o valor do sinal. A data fica segura pelo prazo que você define."],
-  ["Acompanha pelo celular", "Página da reserva, contrato para aceitar, lista de convidados e convite personalizado."],
+  ["Monta o orçamento", "Escolhe pacote, tema, data no calendário e quantas pessoas. Vê o valor na hora."],
+  ["Reserva com Pix", "QR e copia-e-cola com o sinal. A data fica segura pelo prazo que o buffet define."],
+  ["Acompanha pelo celular", "Página da reserva, contrato para aceitar, convite personalizado e lista de convidados."],
 ];
-const FEATURES = [
-  [CalendarDays, "Agenda e orçamentos", "Um evento por dia, reservas com prazo, orçamento que vira evento sem redigitar."],
-  [QrCode, "Pix e cobrança", "Sinal e saldo com QR e identificador. Parcelas, extras do dia e botão Cobrar no WhatsApp."],
-  [FileSignature, "Contrato automático", "Modelo do buffet preenchido com cliente, itens e parcelas. Cliente aceita pelo link."],
-  [Smartphone, "Portaria no celular", "Quem está na porta marca chegadas, adiciona convidado e fecha a conta dos extras."],
-  [MessageCircle, "Tudo pelo WhatsApp", "Solicitações, cobranças e lembretes de aniversário com mensagem pronta. Você decide quando enviar."],
-  [Sparkles, "Página que vende", "Fotos, destaques, depoimentos e orçamento online, com as cores e a fonte do seu buffet."],
-] as const;
-
+const HIGHLIGHTS = ["Um evento por dia", "Orçamento online", "Pix com identificador", "Contrato automático", "Convite com RSVP", "Portaria no celular", "Cobrança pelo WhatsApp", "Aniversariantes do ano", "App para a dona, a portaria e o cliente"];
+const GALLERY = [
+  { url: "/demo/festa-1.jpg", caption: "Sua página pública, com suas fotos" },
+  { url: "/demo/festa-2.jpg", caption: "Temas com foto no orçamento" },
+  { url: "/demo/festa-3.jpg", caption: "Convite que o cliente personaliza" },
+  { url: "/demo/festa-4.jpg", caption: "Portaria marcando quem chegou" },
+];
 const ALL_FEATURES = ["Agenda, orçamentos e eventos", "Clientes e aniversariantes", "Contratos e Pix com identificador", "Página pública com orçamento online", "Site com suas cores, fonte, logo e capa", "Temas de festa com fotos", "Portaria no celular", "Proprietária + equipe", "App para o cliente acompanhar a festa"];
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold"><span className="h-8 w-8 rounded-lg bg-brand text-brand-fg grid place-items-center font-bold">F</span> Festeja</Link>
-        <nav className="flex items-center gap-2">
-          <a href="#precos" className="hidden sm:inline-flex text-sm text-muted hover:text-foreground px-3">Preços</a>
-          <Link href="/login" className={buttonClass("outline", "sm")}>Entrar</Link>
-          <Link href="/signup" className={buttonClass("primary", "sm")}>Criar meu buffet</Link>
-        </nav>
-      </header>
-
-      <section className="mx-auto max-w-6xl px-4 pt-10 pb-16 grid gap-10 md:grid-cols-2 md:items-center">
-        <div className="space-y-6">
-          <p className="inline-flex items-center gap-2 rounded-full bg-brand-soft text-brand px-3 py-1 text-xs font-semibold">Para buffets infantis e de eventos</p>
-          <h1 className="text-4xl sm:text-5xl font-bold leading-[1.05] tracking-tight">Venda, organize e realize festas em um só lugar.</h1>
-          <p className="text-lg text-muted">O cliente monta o orçamento e reserva com Pix pela sua página. Você confirma, gera o contrato e cobra pelo WhatsApp. Sem planilha, sem caderno, sem esquecer ninguém.</p>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/signup" className={buttonClass("primary", "lg")}>Criar meu buffet grátis</Link>
-            <Link href="/p/festa-cia-buffet" className={buttonClass("outline", "lg")}>Ver uma página de exemplo</Link>
+    <main className={`${publicFontClass} public-theme font-festa flex-1 flex flex-col`}>
+      {/* HERO */}
+      <section className="relative overflow-hidden" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+        <div className="absolute inset-x-0 top-0"><Bunting /></div>
+        <header className="relative mx-auto max-w-5xl px-4 pt-24 sm:pt-28 flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2 font-extrabold tracking-wide uppercase text-sm" style={{ color: "var(--sun)" }}><span className="h-9 w-9 rounded-full grid place-items-center display text-lg" style={{ background: "var(--sun)", color: "var(--ink)" }}>F</span> Festeja</Link>
+          <nav className="flex items-center gap-2">
+            <Link href="/login" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10">Entrar</Link>
+            <Link href="/signup" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-extrabold" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
+          </nav>
+        </header>
+        <div className="mx-auto max-w-5xl px-4 pt-10 pb-6">
+          <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-6xl leading-[1.02] max-w-3xl">A festa se vende sozinha. Você só confirma.</h1>
+          <p className="mt-5 text-lg/relaxed max-w-prose" style={{ color: "#cfd2e6" }}>Agenda, orçamento, Pix, contrato, convite e portaria em um lugar só, feito para buffet infantil e de eventos. Sem planilha, sem caderno, sem perder festa no WhatsApp.</p>
+          <div className="mt-7 flex flex-col sm:flex-row gap-3">
+            <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98]" style={{ background: "var(--berry)", color: "#fff" }}><Sparkles className="h-5 w-5" /> Criar meu buffet</Link>
+            <Link href="/p/festa-cia-buffet" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold text-base ring-2 ring-inset ring-white/30 hover:bg-white/10">Ver uma página de buffet</Link>
           </div>
-          <p className="text-xs text-muted">Teste com o buffet de demonstração. Sem cartão para começar.</p>
+          <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}>{formatCurrency(LAUNCH_PRICE)}/mês, tudo incluído. Cancele quando quiser.</p>
         </div>
-        <div className="rounded-3xl border border-border bg-surface p-5 shadow-sm space-y-3">
-          <p className="text-xs uppercase tracking-wide text-muted">Como fica para a dona</p>
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm"><b>Ação urgente</b> · Festa do Theo · vence em 28h <span className="ml-2 inline-flex rounded-full bg-brand text-white text-xs px-2 py-0.5">Confirmar</span></div>
-          <div className="rounded-2xl border border-border p-3 text-sm"><b>Novas solicitações</b> · Mariana Costa · “Aniversário de 1 ano, tema safári” <span className="text-brand ml-2">Responder</span></div>
-          <div className="rounded-2xl border border-border p-3 text-sm"><b>Hoje</b> · Chá revelação · 18:00–21:00 · 35 pessoas · <span className="text-emerald-700 font-medium">pago</span></div>
-          <div className="grid grid-cols-3 gap-2 text-center text-sm"><div className="rounded-xl bg-stone-50 p-2"><p className="text-xs text-muted">Atrasado</p><p className="font-semibold text-red-600">R$ 2.350</p></div><div className="rounded-xl bg-stone-50 p-2"><p className="text-xs text-muted">7 dias</p><p className="font-semibold">R$ 2.967</p></div><div className="rounded-xl bg-stone-50 p-2"><p className="text-xs text-muted">Total</p><p className="font-semibold">R$ 5.317</p></div></div>
+        <div className="mx-auto max-w-5xl px-4 pb-14 sm:pb-20 pt-6">
+          <HeroSlides />
         </div>
       </section>
 
-      <section className="bg-surface border-y border-border">
-        <div className="mx-auto max-w-6xl px-4 py-14 grid gap-10 md:grid-cols-2">
-          <div><h2 className="text-2xl font-bold mb-4">Para quem vende</h2><ol className="space-y-4">{STEPS_OWNER.map(([t, d], i) => <li key={t} className="flex gap-3"><span className="h-7 w-7 shrink-0 rounded-full bg-brand text-brand-fg grid place-items-center text-sm font-bold">{i + 1}</span><div><p className="font-semibold">{t}</p><p className="text-sm text-muted">{d}</p></div></li>)}</ol></div>
-          <div><h2 className="text-2xl font-bold mb-4">Para quem compra a festa</h2><ol className="space-y-4">{STEPS_CLIENT.map(([t, d], i) => <li key={t} className="flex gap-3"><span className="h-7 w-7 shrink-0 rounded-full bg-stone-800 text-white grid place-items-center text-sm font-bold">{i + 1}</span><div><p className="font-semibold">{t}</p><p className="text-sm text-muted">{d}</p></div></li>)}</ol></div>
-        </div>
+      {/* HIGHLIGHTS */}
+      <section className="mx-auto max-w-5xl px-4 py-8">
+        <ul className="flex flex-wrap gap-2">
+          {HIGHLIGHTS.map((h) => <li key={h} className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-bold" style={{ background: "var(--paper-2)", color: "var(--ink)" }}><Check className="h-4 w-4" style={{ color: "var(--mint)" }} /> {h}</li>)}
+        </ul>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-14">
-        <h2 className="text-2xl font-bold mb-6">O que vem dentro</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(([Icon, t, d]) => (
-            <div key={t} className="rounded-2xl border border-border bg-surface p-5"><span className="h-10 w-10 rounded-xl bg-brand-soft text-brand grid place-items-center mb-3"><Icon className="h-5 w-5" /></span><p className="font-semibold">{t}</p><p className="text-sm text-muted mt-1">{d}</p></div>
-          ))}
-        </div>
+      {/* GALLERY */}
+      <section className="mx-auto max-w-5xl px-4 py-6">
+        <h2 className="display font-extrabold text-3xl sm:text-4xl mb-2">Bonito por fora, organizado por dentro</h2>
+        <p className="mb-2" style={{ color: "var(--muted-ink)" }}>A página do buffet tem cara de convite. O painel da dona tem cara de trabalho feito.</p>
+        <PolaroidGallery items={GALLERY} />
       </section>
 
-      <section id="precos" className="bg-surface border-y border-border">
-        <div className="mx-auto max-w-6xl px-4 py-14">
-          <h2 className="text-2xl font-bold mb-2">Um plano, tudo incluído</h2>
-          <p className="text-muted mb-8">Mensalidade fixa, sem taxa por festa e sem fidelidade. Cancele e reative quando quiser.</p>
-          <div className="max-w-xl rounded-3xl border border-brand bg-surface p-6 shadow-sm space-y-4">
-            <p className="inline-flex items-center gap-2 rounded-full bg-brand-soft text-brand px-3 py-1 text-xs font-semibold">Oferta de lançamento</p>
-            <div className="flex items-baseline justify-between gap-3 flex-wrap"><p className="text-lg font-semibold">Festeja completo</p><p className="text-3xl font-bold">{formatCurrency(LAUNCH_PRICE)}<span className="text-sm font-normal text-muted">/mês</span></p></div>
-            <p className="text-sm text-muted">Quem entra agora fica com todos os recursos, inclusive os que virarão Premium, por este preço. Para sempre.</p>
-            <ul className="grid sm:grid-cols-2 gap-2 text-sm">{ALL_FEATURES.map((i) => <li key={i} className="flex gap-2"><Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" /> {i}</li>)}</ul>
-            <Link href="/signup" className={buttonClass("primary", "lg", "w-full")}>Criar meu buffet por {formatCurrency(LAUNCH_PRICE)}/mês</Link>
+      {/* HOW IT WORKS */}
+      <section style={{ background: "var(--ink)", color: "var(--paper)" }}>
+        <div className="mx-auto max-w-5xl px-4 pt-12 pb-16 grid gap-8 md:grid-cols-2 md:items-start">
+          <div>
+            <h2 className="display font-extrabold text-3xl sm:text-4xl">Para quem vende a festa</h2>
+            <ol className="mt-6 space-y-4">{STEPS_OWNER.map(([t, d], i) => <li key={t} className="flex gap-3"><span className="h-8 w-8 shrink-0 rounded-full grid place-items-center display font-extrabold" style={{ background: "var(--sun)", color: "var(--ink)" }}>{i + 1}</span><div><p className="font-extrabold">{t}</p><p className="text-sm" style={{ color: "#cfd2e6" }}>{d}</p></div></li>)}</ol>
+          </div>
+          <div className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8" style={{ color: "var(--ink)" }}>
+            <h2 className="display font-extrabold text-2xl mb-4">Para quem compra a festa</h2>
+            <ol className="space-y-4">{STEPS_CLIENT.map(([t, d], i) => <li key={t} className="flex gap-3"><span className="h-8 w-8 shrink-0 rounded-full grid place-items-center display font-extrabold text-white" style={{ background: "var(--berry)" }}>{i + 1}</span><div><p className="font-extrabold">{t}</p><p className="text-sm" style={{ color: "var(--muted-ink)" }}>{d}</p></div></li>)}</ol>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-14 text-center space-y-4">
-        <h2 className="text-3xl font-bold">Pronta para parar de perder festa no WhatsApp?</h2>
-        <p className="text-muted">Crie o buffet, cadastre dois pacotes e mande o link para o próximo cliente que perguntar o preço.</p>
-        <Link href="/signup" className={buttonClass("primary", "lg")}>Criar meu buffet</Link>
+      {/* APP */}
+      <AppMocks />
+
+      {/* PRICE */}
+      <section id="precos" className="mx-auto max-w-5xl px-4 py-14">
+        <div className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-center">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: "var(--ink)" }}>Oferta de lançamento</p>
+            <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4">Um plano, tudo incluído.</h2>
+            <p className="mt-3" style={{ color: "var(--muted-ink)" }}>Quem entra agora fica com todos os recursos, inclusive os que um dia virarão Premium, por este preço. Para sempre. Sem taxa por festa, sem fidelidade: cancele e reative quando quiser.</p>
+          </div>
+          <div className="rounded-3xl bg-white border-2 p-6 space-y-4 shadow-[0_18px_50px_rgba(27,31,58,0.12)]" style={{ borderColor: "var(--berry)" }}>
+            <div className="flex items-baseline justify-between gap-3 flex-wrap"><p className="display font-extrabold text-xl">Festeja completo</p><p className="display font-extrabold text-4xl" style={{ color: "var(--berry)" }}>{formatCurrency(LAUNCH_PRICE)}<span className="text-sm font-bold" style={{ color: "var(--muted-ink)" }}>/mês</span></p></div>
+            <ul className="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">{ALL_FEATURES.map((i) => <li key={i} className="flex gap-2"><Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--mint)" }} /> {i}</li>)}</ul>
+            <Link href="/signup" className="inline-flex w-full items-center justify-center h-14 rounded-full font-extrabold text-base" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet por {formatCurrency(LAUNCH_PRICE)}/mês</Link>
+          </div>
+        </div>
       </section>
-      <PublicFooter variant="light" />
+
+      {/* CTA */}
+      <section className="relative overflow-hidden" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+        <div className="absolute inset-x-0 top-0"><Bunting /></div>
+        <div className="mx-auto max-w-5xl px-4 pt-24 pb-16 text-center space-y-4">
+          <h2 className="display font-extrabold text-3xl sm:text-5xl">Pronta para parar de perder festa no WhatsApp?</h2>
+          <p style={{ color: "#cfd2e6" }}>Crie o buffet, cadastre dois pacotes e mande o link para o próximo cliente que perguntar o preço.</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+            <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
+            <a href="https://wa.me/5511999999999?text=Oi!%20Quero%20conhecer%20o%20Festeja" target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10"><MessageCircle className="h-5 w-5" /> Falar com a gente</a>
+          </div>
+        </div>
+      </section>
+      <PublicFooter />
     </main>
   );
 }
