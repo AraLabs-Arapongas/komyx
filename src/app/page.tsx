@@ -5,6 +5,7 @@ import { PolaroidGallery } from "@/components/public/polaroid-gallery";
 import { PublicFooter } from "@/components/public/public-footer";
 import { HeroSlides } from "@/components/marketing/hero-slides";
 import { AppMocks } from "@/components/marketing/app-mocks";
+import { ScrollCue } from "@/components/marketing/scroll-cue";
 import { publicFontClass } from "@/lib/fonts";
 import { LAUNCH_PRICE } from "@/lib/billing";
 import { formatCurrency } from "@/lib/utils";
@@ -55,10 +56,11 @@ export default function LandingPage() {
         <div className="mx-auto max-w-5xl px-4 pb-14 sm:pb-20 pt-6">
           <HeroSlides />
         </div>
+        <ScrollCue href="#destaques" />
       </section>
 
       {/* HIGHLIGHTS */}
-      <section className="mx-auto max-w-5xl px-4 py-8">
+      <section id="destaques" className="mx-auto max-w-5xl px-4 py-8 scroll-mt-4">
         <ul className="flex flex-wrap gap-2">
           {HIGHLIGHTS.map((h) => <li key={h} className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-bold" style={{ background: "var(--paper-2)", color: "var(--ink)" }}><Check className="h-4 w-4" style={{ color: "var(--mint)" }} /> {h}</li>)}
         </ul>

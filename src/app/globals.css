@@ -134,3 +134,7 @@ html[data-privacy="on"] .money {
 @keyframes hero-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .public-theme .hero-fade { animation: hero-fade 0.45s ease both; }
 @media (prefers-reduced-motion: reduce) { .public-theme .hero-fade { animation: none; } }
+
+@keyframes scroll-cue-dot { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(12px); opacity: 0; } 100% { transform: translateY(0); opacity: 0; } }
+.public-theme .scroll-cue-dot { animation: scroll-cue-dot 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .public-theme .scroll-cue-dot { animation: none; } }
