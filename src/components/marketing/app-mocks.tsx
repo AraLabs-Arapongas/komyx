@@ -43,7 +43,7 @@ export function AppMocks() {
         <p className="mt-1.5 text-xs font-bold md:hidden" style={{ color: muted }}>Deslize para o lado para ver os três →</p>
       </Reveal>
       {/* Phones: horizontal snap strip on phones, three columns on desktop. */}
-      <Reveal className="mt-10 max-md:mt-4 md:grid md:gap-10 md:grid-cols-3 md:items-start max-md:flex max-md:gap-6 max-md:overflow-x-auto max-md:snap-x max-md:snap-mandatory max-md:-mx-4 max-md:px-4 max-md:pb-3 max-md:[scrollbar-width:none]">
+      <Reveal className="mt-10 max-md:mt-0 max-md:pt-6 md:grid md:gap-10 md:grid-cols-3 md:items-start max-md:flex max-md:gap-6 max-md:overflow-x-auto max-md:snap-x max-md:snap-mandatory max-md:-mx-4 max-md:px-4 max-md:pb-3 max-md:[scrollbar-width:none]">
         <Phone title="A dona, no dia a dia">
           <div className="flex items-center justify-between py-2"><b className="text-sm">Olá, Dona</b><Bell className="h-4 w-4" /></div>
           <p className="mb-2" style={{ color: "#78716c" }}><b className="text-[#1c1917]">Hoje:</b> 1 evento · 1 ação urgente · 2 novas solicitações</p>

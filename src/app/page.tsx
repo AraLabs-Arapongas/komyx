@@ -48,7 +48,8 @@ export default function LandingPage() {
             <Link href="/" className="flex items-center gap-2 font-extrabold tracking-wide uppercase text-sm" style={{ color: "var(--sun)" }}><span className="h-9 w-9 rounded-full grid place-items-center display text-lg" style={{ background: "var(--sun)", color: "var(--ink)" }}>F</span> Festeja</Link>
             <nav className="flex items-center gap-2">
               <Link href="/login" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10">Entrar</Link>
-              <Link href="/signup" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-extrabold" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
+              {/* On phones the big hero CTA right below says the same thing, so the header keeps only "Entrar". */}
+              <Link href="/signup" className="max-md:hidden inline-flex h-10 items-center rounded-full px-4 text-sm font-extrabold whitespace-nowrap" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
             </nav>
           </header>
           <div className="mx-auto w-full max-w-5xl px-4 pt-10 pb-6 max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center max-md:pb-20">
@@ -69,14 +70,22 @@ export default function LandingPage() {
 
       {/* HIGHLIGHTS + GALLERY (one phone page) */}
       <div className="snap-page max-md:flex max-md:flex-col max-md:justify-center">
-        <section id="destaques" className="mx-auto w-full max-w-5xl px-4 py-8 max-md:py-3 scroll-mt-4">
-          <Reveal as="ul" className="flex flex-wrap gap-2">
-            {HIGHLIGHTS.map((h) => <li key={h} data-stagger className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-bold max-md:text-xs max-md:px-3 max-md:py-1.5" style={{ background: "var(--paper-2)", color: "var(--ink)" }}><Check className="h-4 w-4" style={{ color: "var(--mint)" }} /> {h}</li>)}
+        <section id="destaques" className="mx-auto w-full max-w-5xl px-4 py-8 max-md:py-3 max-md:px-0 scroll-mt-4">
+          {/* Desktop: wrapped chips. Phones: two ticker rows (left, then right) so nothing wraps ragged. */}
+          <Reveal as="ul" className="flex flex-wrap gap-2 max-md:hidden">
+            {HIGHLIGHTS.map((h) => <li key={h} data-stagger className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-bold" style={{ background: "var(--paper-2)", color: "var(--ink)" }}><Check className="h-4 w-4" style={{ color: "var(--mint)" }} /> {h}</li>)}
+          </Reveal>
+          <Reveal className="md:hidden space-y-2 overflow-hidden" aria-label="Principais recursos">
+            {[HIGHLIGHTS.slice(0, 5), HIGHLIGHTS.slice(5)].map((row, r) => (
+              <ul key={r} className={`flex gap-2 w-max ${r === 1 ? "marquee marquee-rev" : "marquee"}`} style={{ "--marquee-duration": `${22 + r * 6}s` } as React.CSSProperties}>
+                {[...row, ...row].map((h, i) => <li key={h + i} aria-hidden={i >= row.length ? true : undefined} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold whitespace-nowrap" style={{ background: "var(--paper-2)", color: "var(--ink)" }}><Check className="h-3.5 w-3.5" style={{ color: "var(--mint)" }} /> {h}</li>)}
+              </ul>
+            ))}
           </Reveal>
         </section>
         <Reveal as="section" className="mx-auto w-full max-w-5xl px-4 py-6 max-md:py-3">
-          <h2 className="display font-extrabold text-3xl sm:text-4xl mb-2">Bonito por fora, organizado por dentro</h2>
-          <p className="mb-2" style={{ color: "var(--muted-ink)" }}>A página do buffet tem cara de convite. O painel da dona tem cara de trabalho feito.</p>
+          <h2 className="display font-extrabold text-3xl sm:text-4xl mb-2 max-md:text-2xl max-md:mb-1">Bonito por fora, organizado por dentro</h2>
+          <p className="mb-2 max-md:text-sm" style={{ color: "var(--muted-ink)" }}>A página do buffet tem cara de convite. O painel da dona tem cara de trabalho feito.</p>
           <PolaroidGallery items={GALLERY} />
         </Reveal>
       </div>

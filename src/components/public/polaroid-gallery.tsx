@@ -14,9 +14,9 @@ export function PolaroidGallery({ items }: { items: GalleryItem[] }) {
     <div className="-mx-4 overflow-hidden" aria-roledescription="carrossel" aria-label="Fotos do buffet">
       <ul className={`flex gap-6 w-max px-4 py-4 ${animate ? "marquee" : ""}`} style={{ "--marquee-duration": `${Math.max(items.length * 7, 24)}s` } as React.CSSProperties}>
         {loop.map((g, i) => (
-          <li key={g.url + i} aria-hidden={i >= items.length ? true : undefined} className="polaroid shrink-0 bg-white p-3 pb-4 shadow-[0_10px_30px_rgba(27,31,58,0.15)] rounded-sm" style={{ transform: `rotate(${tilts[i % tilts.length]})` }}>
+          <li key={g.url + i} aria-hidden={i >= items.length ? true : undefined} className="polaroid shrink-0 bg-white p-2.5 pb-3 sm:p-3 sm:pb-4 shadow-[0_10px_30px_rgba(27,31,58,0.15)] rounded-sm" style={{ transform: `rotate(${tilts[i % tilts.length]})` }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={g.url} alt={i >= items.length ? "" : g.caption ?? "Foto do buffet"} className="h-52 w-72 sm:h-64 sm:w-80 object-cover rounded-[2px]" loading="lazy" draggable={false} />
+            <img src={g.url} alt={i >= items.length ? "" : g.caption ?? "Foto do buffet"} className="h-44 w-60 sm:h-64 sm:w-80 object-cover rounded-[2px]" loading="lazy" draggable={false} />
             {g.caption ? <p className="mt-3 text-sm font-semibold" style={{ color: "var(--ink)" }}>{g.caption}</p> : null}
           </li>
         ))}

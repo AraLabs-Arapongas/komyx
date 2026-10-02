@@ -30,11 +30,11 @@ const Row = ({ children, last }: { children: ReactNode; last?: boolean }) => (
 function OrcamentoScreen() {
   const steps = ["Pacote", "Data", "Pessoas", "Seus dados", "Revisão"];
   return (
-    <div className="h-full flex flex-col" style={{ background: "#fffdf7", color: ui.navy, fontFamily: "inherit" }}>
+    <div className="h-full flex flex-col @container" style={{ background: "#fffdf7", color: ui.navy, fontFamily: "inherit" }}>
       <div className="px-4 pt-3 pb-2">
         <p style={{ fontWeight: 800, fontSize: 15, color: ui.navy }}>Monte seu orçamento</p>
         <p style={{ fontSize: 10, color: "#5b5f7a" }}>Festa & Cia Buffet</p>
-        <div className="flex gap-1 mt-2">{steps.map((s, i) => <span key={s} className="rounded-full whitespace-nowrap" style={{ fontSize: 9, fontWeight: 800, padding: "3px 7px", background: i === 0 ? ui.navy : "#fff4e3", color: i === 0 ? "#fff" : ui.navy }}>{i + 1} {s}</span>)}</div>
+        <div className="flex gap-1 mt-2">{steps.map((s, i) => <span key={s} className="rounded-full whitespace-nowrap" style={{ fontSize: 9, fontWeight: 800, padding: "3px 7px", background: i === 0 ? ui.navy : "#fff4e3", color: i === 0 ? "#fff" : ui.navy }}>{i + 1}<span className={i === 0 ? "" : "@max-[360px]:hidden"}> {s}</span></span>)}</div>
       </div>
       <div className="px-4 space-y-1.5 flex-1">
         {[["Pacote Bronze", "20 adultos + 20 crianças", "R$ 2.500", false], ["Pacote Prata", "30 adultos + 30 crianças · bolo e mesa de frutas", "R$ 3.900", true], ["Pacote Ouro", "40 adultos + 40 crianças · open bar e fotógrafo", "R$ 5.900", false]].map(([n, d, v, sel]) => (
@@ -205,7 +205,7 @@ export function HeroSlides() {
   return (
     <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} aria-roledescription="carrossel" aria-label="Principais recursos">
       <div className="grid gap-6 max-md:gap-3 md:grid-cols-[0.95fr_1.05fr] md:items-center">
-        <div className="md:min-h-[380px] flex flex-col justify-center">
+        <div className="md:min-h-[380px] min-w-0 flex flex-col justify-center">
           <div key={`t${i}`} className="hero-fade">
             <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: "var(--ink)" }}>{s.icon} {s.eyebrow}</p>
             <h2 className="display font-extrabold text-2xl sm:text-4xl leading-[1.05] mt-3 md:mt-4">{s.title}</h2>
@@ -220,7 +220,7 @@ export function HeroSlides() {
             <span className="text-xs ml-auto tabular-nums" style={{ color: "#9da1bd" }}>{i + 1}/{SLIDES.length}</span>
           </div>
         </div>
-        <div key={`m${i}`} className="hero-fade mx-auto w-full max-w-md" style={{ fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif" }}>
+        <div key={`m${i}`} className="hero-fade mx-auto w-full min-w-0 max-w-md" style={{ fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif" }}>
           <Device s={s} />
           <p className="mt-3 max-md:mt-2 text-sm max-md:text-xs font-semibold flex items-center justify-center gap-1.5" style={{ color: "#cfd2e6" }}>{s.phone ? <Users className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />} {s.caption}</p>
         </div>
