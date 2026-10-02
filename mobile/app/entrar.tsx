@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useMemo, useRef, useState } from "react";
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from "react-native";
@@ -38,6 +38,7 @@ function toE164(input: string) {
 
 export default function Entrar() {
   const { height } = useWindowDimensions();
+  const { modo } = useLocalSearchParams<{ modo?: "buffet" | "cliente" }>();
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -110,8 +111,8 @@ export default function Entrar() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1, backgroundColor: colors.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -20 }} contentContainerStyle={{ padding: 24, paddingTop: 26, gap: 14, paddingBottom: 40 }}>
           <View>
-            <Text style={[styles.title, { fontSize: 22 }]}>Entrar</Text>
-            <Muted style={{ fontSize: 14 }}>Buffet: seu e-mail e senha. Cliente: o celular da reserva, com código por SMS.</Muted>
+            <Text style={[styles.title, { fontSize: 22 }]}>{modo === "cliente" ? "Acompanhar minha festa" : modo === "buffet" ? "Entrar no meu buffet" : "Entrar"}</Text>
+            <Muted style={{ fontSize: 14 }}>{modo === "cliente" ? "Digite o celular que você deu ao buffet na reserva. Mandamos um código por SMS." : modo === "buffet" ? "Seu e-mail e senha do Komyx. Equipe entra com o próprio e-mail." : "Buffet: seu e-mail e senha. Cliente: o celular da reserva, com código por SMS."}</Muted>
           </View>
 
           {DEV_ACCOUNTS.length ? (
@@ -127,8 +128,8 @@ export default function Entrar() {
             </View>
           ) : null}
 
-          <Field label="E-mail ou celular">
-            <Input value={id} onChangeText={(v: string) => { setId(maskPhoneInput(v)); setError(null); setCodeSent(false); }} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" placeholder="voce@buffet.com ou (11) 99999-0000" returnKeyType="next" editable={!codeSent} />
+          <Field label={modo === "cliente" ? "Celular da reserva" : modo === "buffet" ? "E-mail" : "E-mail ou celular"}>
+            <Input value={id} onChangeText={(v: string) => { setId(maskPhoneInput(v)); setError(null); setCodeSent(false); }} autoCapitalize="none" autoCorrect={false} autoFocus={Boolean(modo)} keyboardType={modo === "cliente" ? "phone-pad" : "email-address"} placeholder={modo === "cliente" ? "(11) 99999-0000" : modo === "buffet" ? "voce@buffet.com" : "voce@buffet.com ou (11) 99999-0000"} returnKeyType="next" editable={!codeSent} />
           </Field>
           {d.kind === "email" ? (
             <Field label="Senha"><Input value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" onSubmitEditing={() => go()} returnKeyType="go" /></Field>
