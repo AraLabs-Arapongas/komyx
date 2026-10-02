@@ -433,10 +433,10 @@ enabled = true
 project_id = "ggvkgxxadvhekmvccceu"
 
 [remotes.production.auth]
-site_url = "https://komyx.vercel.app"
-additional_redirect_urls = ["https://komyx.vercel.app", "https://komyx.vercel.app/**", "komyx://**"]
+site_url = "https://komyx.com.br"
+additional_redirect_urls = ["https://komyx.com.br", "https://komyx.com.br/**", "https://www.komyx.com.br/**", "https://komyx.vercel.app/**", "komyx://**"]
 
 [remotes.production.auth.hook.send_sms]
 enabled = true
-uri = "https://komyx.vercel.app/api/auth/send-sms"
+uri = "https://komyx.com.br/api/auth/send-sms"
 secrets = "env(SEND_SMS_HOOK_SECRET)"
