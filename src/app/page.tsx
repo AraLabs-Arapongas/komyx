@@ -11,6 +11,7 @@ import { ScrollCue } from "@/components/marketing/scroll-cue";
 import { Reveal } from "@/components/marketing/reveal";
 import { publicFontClass } from "@/lib/fonts";
 import { LAUNCH_PRICE } from "@/lib/billing";
+import { PriceCard } from "@/components/marketing/price-card";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata = { title: "Komyx · Gestão para buffets: agenda, orçamento, contrato e convite", description: "O cliente monta o orçamento e reserva com Pix pela sua página. Você confirma, gera o contrato e cobra pelo WhatsApp." };
@@ -58,7 +59,7 @@ export default function LandingPage() {
               <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98]" style={{ background: "var(--berry)", color: "#fff" }}><Sparkles className="h-5 w-5" /> Criar meu buffet</Link>
               <Link href="/p/festa-cia-buffet" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold text-base ring-2 ring-inset ring-white/30 hover:bg-white/10">Ver uma página de buffet</Link>
             </div>
-            <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}>{formatCurrency(LAUNCH_PRICE)}/mês, tudo incluído. Cancele quando quiser.</p>
+            <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}>Tudo incluído, a partir de {formatCurrency(LAUNCH_PRICE)}/mês no plano anual.</p>
           </div>
         </div>
         <div className="snap-page relative mx-auto w-full max-w-5xl px-4 pb-14 sm:pb-20 pt-2 max-md:py-5 max-md:flex max-md:flex-col max-md:justify-center">
@@ -111,14 +112,10 @@ export default function LandingPage() {
         <Reveal className="grid gap-8 md:grid-cols-[1fr_1fr] md:items-center max-md:gap-5">
           <div data-stagger>
             <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: "var(--ink)" }}>Oferta de lançamento</p>
-            <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4 max-md:mt-3">Um plano, tudo incluído.</h2>
-            <p className="mt-3 max-md:mt-2 max-md:text-sm" style={{ color: "var(--muted-ink)" }}>Quem entra agora fica com todos os recursos, inclusive os que um dia virarão Premium, por este preço. Para sempre. Sem taxa por festa, sem fidelidade: cancele e reative quando quiser.</p>
+            <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4 max-md:mt-3">Um plano, tudo incluído. Você escolhe o período.</h2>
+            <p className="mt-3 max-md:mt-2 max-md:text-sm max-md:line-clamp-3" style={{ color: "var(--muted-ink)" }}>Todos os recursos em qualquer período, inclusive os que um dia virarão Premium. Quanto maior o período, menor o valor por mês: de R$ 149 no mensal a R$ 99 no anual. Sem taxa por festa; ao fim do período, renova ou para, você decide.</p>
           </div>
-          <div data-stagger className="rounded-3xl bg-white border-2 p-6 max-md:p-4 space-y-4 max-md:space-y-3 shadow-[0_18px_50px_rgba(27,31,58,0.12)]" style={{ borderColor: "var(--berry)" }}>
-            <div className="flex items-baseline justify-between gap-3 flex-wrap"><p className="display font-extrabold text-xl">Komyx completo</p><p className="display font-extrabold text-4xl" style={{ color: "var(--berry)" }}>{formatCurrency(LAUNCH_PRICE)}<span className="text-sm font-bold" style={{ color: "var(--muted-ink)" }}>/mês</span></p></div>
-            <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm max-md:gap-x-3 max-md:gap-y-1.5 max-md:text-xs">{ALL_FEATURES.map((i) => <li key={i} className="flex gap-2"><Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--mint)" }} /> {i}</li>)}</ul>
-            <Link href="/signup" className="inline-flex w-full items-center justify-center h-14 rounded-full font-extrabold text-base" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet por {formatCurrency(LAUNCH_PRICE)}/mês</Link>
-          </div>
+          <div data-stagger><PriceCard features={ALL_FEATURES} /></div>
         </Reveal>
       </section>
 
