@@ -120,3 +120,7 @@ Clientes entram no app com o celular: o Supabase gera o código e chama o hook `
 ## App mobile (Expo)
 
 Em `mobile/` há o app React Native para dona/equipe (login) e clientes (sem conta). Veja [mobile/README.md](mobile/README.md). Usa o mesmo Supabase; o cliente entra com o celular (código por SMS via Comtele, hook `send_sms` do Supabase) e o lado cliente passa por funções `security definer` (`my_reservations`, `reservation_by_token`, `guest_link`, `confirm_guest`).
+
+## Landing
+
+A home do Festeja (`/`) usa prints reais do produto em `public/landing/`. Para atualizá-los com o servidor e o seed no ar: `node scripts/landing-shots.mjs`. Pré-visualização rápida: `node scripts/landing-preview.mjs <pasta>`.

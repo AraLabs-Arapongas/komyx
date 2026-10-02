@@ -1,126 +1,70 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
-import { ChevronLeft, ChevronRight, Check, MessageCircle, QrCode, Calendar, FileSignature, DoorOpen, Calculator } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Calculator, QrCode, Calendar, FileSignature, MessageCircle, DoorOpen } from "lucide-react";
 
-type Slide = { icon: ReactNode; eyebrow: string; title: string; text: string; mock: ReactNode };
-
-const ink = "var(--ink)";
-const muted = "var(--muted-ink)";
-
-function Pill({ children, color = "var(--mint)" }: { children: ReactNode; color?: string }) {
-  return <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-extrabold" style={{ background: color, color: ink }}>{children}</span>;
-}
+type Slide = { key: string; Icon: typeof Calculator; eyebrow: string; title: string; text: string; image: string; frame: "desktop" | "phone"; alt: string };
 
 const SLIDES: Slide[] = [
-  {
-    icon: <Calculator className="h-4 w-4" />, eyebrow: "Orçamento online",
-    title: "O cliente monta o orçamento em 2 minutos.",
-    text: "Pacote, tema, data no calendário com os dias ocupados, quantas pessoas. Ele vê o valor na hora e você recebe tudo pronto.",
-    mock: (
-      <div className="space-y-2">
-        <div className="flex gap-1 text-[10px] font-extrabold">{["Pacote", "Data", "Pessoas", "Seus dados", "Revisão"].map((s, i) => <span key={s} className="rounded-full px-2 py-1" style={{ background: i === 0 ? ink : "var(--paper-2)", color: i === 0 ? "#fff" : ink }}>{i + 1} {s}</span>)}</div>
-        {[["Pacote Bronze", "R$ 2.500"], ["Pacote Prata", "R$ 3.900"]].map(([n, v], i) => <div key={n} className="flex justify-between rounded-xl border-2 px-3 py-2 text-sm font-bold" style={{ borderColor: i === 1 ? "var(--berry)" : "#ece7dc" }}><span>{n}</span><span style={{ color: "var(--berry)" }}>{v}</span></div>)}
-        <div className="flex items-center justify-between rounded-2xl px-3 py-2 text-white" style={{ background: ink }}><span className="display font-extrabold text-lg">R$ 3.900</span><span className="rounded-full px-3 py-1 text-xs font-extrabold" style={{ background: "var(--berry)" }}>Continuar</span></div>
-      </div>
-    ),
-  },
-  {
-    icon: <QrCode className="h-4 w-4" />, eyebrow: "Reserva com Pix",
-    title: "A data fica segura com o sinal por Pix.",
-    text: "QR e copia-e-cola com o valor do sinal e um identificador. Prazo que você define; passou, a data volta a ficar livre sozinha.",
-    mock: (
-      <div className="grid grid-cols-[88px_1fr] gap-3 items-center">
-        <div className="h-22 w-22 rounded-lg p-1.5 bg-white" aria-hidden="true"><div className="h-full w-full" style={{ backgroundImage: "repeating-linear-gradient(0deg, #1b1f3a 0 6px, transparent 6px 12px), repeating-linear-gradient(90deg, #1b1f3a 0 6px, transparent 6px 12px)", backgroundBlendMode: "multiply", opacity: 0.85 }} /></div>
-        <div className="text-sm space-y-1">
-          <p className="font-extrabold">Sinal · R$ 1.170,00</p>
-          <p style={{ color: muted }}>Data segura até <b style={{ color: ink }}>sáb 17:32</b></p>
-          <p className="text-xs rounded-lg px-2 py-1 bg-white inline-block">Identificador <b>FESTA9F2A1C</b></p>
-          <Pill>Confirmada ao cair o Pix</Pill>
-        </div>
-      </div>
-    ),
-  },
-  {
-    icon: <Calendar className="h-4 w-4" />, eyebrow: "Agenda",
-    title: "Uma festa por dia. Nunca duas.",
-    text: "A agenda bloqueia o dia reservado, mostra o que vence e deixa a dona decidir quando abrir exceção.",
-    mock: (
-      <div className="space-y-1.5">
-        <div className="grid grid-cols-7 gap-1 text-[10px] font-bold text-center" style={{ color: muted }}>{["D", "S", "T", "Q", "Q", "S", "S"].map((d, i) => <span key={i}>{d}</span>)}</div>
-        <div className="grid grid-cols-7 gap-1">{Array.from({ length: 21 }, (_, i) => { const tone = i === 5 ? "var(--mint)" : i === 12 ? "var(--sun)" : i === 19 ? "var(--mint)" : null; return <span key={i} className="h-7 rounded-md text-[10px] font-bold grid place-items-center" style={{ background: tone ?? "var(--paper-2)", color: ink }}>{i + 1}</span>; })}</div>
-        <div className="flex gap-2 text-[11px] font-bold"><Pill color="var(--sun)">Aguardando sinal</Pill><Pill>Confirmada</Pill></div>
-      </div>
-    ),
-  },
-  {
-    icon: <FileSignature className="h-4 w-4" />, eyebrow: "Contrato",
-    title: "O contrato se escreve sozinho.",
-    text: "Seu modelo preenchido com cliente, data, itens e parcelas no momento do aceite. O cliente lê e aceita pelo link.",
-    mock: (
-      <div className="rounded-xl bg-white p-3 text-[11px] leading-relaxed space-y-1" style={{ color: ink }}>
-        <p className="font-extrabold">CONTRATO Nº 12</p>
-        <p>CONTRATANTE: <b>Carla Mendes</b> · CPF ···789</p>
-        <p>EVENTO: Aniversário da Júlia · <b>06/10 · 15h–19h</b> · 65 pessoas</p>
-        <p>VALOR: <b>R$ 4.525,00</b> · 30% no aceite, 70% até 7 dias antes</p>
-        <p className="pt-1"><Pill>Aceito pela cliente · 01/10 11:56</Pill></p>
-      </div>
-    ),
-  },
-  {
-    icon: <MessageCircle className="h-4 w-4" />, eyebrow: "Cobrança",
-    title: "Cobrar sem constrangimento.",
-    text: "Parcelas, extras do dia e saldo com um botão: mensagem pronta no WhatsApp, Pix do valor exato e link da reserva.",
-    mock: (
-      <div className="space-y-2">
-        <div className="rounded-2xl rounded-bl-sm bg-white p-3 text-xs max-w-[85%]" style={{ color: ink }}>Oi, Carla! Segue o que ficou em aberto da festa da Júlia:<br />• Pedidos extras: <b>R$ 180,00</b><br />Pix copia e cola: <span style={{ color: muted }}>00020126…</span></div>
-        <div className="flex gap-2 text-[11px] font-bold"><Pill color="var(--berry)"><span className="text-white">Cobrar R$ 180,00</span></Pill><Pill>Recebida</Pill></div>
-      </div>
-    ),
-  },
-  {
-    icon: <DoorOpen className="h-4 w-4" />, eyebrow: "Portaria",
-    title: "Quem está na porta resolve no celular.",
-    text: "Marca quem chegou, adiciona convidado de última hora, registra o bolo extra e fecha a conta com Pix antes de a festa acabar.",
-    mock: (
-      <div className="space-y-1.5 text-sm">
-        {[["Família Oliveira", "2A 2C", true], ["Tia Lúcia", "2A", true], ["Pedro e Bia", "2A 1C", false]].map(([n, p, ok]) => <div key={String(n)} className="flex items-center justify-between rounded-xl bg-white px-3 py-1.5"><span className="font-bold">{ok ? <Check className="inline h-4 w-4 mr-1" style={{ color: "var(--mint)" }} /> : null}{String(n)} <span style={{ color: muted }}>· {String(p)}</span></span><span className="rounded-full px-2 py-0.5 text-[11px] font-extrabold" style={{ background: ok ? "var(--paper-2)" : ink, color: ok ? muted : "#fff" }}>{ok ? "Chegou" : "Marcar"}</span></div>)}
-        <div className="flex items-center justify-between rounded-xl px-3 py-1.5 text-xs font-extrabold" style={{ background: "var(--sun)", color: ink }}><span>Fechar conta · extras R$ 220</span><span>Recebido · Pix</span></div>
-      </div>
-    ),
-  },
+  { key: "home", Icon: Calendar, eyebrow: "Início do dia", title: "Abre o app e já sabe o que fazer.", text: "Reservas vencendo, pedidos de orçamento novos, a festa de hoje e quanto falta receber. Confirmar, liberar data e responder no WhatsApp, tudo com um toque.", image: "/landing/home.png", frame: "desktop", alt: "Tela inicial do Festeja com ação urgente e novas solicitações" },
+  { key: "orcamento", Icon: Calculator, eyebrow: "Orçamento online", title: "O cliente monta o orçamento sozinho, em 2 minutos.", text: "Pacote, tema, data no calendário com os dias já ocupados, quantas pessoas. Vê o valor na hora e chega para você como solicitação pronta para virar evento, sem redigitar nada.", image: "/landing/orcamento.png", frame: "desktop", alt: "Passo da data no orçamento online, com calendário e dias ocupados" },
+  { key: "reserva", Icon: QrCode, eyebrow: "Reserva com Pix", title: "A data fica segura com o sinal por Pix.", text: "QR e copia-e-cola com o valor exato e um identificador que aparece no seu extrato. Prazo que você define; passou, a data volta a ficar livre sozinha. O cliente acompanha tudo pelo link dele.", image: "/landing/reserva.png", frame: "phone", alt: "Página da reserva do cliente com orçamento, parcelas e link permanente" },
+  { key: "contrato", Icon: FileSignature, eyebrow: "Contrato automático", title: "O contrato se escreve sozinho e fica guardado.", text: "No aceite do orçamento, o Festeja preenche o seu modelo com cliente, data, itens e parcelas, numera, registra e manda o link para o cliente aceitar. Nada redigido um a um, nada perdido em pasta.", image: "/landing/contrato.png", frame: "desktop", alt: "Contrato gerado automaticamente a partir do orçamento aceito" },
+  { key: "pagamentos", Icon: MessageCircle, eyebrow: "Parcelas e cobrança", title: "Cada parcela, cada extra, com o que falta e um botão Cobrar.", text: "Sinal, saldo e pedidos do dia da festa com status paga, parcial ou em aberto. 'Recebida' registra; 'Cobrar' abre o WhatsApp com a mensagem pronta e o Pix do valor exato.", image: "/landing/pagamentos.png", frame: "desktop", alt: "Card de pagamentos com parcelas, recebimentos e botão Cobrar" },
+  { key: "portaria", Icon: DoorOpen, eyebrow: "Dia da festa", title: "Quem está na porta resolve pelo celular.", text: "Marca quem chegou, adiciona convidado de última hora, registra o bolo extra e fecha a conta com Pix antes de a festa acabar. Sem ligar para a dona.", image: "/landing/portaria.png", frame: "phone", alt: "Portaria no celular com pedidos extras e fechar conta" },
 ];
 
-/** Hero carousel: one slide per core feature, with a hand-built mock. Auto-advances, pauses on hover. */
+function Frame({ s }: { s: Slide }) {
+  if (s.frame === "phone") {
+    return (
+      <div className="mx-auto h-[420px] w-[214px] rounded-[2rem] p-2 shadow-[0_24px_60px_rgba(0,0,0,0.45)]" style={{ background: "#0b0e22" }}>
+        <div className="h-full w-full rounded-[1.6rem] overflow-hidden bg-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={s.image} alt={s.alt} className="h-full w-full object-cover object-top" />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="h-[420px] w-full rounded-2xl overflow-hidden shadow-[0_24px_60px_rgba(0,0,0,0.45)] flex flex-col" style={{ background: "#0b0e22" }}>
+      <div className="flex items-center gap-1.5 px-3 h-8 shrink-0"><span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" /><span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" /><span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" /><span className="ml-3 h-4 flex-1 rounded-md bg-white/10" /></div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={s.image} alt={s.alt} className="flex-1 min-h-0 w-full object-cover object-left-top bg-white" />
+    </div>
+  );
+}
+
+/** Hero carousel: one slide per core feature with a real product screenshot. Fixed height, auto-advances, pauses on hover. */
 export function HeroSlides() {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   useEffect(() => {
     if (paused) return;
-    const t = setInterval(() => setI((v) => (v + 1) % SLIDES.length), 6000);
+    const t = setInterval(() => setI((v) => (v + 1) % SLIDES.length), 7000);
     return () => clearInterval(t);
   }, [paused]);
   const s = SLIDES[i];
   return (
-    <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} aria-roledescription="carrossel" aria-label="Principais recursos">
-      <div className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-center">
-        <div key={`t${i}`} className="hero-fade">
-          <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: ink }}>{s.icon} {s.eyebrow}</p>
-          <h2 className="display font-extrabold text-3xl sm:text-4xl leading-[1.05] mt-4">{s.title}</h2>
-          <p className="mt-3 text-base/relaxed" style={{ color: "#cfd2e6" }}>{s.text}</p>
+    <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} aria-roledescription="carrossel" aria-label="Principais recursos">
+      <div className="grid gap-8 md:grid-cols-[0.95fr_1.05fr] md:items-center">
+        <div className="md:min-h-[300px] flex flex-col justify-center">
+          <div key={s.key} className="hero-fade">
+            <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: "var(--ink)" }}><s.Icon className="h-4 w-4" /> {s.eyebrow}</p>
+            <h2 className="display font-extrabold text-3xl sm:text-4xl leading-[1.05] mt-4">{s.title}</h2>
+            <p className="mt-3 text-base/relaxed" style={{ color: "#cfd2e6" }}>{s.text}</p>
+          </div>
+          <div className="mt-6 flex items-center gap-3">
+            <button type="button" onClick={() => setI((i - 1 + SLIDES.length) % SLIDES.length)} className="h-10 w-10 rounded-full grid place-items-center ring-2 ring-inset ring-white/30 hover:bg-white/10" aria-label="Anterior"><ChevronLeft className="h-5 w-5" /></button>
+            <div className="flex gap-2" role="tablist">
+              {SLIDES.map((sl, k) => <button key={sl.key} type="button" role="tab" aria-selected={k === i} aria-label={sl.eyebrow} onClick={() => setI(k)} className="h-2.5 rounded-full transition-all" style={{ width: k === i ? 28 : 10, background: k === i ? "var(--sun)" : "rgba(255,255,255,0.35)" }} />)}
+            </div>
+            <button type="button" onClick={() => setI((i + 1) % SLIDES.length)} className="h-10 w-10 rounded-full grid place-items-center ring-2 ring-inset ring-white/30 hover:bg-white/10" aria-label="Próximo"><ChevronRight className="h-5 w-5" /></button>
+            <span className="text-xs ml-auto tabular-nums" style={{ color: "#9da1bd" }}>{i + 1}/{SLIDES.length}</span>
+          </div>
         </div>
-        <div key={`m${i}`} className="hero-fade polaroid bg-white p-3 pb-4 rounded-sm shadow-[0_24px_60px_rgba(0,0,0,0.45)] mx-auto w-full max-w-sm" style={{ transform: "rotate(-1.5deg)", color: ink }}>
-          <div className="rounded-xl p-3" style={{ background: "var(--paper)" }}>{s.mock}</div>
-          <p className="mt-3 text-sm font-semibold">{s.eyebrow}</p>
+        <div key={`f${s.key}`} className="hero-fade h-[420px]">
+          <Frame s={s} />
         </div>
-      </div>
-      <div className="mt-6 flex items-center gap-3">
-        <button type="button" onClick={() => setI((i - 1 + SLIDES.length) % SLIDES.length)} className="h-10 w-10 rounded-full grid place-items-center ring-2 ring-inset ring-white/30 hover:bg-white/10" aria-label="Anterior"><ChevronLeft className="h-5 w-5" /></button>
-        <div className="flex gap-2" role="tablist">
-          {SLIDES.map((sl, k) => <button key={sl.eyebrow} type="button" role="tab" aria-selected={k === i} aria-label={sl.eyebrow} onClick={() => setI(k)} className="h-2.5 rounded-full transition-all" style={{ width: k === i ? 28 : 10, background: k === i ? "var(--sun)" : "rgba(255,255,255,0.35)" }} />)}
-        </div>
-        <button type="button" onClick={() => setI((i + 1) % SLIDES.length)} className="h-10 w-10 rounded-full grid place-items-center ring-2 ring-inset ring-white/30 hover:bg-white/10" aria-label="Próximo"><ChevronRight className="h-5 w-5" /></button>
-        <span className="text-xs ml-auto" style={{ color: "#9da1bd" }}>{i + 1}/{SLIDES.length}</span>
       </div>
     </div>
   );
