@@ -1,7 +1,8 @@
 import { type ReactNode } from "react";
-import { Text, View, useWindowDimensions } from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
-import { Bunting, party } from "./party";
+import { Bunting, PartyBackdrop, party } from "./party";
 
 function Balloon({ color, size, style }: { color: string; size: number; style: object }) {
   return (
@@ -17,25 +18,40 @@ function Balloon({ color, size, style }: { color: string; size: number; style: o
 }
 
 /**
- * Ink banner with bunting and two balloons: the top of Início, Minhas festas and Menu. Static (no
- * animation) so it is cheap on long-lived screens.
+ * Ink banner with bunting and balloons at the top of Início, Minhas festas and Menu. Sits under
+ * the status bar (safe-area aware). `animated` adds floating balloons and confetti rain.
  */
-export function FestiveHeader({ eyebrow, title, subtitle, right, children, compact }: { eyebrow?: string; title: string; subtitle?: string; right?: ReactNode; children?: ReactNode; compact?: boolean }) {
+export function FestiveHeader({ eyebrow, title, subtitle, right, children, compact, animated }: { eyebrow?: string; title: string; subtitle?: string; right?: ReactNode; children?: ReactNode; compact?: boolean; animated?: boolean }) {
   const { width } = useWindowDimensions();
+  const { top } = useSafeAreaInsets();
+  const height = top + (compact ? 96 : 132) + (children ? 0 : 0);
   return (
-    <View style={{ backgroundColor: party.ink, overflow: "hidden", paddingHorizontal: 16, paddingTop: compact ? 44 : 50, paddingBottom: compact ? 18 : 22, marginHorizontal: -16, marginTop: -16, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}>
-      <Bunting width={width} y={0} flags={9} size={0.9} />
-      <Balloon color={party.berry} size={74} style={{ right: 14, top: 34, transform: [{ rotate: "6deg" }], opacity: 0.95 }} />
-      <Balloon color={party.sky} size={52} style={{ right: 58, top: 56, transform: [{ rotate: "-8deg" }], opacity: 0.9 }} />
-      <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
+    <View style={{ backgroundColor: party.ink, overflow: "hidden", marginHorizontal: -16, marginTop: -16, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, minHeight: height }}>
+      {animated ? <View style={StyleSheet.absoluteFill}><PartyBackdrop density={0.35} bunting={false} height={height} /></View> : null}
+      <Bunting width={width} y={top - 2} flags={9} size={0.9} />
+      <Balloon color={party.berry} size={74} style={{ right: 14, top: top + 26, transform: [{ rotate: "6deg" }], opacity: 0.95 }} />
+      <Balloon color={party.sky} size={52} style={{ right: 58, top: top + 48, transform: [{ rotate: "-8deg" }], opacity: 0.9 }} />
+      <View style={{ paddingTop: top + 38, paddingHorizontal: 16, paddingBottom: compact ? 18 : 22, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
         <View style={{ flex: 1, paddingRight: 70 }}>
           {eyebrow ? <Text style={{ color: party.sun, fontSize: 12, fontWeight: "800", letterSpacing: 1, textTransform: "uppercase" }}>{eyebrow}</Text> : null}
-          <Text style={{ color: "#fff", fontSize: compact ? 22 : 26, fontWeight: "900", letterSpacing: -0.5, marginTop: 4 }} numberOfLines={2}>{title}</Text>
+          <Text style={{ color: "#fff", fontSize: compact ? 22 : 28, fontWeight: "900", letterSpacing: -0.5, marginTop: 4 }} numberOfLines={2}>{title}</Text>
           {subtitle ? <Text style={{ color: "#cfd2e6", fontSize: 13, fontWeight: "600", marginTop: 2 }} numberOfLines={2}>{subtitle}</Text> : null}
         </View>
         {right}
       </View>
       {children}
+    </View>
+  );
+}
+
+/** Faint confetti sprinkled over a cream background (static), for screens that would otherwise be plain. */
+export function Sprinkles({ height = 420 }: { height?: number }) {
+  const { width } = useWindowDimensions();
+  const COLORS = [party.berry, party.sun, party.sky, party.mint, party.orange];
+  const pieces = Array.from({ length: 22 }, (_, i) => ({ x: ((i * 41 + 7) % 100) / 100 * width, y: ((i * 67 + 13) % 100) / 100 * height, s: 4 + (i % 3) * 2, c: COLORS[i % 5], r: (i * 37) % 180, round: i % 3 === 0 }));
+  return (
+    <View pointerEvents="none" style={{ position: "absolute", left: 0, right: 0, top: 0, height }}>
+      {pieces.map((p, i) => <View key={i} style={{ position: "absolute", left: p.x, top: p.y, width: p.round ? p.s : p.s * 0.5, height: p.round ? p.s : p.s * 1.6, borderRadius: p.round ? 99 : 1, backgroundColor: p.c, opacity: 0.35, transform: [{ rotate: `${p.r}deg` }] }} />)}
     </View>
   );
 }

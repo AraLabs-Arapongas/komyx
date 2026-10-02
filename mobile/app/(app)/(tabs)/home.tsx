@@ -64,6 +64,7 @@ export default function Home() {
     <>
       <Screen refreshing={q.isFetching} onRefresh={() => { q.refetch(); unread.refetch(); }}>
         <FestiveHeader
+          animated
           eyebrow={formatDateLong(new Date())}
           title={`Olá, ${profile?.name.split(" ")[0] ?? ""}!`}
           subtitle={org?.name}
