@@ -134,25 +134,3 @@ html[data-privacy="on"] .money {
 @keyframes hero-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .public-theme .hero-fade { animation: hero-fade 0.45s ease both; }
 @media (prefers-reduced-motion: reduce) { .public-theme .hero-fade { animation: none; } }
-
-/* Festeja landing: sibling of the buffet pages, not a twin — navy + Festeja orange, confetti instead of bunting. */
-.public-theme.festeja-landing {
-  --ink: #141a3a;
-  --berry: #ea580c;
-  --berry-deep: #c2410c;
-  --brand: #ea580c;
-  --brand-soft: #fff1e8;
-  --sun: #ffc43d;
-  --mint: #2ec4a6;
-}
-.festeja-landing .confetti {
-  background-image:
-    radial-gradient(circle at 12% 18%, rgba(255,196,61,0.35) 0 4px, transparent 5px),
-    radial-gradient(circle at 78% 12%, rgba(46,196,166,0.35) 0 3px, transparent 4px),
-    radial-gradient(circle at 60% 30%, rgba(234,88,12,0.35) 0 4px, transparent 5px),
-    radial-gradient(circle at 30% 70%, rgba(76,181,245,0.3) 0 3px, transparent 4px),
-    radial-gradient(circle at 88% 64%, rgba(255,196,61,0.3) 0 3px, transparent 4px),
-    radial-gradient(circle at 44% 92%, rgba(46,196,166,0.3) 0 4px, transparent 5px),
-    radial-gradient(circle at 92% 90%, rgba(234,88,12,0.3) 0 3px, transparent 4px);
-  background-size: 420px 420px;
-}
