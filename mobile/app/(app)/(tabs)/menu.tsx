@@ -46,6 +46,7 @@ export default function Menu() {
         <Item icon="laptop-outline" label="Komyx na web (configurações, pacotes, contratos)" onPress={() => Linking.openURL(`${WEB_URL}/home`)} />
         {profile?.role === "owner" ? <Item icon="tablet-landscape-outline" label={kiosk?.enabled ? "Modo quiosque (ativo) · configurar" : "Modo quiosque (tablet na portaria)"} href="/(app)/quiosque-config" /> : null}
         {kiosk?.enabled ? <Item icon="lock-closed-outline" label="Voltar ao modo quiosque" href="/(app)/quiosque" /> : null}
+        {__DEV__ || profile?.is_platform_admin || profile?.role === "owner" ? <Item icon="construct-outline" label="Dev tools (splash, onboarding, quiosque)" href="/dev" /> : null}
         <Item icon="people-outline" label="Entrar como cliente (testar)" href="/entrar" />
       </View>
       <View style={{ padding: 16 }}>
