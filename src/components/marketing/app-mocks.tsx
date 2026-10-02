@@ -1,4 +1,5 @@
 import { Check, MessageCircle, QrCode, Bell, Home, Calendar, Inbox, Menu } from "lucide-react";
+import { Reveal } from "./reveal";
 
 const ink = "var(--ink)";
 const muted = "var(--muted-ink)";
@@ -6,7 +7,7 @@ const muted = "var(--muted-ink)";
 /** CSS phone frame; content is plain JSX styled like the real app. */
 function Phone({ title, children, tint = "var(--berry)" }: { title: string; children: React.ReactNode; tint?: string }) {
   return (
-    <figure className="mx-auto w-[250px]">
+    <figure data-stagger className="float-slow mx-auto w-[250px]">
       <div className="rounded-[2.2rem] p-2 shadow-[0_24px_60px_rgba(27,31,58,0.35)]" style={{ background: ink }}>
         <div className="rounded-[1.8rem] overflow-hidden bg-[#faf7f2] text-[#1c1917]" style={{ fontFamily: "ui-sans-serif, system-ui, sans-serif" }}>
           <div className="h-6 flex items-center justify-center"><span className="h-4 w-20 rounded-full" style={{ background: ink }} /></div>
@@ -35,12 +36,12 @@ const Btn = ({ children, solid }: { children: React.ReactNode; solid?: boolean }
 export function AppMocks() {
   return (
     <section className="mx-auto max-w-5xl px-4 py-14">
-      <div className="text-center max-w-2xl mx-auto">
+      <Reveal className="text-center max-w-2xl mx-auto">
         <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: ink }}>Tem app</p>
         <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4">No celular da dona, da portaria e do cliente.</h2>
         <p className="mt-3" style={{ color: muted }}>O mesmo Festeja em três mãos: quem vende confirma de qualquer lugar, quem está na porta resolve a festa em tempo real, e o cliente acompanha tudo sem ligar para perguntar.</p>
-      </div>
-      <div className="mt-10 grid gap-10 md:grid-cols-3 md:items-start">
+      </Reveal>
+      <Reveal className="mt-10 grid gap-10 md:grid-cols-3 md:items-start">
         <Phone title="A dona, no dia a dia">
           <div className="flex items-center justify-between py-2"><b className="text-sm">Olá, Dona</b><Bell className="h-4 w-4" /></div>
           <p className="mb-2" style={{ color: "#78716c" }}><b className="text-[#1c1917]">Hoje:</b> 1 evento · 1 ação urgente · 2 novas solicitações</p>
@@ -63,7 +64,7 @@ export function AppMocks() {
           <Card><div className="flex items-center justify-between"><b>Contrato nº 12</b><Btn>Ler e aceitar</Btn></div></Card>
           <p className="text-center"><Btn><MessageCircle className="h-3 w-3 mr-1" /> Falar com o buffet</Btn></p>
         </Phone>
-      </div>
+      </Reveal>
     </section>
   );
 }

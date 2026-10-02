@@ -91,6 +91,7 @@ function slides(): Slide[] { return [
     ),
   },
 ]; }
+const SLIDES = slides();
 
 /** Hero carousel: one slide per core feature, with a hand-built mock. Auto-advances, pauses on hover. */
 export function HeroSlides() {
@@ -101,7 +102,6 @@ export function HeroSlides() {
     const t = setInterval(() => setI((v) => (v + 1) % SLIDES.length), 6000);
     return () => clearInterval(t);
   }, [paused]);
-  const SLIDES = slides();
   const s = SLIDES[i];
   return (
     <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} aria-roledescription="carrossel" aria-label="Principais recursos">
