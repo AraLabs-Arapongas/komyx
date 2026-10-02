@@ -1,8 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 184 184">
-  <rect width="184" height="184" rx="40" fill="#1b1f3a"/>
-  <g fill="#ffc43d" fill-rule="evenodd" transform="translate(0 7)">
-    <path d="M34 14 L72 14 L72 156 L28 156 Z"/>
-    <path d="M72 86 L122 40 C132 30 148 24 160 30 C170 35 178 44 184 52 L164 56 C158 68 146 76 132 72 L72 128 Z M150 40 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0 Z"/>
-    <path d="M72 130 L102 104 C128 112 150 130 168 156 L124 156 C116 144 106 136 96 132 L72 152 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <mask id="k">
+      <rect width="200" height="200" fill="#fff"/>
+      <g fill="none" stroke="#000" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" transform="translate(5 0)">
+        <path d="M68 50 V128"/><path d="M80 94 L122 128"/><path d="M80 94 L118 54"/>
+      </g>
+    </mask>
+  </defs>
+  <rect width="200" height="200" rx="44" fill="#1b1f3a"/>
+  <g fill="#ffc43d" transform="translate(5 0)">
+    <path mask="url(#k)" transform="translate(-5 0)" d="M100 8 C 147 8 179 44 179 90 C 179 130 147 158 100 164 C 53 158 21 130 21 90 C 21 44 53 8 100 8 Z"/>
+    <path d="M86 164 L95 178 L104 164 Z"/>
+    <path fill="none" stroke="#ffc43d" stroke-width="4" stroke-linecap="round" d="M95 178 C 97 186 88 190 94 198"/>
   </g>
 </svg>
