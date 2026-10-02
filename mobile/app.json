@@ -1,21 +1,21 @@
 {
   "expo": {
-    "name": "Festeja",
-    "slug": "festeja",
+    "name": "Komyx",
+    "slug": "komyx",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "festeja",
+    "scheme": "komyx",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aralabs.festeja",
+      "bundleIdentifier": "com.aralabs.komyx",
       "associatedDomains": [
-        "applinks:festeja.app"
+        "applinks:komyx.app"
       ]
     },
     "android": {
-      "package": "com.aralabs.festeja",
+      "package": "com.aralabs.komyx",
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
@@ -29,12 +29,12 @@
           "data": [
             {
               "scheme": "https",
-              "host": "festeja.app",
+              "host": "komyx.app",
               "pathPrefix": "/r/"
             },
             {
               "scheme": "https",
-              "host": "festeja.app",
+              "host": "komyx.app",
               "pathPrefix": "/g/"
             }
           ],

@@ -6,10 +6,10 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: "Festeja", template: "%s · Festeja" },
+  title: { default: "Komyx", template: "%s · Komyx" },
   description: "Agenda, reservas, orçamentos, convidados e pagamentos para o seu buffet.",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "Festeja" },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Komyx" },
   icons: { icon: "/icons/icon-192.png", apple: "/icons/icon-192.png" },
 };
 

@@ -21,7 +21,7 @@ export type AgendaEvent = {
 };
 
 type View = "list" | "month" | "week";
-const VIEW_KEY = "festeja:agenda-view";
+const VIEW_KEY = "komyx:agenda-view";
 
 const WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 const MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];

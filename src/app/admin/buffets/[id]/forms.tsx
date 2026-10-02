@@ -24,7 +24,7 @@ export function OrgAdminForm({ org }: { org: { id: string; slug: string; plan: s
         <Field label="Vencimento da fatura" htmlFor="billing_due_at"><Input id="billing_due_at" name="billing_due_at" type="date" defaultValue={org.billing_due_at ?? ""} /></Field>
         <Field label="Cobrança" htmlFor="billing_status"><Select id="billing_status" name="billing_status" defaultValue={org.billing_status}><option value="ok">Em dia</option><option value="trial">Teste grátis</option><option value="due">A vencer</option><option value="overdue">Vencida</option></Select></Field>
       </div>
-      <Field label="Notas internas (só o Festeja vê)" htmlFor="notes"><Textarea id="notes" name="notes" defaultValue={org.notes ?? ""} className="min-h-20" placeholder="Ex.: cliente desde a fase piloto, pagou anual" /></Field>
+      <Field label="Notas internas (só o Komyx vê)" htmlFor="notes"><Textarea id="notes" name="notes" defaultValue={org.notes ?? ""} className="min-h-20" placeholder="Ex.: cliente desde a fase piloto, pagou anual" /></Field>
       <SubmitButton size="sm">Salvar</SubmitButton>
     </form>
   );

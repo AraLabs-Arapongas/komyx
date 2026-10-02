@@ -12,7 +12,7 @@ import { publicFontClass } from "@/lib/fonts";
 import { LAUNCH_PRICE } from "@/lib/billing";
 import { formatCurrency } from "@/lib/utils";
 
-export const metadata = { title: "Festeja · agenda, orçamento, contrato e convite do seu buffet", description: "O cliente monta o orçamento e reserva com Pix pela sua página. Você confirma, gera o contrato e cobra pelo WhatsApp." };
+export const metadata = { title: "Komyx · Gestão para buffets: agenda, orçamento, contrato e convite", description: "O cliente monta o orçamento e reserva com Pix pela sua página. Você confirma, gera o contrato e cobra pelo WhatsApp." };
 
 const STEPS_OWNER = [
   ["Cadastre pacotes e temas", "Preço-base, adultos e crianças incluídos, adicionais e fotos das decorações."],
@@ -40,16 +40,18 @@ export default function LandingPage() {
         <PartyScene />
         <div className="snap-page relative flex flex-col">
           <header className="mx-auto w-full max-w-5xl px-4 pt-6 flex items-center justify-between gap-3">
-            <Link href="/" className="flex items-center gap-2 font-extrabold tracking-wide uppercase text-sm" style={{ color: "var(--sun)" }}><span className="h-9 w-9 rounded-full grid place-items-center display text-lg" style={{ background: "var(--sun)", color: "var(--ink)" }}>F</span> Festeja</Link>
+            <Link href="/" className="flex items-center gap-2.5" style={{ color: "var(--sun)" }}>
+              <span className="h-9 w-9 rounded-full grid place-items-center display text-lg" style={{ background: "var(--sun)", color: "var(--ink)" }}>K</span>
+              <span className="leading-none"><span className="block font-extrabold tracking-wide uppercase text-sm">Komyx</span><span className="block text-[11px] font-semibold mt-0.5" style={{ color: "#cfd2e6" }}>Gestão para buffets</span></span>
+            </Link>
+            {/* Only "Entrar" here: the big hero CTA right below is the one "Criar meu buffet". */}
             <nav className="flex items-center gap-2">
               <Link href="/login" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10">Entrar</Link>
-              {/* On phones the big hero CTA right below says the same thing, so the header keeps only "Entrar". */}
-              <Link href="/signup" className="max-md:hidden inline-flex h-10 items-center rounded-full px-4 text-sm font-extrabold whitespace-nowrap" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
             </nav>
           </header>
-          <div className="relative mx-auto w-full max-w-5xl px-4 pt-10 pb-6 max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center max-md:pb-20">
+          <div className="relative mx-auto w-full max-w-5xl px-4 pt-8 pb-2 max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center max-md:pb-20">
             <HeroStickers />
-            <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-6xl leading-[1.02] max-w-3xl lg:max-w-2xl">A festa se vende sozinha. Você só confirma.</h1>
+            <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-[3.25rem] leading-[1.02] max-w-3xl lg:max-w-2xl">A festa se vende sozinha. Você só confirma.</h1>
             <p className="mt-5 text-lg/relaxed max-w-prose" style={{ color: "#cfd2e6" }}>Agenda, orçamento, Pix, contrato, convite e portaria em um lugar só, feito para buffet infantil e de eventos. Sem planilha, sem caderno, sem perder festa no WhatsApp.</p>
             <div className="mt-7 flex flex-col sm:flex-row gap-3">
               <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98]" style={{ background: "var(--berry)", color: "#fff" }}><Sparkles className="h-5 w-5" /> Criar meu buffet</Link>
@@ -58,7 +60,7 @@ export default function LandingPage() {
             <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}>{formatCurrency(LAUNCH_PRICE)}/mês, tudo incluído. Cancele quando quiser.</p>
           </div>
         </div>
-        <div className="snap-page relative mx-auto w-full max-w-5xl px-4 pb-14 sm:pb-20 pt-6 max-md:py-5 max-md:flex max-md:flex-col max-md:justify-center">
+        <div className="snap-page relative mx-auto w-full max-w-5xl px-4 pb-14 sm:pb-20 pt-2 max-md:py-5 max-md:flex max-md:flex-col max-md:justify-center">
           <HeroSlides />
         </div>
         <ScrollCue href="#destaques" />
@@ -112,7 +114,7 @@ export default function LandingPage() {
             <p className="mt-3 max-md:mt-2 max-md:text-sm" style={{ color: "var(--muted-ink)" }}>Quem entra agora fica com todos os recursos, inclusive os que um dia virarão Premium, por este preço. Para sempre. Sem taxa por festa, sem fidelidade: cancele e reative quando quiser.</p>
           </div>
           <div data-stagger className="rounded-3xl bg-white border-2 p-6 max-md:p-4 space-y-4 max-md:space-y-3 shadow-[0_18px_50px_rgba(27,31,58,0.12)]" style={{ borderColor: "var(--berry)" }}>
-            <div className="flex items-baseline justify-between gap-3 flex-wrap"><p className="display font-extrabold text-xl">Festeja completo</p><p className="display font-extrabold text-4xl" style={{ color: "var(--berry)" }}>{formatCurrency(LAUNCH_PRICE)}<span className="text-sm font-bold" style={{ color: "var(--muted-ink)" }}>/mês</span></p></div>
+            <div className="flex items-baseline justify-between gap-3 flex-wrap"><p className="display font-extrabold text-xl">Komyx completo</p><p className="display font-extrabold text-4xl" style={{ color: "var(--berry)" }}>{formatCurrency(LAUNCH_PRICE)}<span className="text-sm font-bold" style={{ color: "var(--muted-ink)" }}>/mês</span></p></div>
             <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm max-md:gap-x-3 max-md:gap-y-1.5 max-md:text-xs">{ALL_FEATURES.map((i) => <li key={i} className="flex gap-2"><Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--mint)" }} /> {i}</li>)}</ul>
             <Link href="/signup" className="inline-flex w-full items-center justify-center h-14 rounded-full font-extrabold text-base" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet por {formatCurrency(LAUNCH_PRICE)}/mês</Link>
           </div>
@@ -128,11 +130,11 @@ export default function LandingPage() {
             <p className="max-md:text-sm" style={{ color: "#cfd2e6" }}>Crie o buffet, cadastre dois pacotes e mande o link para o próximo cliente que perguntar o preço.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
               <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
-              <a href="https://wa.me/5511999999999?text=Oi!%20Quero%20conhecer%20o%20Festeja" target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10"><MessageCircle className="h-5 w-5" /> Falar com a gente</a>
+              <a href="https://wa.me/5511999999999?text=Oi!%20Quero%20conhecer%20o%20Komyx" target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10"><MessageCircle className="h-5 w-5" /> Falar com a gente</a>
             </div>
           </Reveal>
         </section>
-        <PublicFooter />
+        <PublicFooter cta={false} />
       </div>
     </main>
   );

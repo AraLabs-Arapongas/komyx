@@ -39,7 +39,7 @@ export function AppMocks() {
       <Reveal className="text-center max-w-2xl mx-auto">
         <p className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wide" style={{ background: "var(--sun)", color: ink }}>Tem app</p>
         <h2 className="display font-extrabold text-3xl sm:text-4xl mt-4 max-md:mt-2 max-md:text-2xl">No celular da dona, da portaria e do cliente.</h2>
-        <p className="mt-3 max-md:mt-1.5 max-md:text-xs" style={{ color: muted }}>O mesmo Festeja em três mãos: quem vende confirma de qualquer lugar, quem está na porta resolve a festa em tempo real, e o cliente acompanha tudo sem ligar para perguntar.</p>
+        <p className="mt-3 max-md:mt-1.5 max-md:text-xs" style={{ color: muted }}>O mesmo Komyx em três mãos: quem vende confirma de qualquer lugar, quem está na porta resolve a festa em tempo real, e o cliente acompanha tudo sem ligar para perguntar.</p>
         <p className="mt-1.5 text-xs font-bold md:hidden" style={{ color: muted }}>Deslize para o lado para ver os três →</p>
       </Reveal>
       {/* Phones: horizontal snap strip on phones, three columns on desktop. */}

@@ -41,12 +41,12 @@ export default function Menu() {
         <Item icon="notifications-outline" label="Notificações" href="/(app)/notificacoes" />
         {publicUrl ? <Item icon="share-outline" label="Compartilhar minha página pública" onPress={() => Share.share({ message: publicUrl })} /> : null}
         {publicUrl ? <Item icon="globe-outline" label="Abrir minha página pública" onPress={() => Linking.openURL(publicUrl)} /> : null}
-        <Item icon="laptop-outline" label="Festeja na web (configurações, pacotes, contratos)" onPress={() => Linking.openURL(`${WEB_URL}/home`)} />
+        <Item icon="laptop-outline" label="Komyx na web (configurações, pacotes, contratos)" onPress={() => Linking.openURL(`${WEB_URL}/home`)} />
         <Item icon="people-outline" label="Entrar como cliente (testar)" href="/entrar" />
       </View>
       <View style={{ padding: 16 }}>
         <Button title="Sair" variant="outline" onPress={async () => { await signOut(); router.replace("/entrar"); }} />
-        <Muted style={{ textAlign: "center", marginTop: 16 }}>Festeja · desenvolvido por AraLabs</Muted>
+        <Muted style={{ textAlign: "center", marginTop: 16 }}>Komyx · desenvolvido por AraLabs</Muted>
       </View>
     </Screen>
   );

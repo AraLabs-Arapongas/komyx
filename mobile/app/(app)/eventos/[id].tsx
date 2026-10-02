@@ -182,7 +182,7 @@ export default function EventDetail() {
               <Muted>Orçamento {QUOTE_STATUS_LABEL[quote.status] ?? quote.status} · {formatCurrency(quote.total)}</Muted>
               <Pressable onPress={() => Linking.openURL(`${WEB_URL}/eventos/${id}/orcamento?quote=${quote.id}`)}><Text style={{ color: colors.brand, fontWeight: "600", fontSize: 13 }}>Abrir na web</Text></Pressable>
             </Row>
-          ) : <Muted>Sem orçamento ainda. Monte pelo Festeja na web.</Muted>}
+          ) : <Muted>Sem orçamento ainda. Monte pelo Komyx na web.</Muted>}
           {installments.length ? <Text style={styles.h3}>Parcelas</Text> : null}
           {installments.map((i, idx) => (
             <View key={idx} style={{ borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8, gap: 6 }}>
@@ -265,7 +265,7 @@ export default function EventDetail() {
         </Card>
 
         <Card>
-          <CardTitle title="Mais na web" subtitle="Orçamento, contrato e convite são editados no Festeja web" />
+          <CardTitle title="Mais na web" subtitle="Orçamento, contrato e convite são editados no Komyx web" />
           <Row style={{ flexWrap: "wrap" }}>
             <Button title="Abrir evento na web" size="sm" variant="outline" onPress={() => Linking.openURL(`${WEB_URL}/eventos/${id}`)} />
             <Button title="Copiar link" size="sm" variant="ghost" onPress={async () => { await Clipboard.setStringAsync(`${WEB_URL}/eventos/${id}`); Alert.alert("Copiado"); }} />

@@ -50,7 +50,7 @@ const newBuffetSchema = z.object({
   whatsapp: z.string().optional().transform((v) => (v ? v : "")).pipe(z.union([z.literal(""), phoneSchema])).transform((v) => v || null),
 });
 
-/** Creates the organization and its owner account in one go (used when Festeja onboards a buffet by hand). */
+/** Creates the organization and its owner account in one go (used when Komyx onboards a buffet by hand). */
 export async function adminCreateBuffet(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
   const parsed = newBuffetSchema.safeParse(formToObject(formData));

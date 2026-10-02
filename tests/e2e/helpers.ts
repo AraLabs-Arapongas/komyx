@@ -8,7 +8,7 @@ config({ path: ".env.local" });
 export const ACCOUNTS = {
   owner: { email: "dona@festabuffet.test", password: "senha12345" },
   staff: { email: "ana@festabuffet.test", password: "senha12345" },
-  admin: { email: "admin@festeja.test", password: "senha12345" },
+  admin: { email: "admin@komyx.test", password: "senha12345" },
 };
 export const DEMO_SLUG = "festa-cia-buffet";
 

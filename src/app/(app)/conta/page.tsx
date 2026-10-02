@@ -42,7 +42,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
         {isOwner ? (
           <>
             <Card id="assinatura">
-              <CardHeader title="Assinatura" subtitle="Cobrança do Festeja. Nada a ver com os pagamentos das festas." />
+              <CardHeader title="Assinatura" subtitle="Cobrança do Komyx. Nada a ver com os pagamentos das festas." />
               <CardBody className="space-y-4">
                 <dl className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-sm">
                   <div><dt className="text-xs text-muted">Plano atual</dt><dd className="font-medium">{PLAN_LABEL[org.plan] ?? org.plan}{org.plan === "premium" ? <span className="block text-xs text-muted font-normal">Oferta de lançamento: Premium pelo preço do Básico, para sempre.</span> : null}</dd></div>
@@ -59,16 +59,16 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-2">
-                    <a href={support(`Olá! Sou do ${org.name} (${org.slug}) e quero alterar a forma de pagamento da assinatura Festeja.`)} target="_blank" rel="noopener" className={buttonClass("outline", "sm")}><MessageCircle className="h-4 w-4" /> Alterar forma de pagamento</a>
+                    <a href={support(`Olá! Sou do ${org.name} (${org.slug}) e quero alterar a forma de pagamento da assinatura Komyx.`)} target="_blank" rel="noopener" className={buttonClass("outline", "sm")}><MessageCircle className="h-4 w-4" /> Alterar forma de pagamento</a>
                     <CancelSubscription accessHint={bill?.due_at ? `Você continua com acesso até ${dayDate(bill.due_at)}, fim do período já pago.` : "Você continua com acesso por 7 dias."} />
                   </div>
                 )}
-                <p className="text-xs text-muted">Alterações de plano e forma de pagamento são feitas com o suporte Festeja pelo WhatsApp; o cancelamento é por aqui mesmo. O ciclo atual vai de {bill?.cycle_start ? dayDate(bill.cycle_start) : "—"} até {bill?.due_at ? dayDate(bill.due_at) : "—"}.</p>
+                <p className="text-xs text-muted">Alterações de plano e forma de pagamento são feitas com o suporte Komyx pelo WhatsApp; o cancelamento é por aqui mesmo. O ciclo atual vai de {bill?.cycle_start ? dayDate(bill.cycle_start) : "—"} até {bill?.due_at ? dayDate(bill.due_at) : "—"}.</p>
               </CardBody>
             </Card>
 
             <Card id="pagamentos">
-              <CardHeader title="Pagamentos" subtitle="Histórico das mensalidades do Festeja" />
+              <CardHeader title="Pagamentos" subtitle="Histórico das mensalidades do Komyx" />
               <CardBody>
                 {(invoices ?? []).length === 0 ? <p className="text-sm text-muted">Nenhuma cobrança registrada ainda.</p> : (
                   <div className="overflow-x-auto -mx-4 px-4">

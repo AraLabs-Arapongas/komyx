@@ -22,7 +22,7 @@ export function CancelSubscription({ accessHint }: { accessHint: string }) {
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4" onClick={() => setOpen(false)}>
           <form action={action} role="dialog" aria-label="Cancelar assinatura" className="w-full max-w-md rounded-2xl bg-surface border border-border p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
             <div>
-              <p className="font-semibold text-lg">Cancelar a assinatura do Festeja?</p>
+              <p className="font-semibold text-lg">Cancelar a assinatura do Komyx?</p>
               <ul className="mt-2 text-sm text-muted list-disc pl-5 space-y-1">
                 <li>{accessHint}</li>
                 <li>Sua página pública sai do ar na hora.</li>

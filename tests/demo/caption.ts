@@ -2,7 +2,7 @@ import { test as base, type Page, type TestInfo } from "@playwright/test";
 import { mkdirSync, renameSync } from "node:fs";
 import { join } from "node:path";
 
-const CAPTION_KEY = "festeja:demo-caption";
+const CAPTION_KEY = "komyx:demo-caption";
 
 /**
  * Bottom-of-screen caption that survives navigations: the text lives in sessionStorage and an
@@ -13,11 +13,11 @@ const INIT = `
   const render = () => {
     const text = sessionStorage.getItem(${JSON.stringify(CAPTION_KEY)});
     if (!document.body) return;
-    let el = document.getElementById("festeja-caption");
+    let el = document.getElementById("komyx-caption");
     if (!text) { el?.remove(); return; }
     if (!el) {
       el = document.createElement("div");
-      el.id = "festeja-caption";
+      el.id = "komyx-caption";
       el.setAttribute("aria-hidden", "true");
       Object.assign(el.style, {
         position: "fixed", left: "50%", bottom: "28px", transform: "translateX(-50%)",
@@ -31,9 +31,9 @@ const INIT = `
     }
     el.textContent = text;
   };
-  window.__festejaCaption = render;
+  window.__komyxCaption = render;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render); else render();
-  new MutationObserver(() => { if (!document.getElementById("festeja-caption")) render(); }).observe(document.documentElement, { childList: true, subtree: true });
+  new MutationObserver(() => { if (!document.getElementById("komyx-caption")) render(); }).observe(document.documentElement, { childList: true, subtree: true });
 })();
 `;
 
@@ -46,7 +46,7 @@ export async function caption(page: Page, text: string, holdMs = 2200) {
   await page.evaluate(
     ([key, t]) => {
       sessionStorage.setItem(key, t);
-      (window as unknown as { __festejaCaption?: () => void }).__festejaCaption?.();
+      (window as unknown as { __komyxCaption?: () => void }).__komyxCaption?.();
     },
     [CAPTION_KEY, text] as const,
   ).catch(() => null);
@@ -54,7 +54,7 @@ export async function caption(page: Page, text: string, holdMs = 2200) {
 }
 
 export async function clearCaption(page: Page) {
-  await page.evaluate((key) => { sessionStorage.removeItem(key); document.getElementById("festeja-caption")?.remove(); }, CAPTION_KEY).catch(() => null);
+  await page.evaluate((key) => { sessionStorage.removeItem(key); document.getElementById("komyx-caption")?.remove(); }, CAPTION_KEY).catch(() => null);
 }
 
 /** Briefly outlines an element before interacting with it (there is no cursor in the recording). */

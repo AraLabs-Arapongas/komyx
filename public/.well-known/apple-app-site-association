@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["TEAMID.com.aralabs.festeja"],
+        "appIDs": ["TEAMID.com.aralabs.komyx"],
         "components": [
           { "/": "/r/*", "comment": "Reserva do cliente" },
           { "/": "/g/*", "comment": "Convite / confirmação de presença" }

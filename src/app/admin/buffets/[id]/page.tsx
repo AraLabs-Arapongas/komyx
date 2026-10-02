@@ -40,7 +40,7 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
         </div>
 
         <Card>
-          <CardHeader title="Plano, status, cobrança e endereço" subtitle="Só o Festeja altera. Suspender bloqueia o app e a página pública; os dados ficam guardados. O ciclo de cobrança aparece para o dono com barra de progresso." />
+          <CardHeader title="Plano, status, cobrança e endereço" subtitle="Só o Komyx altera. Suspender bloqueia o app e a página pública; os dados ficam guardados. O ciclo de cobrança aparece para o dono com barra de progresso." />
           <CardBody><OrgAdminForm org={{ id: org.id, slug: org.slug, plan: org.plan, status: org.status, notes: org.notes, billing_cycle_start: bill?.cycle_start ?? null, billing_due_at: bill?.due_at ?? null, billing_status: bill?.status ?? "ok" }} /></CardBody>
         </Card>
 
@@ -51,7 +51,7 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
               {(members ?? []).map((m) => (
                 <li key={m.id} className="py-3 space-y-2">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0"><p className="font-medium truncate">{m.name} {m.is_platform_admin ? <Badge tone="amber" className="ml-1">admin festeja</Badge> : null}</p><p className="text-xs text-muted truncate">{m.email} · desde {formatDateTime(m.created_at)}</p></div>
+                    <div className="min-w-0"><p className="font-medium truncate">{m.name} {m.is_platform_admin ? <Badge tone="amber" className="ml-1">admin komyx</Badge> : null}</p><p className="text-xs text-muted truncate">{m.email} · desde {formatDateTime(m.created_at)}</p></div>
                     <div className="flex items-center gap-2">
                       <Badge tone={m.role === "owner" ? "brand" : "zinc"}>{m.role === "owner" ? "Responsável" : "Equipe"}</Badge>
                       <form action={adminSetRole}><input type="hidden" name="user_id" value={m.id} /><input type="hidden" name="org_id" value={org.id} /><input type="hidden" name="role" value={m.role === "owner" ? "staff" : "owner"} /><button className="text-xs text-muted hover:text-foreground">{m.role === "owner" ? "Tornar equipe" : "Tornar responsável"}</button></form>

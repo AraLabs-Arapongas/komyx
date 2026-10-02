@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
-  // The Festeja team's own org is the platform: its members only use /admin.
+  // The Komyx team's own org is the platform: its members only use /admin.
   if (org.kind === "platform") redirect("/admin");
   const supabase = await createClient();
   const [{ data: unread }, { count: newRequests }, bill] = await Promise.all([

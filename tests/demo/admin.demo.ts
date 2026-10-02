@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import { test, caption, clearCaption, installCaptions, saveVideo, spotlight } from "./caption";
 import { ACCOUNTS, cleanupOrgBySlug, login, logout, uniq } from "../e2e/helpers";
 
-test.describe("Vídeo · Admin Festeja", () => {
+test.describe("Vídeo · Admin Komyx", () => {
   const slug = uniq("demo-buffet");
   const ownerEmail = `${slug}@demo.test`;
 
@@ -11,7 +11,7 @@ test.describe("Vídeo · Admin Festeja", () => {
   test("gerenciar buffets da plataforma", async ({ page }, testInfo) => {
     await installCaptions(page);
     await page.goto("/login");
-    await caption(page, "Admin do Festeja entra com uma conta marcada como administrador da plataforma");
+    await caption(page, "Admin do Komyx entra com uma conta marcada como administrador da plataforma");
     await login(page, ACCOUNTS.admin);
     await page.goto("/admin");
     await caption(page, "Visão geral: buffets ativos, eventos e reservas online, leads e pagamentos", 3500);
@@ -62,8 +62,8 @@ test.describe("Vídeo · Admin Festeja", () => {
     await login(page, { email: ownerEmail, password: "senha12345" });
     await caption(page, "A nova dona entra e encontra o checklist para deixar o buffet pronto para vender", 3500);
     await page.goto("/configuracoes/empresa");
-    await caption(page, "O endereço público é fixo para a dona: só o Festeja altera", 3000);
+    await caption(page, "O endereço público é fixo para a dona: só o Komyx altera", 3000);
     await clearCaption(page);
-    await saveVideo(page, testInfo, "03-admin-festeja");
+    await saveVideo(page, testInfo, "03-admin-komyx");
   });
 });

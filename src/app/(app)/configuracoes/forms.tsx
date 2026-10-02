@@ -22,7 +22,7 @@ export function OrganizationForm({ org }: { org: Org }) {
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
       <Field label="Nome do buffet" htmlFor="org_name" error={fe.name}><Input id="org_name" name="name" defaultValue={org.name} required /></Field>
-      <Field label="Endereço público" htmlFor="slug" hint="Definido pelo Festeja. Para alterar, fale com o suporte."><Input id="slug" value={`/p/${org.slug}`} readOnly disabled /></Field>
+      <Field label="Endereço público" htmlFor="slug" hint="Definido pelo Komyx. Para alterar, fale com o suporte."><Input id="slug" value={`/p/${org.slug}`} readOnly disabled /></Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="WhatsApp" htmlFor="org_whatsapp" error={fe.whatsapp}><Input id="org_whatsapp" name="whatsapp" type="tel" inputMode="tel" defaultValue={org.whatsapp ?? ""} /></Field>
         <Field label="Instagram" htmlFor="instagram" error={fe.instagram}><Input id="instagram" name="instagram" defaultValue={org.instagram ?? ""} placeholder="@seubuffet" /></Field>

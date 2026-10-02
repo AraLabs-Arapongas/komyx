@@ -148,7 +148,10 @@ export function QuoteWizard({ slug, packages, addons, themes, defaultSource, pre
 
   const busyDays = new Set(busy[month] ?? []);
   const canNext = step === 0 ? true : step === 1 ? Boolean(date) : step === 2 ? adults + children > 0 : step === 3 ? contact.name.trim().length >= 2 && contact.whatsapp.replace(/\D/g, "").length >= 10 : true;
-  const depositAmount = depositPercent != null ? Math.round(total * depositPercent) / 100 : null;
+  // Without a package there is no base price: the buffet quotes by hand, so no estimate and no Pix self-reservation.
+  const priced = pkg !== null;
+  const depositAmount = depositPercent != null && priced ? Math.round(total * depositPercent) / 100 : null;
+  const canReserve = selfBooking && Boolean(date) && priced;
   const addonLines = lines.filter((l) => l.kind === "ADDON");
   const upd = (k: keyof typeof contact) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setContact((c) => ({ ...c, [k]: e.target.value }));
 
@@ -298,14 +301,19 @@ export function QuoteWizard({ slug, packages, addons, themes, defaultSource, pre
               <dt style={{ color: "var(--muted-ink)" }}>Adicionais</dt><dd className="font-bold">{addonLines.length ? addonLines.map((l) => `${l.description} × ${l.quantity}`).join(", ") : "Nenhum"}</dd>
               <dt style={{ color: "var(--muted-ink)" }}>Contato</dt><dd className="font-bold">{contact.name} · {contact.whatsapp}</dd>
               {contact.celebrant_name ? <><dt style={{ color: "var(--muted-ink)" }}>Aniversariante</dt><dd className="font-bold">{contact.celebrant_name}</dd></> : null}
-              {showPrices ? <><dt style={{ color: "var(--muted-ink)" }}>Total estimado</dt><dd className="display font-extrabold text-xl" style={{ color: "var(--berry)" }}>{formatCurrency(total)}</dd></> : null}
+              {showPrices ? <><dt style={{ color: "var(--muted-ink)" }}>Total estimado</dt><dd className="display font-extrabold text-xl" style={{ color: "var(--berry)" }}>{priced ? formatCurrency(total) : "A combinar"}</dd></> : null}
             </dl>
-            {selfBooking && date ? (
+            {canReserve ? (
               <div className="rounded-2xl p-4 text-sm space-y-1" style={{ background: "var(--paper-2)" }}>
                 <p className="display font-bold text-lg">Como funciona a reserva</p>
                 <p>Ao clicar em <b>Reservar esta data</b>, {fmtDate(date)} fica segura para você por <b>{validityHours} horas</b>.</p>
                 <p>Nesse prazo você paga o sinal{depositAmount != null && showPrices ? <> de <b style={{ color: "var(--berry)" }}>{formatCurrency(depositAmount)}</b> ({depositPercent}%)</> : depositPercent != null ? <> de <b>{depositPercent}%</b></> : null} por Pix{depositLabel ? ` (${depositLabel.toLowerCase()})` : ""}. Sem o pagamento, a data volta a ficar livre automaticamente.</p>
                 <p>Prefere só receber o valor e decidir depois? Use <b>Só o orçamento</b>.</p>
+              </div>
+            ) : selfBooking && date && !priced ? (
+              <div className="rounded-2xl p-4 text-sm space-y-1" style={{ background: "#fef3c7", color: "#92400e" }}>
+                <p className="display font-bold text-lg">Sem pacote não dá para reservar agora</p>
+                <p>Sem um pacote não há valor nem sinal para segurar {fmtDate(date)}. Envie <b>só o orçamento</b>: o buffet monta o valor com você e, se quiser reservar, você paga o sinal depois. Para reservar já, volte e escolha um pacote.</p>
               </div>
             ) : (
               <p className="text-sm rounded-2xl p-4" style={{ background: "var(--paper-2)" }}>Enviamos o orçamento e a disponibilidade da data pelo seu WhatsApp. Enviar não reserva a data.</p>
@@ -318,7 +326,7 @@ export function QuoteWizard({ slug, packages, addons, themes, defaultSource, pre
       {/* Summary + nav */}
       <div className="sticky bottom-3 z-10 rounded-3xl p-3 sm:p-4 flex flex-wrap items-center gap-3 shadow-[0_12px_40px_rgba(27,31,58,0.35)]" style={{ background: "var(--ink)", color: "var(--paper)" }}>
         <div className="flex-1 min-w-[12rem] text-sm" style={{ color: "#cfd2e6" }}>
-          {showPrices ? <p><b className="display text-2xl text-white">{formatCurrency(total)}</b> estimado</p> : <p className="display text-lg text-white">Valor enviado no WhatsApp</p>}
+          {showPrices && priced ? <p><b className="display text-2xl text-white">{formatCurrency(total)}</b> estimado</p> : <p className="display text-lg text-white">{priced ? "Valor enviado no WhatsApp" : "Valor a combinar"}</p>}
           <p className="truncate">{pkg ? pkg.name : "Sem pacote"}{date ? ` · ${fmtDate(date)} ${time}` : ""} · {adults}A {children}C{lines.filter((l) => l.kind === "ADDON").length ? ` · ${lines.filter((l) => l.kind === "ADDON").length} adicional(is)` : ""}</p>
         </div>
         <div className="flex gap-2 ml-auto">
@@ -327,8 +335,12 @@ export function QuoteWizard({ slug, packages, addons, themes, defaultSource, pre
             <button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)} className="h-11 px-5 rounded-full font-extrabold disabled:opacity-40 whitespace-nowrap" style={{ background: "var(--berry)", color: "#fff" }}>Continuar</button>
           ) : selfBooking && date ? (
             <>
-              <SubmitButton name="mode" value="lead" size="md" variant="ghost" className="rounded-full font-bold text-white ring-2 ring-inset ring-white/30 hover:bg-white/10 whitespace-nowrap" pendingText="Enviando...">Só orçamento</SubmitButton>
-              <SubmitButton name="mode" value="reserve" size="lg" className="rounded-full font-extrabold whitespace-nowrap" style={{ background: "var(--berry)" }} pendingText="Reservando...">Reservar esta data</SubmitButton>
+              <SubmitButton name="mode" value="lead" size="md" variant={canReserve ? "ghost" : "primary"} className={cn("rounded-full font-bold whitespace-nowrap", canReserve ? "text-white ring-2 ring-inset ring-white/30 hover:bg-white/10" : "font-extrabold")} style={canReserve ? undefined : { background: "var(--berry)" }} pendingText="Enviando...">Só orçamento</SubmitButton>
+              {canReserve ? (
+                <SubmitButton name="mode" value="reserve" size="lg" className="rounded-full font-extrabold whitespace-nowrap" style={{ background: "var(--berry)" }} pendingText="Reservando...">Reservar esta data</SubmitButton>
+              ) : (
+                <button type="button" disabled title="Escolha um pacote para reservar com sinal" aria-disabled="true" className="h-12 px-5 rounded-full font-extrabold whitespace-nowrap opacity-40 cursor-not-allowed ring-2 ring-inset ring-white/30">Reservar esta data</button>
+              )}
             </>
           ) : (
             <SubmitButton name="mode" value="lead" size="lg" className="rounded-full font-extrabold whitespace-nowrap" style={{ background: "var(--berry)" }} pendingText="Enviando...">Enviar pedido</SubmitButton>

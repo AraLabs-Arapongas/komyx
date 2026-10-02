@@ -131,15 +131,15 @@ begin
   where id = v_org;
   update public.customers set document = 'CPF 123.456.789-00', source = 'indicacao' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
 
-  -- Festeja platform admin (lives in its own org so the app shell works; flag grants /admin)
+  -- Komyx platform admin (lives in its own org so the app shell works; flag grants /admin)
   insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change)
-  values ('00000000-0000-0000-0000-000000000000', '33333333-3333-3333-3333-333333333333', 'authenticated', 'authenticated', 'admin@festeja.test',
-    crypt('senha12345', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"name":"Admin Festeja","org_name":"Festeja"}', now(), now(), '', '', '', '');
+  values ('00000000-0000-0000-0000-000000000000', '33333333-3333-3333-3333-333333333333', 'authenticated', 'authenticated', 'admin@komyx.test',
+    crypt('senha12345', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"name":"Admin Komyx","org_name":"Komyx"}', now(), now(), '', '', '', '');
   insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
   values (gen_random_uuid(), '33333333-3333-3333-3333-333333333333', '33333333-3333-3333-3333-333333333333',
-    '{"sub":"33333333-3333-3333-3333-333333333333","email":"admin@festeja.test","email_verified":true}', 'email', now(), now(), now());
+    '{"sub":"33333333-3333-3333-3333-333333333333","email":"admin@komyx.test","email_verified":true}', 'email', now(), now(), now());
   update public.profiles set is_platform_admin = true where id = '33333333-3333-3333-3333-333333333333';
-  update public.organizations set plan = 'premium', kind = 'platform' where slug = 'festeja';
+  update public.organizations set plan = 'premium', kind = 'platform' where slug = 'komyx';
 
   -- A second buffet (basic plan) so the admin list has variety
   insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change)
@@ -150,15 +150,15 @@ begin
     '{"sub":"44444444-4444-4444-4444-444444444444","email":"joao@alegriakids.test","email_verified":true}', 'email', now(), now(), now());
 end $$;
 
--- Festeja subscription invoices for the demo buffet (two paid, one open for the current cycle)
+-- Komyx subscription invoices for the demo buffet (two paid, one open for the current cycle)
 do $$
 declare v_org uuid;
 begin
   select id into v_org from public.organizations where slug = 'festa-cia-buffet';
   insert into public.saas_invoices (organization_id, description, amount, due_at, paid_at, status, method) values
-    (v_org, 'Festeja · mensalidade', 99.00, current_date - 39, current_date - 41, 'paid', 'PIX'),
-    (v_org, 'Festeja · mensalidade', 99.00, current_date - 9, current_date - 10, 'paid', 'PIX'),
-    (v_org, 'Festeja · mensalidade', 99.00, (select due_at from public.organization_billing where organization_id = v_org), null, 'open', null);
+    (v_org, 'Komyx · mensalidade', 99.00, current_date - 39, current_date - 41, 'paid', 'PIX'),
+    (v_org, 'Komyx · mensalidade', 99.00, current_date - 9, current_date - 10, 'paid', 'PIX'),
+    (v_org, 'Komyx · mensalidade', 99.00, (select due_at from public.organization_billing where organization_id = v_org), null, 'open', null);
 end $$;
 
 -- Party themes for the demo buffet (photos reuse the demo gallery)

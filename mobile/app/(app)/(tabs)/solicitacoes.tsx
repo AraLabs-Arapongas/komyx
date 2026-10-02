@@ -52,7 +52,7 @@ export default function Solicitacoes() {
             <Button title="Responder no WhatsApp" size="sm" variant="secondary" onPress={() => Linking.openURL(whatsappUrl(r.whatsapp, `Olá ${r.name.split(" ")[0]}! Aqui é do ${org?.name}. Recebemos seu pedido de orçamento${r.desired_date ? ` para ${r.desired_date.split("-").reverse().join("/")}` : ""}.`))} />
             {r.status === "NEW" ? <Button title="Arquivar" size="sm" variant="ghost" onPress={() => archive.mutate(r.id)} /> : null}
           </Row>
-          {r.status === "NEW" ? <Muted style={{ fontSize: 11 }}>Para transformar em orçamento com data reservada, use o Festeja na web (Solicitações → Criar orçamento).</Muted> : null}
+          {r.status === "NEW" ? <Muted style={{ fontSize: 11 }}>Para transformar em orçamento com data reservada, use o Komyx na web (Solicitações → Criar orçamento).</Muted> : null}
         </Card>
       ))}
     </Screen>

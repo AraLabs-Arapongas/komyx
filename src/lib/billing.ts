@@ -1,5 +1,5 @@
 /**
- * Festeja subscription (what the buffet pays). Launch offer: whoever joins now has Premium at the Básico price, for good,
+ * Komyx subscription (what the buffet pays). Launch offer: whoever joins now has Premium at the Básico price, for good,
  * so both plans cost the same today. Charging itself is not wired yet; support handles changes.
  */
 export const LAUNCH_PRICE = 99;

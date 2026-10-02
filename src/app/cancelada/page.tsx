@@ -16,7 +16,7 @@ export default async function CancelledPage() {
       <div className="max-w-md text-center space-y-4">
         <div className="mx-auto h-12 w-12 rounded-2xl bg-brand text-brand-fg grid place-items-center text-xl font-bold">F</div>
         <h1 className="text-2xl font-semibold">Assinatura cancelada</h1>
-        <p className="text-muted">O {org?.name} cancelou o Festeja{until ? ` e o acesso terminou em ${until}` : ""}. Agenda, clientes, orçamentos e contratos continuam guardados por 90 dias. Reative quando quiser e tudo volta como estava.</p>
+        <p className="text-muted">O {org?.name} cancelou o Komyx{until ? ` e o acesso terminou em ${until}` : ""}. Agenda, clientes, orçamentos e contratos continuam guardados por 90 dias. Reative quando quiser e tudo volta como estava.</p>
         {profile.role === "owner" ? (
           <form action={reactivateSubscription}><button className={buttonClass("primary", "lg")}>Reativar assinatura</button></form>
         ) : <p className="text-sm text-muted">Só a proprietária pode reativar.</p>}

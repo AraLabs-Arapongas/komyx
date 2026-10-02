@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   if (!phone || !otp) return NextResponse.json({ error: "missing phone/otp" }, { status: 400 });
 
   try {
-    await getSmsProvider().send(phone, `Seu codigo de acesso Festeja: ${otp}\nVale por 10 minutos. Nao compartilhe.`);
+    await getSmsProvider().send(phone, `Seu codigo de acesso Komyx: ${otp}\nVale por 10 minutos. Nao compartilhe.`);
   } catch (e) {
     console.error("[send-sms]", e);
     // Supabase surfaces this message to the client.

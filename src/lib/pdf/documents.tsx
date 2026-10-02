@@ -87,7 +87,7 @@ export function QuotePdf({ data }: { data: QuotePdfData }) {
           </>
         ) : null}
         {quote.notes ? (<><Text style={styles.h2}>Observações</Text><Text style={styles.body}>{quote.notes}</Text></>) : null}
-        <Text style={styles.footer}>Gerado por Festeja · {org.name}</Text>
+        <Text style={styles.footer}>Gerado por Komyx · {org.name}</Text>
       </Page>
     </Document>
   );
@@ -111,7 +111,7 @@ export function ContractPdf({ data }: { data: ContractPdfData }) {
             <Text>Aceito por {data.accepted_name} em {formatDate(data.accepted_at)} às {formatTime(data.accepted_at)} pelo link do contrato.</Text>
           </View>
         ) : null}
-        <Text style={styles.footer} fixed>Gerado por Festeja · {data.org.name}</Text>
+        <Text style={styles.footer} fixed>Gerado por Komyx · {data.org.name}</Text>
       </Page>
     </Document>
   );

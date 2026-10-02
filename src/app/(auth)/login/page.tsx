@@ -6,7 +6,7 @@ export const metadata = { title: "Entrar" };
 const DEV_ACCOUNTS: DevAccount[] = [
   { label: "Dona (owner · Festa & Cia, premium)", email: "dona@festabuffet.test", password: "senha12345" },
   { label: "Equipe (staff · Festa & Cia)", email: "ana@festabuffet.test", password: "senha12345" },
-  { label: "Admin Festeja (plataforma)", email: "admin@festeja.test", password: "senha12345" },
+  { label: "Admin Komyx (plataforma)", email: "admin@komyx.test", password: "senha12345" },
   { label: "Outro buffet (owner · Alegria Kids, básico)", email: "joao@alegriakids.test", password: "senha12345" },
 ];
 

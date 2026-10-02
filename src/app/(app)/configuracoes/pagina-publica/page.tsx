@@ -83,7 +83,7 @@ export default async function PublicPageSettings({ searchParams }: PageProps<"/c
                   <span className="h-10 w-10 shrink-0 grid place-items-center rounded-xl bg-stone-100 text-muted"><Lock className="h-5 w-5" /></span>
                   <div>
                     <p className="font-medium">Aparência é do plano Premium</p>
-                    <p className="text-sm text-muted">Cores, fonte, logo e capa personalizados ficam disponíveis no Premium. Sua página usa o visual padrão do Festeja, que já converte bem.</p>
+                    <p className="text-sm text-muted">Cores, fonte, logo e capa personalizados ficam disponíveis no Premium. Sua página usa o visual padrão do Komyx, que já converte bem.</p>
                   </div>
                 </CardBody>
               </Card>

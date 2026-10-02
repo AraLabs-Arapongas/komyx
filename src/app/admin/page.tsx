@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 
-export const metadata = { title: "Admin Festeja" };
+export const metadata = { title: "Admin Komyx" };
 export const dynamic = "force-dynamic";
 
 function daysAgoIso(days: number) {
@@ -32,7 +32,7 @@ export default async function AdminDashboard() {
 
   return (
     <>
-      <PageHeader title="Visão geral" subtitle="Plataforma Festeja" action={<Link href="/admin/buffets/novo" className={buttonClass("primary", "sm")}>Novo buffet</Link>} />
+      <PageHeader title="Visão geral" subtitle="Plataforma Komyx" action={<Link href="/admin/buffets/novo" className={buttonClass("primary", "sm")}>Novo buffet</Link>} />
       <PageBody>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[

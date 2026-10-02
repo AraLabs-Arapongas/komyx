@@ -1,4 +1,4 @@
-# Festeja — fluxos principais
+# Komyx — fluxos principais
 
 Ambiente local: `pnpm dev` em http://localhost:3000 · Supabase em http://127.0.0.1:54823 (Studio).
 
@@ -8,7 +8,7 @@ Ambiente local: `pnpm dev` em http://localhost:3000 · Supabase em http://127.0.
 
 Em desenvolvimento a tela de login tem um select "Conta de teste" que preenche e-mail e senha.
 | Equipe (staff) | ana@festabuffet.test | senha12345 | /home (sem Configurações/Pacotes) |
-| Admin Festeja | admin@festeja.test | senha12345 | /home → menu "Admin Festeja" → /admin |
+| Admin Komyx | admin@komyx.test | senha12345 | /home → menu "Admin Komyx" → /admin |
 | Outro buffet (plano básico) | joao@alegriakids.test | senha12345 | /home |
 
 Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`.
@@ -30,10 +30,10 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 - **Plano de pagamento padrão**: parcelas em % (ex.: 30% no aceite, 70% até 7 dias antes).
 - **Modelo de contrato**: texto com `{{placeholders}}`.
 - **Equipe**: cria acesso staff com senha inicial.
-- O **endereço público (slug)** é somente leitura; só o admin do Festeja altera.
+- O **endereço público (slug)** é somente leitura; só o admin do Komyx altera.
 
 ### 1.2b Rodapé da conta e notificações
-- Rodapé da sidebar (e no Menu no celular): quem está logado, botão sair, **plano e vencimento da fatura** com barra de progresso do ciclo (datas definidas pelo admin do Festeja; fica amarelo a 7 dias e vermelho vencida).
+- Rodapé da sidebar (e no Menu no celular): quem está logado, botão sair, **plano e vencimento da fatura** com barra de progresso do ciclo (datas definidas pelo admin do Komyx; fica amarelo a 7 dias e vermelho vencida).
 - **Sino de notificações** (sidebar / canto superior no celular) com contador, lista rápida e página `/notificacoes`. Chegam exatamente três eventos: **pedido de orçamento** da página pública, **reserva online** (aguardando sinal) e **contrato aceito** pelo cliente. Confirmação de convidado não notifica (aparece na ficha do evento).
 
 ### 1.3 Vender uma festa (atendimento)
@@ -66,7 +66,7 @@ Fluxo visível: Solicitação → Orçamento → Aguardando confirmação → Ev
 
 ### Cobrar saldo e extras
 
-Ficha do evento: botão **Cobrar R$ X** em Pagamentos abre o WhatsApp com os itens em aberto (parcelas restantes e extras), total, chave Pix, identificador `FESTA…` e Pix copia-e-cola do valor exato, mais o link curto da reserva. Portaria (`/d/`): aba Pedidos tem **Fechar conta** com QR Pix dos extras em aberto e botões "Recebido · Pix/Dinheiro/Cartão" que registram o pagamento. Página da reserva (`/r/`): após confirmada, mostra **Conta da festa** com os extras e o Pix do saldo. "Marcar como realizado" com saldo em aberto pede confirmação. Admin do Festeja pertence a uma organização `kind = platform`: cai direto em `/admin` e não aparece nas listas de buffets. Um link público ativo por tipo por evento (índice único).
+Ficha do evento: botão **Cobrar R$ X** em Pagamentos abre o WhatsApp com os itens em aberto (parcelas restantes e extras), total, chave Pix, identificador `FESTA…` e Pix copia-e-cola do valor exato, mais o link curto da reserva. Portaria (`/d/`): aba Pedidos tem **Fechar conta** com QR Pix dos extras em aberto e botões "Recebido · Pix/Dinheiro/Cartão" que registram o pagamento. Página da reserva (`/r/`): após confirmada, mostra **Conta da festa** com os extras e o Pix do saldo. "Marcar como realizado" com saldo em aberto pede confirmação. Admin do Komyx pertence a uma organização `kind = platform`: cai direto em `/admin` e não aparece nas listas de buffets. Um link público ativo por tipo por evento (índice único).
 
 ### Links curtos
 
@@ -98,7 +98,7 @@ Criação fica no cabeçalho fixo: **+ Novo ▾** → Novo pacote / Novo adicion
 
 ### Minha conta (`/conta`)
 
-**Cancelar assinatura** é self-service (diálogo com motivo opcional e confirmação digitando CANCELAR): status `cancelled`, acesso até o fim do período pago (`access_until`, ou 7 dias), página pública sai do ar, dados guardados por 90 dias depois; faixa vermelha no app com "Reativar". Passado o acesso, o app mostra `/cancelada` com o botão **Reativar assinatura** (só proprietária), que volta tudo como estava. Alterar forma de pagamento continua pelo suporte. A home do Festeja (landing com preços e cadastro) fica em `/`.
+**Cancelar assinatura** é self-service (diálogo com motivo opcional e confirmação digitando CANCELAR): status `cancelled`, acesso até o fim do período pago (`access_until`, ou 7 dias), página pública sai do ar, dados guardados por 90 dias depois; faixa vermelha no app com "Reativar". Passado o acesso, o app mostra `/cancelada` com o botão **Reativar assinatura** (só proprietária), que volta tudo como estava. Alterar forma de pagamento continua pelo suporte. A home do Komyx (landing com preços e cadastro) fica em `/`.
 
 Separada de Configurações: pessoa logada e cobrança do SaaS. Acesso pelo nome/avatar no rodapé da sidebar e pelo card do plano (abre em Assinatura). Perfil: nome, e-mail (login, troca via suporte), alterar senha (confirma a atual). Proprietário vê também Assinatura (plano, valor mensal, próxima cobrança, status, alterar forma de pagamento / cancelar via WhatsApp do suporte) e Pagamentos (tabela `saas_invoices`: data, descrição, valor, status, recibo). Equipe vê só o perfil. Nada disso se mistura com pagamentos das festas.
 
@@ -127,7 +127,7 @@ Separada de Configurações: pessoa logada e cobrança do SaaS. Acesso pelo nome
 
 ---
 
-## 3. Admin da plataforma Festeja (`/admin`)
+## 3. Admin da plataforma Komyx (`/admin`)
 
 Acesso só para perfis com `is_platform_admin` (flag que só a service role altera). Tudo roda com a chave de serviço no servidor.
 
@@ -149,4 +149,4 @@ Acesso só para perfis com `is_platform_admin` (flag que só a service role alte
 
 ## 4. App mobile (Expo)
 
-Mesmos fluxos, no celular. Tela "Entrar" única: e-mail → senha (buffet); celular → código SMS (cliente). Dona/equipe: Início (ações urgentes, solicitações, hoje, 7 dias, a receber) → Agenda → Evento (status, parcelas com "Recebida", recebimentos, check-in, extras, enviar página da reserva/RSVP). Cliente: entra com o celular (código por SMS, enviado pela Comtele via hook do Supabase) ou abre o link do buffet → "Minhas festas" → reserva (Pix QR + copia-e-cola, parcelas, contrato) e convite (RSVP). Deep links `festeja://r/<token>` e `festeja://g/<token>`. Orçamento, contrato e convite continuam sendo editados na web.
+Mesmos fluxos, no celular. Tela "Entrar" única: e-mail → senha (buffet); celular → código SMS (cliente). Dona/equipe: Início (ações urgentes, solicitações, hoje, 7 dias, a receber) → Agenda → Evento (status, parcelas com "Recebida", recebimentos, check-in, extras, enviar página da reserva/RSVP). Cliente: entra com o celular (código por SMS, enviado pela Comtele via hook do Supabase) ou abre o link do buffet → "Minhas festas" → reserva (Pix QR + copia-e-cola, parcelas, contrato) e convite (RSVP). Deep links `komyx://r/<token>` e `komyx://g/<token>`. Orçamento, contrato e convite continuam sendo editados na web.

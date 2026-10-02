@@ -23,9 +23,9 @@ export async function GET(_request: Request, { params }: RouteContext<"/g/[token
   if (!ev?.organizations) return new Response("Não encontrado", { status: 404 });
   const title = ev.invite_title?.trim() || ev.title?.trim() || (ev.celebrant_name ? `Aniversário de ${ev.celebrant_name}` : ev.customers ? `Festa de ${ev.customers.name}` : "Festa");
   const body = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Festeja//PT", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Komyx//PT", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:festeja-${ev.id}@festeja`,
+    `UID:komyx-${ev.id}@komyx`,
     `DTSTAMP:${icsDate(new Date().toISOString())}`,
     `DTSTART:${icsDate(ev.starts_at)}`,
     `DTEND:${icsDate(ev.ends_at)}`,

@@ -1,6 +1,6 @@
-# Festeja · app (Expo / React Native)
+# Komyx · app (Expo / React Native)
 
-App para **dona e equipe do buffet** (login) e para **clientes** (sem conta). Fala direto com o mesmo Supabase do Festeja web; as policies RLS por organização protegem os dados e o lado do cliente usa só funções `security definer` por token.
+App para **dona e equipe do buffet** (login) e para **clientes** (sem conta). Fala direto com o mesmo Supabase do Komyx web; as policies RLS por organização protegem os dados e o lado do cliente usa só funções `security definer` por token.
 
 ## Rodar
 
@@ -14,7 +14,7 @@ npx expo start              # tecle i (simulador iOS), a (Android) ou leia o QR 
 - Supabase local precisa estar de pé (`supabase start` na raiz). A chave publishable é a mesma do `.env.local` da raiz.
 - No celular físico, o IP em `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_WEB_URL` tem que ser o IP LAN do Mac (não `localhost`).
 - Tela "Entrar" única: e-mail → senha (buffet); celular → código por SMS (cliente). Contas de teste (só em dev): dona@festabuffet.test / ana@festabuffet.test · senha `senha12345`; clientes 11999990002 (Roberto) e 11999990001 (Carla) · código `123456` (test_otp do Supabase local).
-- Deep links: `festeja://r/<token>` abre a reserva, `festeja://g/<token>` abre o convite.
+- Deep links: `komyx://r/<token>` abre a reserva, `komyx://g/<token>` abre o convite.
 
 ## O que tem
 

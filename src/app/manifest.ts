@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Festeja - Gestão de Buffet",
-    short_name: "Festeja",
+    name: "Komyx - Gestão para buffets",
+    short_name: "Komyx",
     description: "Agenda, reservas, orçamentos, convidados e pagamentos para o seu buffet.",
     start_url: "/home",
     display: "standalone",

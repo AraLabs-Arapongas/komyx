@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-const KEY = "festeja:privacy";
+const KEY = "komyx:privacy";
 
 /**
  * Hides money values (elements with class "money") across the app.

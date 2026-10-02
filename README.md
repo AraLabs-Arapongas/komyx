@@ -1,4 +1,4 @@
-# Festeja — SaaS para buffet
+# Komyx — SaaS para buffet
 
 Sistema simples para **vender, organizar e realizar festas**: agenda, reservas, clientes, pacotes (adultos/crianças), orçamentos com plano de pagamento, contrato automático em PDF, convite personalizável, portaria com check-in, aniversariantes, página pública com orçamento self-service e PWA. Centrado no evento; multiempresa desde o início.
 
@@ -38,7 +38,7 @@ Studio local: http://127.0.0.1:54823
 | --- | --- | --- |
 | dona@festabuffet.test | senha12345 | owner (Festa & Cia, premium) |
 | ana@festabuffet.test | senha12345 | staff |
-| admin@festeja.test | senha12345 | admin da plataforma (`/admin`) |
+| admin@komyx.test | senha12345 | admin da plataforma (`/admin`) |
 | joao@alegriakids.test | senha12345 | owner de outro buffet (plano básico) |
 
 Fluxos detalhados (dona, cliente, admin): [docs/FLUXOS.md](docs/FLUXOS.md).
@@ -100,7 +100,7 @@ pnpm test:e2e:ui     # modo interativo
 Gravação automática de cada fluxo com legenda na tela (Playwright + overlay). Saída em `videos/` (`.webm` e `.mp4`, ignorados pelo git).
 
 ```bash
-pnpm demo:videos   # 01-dona-do-buffet, 02-cliente, 03-admin-festeja
+pnpm demo:videos   # 01-dona-do-buffet, 02-cliente, 03-admin-komyx
 ```
 
 Specs em `tests/demo/*.demo.ts`; os dados criados são apagados ao fim de cada gravação.

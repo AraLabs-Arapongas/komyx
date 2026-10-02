@@ -53,7 +53,7 @@ export const getOrganization = cache(async () => {
   return data!;
 });
 
-/** Festeja staff only. */
+/** Komyx staff only. */
 export const requireAdmin = cache(async (): Promise<Profile> => {
   const profile = await requireProfile();
   if (!profile.is_platform_admin) redirect("/home?error=forbidden");

@@ -5,7 +5,7 @@ import { ACCOUNTS, cleanupOrgBySlug, login, logout, uniq } from "./helpers";
  * Admin da plataforma: cria buffet + dono, suspende (app e página pública bloqueiam), reativa.
  * The org and its owner are deleted in afterAll.
  */
-test.describe("Admin Festeja", () => {
+test.describe("Admin Komyx", () => {
   const slug = uniq("e2e-buffet");
   const ownerEmail = `${slug}@e2e.test`;
 

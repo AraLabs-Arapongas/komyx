@@ -16,7 +16,7 @@ const cancelSchema = z.object({
 });
 
 /**
- * Owner cancels the Festeja subscription. Access continues until the end of the paid period
+ * Owner cancels the Komyx subscription. Access continues until the end of the paid period
  * (billing due date, or 7 days when there is none); after that the app shows /cancelada with "Reativar".
  */
 export async function cancelSubscription(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {

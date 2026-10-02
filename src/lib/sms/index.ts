@@ -25,7 +25,7 @@ const comtele: SmsProvider = {
         contactGroups: [],
         message,
         route: Number(process.env.COMTELE_ROUTE ?? 17),
-        tag: "festeja-otp",
+        tag: "komyx-otp",
         custom: "login",
       }),
     });

@@ -86,7 +86,7 @@ export default function Entrar() {
         <View style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center" }}>
           <Text style={{ color: "#fff", fontWeight: "800", fontSize: 24 }}>F</Text>
         </View>
-        <Text style={[styles.title, { fontSize: 28 }]}>Festeja</Text>
+        <Text style={[styles.title, { fontSize: 28 }]}>Komyx</Text>
         <Muted style={{ fontSize: 15 }}>Buffet: entre com seu e-mail. Cliente: use o celular da reserva.</Muted>
       </View>
 

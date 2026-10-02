@@ -13,7 +13,7 @@ test.describe("Vídeo · Dona do buffet", () => {
   test("da reserva ao contrato", async ({ page }, testInfo) => {
     await installCaptions(page);
     await page.goto("/login");
-    await caption(page, "Dona do buffet entra no Festeja com e-mail e senha");
+    await caption(page, "Dona do buffet entra no Komyx com e-mail e senha");
     await page.getByLabel("E-mail").fill(ACCOUNTS.owner.email);
     await page.getByLabel("Senha").fill(ACCOUNTS.owner.password);
     await page.getByRole("button", { name: "Entrar" }).click();

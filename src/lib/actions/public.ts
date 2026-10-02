@@ -161,7 +161,8 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
   }).select("id").single();
   if (error || !request) return fail(translateDbError(error));
 
-  if (d.mode !== "reserve") {
+  // No package means no price, so there is nothing to hold with a Pix deposit: it stays a plain request.
+  if (d.mode !== "reserve" || !pkg) {
     return { ok: true, data: { estimated_total }, message: estimated_total !== null ? "Recebemos seu orçamento! Em breve confirmamos a disponibilidade da data pelo WhatsApp." : "Recebemos sua solicitação! Em breve entraremos em contato pelo WhatsApp." };
   }
 

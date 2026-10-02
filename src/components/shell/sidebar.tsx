@@ -44,7 +44,7 @@ export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, b
       {isAdmin ? (
         <div className="px-3 pt-3">
           <Link href="/admin" className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium", pathname.startsWith("/admin") ? "bg-brand-soft text-brand" : "text-foreground hover:bg-stone-100")}>
-            <ShieldCheck className="h-4.5 w-4.5" /> Admin Festeja
+            <ShieldCheck className="h-4.5 w-4.5" /> Admin Komyx
           </Link>
         </div>
       ) : null}
