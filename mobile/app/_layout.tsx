@@ -4,6 +4,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { AnimatedSplash } from "@/ui/animated-splash";
+import { applyAppFont, useAppFonts } from "@/ui/fonts";
+import { fonts } from "@/ui/theme";
 import { colors } from "@/ui/theme";
 
 // The native splash stays until the animated one takes over (it calls hideAsync on mount).
@@ -13,11 +15,13 @@ const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 15
 
 function Shell() {
   const { loading } = useAuth();
+  const fontsLoaded = useAppFonts();
+  if (fontsLoaded) applyAppFont();
   const [splashDone, setSplashDone] = useState(false);
   const onDone = useCallback(() => setSplashDone(true), []);
   return (
     <>
-      <Stack screenOptions={{ headerStyle: { backgroundColor: colors.background }, headerTintColor: colors.brand, headerTitleStyle: { color: colors.foreground, fontWeight: "700" }, headerShadowVisible: false, contentStyle: { backgroundColor: colors.background } }}>
+      <Stack screenOptions={{ headerStyle: { backgroundColor: colors.background }, headerTintColor: colors.brand, headerTitleStyle: { color: colors.foreground, fontFamily: fonts.extrabold, fontSize: 18 }, headerBackTitleStyle: { fontFamily: fonts.semibold }, headerShadowVisible: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="entrar" options={{ headerShown: false }} />
@@ -30,7 +34,7 @@ function Shell() {
         <Stack.Screen name="r/[token]" options={{ headerShown: false }} />
         <Stack.Screen name="g/[token]" options={{ headerShown: false }} />
       </Stack>
-      {!splashDone ? <AnimatedSplash ready={!loading} onDone={onDone} /> : null}
+      {!splashDone ? <AnimatedSplash ready={!loading && fontsLoaded} onDone={onDone} /> : null}
     </>
   );
 }

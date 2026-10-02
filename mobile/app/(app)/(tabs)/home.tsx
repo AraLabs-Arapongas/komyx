@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Stack, router } from "expo-router";
+import { router } from "expo-router";
 import { Linking, Pressable, Text, View } from "react-native";
 import { useAuth } from "@/lib/auth";
 import { formatCurrency, formatDate, formatDateLong, formatTime, hoursLeft, toDateKey, whatsappUrl } from "@/lib/format";
@@ -9,6 +9,7 @@ import { eventTitle, loadHome, unreadNotifications, type EventRow } from "@/lib/
 import { supabase, WEB_URL } from "@/lib/supabase";
 import { Badge, Button, Card, CardTitle, Loading, Muted, Row, Screen, styles } from "@/ui/components";
 import { party } from "@/ui/party";
+import { FestiveHeader } from "@/ui/festive-header";
 import { colors } from "@/ui/theme";
 
 /**
@@ -61,14 +62,18 @@ export default function Home() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Início", headerRight: () => (
-        <Pressable onPress={() => router.push("/(app)/notificacoes")} style={{ padding: 6 }}>
-          <Ionicons name="notifications-outline" size={24} color={colors.foreground} />
-          {unread.data ? <View style={{ position: "absolute", top: 2, right: 2, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{unread.data}</Text></View> : null}
-        </Pressable>
-      ) }} />
       <Screen refreshing={q.isFetching} onRefresh={() => { q.refetch(); unread.refetch(); }}>
-        <Muted>{formatDateLong(new Date())} · {org?.name}</Muted>
+        <FestiveHeader
+          eyebrow={formatDateLong(new Date())}
+          title={`Olá, ${profile?.name.split(" ")[0] ?? ""}!`}
+          subtitle={org?.name}
+          right={
+            <Pressable onPress={() => router.push("/(app)/notificacoes")} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="notifications-outline" size={22} color="#fff" />
+              {unread.data ? <View style={{ position: "absolute", top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: party.sun, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 }}><Text style={{ color: party.ink, fontSize: 10, fontWeight: "800" }}>{unread.data}</Text></View> : null}
+            </Pressable>
+          }
+        />
         {!d ? <Loading /> : (
           <>
             {/* A FAZER AGORA (max 3) */}

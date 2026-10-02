@@ -8,6 +8,7 @@ import { WEB_URL } from "@/lib/supabase";
 import { useKioskSettings } from "@/lib/kiosk";
 import { Badge, Button, Card, Muted, Screen, styles } from "@/ui/components";
 import { colors } from "@/ui/theme";
+import { FestiveHeader } from "@/ui/festive-header";
 
 function Item({ icon, label, onPress, href }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress?: () => void; href?: string }) {
   // router.push instead of <Link asChild>: the Link wrapper was dropping the row layout.
@@ -29,15 +30,12 @@ export default function Menu() {
 
   return (
     <Screen padded={false}>
-      <View style={{ padding: 16, gap: 12 }}>
-        <Card>
-          <Text style={styles.cardTitle}>{org?.name}</Text>
-          <Muted>{profile?.name} · {profile?.role === "owner" ? "Proprietário" : "Equipe"} · {profile?.email}</Muted>
-          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-            <Badge tone={org?.plan === "premium" ? "brand" : "zinc"}>{org?.plan === "premium" ? "Premium" : "Básico"}</Badge>
-            {daysLeft != null ? <Muted>Fatura vence em {daysLeft} d ({formatDate(org!.billing_due_at!)})</Muted> : null}
-          </View>
-        </Card>
+      <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+        <FestiveHeader compact eyebrow={profile?.role === "owner" ? "Proprietária" : "Equipe"} title={org?.name ?? "Komyx"} subtitle={`${profile?.name} · ${profile?.email}`} />
+        <View style={{ flexDirection: "row", gap: 8, alignItems: "center", paddingTop: 12, paddingBottom: 4 }}>
+          <Badge tone={org?.plan === "premium" ? "brand" : "zinc"}>{org?.plan === "premium" ? "Premium" : "Básico"}</Badge>
+          {daysLeft != null ? <Muted>Fatura vence em {daysLeft} d ({formatDate(org!.billing_due_at!)})</Muted> : null}
+        </View>
       </View>
       <View style={{ borderTopWidth: 1, borderTopColor: colors.border }}>
         <Item icon="document-text-outline" label="Orçamentos" onPress={() => Linking.openURL(`${WEB_URL}/orcamentos`)} />

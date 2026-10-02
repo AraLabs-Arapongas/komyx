@@ -2,7 +2,7 @@ import type React from "react";
 import { type ReactNode } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, type PressableProps, type TextInputProps, type ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, radius, space, tones } from "./theme";
+import { colors, radius, shadow, space, tones } from "./theme";
 
 /** `safeTop` pads the status bar / notch too: use it on screens without a native header. */
 export function Screen({ children, refreshing, onRefresh, padded = true, scroll = true, safeTop = false }: { children: ReactNode; refreshing?: boolean; onRefresh?: () => void; padded?: boolean; scroll?: boolean; safeTop?: boolean }) {
@@ -18,7 +18,7 @@ export function Screen({ children, refreshing, onRefresh, padded = true, scroll 
 }
 
 export function Card({ children, style, tone }: { children: ReactNode; style?: ViewStyle; tone?: "amber" | "brand" }) {
-  return <View style={[styles.card, tone === "amber" && { borderColor: "#fcd34d", backgroundColor: "#fffbeb" }, tone === "brand" && { borderColor: "#fdba74", backgroundColor: colors.brandSoft }, style]}>{children}</View>;
+  return <View style={[styles.card, tone === "amber" && { borderColor: "#fde68a", backgroundColor: "#fffbeb" }, tone === "brand" && { borderColor: "#f9c2d3", backgroundColor: colors.brandSoft }, style]}>{children}</View>;
 }
 
 export function CardTitle({ title, subtitle, right }: { title: string; subtitle?: string; right?: ReactNode }) {
@@ -41,11 +41,11 @@ export function Badge({ tone = "zinc", children }: { tone?: keyof typeof tones; 
 export function Button({ title, variant = "primary", size = "md", loading, icon, style, ...props }: PressableProps & { title: string; variant?: "primary" | "secondary" | "outline" | "ghost" | "danger" | "success"; size?: "sm" | "md" | "lg"; loading?: boolean; icon?: ReactNode; style?: ViewStyle }) {
   const v = {
     primary: { bg: colors.brand, fg: colors.brandFg, border: colors.brand },
-    secondary: { bg: colors.brandSoft, fg: colors.brand, border: colors.brandSoft },
+    secondary: { bg: colors.brandSoft, fg: colors.brandDeep, border: colors.brandSoft },
     outline: { bg: colors.surface, fg: colors.foreground, border: colors.border },
     ghost: { bg: "transparent", fg: colors.muted, border: "transparent" },
     danger: { bg: "transparent", fg: colors.red, border: "transparent" },
-    success: { bg: colors.green, fg: "#fff", border: colors.green },
+    success: { bg: colors.mint, fg: colors.ink, border: colors.mint },
   }[variant];
   const h = { sm: 36, md: 44, lg: 52 }[size];
   return (
@@ -112,22 +112,22 @@ export function Stat({ label, value, strong }: { label: string; value: string; s
 export const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   padded: { padding: space.lg, gap: space.md },
-  card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: space.lg, gap: space.sm },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: space.lg, gap: space.sm, ...shadow },
   cardTitleRow: { flexDirection: "row", alignItems: "flex-start", gap: space.sm },
-  cardTitle: { fontSize: 16, fontWeight: "700", color: colors.foreground },
+  cardTitle: { fontSize: 17, fontWeight: "800", color: colors.foreground },
   cardSubtitle: { fontSize: 13, color: colors.muted, marginTop: 2 },
   badge: { alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
   badgeText: { fontSize: 11, fontWeight: "600" },
-  button: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: radius.md, borderWidth: 1, paddingHorizontal: 14 },
-  buttonText: { fontWeight: "600" },
+  button: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: 16 },
+  buttonText: { fontWeight: "800" },
   label: { fontSize: 13, fontWeight: "600", color: colors.foreground },
-  input: { height: 46, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, backgroundColor: colors.surface, fontSize: 16, color: colors.foreground },
+  input: { height: 48, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, backgroundColor: colors.surface, fontSize: 16, color: colors.foreground },
   muted: { color: colors.muted, fontSize: 13 },
   row: { flexDirection: "row", alignItems: "center", gap: space.sm },
   empty: { borderWidth: 1, borderStyle: "dashed", borderColor: colors.border, borderRadius: radius.lg, padding: 24, alignItems: "center" },
   statLabel: { fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5, color: colors.muted },
   statValue: { fontSize: 14, fontWeight: "600", color: colors.foreground },
-  title: { fontSize: 22, fontWeight: "700", color: colors.foreground },
+  title: { fontSize: 24, fontWeight: "900", color: colors.foreground, letterSpacing: -0.4 },
   h3: { fontSize: 14, fontWeight: "600", color: colors.foreground },
   text: { fontSize: 15, color: colors.foreground },
 });

@@ -8,6 +8,7 @@ import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, type EventStatus } from "@/lib/l
 import { supabase } from "@/lib/supabase";
 import { Badge, Button, Card, Empty, Loading, Muted, Row, Screen, styles } from "@/ui/components";
 import { colors } from "@/ui/theme";
+import { FestiveHeader } from "@/ui/festive-header";
 
 type Party = { id: string; title: string | null; starts_at: string; ends_at: string; status: EventStatus; expires_at: string | null; adults: number | null; children: number | null; celebrant_name: string | null; customer_name: string; org_name: string; org_slug: string; org_logo: string | null; token: string };
 
@@ -42,9 +43,8 @@ export default function MinhasFestas() {
 
 
   return (
-    <Screen safeTop refreshing={q.isFetching} onRefresh={() => q.refetch()}>
-      <Text style={styles.title}>Minhas festas</Text>
-      <Muted>{session?.user.phone ? `Celular ${formatPhone(session.user.phone.replace(/^\+?55/, ""))}` : ""}</Muted>
+    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()}>
+      <FestiveHeader eyebrow="Komyx" title="Minhas festas" subtitle={session?.user.phone ? `Celular ${formatPhone(session.user.phone.replace(/^\+?55/, ""))}` : undefined} />
       {q.isLoading ? <Loading /> : parties.length === 0 ? (
         <Empty title="Nenhuma festa neste número" description="Quando um buffet registrar uma reserva com o seu celular, ela aparece aqui. Se já tem uma, confira com o buffet se o número está certo." />
       ) : (
