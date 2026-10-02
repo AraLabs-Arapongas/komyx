@@ -19,7 +19,7 @@ export function PublicFooter({ variant = "dark", orgName, cta = true }: { varian
             <img src={dark ? "/aralabs/logo-wordmark-aralabs-white.svg" : "/aralabs/logo-wordmark-aralabs-dark.svg"} alt="AraLabs" className="h-6 w-auto opacity-90 group-hover:opacity-100 transition-opacity" />
           </a>
           <p className="text-sm max-w-md">
-            Desenvolvido por <a href="https://aralabs.com.br" target="_blank" rel="noopener" className="font-bold underline-offset-4 hover:underline" style={{ color: dark ? "#fff" : "var(--ink)" }}>AraLabs</a>. Tecnologia simples para pequenos negócios.
+            Desenvolvido por <a href="https://aralabs.com.br" target="_blank" rel="noopener" className="font-bold underline-offset-4 hover:underline" style={{ color: dark ? "#fff" : "var(--ink)" }}>AraLabs</a>.<br />Tecnologia simples para pequenos negócios.
           </p>
           <p className="text-xs" style={{ color: dark ? "#8a8ea8" : "var(--muted-ink)" }}>© {year} {orgName ? `${orgName} · ` : ""}Komyx é um produto AraLabs.</p>
         </div>
