@@ -14,13 +14,13 @@ type Props = {
  * The same festive banner as Início, drawn by the navigator for every Stack and Tabs screen that
  * does not render its own FestiveHeader: bunting, balloons, confetti, big title, back arrow.
  */
-export function FestiveNavHeader(props: Props) {
+export function FestiveNavHeader(props: Props & { eyebrow?: string; subtitle?: string; onBack?: () => void }) {
   const { org, profile } = useAuth();
-  const back = Boolean(props.back);
+  const back = Boolean(props.back) || Boolean(props.onBack);
   const modal = props.options.presentation === "modal";
   const title = typeof props.options.headerTitle === "string" ? props.options.headerTitle : props.options.title ?? props.route.name;
   const right = props.options.headerRight?.({ tintColor: "#fff", canGoBack: back });
-  const eyebrow = profile ? org?.name : "Komyx";
+  const eyebrow = props.eyebrow ?? (profile ? org?.name : "Komyx");
   return (
     <FestiveHeader
       compact
@@ -29,8 +29,9 @@ export function FestiveNavHeader(props: Props) {
       topInset={modal ? 0 : undefined}
       eyebrow={eyebrow}
       title={title}
+      subtitle={props.subtitle}
       right={right}
-      onBack={back ? props.navigation.goBack : undefined}
+      onBack={back ? props.onBack ?? props.navigation.goBack : undefined}
       backIcon={modal ? "close" : "arrow-back"}
     />
   );

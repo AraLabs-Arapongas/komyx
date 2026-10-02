@@ -29,7 +29,7 @@ function Shell() {
         <Stack.Screen name="dev-splash" options={{ headerShown: false, animation: "fade" }} />
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
         <Stack.Screen name="cliente/index" options={{ headerShown: false }} />
-        <Stack.Screen name="cliente/reserva/[token]" options={{ title: "Minha reserva", headerBackTitle: "Voltar" }} />
+        <Stack.Screen name="cliente/reserva/[token]" options={{ headerShown: false }} />
         <Stack.Screen name="cliente/convite/[token]" options={{ title: "Convite", headerBackTitle: "Voltar" }} />
         <Stack.Screen name="r/[token]" options={{ headerShown: false }} />
         <Stack.Screen name="g/[token]" options={{ headerShown: false }} />

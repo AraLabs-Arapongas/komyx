@@ -33,6 +33,7 @@ function Shortcut({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphM
 function HeroParty({ p }: { p: Party }) {
   const days = daysUntil(p.starts_at);
   const open = () => router.push({ pathname: "/cliente/reserva/[token]", params: { token: p.token } });
+  const go = (tab: "pagamento" | "convidados" | "convite" | "local") => () => router.push({ pathname: `/cliente/reserva/[token]/${tab}`, params: { token: p.token } });
   return (
     <Pressable onPress={open} style={{ borderRadius: 24, overflow: "hidden", backgroundColor: party.ink, padding: 18, gap: 12, ...shadow }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -52,10 +53,10 @@ function HeroParty({ p }: { p: Party }) {
       </View>
       {p.status === "PRE_RESERVED" ? <Text style={{ color: party.sun, fontWeight: "800" }}>Pague o sinal para confirmar a data · toque para ver o Pix</Text> : null}
       <View style={{ flexDirection: "row", gap: 8 }}>
-        <Shortcut icon="qr-code-outline" label="Pagamento" onPress={open} />
-        <Shortcut icon="people-outline" label="Convidados" onPress={open} />
-        <Shortcut icon="mail-open-outline" label="Convite" onPress={open} />
-        <Shortcut icon="navigate-outline" label="Local" onPress={open} />
+        <Shortcut icon="qr-code-outline" label="Pagamento" onPress={go("pagamento")} />
+        <Shortcut icon="people-outline" label="Convidados" onPress={go("convidados")} />
+        <Shortcut icon="mail-open-outline" label="Convite" onPress={go("convite")} />
+        <Shortcut icon="navigate-outline" label="Local" onPress={go("local")} />
       </View>
     </Pressable>
   );
