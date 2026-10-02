@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Check, MessageCircle, Sparkles } from "lucide-react";
 import { PartyScene } from "@/components/marketing/party-scene";
-import { PolaroidGallery } from "@/components/public/polaroid-gallery";
 import { PublicFooter } from "@/components/public/public-footer";
 import { HeroSlides } from "@/components/marketing/hero-slides";
 import { AppMocks } from "@/components/marketing/app-mocks";
+import { PolaroidMocks } from "@/components/marketing/polaroid-mocks";
 import { ScrollCue } from "@/components/marketing/scroll-cue";
 import { Reveal } from "@/components/marketing/reveal";
 import { publicFontClass } from "@/lib/fonts";
@@ -24,12 +24,6 @@ const STEPS_CLIENT = [
   ["Acompanha pelo celular", "Página da reserva, contrato para aceitar, convite personalizado e lista de convidados."],
 ];
 const HIGHLIGHTS = ["Um evento por dia", "Orçamento online", "Pix com identificador", "Contrato automático", "Convite com RSVP", "Portaria no celular", "Cobrança pelo WhatsApp", "Aniversariantes do ano", "App para a dona, a portaria e o cliente"];
-const GALLERY = [
-  { url: "/demo/festa-1.jpg", caption: "Sua página pública, com suas fotos" },
-  { url: "/demo/festa-2.jpg", caption: "Temas com foto no orçamento" },
-  { url: "/demo/festa-3.jpg", caption: "Convite que o cliente personaliza" },
-  { url: "/demo/festa-4.jpg", caption: "Portaria marcando quem chegou" },
-];
 const ALL_FEATURES = ["Agenda, orçamentos e eventos", "Clientes e aniversariantes", "Contratos e Pix com identificador", "Página pública com orçamento online", "Site com suas cores, fonte, logo e capa", "Temas de festa com fotos", "Portaria no celular", "Proprietária + equipe", "App para o cliente acompanhar a festa"];
 
 /**
@@ -86,7 +80,7 @@ export default function LandingPage() {
         <Reveal as="section" className="mx-auto w-full max-w-5xl px-4 py-6 max-md:py-3">
           <h2 className="display font-extrabold text-3xl sm:text-4xl mb-2 max-md:text-2xl max-md:mb-1">Bonito por fora, organizado por dentro</h2>
           <p className="mb-2 max-md:text-sm" style={{ color: "var(--muted-ink)" }}>A página do buffet tem cara de convite. O painel da dona tem cara de trabalho feito.</p>
-          <PolaroidGallery items={GALLERY} />
+          <PolaroidMocks />
         </Reveal>
       </div>
 
