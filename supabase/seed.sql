@@ -1,5 +1,6 @@
--- Local development seed. Runs after migrations on `supabase db reset`.
--- Creates a demo owner + staff (password: senha12345), one buffet, packages, addons, customers and events.
+-- Demo seed for the production project (there is no local Supabase). Idempotent blocks; dates
+-- relative to today. Demo owner + staff (password: senha12345), one buffet, packages with menus,
+-- addons, customers, events in every state, contracts, links. Remove before launch.
 
 -- Auth users (password hash for "senha12345")
 insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change)
@@ -129,6 +130,27 @@ begin
     gallery = '[{"url":"/demo/festa-1.jpg","caption":"Salão principal pronto para a festa"},{"url":"/demo/festa-2.jpg","caption":"Mesa do bolo tema safári"},{"url":"/demo/festa-3.jpg","caption":"Brinquedão com monitores"},{"url":"/demo/festa-4.jpg","caption":"Hora do parabéns"}]'::jsonb,
     testimonials = '[{"name":"Renata, mãe do Pedro","text":"Não precisei me preocupar com nada. As monitoras cuidaram das crianças e eu consegui curtir a festa do meu filho pela primeira vez."},{"name":"Carla, mãe da Júlia","text":"Fechamos pelo WhatsApp em 10 minutos e o orçamento veio certinho, sem surpresa no dia."},{"name":"Marcos, pai do Theo","text":"Comida boa de verdade, não aquele salgadinho de festa. Os adultos repetiram."}]'::jsonb
   where id = v_org;
+  -- Chá revelação (today, confirmed): quote accepted and fully paid.
+  insert into public.quotes (id, organization_id, event_id, package_id, adults, children, status, decided_at, created_by)
+  values ('cccccccc-0000-0000-0000-000000000005', v_org, 'bbbbbbbb-0000-0000-0000-000000000005',
+    (select id from public.packages where organization_id = v_org and name = 'Pacote Bronze'), 25, 10, 'ACCEPTED', now() - interval '25 days', '22222222-2222-2222-2222-222222222222');
+  insert into public.quote_items (organization_id, quote_id, kind, description, quantity, unit_price, sort_order) values
+    (v_org, 'cccccccc-0000-0000-0000-000000000005', 'PACKAGE', 'Pacote Bronze', 1, 2500, 0),
+    (v_org, 'cccccccc-0000-0000-0000-000000000005', 'EXTRA_PARTICIPANTS', 'Adultos adicionais (5)', 5, 55, 1);
+  insert into public.payments (organization_id, event_id, amount, paid_at, method, notes, created_by) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000005', 832.50, current_date - 25, 'PIX', 'Sinal na aceitação', '22222222-2222-2222-2222-222222222222'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000005', 1942.50, current_date - 3, 'PIX', 'Saldo', '22222222-2222-2222-2222-222222222222');
+
+  -- Confirmed and done parties carry an accepted contract; open quotes have their public link.
+  insert into public.contracts (organization_id, event_id, quote_id, number, content, status, token, sent_at, accepted_at, accepted_name, created_by) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000001', 'cccccccc-0000-0000-0000-000000000001', 1, 'Contrato de prestação de serviços de buffet para o Aniversário da Júlia, Pacote Prata para 30 adultos e 35 crianças, com recreação temática. Valor total R$ 4.525,00 (já com R$ 200,00 de desconto), entrada de 30% na aceitação e saldo até 7 dias antes da festa.', 'ACCEPTED', 'demo-contract-link-julia-0123456789abcdef', now() - interval '20 days', now() - interval '19 days', 'Carla Mendes', '11111111-1111-1111-1111-111111111111'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000004', 'cccccccc-0000-0000-0000-000000000004', 2, 'Contrato de prestação de serviços de buffet para as Bodas de Prata, Pacote Ouro para 80 adultos e 10 crianças. Valor total R$ 8.900,00.', 'ACCEPTED', 'demo-contract-link-bodas-0123456789abcdef', now() - interval '45 days', now() - interval '44 days', 'Paulo Andrade', '11111111-1111-1111-1111-111111111111'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000005', 'cccccccc-0000-0000-0000-000000000005', 3, 'Contrato de prestação de serviços de buffet para o Chá revelação, Pacote Bronze para 25 adultos e 10 crianças. Valor total R$ 2.775,00.', 'ACCEPTED', 'demo-contract-link-cha-01234567890abcdefg', now() - interval '25 days', now() - interval '24 days', 'Roberto Lima', '22222222-2222-2222-2222-222222222222');
+  insert into public.public_links (organization_id, event_id, token, type, created_by) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000001', 'demo-quote-link-julia-0123456789abcdef00', 'QUOTE', '11111111-1111-1111-1111-111111111111'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000005', 'demo-quote-link-cha-0123456789abcdef0000', 'QUOTE', '22222222-2222-2222-2222-222222222222'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000006', 'demo-quote-link-firma-0123456789abcdef00', 'QUOTE', '11111111-1111-1111-1111-111111111111');
+
   update public.customers set document = 'CPF 123.456.789-00', source = 'indicacao' where id = 'aaaaaaaa-0000-0000-0000-000000000001';
 
   -- Komyx platform admin (lives in its own org so the app shell works; flag grants /admin)
@@ -208,7 +230,13 @@ begin
   insert into public.public_links (organization_id, event_id, token, type, created_by) values
     (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'demo-reservation-link-alice-0123456789abcd', 'RESERVATION', '11111111-1111-1111-1111-111111111111'),
     (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'demo-guest-link-alice-0123456789abcdef00', 'GUEST_CONFIRM', '11111111-1111-1111-1111-111111111111'),
-    (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'demo-invite-link-alice-0123456789abcdef0', 'INVITE_EDIT', '11111111-1111-1111-1111-111111111111');
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'demo-invite-link-alice-0123456789abcdef0', 'INVITE_EDIT', '11111111-1111-1111-1111-111111111111'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'demo-quote-link-alice-0123456789abcdef00', 'QUOTE', '11111111-1111-1111-1111-111111111111');
+  insert into public.contracts (organization_id, event_id, quote_id, number, content, status, token, sent_at, accepted_at, accepted_name, created_by) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000007', 'cccccccc-0000-0000-0000-000000000007',
+      coalesce((select max(number) from public.contracts where organization_id = v_org), 0) + 1,
+      'Contrato de prestação de serviços de buffet para a Festa da Alice, Pacote Prata para 30 adultos e 30 crianças, com máquina de algodão-doce. Valor total R$ 4.250,00, entrada de 30% na aceitação e saldo até 7 dias antes da festa.',
+      'ACCEPTED', 'demo-contract-link-alice-0123456789abcdef', now() - interval '6 days', now() - interval '5 days', 'Ana Beatriz Rocha', '11111111-1111-1111-1111-111111111111');
 
   insert into public.celebrants (organization_id, customer_id, event_id, name, birth_date) values
     (v_org, 'aaaaaaaa-0000-0000-0000-000000000005', 'bbbbbbbb-0000-0000-0000-000000000007', 'Alice', (current_date + 26) - interval '5 years');
@@ -316,6 +344,22 @@ begin
     (g.name = 'Docinhos' and i.name in ('Brigadeiro', 'Beijinho', 'Cajuzinho', 'Brigadeiro de Nutella')) or
     (g.name = 'Quentes e lanches' and i.name in ('Mini hambúrguer', 'Pipoca')) or
     (g.name = 'Sabor do bolo' and i.name = 'Chocolate com brigadeiro'))
+  on conflict do nothing;
+  insert into public.quote_menu_choices (organization_id, quote_id, group_id, item_id)
+  select v_org, q.id, g.id, i.id
+  from public.quotes q join public.package_menu_groups g on g.package_id = q.package_id join public.package_menu_items i on i.group_id = g.id
+  where q.id = 'cccccccc-0000-0000-0000-000000000001' and (
+    (g.name = 'Salgados' and i.name in ('Coxinha', 'Kibe', 'Esfiha de carne', 'Enroladinho de salsicha')) or
+    (g.name = 'Docinhos' and i.name in ('Brigadeiro', 'Beijinho', 'Bicho de pé', 'Surpresa de uva')) or
+    (g.name = 'Quentes e lanches' and i.name in ('Cachorro-quente', 'Pipoca')) or
+    (g.name = 'Sabor do bolo' and i.name = 'Baunilha com doce de leite'))
+  on conflict do nothing;
+  insert into public.quote_menu_choices (organization_id, quote_id, group_id, item_id)
+  select v_org, q.id, g.id, i.id
+  from public.quotes q join public.package_menu_groups g on g.package_id = q.package_id join public.package_menu_items i on i.group_id = g.id
+  where q.id = 'cccccccc-0000-0000-0000-000000000005' and (
+    (g.name = 'Salgados' and i.name in ('Coxinha', 'Kibe', 'Mini pizza')) or
+    (g.name = 'Docinhos' and i.name in ('Brigadeiro', 'Beijinho', 'Cajuzinho')))
   on conflict do nothing;
   insert into public.quote_menu_choices (organization_id, quote_id, group_id, item_id)
   select v_org, q.id, g.id, i.id

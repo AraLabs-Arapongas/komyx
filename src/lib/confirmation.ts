@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { renderContract } from "@/lib/contract";
 import { eventTitle } from "@/components/events/event-card";
+import { loadQuoteMenu } from "@/lib/data/menu";
+import { menuSummaryLines } from "@/lib/menu";
 
 type DB = SupabaseClient<Database>;
 type Org = Database["public"]["Tables"]["organizations"]["Row"];
@@ -23,12 +25,14 @@ export async function insertContract(ctx: ConfirmCtx, eventId: string, status: "
   if (!event || !event.customers) throw new Error("Evento não encontrado.");
   const { data: quote } = await supabase
     .from("quotes")
-    .select("id, total, quote_items(description, quantity, unit_price, total, sort_order), quote_installments(label, percent, amount, rule, days_before, due_date, sequence)")
+    .select("id, package_id, total, quote_items(description, quantity, unit_price, total, sort_order), quote_installments(label, percent, amount, rule, days_before, due_date, sequence)")
     .eq("event_id", event.id)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+  const menu = quote ? menuSummaryLines(await loadQuoteMenu(supabase, quote.id, quote.package_id)) : [];
   const content = renderContract(org.contract_template, {
+    menu,
     org,
     customer: event.customers,
     event: { title: eventTitle(event), starts_at: event.starts_at, ends_at: event.ends_at, adults: event.adults, children: event.children, celebrant_name: event.celebrant_name },

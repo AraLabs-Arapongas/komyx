@@ -8,6 +8,8 @@ export type ContractData = {
   items: { description: string; quantity: number | string; unit_price: number | string; total: number | string | null }[];
   total: number | string;
   installments: { label: string; percent: number | string; amount: number | string; rule: string; days_before: number | null; due_date: string | null }[];
+  /** Package menu lines (group: chosen items). Empty when the package has no menu. */
+  menu?: { name: string; text: string; pending: boolean }[];
 };
 
 export function installmentDueLabel(i: { rule: string; days_before: number | null; due_date: string | null }, eventStartsAt: string, acceptedAt?: string | null) {
@@ -24,6 +26,9 @@ export function renderContract(template: string, d: ContractData) {
   const items = d.items.length
     ? d.items.map((it) => `- ${it.description} — ${Number(it.quantity)} × ${formatCurrency(it.unit_price)} = ${formatCurrency(it.total)}`).join("\n")
     : "- Conforme orçamento aprovado.";
+  const menu = d.menu && d.menu.length
+    ? d.menu.map((m) => `- ${m.name}: ${m.text}${m.pending ? " (a definir pelo contratante)" : ""}`).join("\n")
+    : "- Conforme descrição do pacote.";
   const plan = d.installments.length
     ? d.installments.map((i, idx) => `${idx + 1}) ${i.label}: ${formatCurrency(i.amount)} (${Number(i.percent)}%), ${installmentDueLabel(i, d.event.starts_at)}.`).join("\n")
     : "Conforme combinado entre as partes.";
@@ -46,6 +51,7 @@ export function renderContract(template: string, d: ContractData) {
     aniversariante: d.event.celebrant_name || "—",
     pacote: d.packageName || "personalizado",
     itens: items,
+    cardapio: menu,
     valor_total: formatCurrency(d.total),
     plano_pagamento: plan,
     pix: d.org.pix_key ? `Chave Pix: ${d.org.pix_key}` : "",
@@ -58,5 +64,5 @@ export const CONTRACT_PLACEHOLDERS = [
   "buffet_nome", "buffet_razao", "buffet_documento", "buffet_endereco", "buffet_whatsapp", "buffet_cidade",
   "cliente_nome", "cliente_documento", "cliente_whatsapp", "cliente_email",
   "evento_titulo", "evento_data", "evento_inicio", "evento_fim", "evento_participantes", "aniversariante",
-  "pacote", "itens", "valor_total", "plano_pagamento", "pix", "data_geracao",
+  "pacote", "itens", "cardapio", "valor_total", "plano_pagamento", "pix", "data_geracao",
 ];
