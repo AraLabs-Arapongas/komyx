@@ -84,12 +84,18 @@ export async function confirmInstallment(formData: FormData) {
   revalidateEvent(event_id);
 }
 
-export async function removePayment(formData: FormData) {
-  const id = String(formData.get("id"));
-  const eventId = String(formData.get("event_id"));
+/** Estorno: the payment moves to payment_reversals (history) and optionally the party reopens. */
+export async function reversePayment(input: { paymentId: string; eventId: string; reason?: string; reopen?: boolean }): Promise<ActionResult> {
+  const id = uuid.safeParse(input.paymentId);
+  const ev = uuid.safeParse(input.eventId);
+  if (!id.success || !ev.success) return fail("Pagamento inválido.");
+  await requireProfile();
   const supabase = await createClient();
-  await supabase.from("payments").delete().eq("id", id);
-  revalidateEvent(eventId);
+  const { error } = await supabase.rpc("reverse_payment", { p_payment_id: id.data, p_reason: input.reason?.trim() || undefined, p_reopen: Boolean(input.reopen) });
+  if (error) return fail(translateDbError(error));
+  revalidateEvent(ev.data);
+  revalidatePath(`/eventos/${ev.data}/contrato`);
+  return { ok: true, message: "Pagamento estornado." };
 }
 
 type LinkType = "GUEST_CONFIRM" | "QUOTE" | "INVITE_EDIT" | "CHECKIN" | "RESERVATION";

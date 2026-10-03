@@ -19,7 +19,7 @@ type Payment = { id: string; amount: number; paid_at: string; method: PaymentMet
 type Extra = { id: string; description: string; quantity: number; unit_price: number; total: number; source: string };
 
 async function loadEvent(id: string) {
-  const [ev, guests, payments, quotes, links, extras, fin] = await Promise.all([
+  const [ev, guests, payments, quotes, links, extras, fin, reversals] = await Promise.all([
     supabase.from("events").select("*, customers(id, name, whatsapp, email), packages(name)").eq("id", id).maybeSingle(),
     supabase.from("guests").select("id, name, adults, children, source, notes, checked_in_at, checked_in_adults, checked_in_children").eq("event_id", id).order("created_at"),
     supabase.from("payments").select("id, amount, paid_at, method, notes").eq("event_id", id).order("paid_at", { ascending: false }),
@@ -27,8 +27,9 @@ async function loadEvent(id: string) {
     supabase.from("public_links").select("id, token, short, type").eq("event_id", id).eq("active", true),
     supabase.from("event_extras").select("id, description, quantity, unit_price, total, source").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("event_financials").select("*").eq("event_id", id).maybeSingle(),
+    supabase.from("payment_reversals").select("id, amount, paid_at, method, reason, reopened, reversed_at").eq("event_id", id).order("reversed_at", { ascending: false }),
   ]);
-  return { event: ev.data, guests: (guests.data ?? []) as Guest[], payments: (payments.data ?? []) as Payment[], quote: quotes.data?.[0] ?? null, links: links.data ?? [], extras: (extras.data ?? []) as Extra[], fin: fin.data as Financials | null };
+  return { event: ev.data, guests: (guests.data ?? []) as Guest[], payments: (payments.data ?? []) as Payment[], quote: quotes.data?.[0] ?? null, links: links.data ?? [], extras: (extras.data ?? []) as Extra[], fin: fin.data as Financials | null, reversals: (reversals.data ?? []) as { id: string; amount: number; paid_at: string; method: Payment["method"]; reason: string | null; reopened: boolean; reversed_at: string }[] };
 }
 
 export default function EventDetail() {
@@ -66,7 +67,29 @@ export default function EventDetail() {
     onSuccess: () => { setPayAmount(""); invalidate(); },
     onError: (e) => Alert.alert("Erro", e.message),
   });
-  const removePayment = useMutation({ mutationFn: async (pid: string) => { await supabase.from("payments").delete().eq("id", pid); }, onSuccess: invalidate });
+  // Estorno (never a silent delete): the payment goes to the reversal history; when it was the only
+  // payment of a confirmed party the owner chooses whether the party stays confirmed.
+  const reversePayment = useMutation({
+    mutationFn: async (v: { id: string; reopen: boolean }) => {
+      const { error } = await supabase.rpc("reverse_payment", { p_payment_id: v.id, p_reopen: v.reopen });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: invalidate,
+    onError: (e) => Alert.alert("Estornar", (e as Error).message),
+  });
+  function askReverse(p: Payment, onlyPaymentOfConfirmed: boolean) {
+    const title = `Estornar ${formatCurrency(p.amount)}?`;
+    const body = "O valor sai do que foi pago e a parcela volta a ficar em aberto. Fica no histórico.";
+    if (!onlyPaymentOfConfirmed) {
+      Alert.alert(title, body, [{ text: "Voltar", style: "cancel" }, { text: "Estornar", style: "destructive", onPress: () => reversePayment.mutate({ id: p.id, reopen: false }) }]);
+      return;
+    }
+    Alert.alert(title, `${body}\n\nEra o único pagamento da festa confirmada. O que fazer com a festa?`, [
+      { text: "Voltar", style: "cancel" },
+      { text: "Manter confirmada", onPress: () => reversePayment.mutate({ id: p.id, reopen: false }) },
+      { text: "Voltar para pré-reserva", style: "destructive", onPress: () => reversePayment.mutate({ id: p.id, reopen: true }) },
+    ]);
+  }
   const checkIn = useMutation({
     mutationFn: async (g: Guest) => {
       const arrived = Boolean(g.checked_in_at);
@@ -114,7 +137,7 @@ export default function EventDetail() {
   }
 
   if (q.isLoading || !q.data) return <Loading />;
-  const { event: ev, guests, payments, quote, extras, fin } = q.data;
+  const { event: ev, guests, payments, quote, extras, fin, reversals } = q.data;
   if (!ev) return <Screen><Muted>Evento não encontrado.</Muted></Screen>;
   const customer = ev.customers as { id: string; name: string; whatsapp: string; email: string | null };
   const title = eventTitle(ev as never);
@@ -208,9 +231,17 @@ export default function EventDetail() {
           {payments.length === 0 ? <Muted>Nenhum pagamento registrado.</Muted> : payments.map((p) => (
             <Row key={p.id} style={{ justifyContent: "space-between" }}>
               <Text style={[styles.text, { flex: 1 }]} numberOfLines={1}><Text style={{ fontWeight: "600" }}>{formatCurrency(p.amount)}</Text> <Muted>· {PAYMENT_METHOD_LABEL[p.method]} · {p.paid_at.split("-").reverse().join("/")}{p.notes ? ` · ${p.notes}` : ""}</Muted></Text>
-              <Pressable onPress={() => Alert.alert("Remover pagamento?", undefined, [{ text: "Voltar" }, { text: "Remover", style: "destructive", onPress: () => removePayment.mutate(p.id) }])}><Ionicons name="trash-outline" size={18} color={colors.muted} /></Pressable>
+              <Pressable onPress={() => askReverse(p, ev.status === "CONFIRMED" && payments.length === 1)} hitSlop={8} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Ionicons name="arrow-undo-outline" size={16} color={colors.muted} /><Text style={{ color: colors.muted, fontSize: 12, fontWeight: "600" }}>Estornar</Text></Pressable>
             </Row>
           ))}
+          {reversals.length ? (
+            <View style={{ gap: 4 }}>
+              <Muted style={{ fontWeight: "700" }}>Estornos</Muted>
+              {reversals.map((r) => (
+                <Muted key={r.id} style={{ fontSize: 12 }}><Text style={{ textDecorationLine: "line-through" }}>{formatCurrency(r.amount)} · {PAYMENT_METHOD_LABEL[r.method]} · {r.paid_at.split("-").reverse().join("/")}</Text> · estornado {formatDate(r.reversed_at)}{r.reason ? ` · ${r.reason}` : ""}{r.reopened ? " · voltou para pré-reserva" : ""}</Muted>
+              ))}
+            </View>
+          ) : null}
           <Text style={styles.h3}>Registrar pagamento</Text>
           <Row>
             <View style={{ flex: 1 }}><Input value={payAmount} onChangeText={setPayAmount} placeholder="Valor (R$)" keyboardType="decimal-pad" /></View>

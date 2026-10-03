@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrganization } from "@/lib/data/session";
 import { createQuoteAndGo } from "@/lib/actions/quotes";
 import { generateContractAndGo } from "@/lib/actions/contracts";
-import { removePayment, removeEventExtra, revokePublicLink } from "@/lib/actions/guests-payments";
+import { removeEventExtra, revokePublicLink } from "@/lib/actions/guests-payments";
 import { loadEventFinancials } from "@/lib/data/financials";
 import { ensureEventLinks } from "@/lib/data/links";
 import { PageBody, PageHeader, Alert } from "@/components/ui/page";
@@ -22,6 +22,7 @@ import { PaymentForm } from "./payment-form";
 import { ExtraForm, InviteForm } from "./extra-forms";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Installments } from "./installments";
+import { ReversePaymentButton } from "@/components/events/reverse-payment";
 import { allocateInstallments, type InstallmentLike } from "@/lib/installments";
 import { balancePix, chargeMessage, eventTxid } from "@/lib/charge";
 
@@ -81,9 +82,10 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
     .maybeSingle();
   if (!event) notFound();
 
-  const [guestsRes, paymentsRes, links, quotesRes, contractsRes, extrasRes, addonsRes, fin] = await Promise.all([
+  const [guestsRes, paymentsRes, reversalsRes, links, quotesRes, contractsRes, extrasRes, addonsRes, fin] = await Promise.all([
     supabase.from("guests").select("id, name, adults, children, participants, source, notes, checked_in_at, checked_in_adults, checked_in_children, created_at").eq("event_id", id).order("created_at"),
     supabase.from("payments").select("id, amount, paid_at, method, notes").eq("event_id", id).order("paid_at", { ascending: false }),
+    supabase.from("payment_reversals").select("id, amount, paid_at, method, notes, reason, reopened, reversed_at, reversed_by").eq("event_id", id).order("reversed_at", { ascending: false }),
     ensureEventLinks(supabase, org.id, id, ["RESERVATION", "GUEST_CONFIRM", "INVITE_EDIT", "CHECKIN"]),
     supabase.from("quotes").select("id, status, total, created_at, decided_at, quote_installments(sequence, label, percent, amount, rule, days_before, due_date)").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("contracts").select("id, number, status, created_at, accepted_at").eq("event_id", id).order("created_at", { ascending: false }),
@@ -91,6 +93,9 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
     supabase.from("package_addons").select("id, name, price").eq("active", true).order("sort_order").order("name"),
     loadEventFinancials(supabase, id),
   ]);
+  const reverserIds = [...new Set((reversalsRes.data ?? []).map((r) => r.reversed_by).filter((x): x is string => Boolean(x)))];
+  const { data: reversers } = reverserIds.length ? await supabase.from("profiles").select("id, name").in("id", reverserIds) : { data: [] as { id: string; name: string }[] };
+  const reverserNames = new Map((reversers ?? []).map((p) => [p.id, p.name]));
 
   const customer = event.customers!;
   const title = eventTitle(event);
@@ -259,7 +264,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
               {(latestQuote && latestQuote.quote_installments.length > 0) || Number(fin?.extras_total ?? 0) > 0 ? (
                 <div>
                   <p className="text-sm font-medium">Parcelas</p>
-                  <Installments eventId={id} installments={latestQuote?.quote_installments ?? []} paidTotal={Number(fin?.paid_total ?? 0)} extrasTotal={Number(fin?.extras_total ?? 0)} eventStartsAt={event.starts_at} acceptedAt={latestQuote?.decided_at} />
+                  <Installments eventId={id} payments={(paymentsRes.data ?? []).map((p) => ({ id: p.id, amount: Number(p.amount), notes: p.notes }))} eventConfirmed={event.status === "CONFIRMED"} installments={latestQuote?.quote_installments ?? []} paidTotal={Number(fin?.paid_total ?? 0)} extrasTotal={Number(fin?.extras_total ?? 0)} eventStartsAt={event.starts_at} acceptedAt={latestQuote?.decided_at} />
                 </div>
               ) : null}
               <p className="text-sm font-medium">Recebimentos</p>
@@ -270,15 +275,24 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                       <div className="min-w-0 truncate">
                         <span className="font-medium"><Money value={p.amount} /></span> <span className="text-muted">· {PAYMENT_METHOD_LABEL[p.method]} · {formatDate(p.paid_at + "T12:00:00-03:00")}{p.notes ? ` · ${p.notes}` : ""}</span>
                       </div>
-                      <form action={removePayment}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <input type="hidden" name="event_id" value={id} />
-                        <button className="text-xs text-muted hover:text-red-600">Remover</button>
-                      </form>
+                      <ReversePaymentButton paymentId={p.id} eventId={id} amount={Number(p.amount)} lastPaymentOfConfirmed={event.status === "CONFIRMED" && paymentsRes.data!.length === 1} />
                     </li>
                   ))}
                 </ul>
               ) : <p className="text-sm text-muted">Nenhum pagamento registrado.</p>}
+              {(reversalsRes.data ?? []).length > 0 ? (
+                <details className="text-sm">
+                  <summary className="cursor-pointer text-muted">Estornos ({reversalsRes.data!.length})</summary>
+                  <ul className="mt-1 divide-y divide-border">
+                    {reversalsRes.data!.map((r) => (
+                      <li key={r.id} className="py-1.5 text-muted">
+                        <span className="line-through"><Money value={r.amount} /> · {PAYMENT_METHOD_LABEL[r.method]} · {formatDate(r.paid_at + "T12:00:00-03:00")}{r.notes ? ` · ${r.notes}` : ""}</span>
+                        <span className="block text-xs">Estornado {formatDate(r.reversed_at)}{r.reversed_by && reverserNames.get(r.reversed_by) ? ` por ${reverserNames.get(r.reversed_by)}` : ""}{r.reason ? ` · ${r.reason}` : ""}{r.reopened ? " · festa voltou para pré-reserva" : ""}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
               <PaymentForm eventId={id} />
             </CardBody>
           </Card>

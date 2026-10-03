@@ -5,9 +5,10 @@ import { Money } from "@/components/ui/money";
 import { allocateInstallments, dueShort, INSTALLMENT_STATUS_LABEL, INSTALLMENT_STATUS_TONE, type InstallmentLike, type InstallmentStatus } from "@/lib/installments";
 import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
 import { toDateKey } from "@/lib/utils";
+import { ReversePaymentButton } from "@/components/events/reverse-payment";
 
 /** Installment plan of the latest quote with paid/pending status and a one-click "Recebida" per open installment. */
-export function Installments({ eventId, installments, paidTotal, extrasTotal = 0, eventStartsAt, acceptedAt }: { eventId: string; installments: InstallmentLike[]; paidTotal: number; extrasTotal?: number; eventStartsAt: string; acceptedAt?: string | null }) {
+export function Installments({ eventId, payments = [], eventConfirmed = false, installments, paidTotal, extrasTotal = 0, eventStartsAt, acceptedAt }: { eventId: string; payments?: { id: string; amount: number; notes: string | null }[]; eventConfirmed?: boolean; installments: InstallmentLike[]; paidTotal: number; extrasTotal?: number; eventStartsAt: string; acceptedAt?: string | null }) {
   if (installments.length === 0 && extrasTotal <= 0) return null;
   const base = allocateInstallments(installments, paidTotal, eventStartsAt, acceptedAt);
   // Whatever was paid beyond the quote installments goes to the on-site extras.
@@ -26,6 +27,12 @@ export function Installments({ eventId, installments, paidTotal, extrasTotal = 0
             {i.status === "PAID" ? <Check className="h-4 w-4 text-emerald-600 shrink-0" /> : <span className="h-4 w-4 shrink-0 rounded-full border border-border" />}
             <span className="truncate"><span className="font-medium">{idx + 1}. {i.label}</span> <span className="text-muted">· {i.isExtras ? "no dia da festa" : dueShort(i.due)}</span></span>
             <Badge tone={INSTALLMENT_STATUS_TONE[i.status]}>{INSTALLMENT_STATUS_LABEL[i.status]}</Badge>
+            {(() => {
+              // "Desfazer" when we know which payment settled this instalment (the "Recebida" note).
+              if (i.status === "PENDING" || i.isExtras) return null;
+              const pay = payments.find((p) => p.notes?.startsWith(`Parcela ${idx + 1} ·`));
+              return pay ? <ReversePaymentButton paymentId={pay.id} eventId={eventId} amount={pay.amount} label="Desfazer" lastPaymentOfConfirmed={eventConfirmed && payments.length === 1} /> : null;
+            })()}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {i.status === "PARTIAL" ? (
