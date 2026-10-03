@@ -440,3 +440,12 @@ additional_redirect_urls = ["https://komyx.com.br", "https://komyx.com.br/**", "
 enabled = true
 uri = "https://komyx.com.br/api/auth/send-sms"
 secrets = "env(SEND_SMS_HOOK_SECRET)"
+
+# Seed phones never send a real SMS in production either: the code is always 123456.
+# Remove before launch together with the seed accounts.
+[remotes.production.auth.sms.test_otp]
+5511999990001 = "123456"
+5511999990002 = "123456"
+5511999990003 = "123456"
+5511999990004 = "123456"
+5511999990005 = "123456"
