@@ -14,15 +14,15 @@ Pré-requisitos: Node 20+, pnpm, Docker, Supabase CLI.
 
 ```bash
 pnpm install
-supabase start          # sobe Postgres/Auth/Storage/Studio nas portas 548xx
-supabase status -o env  # copie API_URL, PUBLISHABLE_KEY e SECRET_KEY para .env.local
+# Banco: só produção (projeto ggvkgxxadvhekmvccceu). Não há Supabase local.
+# Migrações: supabase db push (linkado ao projeto). Seed: supabase/seed.sql via SQL editor/MCP.
 pnpm dev                # http://localhost:3000
 ```
 
 `.env.local` (veja `.env.example`):
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54821
+NEXT_PUBLIC_SUPABASE_URL=https://ggvkgxxadvhekmvccceu.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 SUPABASE_SECRET_KEY=sb_secret_...
 NEXT_PUBLIC_APP_URL=http://localhost:3000

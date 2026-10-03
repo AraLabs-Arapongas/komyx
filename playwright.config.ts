@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * E2E against the local dev server + local Supabase (supabase start).
+ * E2E against the local dev server pointing at the production Supabase (seed accounts, password senha12345).
  * Tests share one database, so they run serially and clean up what they create.
  */
 export default defineConfig({
