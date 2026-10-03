@@ -22,6 +22,11 @@ export function PublicFooter({ variant = "dark", orgName, cta = true }: { varian
             Desenvolvido por <a href="https://aralabs.com.br" target="_blank" rel="noopener" className="font-bold underline-offset-4 hover:underline" style={{ color: dark ? "#fff" : "var(--ink)" }}>AraLabs</a>.<br />Tecnologia simples para pequenos negócios.
           </p>
           <p className="text-xs" style={{ color: dark ? "#8a8ea8" : "var(--muted-ink)" }}>© {year} {orgName ? `${orgName} · ` : ""}Komyx é um produto AraLabs.</p>
+          <p className="text-xs flex flex-wrap gap-x-3" style={{ color: dark ? "#8a8ea8" : "var(--muted-ink)" }}>
+            <Link href="/privacidade" className="underline-offset-4 hover:underline">Privacidade</Link>
+            <Link href="/termos" className="underline-offset-4 hover:underline">Termos</Link>
+            <Link href="/suporte" className="underline-offset-4 hover:underline">Suporte</Link>
+          </p>
         </div>
         {cta ? <div className="rounded-2xl p-4 text-sm" style={dark ? { background: "rgba(255,255,255,0.06)" } : { background: "var(--paper-2)" }}>
           <p className="font-bold" style={{ color: dark ? "#fff" : "var(--ink)" }}>Tem um buffet?</p>
