@@ -17,7 +17,12 @@ export async function login(_prev: ActionResult | undefined, formData: FormData)
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
-  if (error) return fail("E-mail ou senha incorretos.");
+  if (error) {
+    // Only a real credential mismatch is "wrong password"; anything else (server down, wrong
+    // Supabase URL in .env.local) should not send people hunting for a typo.
+    if (error.code === "invalid_credentials" || error.status === 400) return fail("E-mail ou senha incorretos.");
+    return fail("Não foi possível falar com o servidor de login. Tente de novo em instantes.");
+  }
 
   const next = parsed.data.next && parsed.data.next.startsWith("/") ? parsed.data.next : "/home";
   redirect(next);
