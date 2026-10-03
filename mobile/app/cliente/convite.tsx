@@ -20,7 +20,7 @@ export default function Convite() {
   const message = `Você está convidado: ${ev.invite_title || view.title} · ${formatDateLong(ev.starts_at)} às ${formatTime(ev.starts_at)}${org.address ? ` · ${org.name}, ${org.address}` : ""}.${guestUrl ? ` Confirme presença: ${guestUrl}` : ""}`;
 
   return (
-    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()}>
+    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()} resetScrollKey={token}>
       {ev.invite_image_url ? <Image alt="Convite" source={{ uri: ev.invite_image_url }} style={{ width: "100%", aspectRatio: 1, borderRadius: 20, backgroundColor: colors.stone100 }} resizeMode="cover" /> : null}
       <Card tone={personalized ? undefined : "amber"}>
         <Text style={[styles.title, { textAlign: "center" }]}>{ev.invite_title || view.title}</Text>

@@ -21,7 +21,7 @@ export default function Pagamento() {
   if (!quote || !showPrices) return <Screen><Empty title="Valores combinados com o buffet" description={org.whatsapp ? "Este buffet trata pagamentos direto com você. Fale com eles pelo WhatsApp." : "Este buffet trata pagamentos direto com você."} />{org.whatsapp ? <Button title={`Falar com ${org.name}`} variant="secondary" onPress={() => view.wa("Olá! Sobre o pagamento da minha festa.")} /> : null}</Screen>;
 
   return (
-    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()}>
+    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()} resetScrollKey={token}>
       {pix ? (
         <Card tone="brand">
           <CardTitle title={needsDeposit ? "Pague o sinal por Pix" : "Pagar o que falta por Pix"} subtitle={`${formatCurrency(pixAmount!)} · identificador ${txid}`} />

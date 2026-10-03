@@ -1,13 +1,22 @@
 import type React from "react";
-import { type ReactNode } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useFocusEffect } from "expo-router";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, type PressableProps, type TextInputProps, type ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, radius, shadow, space, tones } from "./theme";
 
-/** `safeTop` pads the status bar / notch too: use it on screens without a native header. */
-export function Screen({ children, refreshing, onRefresh, padded = true, scroll = true, safeTop = false }: { children: ReactNode; refreshing?: boolean; onRefresh?: () => void; padded?: boolean; scroll?: boolean; safeTop?: boolean }) {
+/**
+ * `safeTop` pads the status bar / notch too: use it on screens without a native header.
+ * `resetScrollKey`: scroll back to the top whenever the screen gains focus or this key changes
+ * (tabs keep their scroll position otherwise, which feels like the scroll "leaking" between tabs).
+ */
+export function Screen({ children, refreshing, onRefresh, padded = true, scroll = true, safeTop = false, resetScrollKey }: { children: ReactNode; refreshing?: boolean; onRefresh?: () => void; padded?: boolean; scroll?: boolean; safeTop?: boolean; resetScrollKey?: string | null }) {
+  const ref = useRef<ScrollView>(null);
+  const reset = resetScrollKey !== undefined;
+  useFocusEffect(useCallback(() => { if (reset) ref.current?.scrollTo({ y: 0, animated: false }); }, [reset]));
+  useEffect(() => { if (reset) ref.current?.scrollTo({ y: 0, animated: false }); }, [reset, resetScrollKey]);
   const content = scroll ? (
-    <ScrollView contentContainerStyle={[padded && styles.padded, { paddingBottom: 40 }]} keyboardShouldPersistTaps="handled"
+    <ScrollView ref={ref} contentContainerStyle={[padded && styles.padded, { paddingBottom: 40 }]} keyboardShouldPersistTaps="handled"
       refreshControl={onRefresh ? <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} tintColor={colors.brand} /> : undefined}>
       {children}
     </ScrollView>

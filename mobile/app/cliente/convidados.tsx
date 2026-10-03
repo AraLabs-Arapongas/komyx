@@ -23,7 +23,7 @@ export default function Convidados() {
   const over = c.overA + c.overC;
 
   return (
-    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()}>
+    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()} resetScrollKey={token}>
       <Card>
         <CardTitle title="Quantos cabem" subtitle={`${r.guests.length} ${r.guests.length === 1 ? "confirmação" : "confirmações"} · ${guestsPeople} pessoas`} />
         <View style={{ gap: 8, padding: 12, borderRadius: 14, backgroundColor: colors.stone50, borderWidth: 1, borderColor: colors.border }}>

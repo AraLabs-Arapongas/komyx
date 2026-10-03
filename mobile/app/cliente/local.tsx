@@ -20,7 +20,7 @@ export default function Local() {
   const shareText = `${view.title} · ${formatDateLong(ev.starts_at)} às ${formatTime(ev.starts_at)}\n${org.name}${address ? ` · ${address}` : ""}${mapsUrl ? `\n${mapsUrl}` : ""}`;
 
   return (
-    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()}>
+    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()} resetScrollKey={token}>
       <Card>
         <Row>
           {org.logo_url ? <Image alt="" source={{ uri: org.logo_url }} style={{ width: 56, height: 56, borderRadius: 16 }} /> : <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: colors.brandSoft, alignItems: "center", justifyContent: "center" }}><KomyxMark size={32} color={colors.brand} /></View>}

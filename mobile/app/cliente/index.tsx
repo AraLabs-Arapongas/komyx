@@ -148,7 +148,7 @@ export default function Inicio() {
   if (!token && parties.length > 1) return <Redirect href="/escolher-festa" />;
 
   return (
-    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()}>
+    <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()} resetScrollKey={token}>
       <Sprinkles />
       {!token ? (
         <View style={{ alignItems: "center", gap: 10, paddingVertical: 28, paddingHorizontal: 12 }}>
