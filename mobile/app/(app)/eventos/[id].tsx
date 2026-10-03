@@ -9,6 +9,7 @@ import { addHours, formatCurrency, formatDate, formatDateLong, formatDateTime, f
 import { allocateInstallments, dueShort, INSTALLMENT_STATUS_LABEL, INSTALLMENT_STATUS_TONE, type InstallmentLike } from "@/lib/installments";
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, PAYMENT_METHOD_LABEL, QUOTE_STATUS_LABEL, type EventStatus, type PaymentMethod } from "@/lib/labels";
 import { eventTitle, type Financials } from "@/lib/queries";
+import { confirmEventRemote } from "@/lib/confirm";
 import { supabase, WEB_URL } from "@/lib/supabase";
 import { Badge, Button, Card, CardTitle, Divider, Input, Loading, Muted, Row, Screen, Stat, styles } from "@/ui/components";
 import { colors } from "@/ui/theme";
@@ -47,9 +48,10 @@ export default function EventDetail() {
 
   const setStatus = useMutation({
     mutationFn: async (status: EventStatus) => {
+      if (status === "CONFIRMED") { await confirmEventRemote(id, { confirm: true }); return; }
       const patch: Record<string, unknown> = { status };
       if (status === "PRE_RESERVED") patch.expires_at = addHours(new Date(), org?.pre_reservation_validity_hours ?? 48).toISOString();
-      if (status === "CONFIRMED" || status === "QUOTE" || status === "CANCELLED") patch.expires_at = null;
+      if (status === "QUOTE" || status === "CANCELLED") patch.expires_at = null;
       const { error } = await supabase.from("events").update(patch).eq("id", id);
       if (error) throw new Error(error.message);
     },
@@ -58,8 +60,8 @@ export default function EventDetail() {
   });
   const addPayment = useMutation({
     mutationFn: async (p: { amount: number; method: PaymentMethod; notes?: string | null }) => {
-      const { error } = await supabase.from("payments").insert({ organization_id: profile!.organization_id, event_id: id, amount: p.amount, method: p.method, paid_at: toDateKey(new Date()), notes: p.notes ?? null, created_by: profile!.id });
-      if (error) throw new Error(error.message);
+      // Through the server routine: a first payment on a pre-reservation also confirms the party.
+      await confirmEventRemote(id, { payment: { amount: p.amount, method: p.method, paid_at: toDateKey(new Date()), notes: p.notes ?? null } });
     },
     onSuccess: () => { setPayAmount(""); invalidate(); },
     onError: (e) => Alert.alert("Erro", e.message),

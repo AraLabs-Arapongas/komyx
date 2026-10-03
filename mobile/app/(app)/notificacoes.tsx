@@ -18,7 +18,8 @@ export default function Notificacoes() {
   function open(n: N) {
     if (!n.read_at) markOne.mutate(n.id);
     const m = n.href?.match(/\/eventos\/([0-9a-f-]{36})/);
-    if (m) router.push({ pathname: "/(app)/eventos/[id]", params: { id: m[1] } });
+    if (n.type === "client_request") router.push("/(app)/pedidos");
+    else if (m) router.push({ pathname: "/(app)/eventos/[id]", params: { id: m[1] } });
     else if (n.href?.startsWith("/solicitacoes")) router.push("/(app)/(tabs)/solicitacoes");
   }
 

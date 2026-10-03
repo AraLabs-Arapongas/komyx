@@ -38,6 +38,7 @@ export default function Menu() {
         </View>
       </View>
       <View style={{ borderTopWidth: 1, borderTopColor: colors.border }}>
+        <Item icon="chatbubbles-outline" label="Pedidos dos clientes" onPress={() => router.push("/(app)/pedidos")} />
         <Item icon="document-text-outline" label="Orçamentos" onPress={() => Linking.openURL(`${WEB_URL}/orcamentos`)} />
         <Item icon="people-outline" label="Clientes" onPress={() => Linking.openURL(`${WEB_URL}/clientes`)} />
         <Item icon="gift-outline" label="Aniversariantes" onPress={() => Linking.openURL(`${WEB_URL}/aniversariantes`)} />

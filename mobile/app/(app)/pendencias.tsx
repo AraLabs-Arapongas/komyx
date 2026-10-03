@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Linking, Pressable, Text, View } from "react-native";
+import { Alert, Linking, Pressable, Text, View } from "react-native";
 import { useAuth } from "@/lib/auth";
 import { formatCurrency, formatDate, formatTime, hoursLeft, whatsappUrl } from "@/lib/format";
 import { eventTitle, loadHome, type EventRow } from "@/lib/queries";
+import { confirmEventRemote } from "@/lib/confirm";
 import { supabase } from "@/lib/supabase";
 import { Button, Card, Empty, Loading, Muted, Row, Screen, styles } from "@/ui/components";
 import { buildTodos } from "./(tabs)/home";
@@ -16,7 +17,12 @@ export default function Pendencias() {
   const todos = q.data ? buildTodos(q.data) : [];
 
   async function act(e: EventRow, status: "CONFIRMED" | "QUOTE") {
-    await supabase.from("events").update({ status, expires_at: null }).eq("id", e.id);
+    try {
+      if (status === "CONFIRMED") await confirmEventRemote(e.id, { confirm: true });
+      else await supabase.from("events").update({ status, expires_at: null }).eq("id", e.id);
+    } catch (err) {
+      Alert.alert("Confirmar", (err as Error).message);
+    }
     qc.invalidateQueries({ queryKey: ["home"] });
   }
   const openEvent = (e: EventRow) => router.push({ pathname: "/(app)/eventos/[id]", params: { id: e.id } });

@@ -86,6 +86,17 @@ export default function NovoOrcamento() {
     },
   });
 
+  // Choosing a package fills in the people it includes, unless they were typed by hand.
+  const [peopleFromPackage, setPeopleFromPackage] = useState(true);
+  function pickPackage(p: { id: string; included_adults: number | null; included_children: number | null }) {
+    setPackageId(p.id);
+    if (peopleFromPackage || (!adults && !children)) {
+      setAdults(p.included_adults ? String(p.included_adults) : "");
+      setChildren(p.included_children ? String(p.included_children) : "");
+      setPeopleFromPackage(true);
+    }
+  }
+
   // Prefill from a public request or a known customer.
   useEffect(() => {
     (async () => {
@@ -99,7 +110,7 @@ export default function NovoOrcamento() {
         setTerm(maskPhoneInput(r.whatsapp)); setNewName(r.name);
         if (r.desired_date) { setDate(r.desired_date); setMonth(r.desired_date.slice(0, 7)); }
         if (r.desired_time) setStart(String(r.desired_time).slice(0, 5));
-        setAdults(String(r.adults ?? r.participants ?? "")); setChildren(String(r.children ?? ""));
+        setAdults(String(r.adults ?? r.participants ?? "")); setChildren(String(r.children ?? "")); setPeopleFromPackage(false);
         if (r.package_id) setPackageId(r.package_id);
         if (r.theme_id) setThemeId(r.theme_id);
         if (Array.isArray(r.addons)) setQty(Object.fromEntries((r.addons as { addon_id: string; quantity: number }[]).map((x) => [x.addon_id, x.quantity])));
@@ -181,6 +192,8 @@ export default function NovoOrcamento() {
       if (ee) throw new Error(ee.message);
       const { data: quote, error: qe } = await supabase.from("quotes").insert({ organization_id: org.id, event_id: ev.id, package_id: pkg?.id ?? null, adults: nAdults, children: nChildren, created_by: profile.id }).select("id").single();
       if (qe) throw new Error(qe.message);
+      // Public quote link: the client sees the quote PDF from the party panel.
+      await supabase.from("public_links").insert({ organization_id: org.id, event_id: ev.id, type: "QUOTE", created_by: profile.id });
       if (lines.length) {
         const { error: ie } = await supabase.from("quote_items").insert(lines.map((l) => ({ ...l, organization_id: org.id, quote_id: quote.id })));
         if (ie) throw new Error(ie.message);
@@ -248,7 +261,7 @@ export default function NovoOrcamento() {
             {!catalog.data ? <Loading /> : (
               <>
                 {catalog.data.packages.map((p) => (
-                  <Pressable key={p.id} onPress={() => setPackageId(p.id)} style={{ padding: 14, borderRadius: 14, borderWidth: 2, borderColor: packageId === p.id ? colors.brand : colors.border, backgroundColor: colors.surface, gap: 2 }}>
+                  <Pressable key={p.id} onPress={() => pickPackage(p)} style={{ padding: 14, borderRadius: 14, borderWidth: 2, borderColor: packageId === p.id ? colors.brand : colors.border, backgroundColor: colors.surface, gap: 2 }}>
                     <Row style={{ justifyContent: "space-between" }}><Text style={styles.h3}>{p.name}</Text><Text style={{ fontWeight: "800", color: colors.brand }}>{formatCurrency(p.base_price)}</Text></Row>
                     <Muted>{p.included_adults} adultos + {p.included_children} crianças{p.description ? ` · ${p.description}` : ""}</Muted>
                   </Pressable>
@@ -331,8 +344,8 @@ export default function NovoOrcamento() {
           <>
             <Text style={[styles.title, { fontSize: 22 }]}>Pessoas e festa</Text>
             <Row>
-              <Field label="Adultos"><Input value={adults} onChangeText={(v: string) => setAdults(v.replace(/\D/g, ""))} keyboardType="number-pad" placeholder={pkg ? String(pkg.included_adults) : "30"} /></Field>
-              <Field label="Crianças"><Input value={children} onChangeText={(v: string) => setChildren(v.replace(/\D/g, ""))} keyboardType="number-pad" placeholder={pkg ? String(pkg.included_children) : "30"} /></Field>
+              <Field label="Adultos"><Input value={adults} onChangeText={(v: string) => { setAdults(v.replace(/\D/g, "")); setPeopleFromPackage(false); }} keyboardType="number-pad" placeholder={pkg ? String(pkg.included_adults) : "30"} /></Field>
+              <Field label="Crianças"><Input value={children} onChangeText={(v: string) => { setChildren(v.replace(/\D/g, "")); setPeopleFromPackage(false); }} keyboardType="number-pad" placeholder={pkg ? String(pkg.included_children) : "30"} /></Field>
             </Row>
             {pkg && (nAdults > pkg.included_adults || nChildren > pkg.included_children) ? <Muted>Além do pacote: adicionais cobrados por pessoa.</Muted> : null}
             <Row>

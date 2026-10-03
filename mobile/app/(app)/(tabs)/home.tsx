@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Linking, Pressable, Text, View } from "react-native";
+import { Alert, Linking, Pressable, Text, View } from "react-native";
 import { useAuth } from "@/lib/auth";
 import { formatCurrency, formatDate, formatDateLong, formatTime, hoursLeft, toDateKey, whatsappUrl } from "@/lib/format";
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE } from "@/lib/labels";
 import { eventTitle, loadHome, unreadNotifications, type EventRow } from "@/lib/queries";
+import { pendingRequestsCount } from "@/lib/change-requests";
+import { confirmEventRemote } from "@/lib/confirm";
 import { supabase, WEB_URL } from "@/lib/supabase";
 import { Badge, Button, Card, CardTitle, Loading, Muted, Row, Screen, styles } from "@/ui/components";
 import { party } from "@/ui/party";
@@ -33,11 +35,17 @@ export default function Home() {
   const { profile, org } = useAuth();
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["home"], queryFn: loadHome });
+  const pending = useQuery({ queryKey: ["pending-requests"], queryFn: pendingRequestsCount });
   const unread = useQuery({ queryKey: ["unread"], queryFn: unreadNotifications, refetchInterval: 60_000 });
   const d = q.data;
 
   async function act(e: EventRow, status: "CONFIRMED" | "QUOTE") {
-    await supabase.from("events").update({ status, expires_at: null }).eq("id", e.id);
+    try {
+      if (status === "CONFIRMED") await confirmEventRemote(e.id, { confirm: true });
+      else await supabase.from("events").update({ status, expires_at: null }).eq("id", e.id);
+    } catch (err) {
+      Alert.alert("Confirmar", (err as Error).message);
+    }
     qc.invalidateQueries({ queryKey: ["home"] });
   }
 
@@ -62,7 +70,7 @@ export default function Home() {
 
   return (
     <>
-      <Screen refreshing={q.isFetching} onRefresh={() => { q.refetch(); unread.refetch(); }}>
+      <Screen refreshing={q.isFetching} onRefresh={() => { q.refetch(); unread.refetch(); pending.refetch(); }}>
         <FestiveHeader
           animated
           eyebrow={formatDateLong(new Date())}
@@ -77,6 +85,14 @@ export default function Home() {
         />
         {!d ? <Loading /> : (
           <>
+            {/* PEDIDOS DOS CLIENTES */}
+            {pending.data ? (
+              <Pressable onPress={() => router.push("/(app)/pedidos")} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 18, backgroundColor: pressed ? colors.brandSoft : colors.surface, borderWidth: 1.5, borderColor: colors.brand })}>
+                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900" }}>{pending.data}</Text></View>
+                <View style={{ flex: 1 }}><Text style={styles.cardTitle}>{pending.data === 1 ? "Pedido de cliente" : "Pedidos de clientes"}</Text><Muted>Extra, mais gente ou aviso de Pix esperando você</Muted></View>
+                <Ionicons name="chevron-forward" size={18} color={colors.brand} />
+              </Pressable>
+            ) : null}
             {/* A FAZER AGORA (max 3) */}
             {todos.length > 0 ? (
               <Card tone="amber">

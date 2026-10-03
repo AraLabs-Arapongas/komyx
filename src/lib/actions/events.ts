@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { ensureContract } from "./contracts";
+import { confirmEvent } from "@/lib/confirmation";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -230,8 +230,18 @@ export async function changeEventStatus(_prev: ActionResult | undefined, formDat
   const org = await getOrganization();
   const supabase = await createClient();
 
+  if (status === "CONFIRMED") {
+    const profile = await requireProfile();
+    try {
+      const r = await confirmEvent({ supabase, org, userId: profile.id }, id, { confirm: true });
+      revalidateEvents(id);
+      return { ok: true, message: r.contract ? "Evento confirmado. Orçamento aceito e contrato enviado ao cliente." : "Evento confirmado." };
+    } catch (e) {
+      return fail(translateDbError(e as { message: string }));
+    }
+  }
   const patch: { status: typeof status; expires_at?: string | null } = { status };
-  if (status === "CONFIRMED" || status === "QUOTE") patch.expires_at = null;
+  if (status === "QUOTE") patch.expires_at = null;
   if (status === "PRE_RESERVED") patch.expires_at = addHours(new Date(), org.pre_reservation_validity_hours).toISOString();
 
   const { error } = await supabase.from("events").update(patch).eq("id", id);
@@ -298,19 +308,12 @@ export async function confirmDeposit(_prev: ActionResult | undefined, formData: 
   const amount = amountRaw ? Number(amountRaw) : first ? Number(first.amount) : 0;
   if (!(amount > 0)) return fail("Informe o valor recebido.");
 
-  const { error: payErr } = await supabase.from("payments").insert({
-    organization_id: profile.organization_id,
-    event_id: id.data,
-    amount,
-    method: "PIX",
-    notes: "Sinal da reserva online (Pix conferido no extrato)",
-    created_by: profile.id,
-  });
-  if (payErr) return fail(translateDbError(payErr));
-  if (quote && quote.status !== "ACCEPTED") await supabase.from("quotes").update({ status: "ACCEPTED" }).eq("id", quote.id);
-  const { error } = await supabase.from("events").update({ status: "CONFIRMED", expires_at: null }).eq("id", id.data);
-  if (error) return fail(translateDbError(error));
-  await ensureContract(id.data);
+  const org = await getOrganization();
+  try {
+    await confirmEvent({ supabase, org, userId: profile.id }, id.data, { confirm: true, payment: { amount, method: "PIX", notes: "Sinal da reserva (Pix conferido no extrato)" } });
+  } catch (e) {
+    return fail(translateDbError(e as { message: string }));
+  }
   revalidateEvents(id.data);
-  return { ok: true, message: "Sinal registrado, evento confirmado e contrato gerado." };
+  return { ok: true, message: "Sinal registrado, evento confirmado e contrato enviado ao cliente." };
 }

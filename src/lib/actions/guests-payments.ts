@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile } from "@/lib/data/session";
+import { getOrganization, requireProfile } from "@/lib/data/session";
+import { confirmEvent } from "@/lib/confirmation";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { dateSchema, moneySchema, optionalText, uuid, zodFieldErrors } from "./helpers";
 import { toDateKey } from "@/lib/utils";
@@ -54,12 +55,16 @@ const paymentSchema = z.object({
 export async function addPayment(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
   const parsed = paymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return fail("Verifique os campos.", zodFieldErrors(parsed.error));
-  const profile = await requireProfile();
+  const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const supabase = await createClient();
-  const { error } = await supabase.from("payments").insert({ ...parsed.data, organization_id: profile.organization_id, created_by: profile.id });
-  if (error) return fail(translateDbError(error));
-  revalidateEvent(parsed.data.event_id);
-  return { ok: true, message: "Pagamento registrado." };
+  const { event_id, ...payment } = parsed.data;
+  try {
+    const r = await confirmEvent({ supabase, org, userId: profile.id }, event_id, { payment });
+    revalidateEvent(event_id);
+    return { ok: true, message: r.confirmed ? "Pagamento registrado. Evento confirmado e contrato enviado ao cliente." : "Pagamento registrado." };
+  } catch (e) {
+    return fail(translateDbError(e as { message: string }));
+  }
 }
 
 /** One-click "parcela recebida": registers a payment for the installment's remaining amount. */
@@ -72,10 +77,11 @@ export async function confirmInstallment(formData: FormData) {
     notes: formData.get("notes") || "",
   });
   if (!parsed.success) return;
-  const profile = await requireProfile();
+  const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const supabase = await createClient();
-  await supabase.from("payments").insert({ ...parsed.data, organization_id: profile.organization_id, created_by: profile.id });
-  revalidateEvent(parsed.data.event_id);
+  const { event_id, ...payment } = parsed.data;
+  await confirmEvent({ supabase, org, userId: profile.id }, event_id, { payment }).catch(() => null);
+  revalidateEvent(event_id);
 }
 
 export async function removePayment(formData: FormData) {

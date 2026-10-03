@@ -6,8 +6,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getOrganization, requireProfile } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
-import { renderContract } from "@/lib/contract";
-import { eventTitle } from "@/components/events/event-card";
+import { insertContract } from "@/lib/confirmation";
 import { uuid } from "./helpers";
 
 function revalidate(eventId: string) {
@@ -22,40 +21,13 @@ export async function generateContract(eventId: string): Promise<ActionResult<{ 
   if (!idp.success) return fail("Evento inválido.");
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const supabase = await createClient();
-
-  const { data: event } = await supabase
-    .from("events")
-    .select("id, title, starts_at, ends_at, adults, children, celebrant_name, customers(name, document, whatsapp, email), packages(name)")
-    .eq("id", idp.data)
-    .single();
-  if (!event || !event.customers) return fail("Evento não encontrado.");
-
-  const { data: quote } = await supabase
-    .from("quotes")
-    .select("id, total, quote_items(description, quantity, unit_price, total, sort_order), quote_installments(label, percent, amount, rule, days_before, due_date, sequence)")
-    .eq("event_id", event.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const content = renderContract(org.contract_template, {
-    org,
-    customer: event.customers,
-    event: { title: eventTitle(event), starts_at: event.starts_at, ends_at: event.ends_at, adults: event.adults, children: event.children, celebrant_name: event.celebrant_name },
-    packageName: event.packages?.name ?? null,
-    items: [...(quote?.quote_items ?? [])].sort((a, b) => a.sort_order - b.sort_order),
-    total: quote?.total ?? 0,
-    installments: [...(quote?.quote_installments ?? [])].sort((a, b) => a.sequence - b.sequence),
-  });
-
-  const { data, error } = await supabase
-    .from("contracts")
-    .insert({ organization_id: org.id, event_id: event.id, quote_id: quote?.id ?? null, content, created_by: profile.id })
-    .select("id")
-    .single();
-  if (error || !data) return fail(translateDbError(error));
-  revalidate(event.id);
-  return { ok: true, data: { id: data.id } };
+  try {
+    const id = await insertContract({ supabase, org, userId: profile.id }, idp.data, "DRAFT");
+    revalidate(idp.data);
+    return { ok: true, data: { id } };
+  } catch (e) {
+    return fail(translateDbError(e as { message: string }));
+  }
 }
 
 export async function generateContractAndGo(formData: FormData) {
