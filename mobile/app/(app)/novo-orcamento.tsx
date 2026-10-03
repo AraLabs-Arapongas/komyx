@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, Share, Switch, Text, View } from "react-native";
 import { useAuth } from "@/lib/auth";
 import { formatCurrency, formatPhone, maskPhoneInput, normalizePhone, toDateKey } from "@/lib/format";
-import { addMinutes, buildQuoteLines, localToIso, sumLines, type AddonPricing, type PackagePricing } from "@/lib/pricing";
+import { addMinutes, bestPackageFor, buildQuoteLines, localToIso, sumLines, type AddonPricing, type PackagePricing } from "@/lib/pricing";
 import { supabase, WEB_URL } from "@/lib/supabase";
 import { Button, Card, Field, Input, Loading, Muted, Row, styles } from "@/ui/components";
 import { colors } from "@/ui/theme";
@@ -88,6 +88,7 @@ export default function NovoOrcamento() {
 
   // Choosing a package fills in the people it includes, unless they were typed by hand.
   const [peopleFromPackage, setPeopleFromPackage] = useState(true);
+  const [fittedPackage, setFittedPackage] = useState<string | null>(null);
   function pickPackage(p: { id: string; included_adults: number | null; included_children: number | null }) {
     setPackageId(p.id);
     if (peopleFromPackage || (!adults && !children)) {
@@ -112,6 +113,12 @@ export default function NovoOrcamento() {
         if (r.desired_time) setStart(String(r.desired_time).slice(0, 5));
         setAdults(String(r.adults ?? r.participants ?? "")); setChildren(String(r.children ?? "")); setPeopleFromPackage(false);
         if (r.package_id) setPackageId(r.package_id);
+        else {
+          // No package named in the request: pick the one that fits its head count best.
+          const { data: pk } = await supabase.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price").eq("active", true);
+          const best = bestPackageFor((pk ?? []) as PackagePricing[], Number(r.adults ?? r.participants ?? 0), Number(r.children ?? 0));
+          if (best) { setPackageId(best.id); setFittedPackage(best.name); }
+        }
         if (r.theme_id) setThemeId(r.theme_id);
         if (Array.isArray(r.addons)) setQty(Object.fromEntries((r.addons as { addon_id: string; quantity: number }[]).map((x) => [x.addon_id, x.quantity])));
         if (r.celebrant_name) setCelebrant(r.celebrant_name);
@@ -258,6 +265,7 @@ export default function NovoOrcamento() {
         {step === 1 ? (
           <>
             <Text style={[styles.title, { fontSize: 22 }]}>Pacote</Text>
+            {fittedPackage && pkg?.name === fittedPackage ? <Muted>Sugerimos o {fittedPackage} para {adults || 0} adultos e {children || 0} crianças: é o pacote que comporta esse número de pessoas.</Muted> : null}
             {!catalog.data ? <Loading /> : (
               <>
                 {catalog.data.packages.map((p) => (

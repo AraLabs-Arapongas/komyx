@@ -32,3 +32,16 @@ export function addMinutes(time: string, minutes: number) {
   const total = (h * 60 + m + minutes) % (24 * 60);
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
+
+/**
+ * The package a head count fits in: the cheapest one whose included adults and children cover
+ * everyone. When no package is big enough, the one that comes out cheapest with the extra people.
+ * Null without people or packages.
+ */
+export function bestPackageFor<P extends PackagePricing>(packages: P[], adults: number, children: number): P | null {
+  if (!packages.length || adults + children <= 0) return null;
+  const total = (p: P) => Number(p.base_price) + Math.max(adults - p.included_adults, 0) * Number(p.extra_adult_price) + Math.max(children - p.included_children, 0) * Number(p.extra_child_price);
+  const covering = packages.filter((p) => p.included_adults >= adults && p.included_children >= children);
+  const pool = covering.length ? covering : packages;
+  return [...pool].sort((a, b) => total(a) - total(b))[0];
+}

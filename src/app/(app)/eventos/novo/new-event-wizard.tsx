@@ -10,7 +10,7 @@ import { Alert } from "@/components/ui/page";
 import { MonthPicker, fmtBrDate } from "@/components/calendar/month-picker";
 import { CustomerField } from "@/components/events/customer-field";
 import { cn, formatCurrency, formatPhone } from "@/lib/utils";
-import { buildQuoteLines, sumLines, extrasFor, LEAD_SOURCES, type PackagePricing, type AddonPricing } from "@/lib/pricing";
+import { bestPackageFor, buildQuoteLines, sumLines, extrasFor, LEAD_SOURCES, type PackagePricing, type AddonPricing } from "@/lib/pricing";
 
 type Customer = { id: string; name: string; whatsapp: string };
 type Props = {
@@ -41,7 +41,10 @@ function addMinutes(time: string, minutes: number) {
 export function NewEventWizard({ slug, packages, addons, themes, customer, request, defaults, initialStatus, isOwner, sameDayWarning }: Props) {
   const [state, action] = useActionState(createEvent, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
-  const initialPkg = packages.find((p) => p.id === request?.package_id) ?? null;
+  // A request that names a package keeps it; otherwise the package that fits its head count.
+  const requestedPkg = packages.find((p) => p.id === request?.package_id) ?? null;
+  const fittedPkg = !requestedPkg && request ? bestPackageFor(packages, request.adults ?? 0, request.children ?? 0) : null;
+  const initialPkg = requestedPkg ?? fittedPkg;
 
   const [step, setStep] = useState(0);
   const [packageId, setPackageId] = useState<string | null>(initialPkg?.id ?? null);
@@ -121,6 +124,7 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
           {step === 0 ? (
             <>
               <h2 className="font-semibold text-lg">Qual pacote?</h2>
+              {fittedPkg && packageId === fittedPkg.id ? <p className="text-sm text-muted">Sugerimos o <span className="font-medium text-foreground">{fittedPkg.name}</span> para {request?.adults ?? 0} adultos e {request?.children ?? 0} crianças: é o pacote que comporta esse número de pessoas.</p> : null}
               <div className="grid gap-2 sm:grid-cols-2">
                 {packages.map((p) => (
                   <button type="button" key={p.id} onClick={() => choosePackage(p.id)} className={cn("text-left rounded-xl border-2 p-3 transition", packageId === p.id ? "border-brand bg-brand-soft/40" : "border-border hover:border-brand/40")}>
