@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import type { ColorValue } from "react-native";
 import { formatDateLong, formatTime } from "@/lib/format";
-import { PartyProvider, useParty } from "@/lib/party-context";
+import { useParty } from "@/lib/party-context";
 import { useReservationView } from "@/lib/reservation-view";
 import { FestiveNavHeader } from "@/ui/festive-nav-header";
 import { colors, fonts } from "@/ui/theme";
@@ -30,5 +30,5 @@ function ClienteTabs() {
 }
 
 export default function ClienteLayout() {
-  return <PartyProvider><ClienteTabs /></PartyProvider>;
+  return <ClienteTabs />;
 }
