@@ -12,7 +12,10 @@
       "bundleIdentifier": "com.aralabs.komyx",
       "associatedDomains": [
         "applinks:komyx.com.br"
-      ]
+      ],
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.aralabs.komyx",
@@ -43,6 +46,9 @@
             "DEFAULT"
           ]
         }
+      ],
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -75,6 +81,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "12809420-94c7-4b3e-934b-6196405d909a"
+      }
+    },
+    "owner": "thiagodevtavares"
   }
 }
