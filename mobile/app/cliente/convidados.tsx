@@ -64,9 +64,9 @@ export default function Convidados() {
         <Text style={styles.h3}>Adicionar convidado</Text>
         <Field label="Nome"><Input value={guestName} onChangeText={setGuestName} placeholder="Ex.: Tia Lúcia" autoCapitalize="words" /></Field>
         <Row>
-          <Field label="Adultos"><Input value={guestAdults} onChangeText={(v: string) => setGuestAdults(v.replace(/\D/g, ""))} keyboardType="number-pad" style={{ width: 70, textAlign: "center" }} /></Field>
-          <Field label="Crianças"><Input value={guestChildren} onChangeText={(v: string) => setGuestChildren(v.replace(/\D/g, ""))} keyboardType="number-pad" style={{ width: 70, textAlign: "center" }} /></Field>
-          <View style={{ flex: 1, justifyContent: "flex-end" }}><Button title="Adicionar" size="sm" loading={addGuest.isPending} disabled={guestName.trim().length < 2} onPress={() => addGuest.mutate({ name: guestName, adults: Number(guestAdults) || 0, children: Number(guestChildren) || 0 }, { onSuccess: () => { setGuestName(""); setGuestAdults("2"); setGuestChildren("0"); } })} /></View>
+          <Field label="Adultos"><Input value={guestAdults} onChangeText={(v: string) => setGuestAdults(v.replace(/\D/g, ""))} keyboardType="number-pad" style={{ width: 76, textAlign: "center" }} /></Field>
+          <Field label="Crianças"><Input value={guestChildren} onChangeText={(v: string) => setGuestChildren(v.replace(/\D/g, ""))} keyboardType="number-pad" style={{ width: 76, textAlign: "center" }} /></Field>
+          <View style={{ flex: 1, justifyContent: "flex-end" }}><Button title="Adicionar" style={{ height: 48, borderRadius: 14 }} loading={addGuest.isPending} disabled={guestName.trim().length < 2} onPress={() => addGuest.mutate({ name: guestName, adults: Number(guestAdults) || 0, children: Number(guestChildren) || 0 }, { onSuccess: () => { setGuestName(""); setGuestAdults("2"); setGuestChildren("0"); } })} /></View>
         </Row>
       </Card>
     </Screen>

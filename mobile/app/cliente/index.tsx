@@ -114,7 +114,7 @@ function Overview({ token }: { token: string }) {
       {r.contract ? (
         <Card>
           <CardTitle title={`Contrato nº ${r.contract.number}`} subtitle={CONTRACT_STATUS_LABEL[r.contract.status] ?? r.contract.status} />
-          <Button title={r.contract.status === "ACCEPTED" ? "Ver contrato" : "Ler e aceitar o contrato"} variant={r.contract.status === "ACCEPTED" ? "outline" : "primary"} onPress={() => openWeb(`${WEB_URL}/c/${r.contract!.token}`, `Contrato nº ${r.contract!.number}`)} />
+          <Button title={r.contract.status === "ACCEPTED" ? "Ver contrato" : "Ler e aceitar o contrato"} variant={r.contract.status === "ACCEPTED" ? "outline" : "primary"} onPress={() => openWeb(r.contract!.status === "ACCEPTED" ? `${WEB_URL}/c/${r.contract!.token}/pdf` : `${WEB_URL}/c/${r.contract!.token}`, `Contrato nº ${r.contract!.number}`)} />
         </Card>
       ) : null}
 
