@@ -1,9 +1,15 @@
 import type React from "react";
-import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from "react";
 import { useFocusEffect } from "expo-router";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, type PressableProps, type TextInputProps, type ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, fonts, radius, shadow, space, tones } from "./theme";
+
+/**
+ * Set by the tab layouts: the tab bar already sits above the home indicator, so screens inside
+ * tabs must not add the bottom safe-area padding again (it showed as an empty strip).
+ */
+export const InTabsContext = createContext(false);
 
 /**
  * `safeTop` pads the status bar / notch too: use it on screens without a native header.
@@ -12,6 +18,7 @@ import { colors, fonts, radius, shadow, space, tones } from "./theme";
  */
 export function Screen({ children, refreshing, onRefresh, padded = true, scroll = true, safeTop = false, resetScrollKey }: { children: ReactNode; refreshing?: boolean; onRefresh?: () => void; padded?: boolean; scroll?: boolean; safeTop?: boolean; resetScrollKey?: string | null }) {
   const ref = useRef<ScrollView>(null);
+  const inTabs = useContext(InTabsContext);
   const reset = resetScrollKey !== undefined;
   useFocusEffect(useCallback(() => { if (reset) ref.current?.scrollTo({ y: 0, animated: false }); }, [reset]));
   useEffect(() => { if (reset) ref.current?.scrollTo({ y: 0, animated: false }); }, [reset, resetScrollKey]);
@@ -23,7 +30,8 @@ export function Screen({ children, refreshing, onRefresh, padded = true, scroll 
   ) : (
     <View style={[{ flex: 1 }, padded && styles.padded]}>{children}</View>
   );
-  return <SafeAreaView edges={safeTop ? ["top", "bottom"] : ["bottom"]} style={styles.screen}>{content}</SafeAreaView>;
+  const edges: ("top" | "bottom")[] = [...(safeTop ? (["top"] as const) : []), ...(inTabs ? [] : (["bottom"] as const))];
+  return <SafeAreaView edges={edges} style={styles.screen}>{content}</SafeAreaView>;
 }
 
 export function Card({ children, style, tone }: { children: ReactNode; style?: ViewStyle; tone?: "amber" | "brand" }) {

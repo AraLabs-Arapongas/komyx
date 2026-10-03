@@ -4,6 +4,7 @@ import type { ColorValue } from "react-native";
 import { formatDateLong, formatTime } from "@/lib/format";
 import { useParty } from "@/lib/party-context";
 import { useReservationView } from "@/lib/reservation-view";
+import { InTabsContext } from "@/ui/components";
 import { FestiveNavHeader } from "@/ui/festive-nav-header";
 import { colors, fonts } from "@/ui/theme";
 
@@ -21,6 +22,7 @@ function ClienteTabs() {
   const block = { tabPress: (e: { preventDefault: () => void }) => { if (locked) e.preventDefault(); } };
   const icon = (name: keyof typeof Ionicons.glyphMap) => function TabIcon({ color, size }: { color: ColorValue; size: number }) { return <Ionicons name={name} color={color} size={size} />; };
   return (
+    <InTabsContext.Provider value={true}>
     <Tabs screenOptions={{ header: (p) => <FestiveNavHeader {...p} eyebrow={eyebrow} subtitle={subtitle} />, tabBarActiveTintColor: colors.sun, tabBarInactiveTintColor: "#9da1bd", tabBarStyle: { backgroundColor: colors.ink, borderTopColor: "rgba(255,255,255,0.08)", height: 66, paddingTop: 6 }, tabBarLabelStyle: { fontSize: 11, fontFamily: fonts.bold }, sceneStyle: { backgroundColor: colors.background } }}>
       <Tabs.Screen name="index" options={{ title: view ? "Minha festa" : "Minhas festas", tabBarLabel: "Início", tabBarIcon: icon("home-outline") }} />
       <Tabs.Screen name="pagamento" listeners={block} options={{ ...lock, title: "Pagamento", tabBarIcon: icon("qr-code-outline"), tabBarBadge: view && !locked && view.showPrices && view.balance > 0 ? "" : undefined, tabBarBadgeStyle: { backgroundColor: colors.brand, minWidth: 10, height: 10, borderRadius: 5, top: 2 } }} />
@@ -29,6 +31,7 @@ function ClienteTabs() {
       <Tabs.Screen name="local" listeners={block} options={{ ...lock, title: "Local", tabBarIcon: icon("navigate-outline") }} />
       <Tabs.Screen name="reserva/[token]" options={{ href: null, headerShown: false }} />
     </Tabs>
+    </InTabsContext.Provider>
   );
 }
 
