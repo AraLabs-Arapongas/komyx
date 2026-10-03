@@ -26,8 +26,21 @@ export async function saveInvite(inviteToken: string, patch: { title?: string; m
   if (patch.title !== undefined) form.append("invite_title", patch.title);
   if (patch.message !== undefined) form.append("invite_message", patch.message);
   if (patch.photoUri) form.append("image", { uri: patch.photoUri, name: "convite.jpg", type: "image/jpeg" } as unknown as Blob);
-  const res = await fetch(`${WEB_URL}/api/invite/${inviteToken}`, { method: "POST", body: form });
-  const json = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; imageUrl?: string | null };
-  if (!res.ok || !json.ok) throw new Error(json.error ?? "Não foi possível salvar o convite.");
+  // Expo's global fetch rejects React Native file parts ({ uri, name, type }) with
+  // "Unsupported FormDataPart implementation"; RN's XMLHttpRequest streams them from disk.
+  const json = await new Promise<{ ok?: boolean; error?: string; imageUrl?: string | null }>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${WEB_URL}/api/invite/${inviteToken}`);
+    xhr.timeout = 60_000;
+    xhr.onload = () => {
+      let body: { ok?: boolean; error?: string; imageUrl?: string | null } = {};
+      try { body = JSON.parse(xhr.responseText); } catch { /* non-JSON error page */ }
+      if (xhr.status >= 200 && xhr.status < 300 && body.ok) resolve(body);
+      else reject(new Error(body.error ?? `Não foi possível salvar o convite (erro ${xhr.status}).`));
+    };
+    xhr.onerror = () => reject(new Error("Sem conexão com o Komyx. Tente de novo."));
+    xhr.ontimeout = () => reject(new Error("O envio demorou demais. Tente de novo."));
+    xhr.send(form);
+  });
   return json;
 }
