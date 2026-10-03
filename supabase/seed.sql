@@ -213,3 +213,57 @@ begin
   insert into public.celebrants (organization_id, customer_id, event_id, name, birth_date) values
     (v_org, 'aaaaaaaa-0000-0000-0000-000000000005', 'bbbbbbbb-0000-0000-0000-000000000007', 'Alice', (current_date + 26) - interval '5 years');
 end $$;
+
+-- Roberto's party that is going well: confirmed, deposit + one instalment paid, balance by Pix,
+-- guests confirming, invite personalized, contract accepted. Phone 11999990002.
+do $$
+declare v_org uuid; v_pkg uuid; v_day date := current_date + 18;
+begin
+  select id into v_org from public.organizations where slug = 'festa-cia-buffet';
+  if v_org is null then return; end if;
+  if exists (select 1 from public.events where id = 'bbbbbbbb-0000-0000-0000-000000000008') then return; end if;
+  select id into v_pkg from public.packages where organization_id = v_org and name = 'Pacote Prata';
+  -- First afternoon from +18 days that does not collide with another reservation.
+  while exists (
+    select 1 from public.events e where e.organization_id = v_org and e.status in ('PRE_RESERVED', 'CONFIRMED')
+      and tstzrange(e.starts_at, e.ends_at) && tstzrange((v_day + time '14:00') at time zone 'America/Sao_Paulo', (v_day + time '18:00') at time zone 'America/Sao_Paulo')
+  ) loop v_day := v_day + 1; end loop;
+
+  insert into public.events (id, organization_id, customer_id, title, starts_at, ends_at, status, package_id, adults, children, celebrant_name, celebrant_age, theme_id, notes, expires_at, pix_txid, invite_title, invite_message, created_by) values
+    ('bbbbbbbb-0000-0000-0000-000000000008', v_org, 'aaaaaaaa-0000-0000-0000-000000000002', 'Festa da Sofia',
+      (v_day + time '14:00') at time zone 'America/Sao_Paulo', (v_day + time '18:00') at time zone 'America/Sao_Paulo',
+      'CONFIRMED', v_pkg, 25, 25, 'Sofia', 4, (select id from public.party_themes where organization_id = v_org and name = 'Safári' limit 1), 'Bolo de leopardo. Mesa de doces com bichinhos.', null, 'FESTASOFIA000008',
+      'Sofia faz 4 anos!', 'Venha fazer parte dessa aventura na selva. Traga as crianças e muita energia!', '22222222-2222-2222-2222-222222222222');
+
+  insert into public.quotes (id, organization_id, event_id, package_id, adults, children, status, decided_at, created_by)
+  values ('cccccccc-0000-0000-0000-000000000008', v_org, 'bbbbbbbb-0000-0000-0000-000000000008', v_pkg, 25, 25, 'ACCEPTED', now() - interval '20 days', '22222222-2222-2222-2222-222222222222');
+  insert into public.quote_items (organization_id, quote_id, kind, description, quantity, unit_price, sort_order) values
+    (v_org, 'cccccccc-0000-0000-0000-000000000008', 'PACKAGE', 'Pacote Prata', 1, 3900, 0),
+    (v_org, 'cccccccc-0000-0000-0000-000000000008', 'ADDON', 'Recreação extra (1h)', 1, 300, 5);
+
+  -- Deposit (30% = R$ 1.260,00) and a second payment of R$ 1.000,00. R$ 1.940,00 still open.
+  insert into public.payments (organization_id, event_id, amount, paid_at, method, notes, created_by) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 1260, current_date - 20, 'PIX', 'Entrada 30% · FESTASOFIA000008', '22222222-2222-2222-2222-222222222222'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 1000, current_date - 4, 'PIX', 'Parcial · FESTASOFIA000008', '22222222-2222-2222-2222-222222222222');
+
+  insert into public.guests (organization_id, event_id, name, adults, children, source) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 'Vovô Chico e Vovó Lu', 2, 0, 'PUBLIC'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 'Família Martins', 2, 3, 'PUBLIC'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 'Turma da escola (Prof. Bia)', 1, 8, 'CLIENT'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 'Tia Marta', 1, 1, 'MANUAL');
+
+  insert into public.contracts (organization_id, event_id, quote_id, number, content, status, token, sent_at, accepted_at, accepted_name, created_by) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 'cccccccc-0000-0000-0000-000000000008',
+      coalesce((select max(number) from public.contracts where organization_id = v_org), 0) + 1,
+      'Contrato de prestação de serviços de buffet infantil para a Festa da Sofia, Pacote Prata para 25 adultos e 25 crianças, com recreação extra de 1 hora. Valor total R$ 4.200,00, entrada de 30% na aceitação e saldo até 5 dias antes da festa.',
+      'ACCEPTED', 'demo-contract-link-sofia-0123456789abcdef', now() - interval '20 days', now() - interval '19 days', 'Roberto Lima', '22222222-2222-2222-2222-222222222222');
+
+  insert into public.public_links (organization_id, event_id, token, type, created_by) values
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 'demo-reservation-link-sofia-0123456789abcd', 'RESERVATION', '22222222-2222-2222-2222-222222222222'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 'demo-quote-link-sofia-0123456789abcdef00', 'QUOTE', '22222222-2222-2222-2222-222222222222'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 'demo-guest-link-sofia-0123456789abcdef00', 'GUEST_CONFIRM', '22222222-2222-2222-2222-222222222222'),
+    (v_org, 'bbbbbbbb-0000-0000-0000-000000000008', 'demo-invite-link-sofia-0123456789abcdef0', 'INVITE_EDIT', '22222222-2222-2222-2222-222222222222');
+
+  insert into public.celebrants (organization_id, customer_id, event_id, name, birth_date) values
+    (v_org, 'aaaaaaaa-0000-0000-0000-000000000002', 'bbbbbbbb-0000-0000-0000-000000000008', 'Sofia', v_day - interval '4 years');
+end $$;

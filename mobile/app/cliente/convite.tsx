@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useParty } from "@/lib/party-context";
-import { Image, Linking, Share, Text } from "react-native";
+import { Image, Share, Text } from "react-native";
 import { formatDateLong, formatTime } from "@/lib/format";
 import { useReservationView } from "@/lib/reservation-view";
+import { openWeb } from "@/lib/web";
 import { Button, Card, CardTitle, Empty, Loading, Muted, Screen, styles } from "@/ui/components";
 import { colors } from "@/ui/theme";
 
@@ -32,8 +33,8 @@ export default function Convite() {
       <Card>
         <CardTitle title="Enviar aos convidados" subtitle="Eles abrem o convite, veem o local e confirmam presença pelo link." />
         {guestUrl ? <Button title="Compartilhar convite" icon={<Ionicons name="share-outline" size={18} color="#fff" />} onPress={() => Share.share({ message })} /> : <Muted>O buffet ainda não liberou o link de confirmação.</Muted>}
-        {guestUrl ? <Button title="Ver como o convidado vê" variant="outline" onPress={() => Linking.openURL(guestUrl)} /> : null}
-        {inviteEditUrl ? <Button title={personalized ? "Editar foto e mensagem" : "Personalizar o convite"} variant={personalized ? "ghost" : "secondary"} onPress={() => Linking.openURL(inviteEditUrl)} /> : null}
+        {guestUrl ? <Button title="Ver como o convidado vê" variant="outline" onPress={() => openWeb(guestUrl, "Convite")} /> : null}
+        {inviteEditUrl ? <Button title={personalized ? "Editar foto e mensagem" : "Personalizar o convite"} variant={personalized ? "ghost" : "secondary"} onPress={() => openWeb(inviteEditUrl, "Personalizar convite")} /> : null}
       </Card>
     </Screen>
   );

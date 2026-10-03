@@ -30,6 +30,7 @@ function Shell() {
         <Stack.Screen name="dev-splash" options={{ headerShown: false, animation: "fade" }} />
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
         <Stack.Screen name="cliente" options={{ headerShown: false }} />
+        <Stack.Screen name="web" options={{ title: "Komyx", headerBackTitle: "Voltar" }} />
         <Stack.Screen name="escolher-festa" options={{ headerShown: false, animation: "fade" }} />
         <Stack.Screen name="convidado/[token]" options={{ title: "Convite", headerBackTitle: "Voltar" }} />
         <Stack.Screen name="r/[token]" options={{ headerShown: false }} />

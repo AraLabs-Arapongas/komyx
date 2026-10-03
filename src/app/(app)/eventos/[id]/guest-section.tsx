@@ -10,9 +10,9 @@ import { buttonClass } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { whatsappLink } from "@/lib/utils";
 
-type Guest = { id: string; name: string; adults: number; children: number; participants: number | null; source: "MANUAL" | "PUBLIC" | "DOOR"; notes: string | null; checked_in_at: string | null; checked_in_adults: number; checked_in_children: number };
+type Guest = { id: string; name: string; adults: number; children: number; participants: number | null; source: "MANUAL" | "PUBLIC" | "DOOR" | "CLIENT"; notes: string | null; checked_in_at: string | null; checked_in_adults: number; checked_in_children: number };
 
-const SOURCE_LABEL = { MANUAL: "Manual", PUBLIC: "Pelo link", DOOR: "Na portaria" };
+const SOURCE_LABEL = { MANUAL: "Manual", PUBLIC: "Pelo link", CLIENT: "Pelo cliente", DOOR: "Na portaria" };
 
 export function GuestSection({ eventId, guests, guestLink, eventTitle, customerPhone }: { eventId: string; guests: Guest[]; guestLink: { id: string; url: string } | null; eventTitle: string; customerPhone: string }) {
   const [state, action] = useActionState(addGuest, undefined);

@@ -37,6 +37,8 @@ function derive(r: Reservation, token: string) {
   const pending = r.requests.filter((x) => x.status === "PENDING");
   const first = ev.customer.name.split(" ")[0];
   const title = ev.title ?? `Festa de ${ev.customer.name}`;
+  /** Expired or cancelled: the party tabs close; only talking to the buffet remains. */
+  const locked = status === "EXPIRED" || status === "CANCELLED";
   const wa = (msg: string) => { if (org.whatsapp) Linking.openURL(whatsappUrl(org.whatsapp, msg)); };
 
   const contractedA = ev.adults ?? 0, contractedC = ev.children ?? 0;
@@ -46,7 +48,7 @@ function derive(r: Reservation, token: string) {
   const priceA = Number(r.package?.extra_adult_price ?? 0), priceC = Number(r.package?.extra_child_price ?? 0);
   const capacity = { contractedA, contractedC, confA, confC, overA, overC, leftA, leftC, priceA, priceC, overCost: overA * priceA + overC * priceC };
 
-  return { r, ev, org, quote, status, showPrices, installments, extrasTotal, total, balance, deposit, needsDeposit, txid, pixAmount, pix, pageUrl, guestUrl, inviteEditUrl, daysLeft, guestsPeople, address, mapsUrl, pending, first, title, wa, capacity, balanceLabel: balance > 0 ? `Falta ${formatCurrency(balance)}` : "Tudo pago" };
+  return { r, ev, org, quote, status, showPrices, installments, extrasTotal, total, balance, deposit, needsDeposit, txid, pixAmount, pix, pageUrl, guestUrl, inviteEditUrl, daysLeft, guestsPeople, address, mapsUrl, pending, first, title, locked, wa, capacity, balanceLabel: balance > 0 ? `Falta ${formatCurrency(balance)}` : "Tudo pago" };
 }
 
 export type AskInput = { kind: ChangeRequest["kind"]; message: string; payload?: Record<string, unknown> };

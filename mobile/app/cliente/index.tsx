@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { Redirect, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Linking, Pressable, Share, Text, View } from "react-native";
+import { Alert, Pressable, Share, Text, View } from "react-native";
 import { useAuth } from "@/lib/auth";
 import type { ChangeRequest } from "@/lib/client";
 import { formatCurrency, formatDate, formatDateLong, formatDateTime, formatTime, hoursLeft } from "@/lib/format";
@@ -11,6 +11,7 @@ import { CONTRACT_STATUS_LABEL, EVENT_STATUS_LABEL, EVENT_STATUS_TONE } from "@/
 import { useParty } from "@/lib/party-context";
 import { useReservationView } from "@/lib/reservation-view";
 import { WEB_URL, supabase } from "@/lib/supabase";
+import { openWeb } from "@/lib/web";
 import { KomyxMark } from "@/ui/brand";
 import { AskSheet, type AskKind } from "@/ui/client/ask-sheet";
 import { Badge, Button, Card, CardTitle, Loading, Muted, Row, Screen, styles } from "@/ui/components";
@@ -40,7 +41,26 @@ function Overview({ token }: { token: string }) {
   const [sheet, setSheet] = useState<AskKind | null>(null);
   if (q.isLoading) return <Loading />;
   if (!view) return <Card><Text style={styles.cardTitle}>Reserva não encontrada</Text><Muted>O link pode ter sido desativado. Fale com o buffet.</Muted></Card>;
-  const { r, ev, org, quote, status, showPrices, balance, daysLeft, guestsPeople, pending, pageUrl, capacity } = view;
+  const { r, ev, org, quote, status, showPrices, balance, daysLeft, guestsPeople, pending, pageUrl, capacity, locked } = view;
+  if (locked) {
+    return (
+      <>
+        <Card tone="amber">
+          <Row style={{ justifyContent: "space-between" }}>
+            <Text style={[styles.title, { flex: 1 }]} numberOfLines={2}>{view.title}</Text>
+            <Badge tone={EVENT_STATUS_TONE[status]}>{status === "EXPIRED" ? "Reserva vencida" : EVENT_STATUS_LABEL[status]}</Badge>
+          </Row>
+          <Text style={styles.text}>{formatDateLong(ev.starts_at)} · {formatTime(ev.starts_at)}–{formatTime(ev.ends_at)}</Text>
+          <Text style={{ color: colors.amber, fontWeight: "600" }}>{status === "EXPIRED" ? "O prazo do sinal passou e a data foi liberada. Pagamento, convidados e convite ficam fechados até o buffet reservar de novo." : "Esta festa foi cancelada. Pagamento, convidados e convite ficam fechados."}</Text>
+        </Card>
+        <Card>
+          <CardTitle title={`Falar com ${org.name}`} subtitle={status === "EXPIRED" ? "Se ainda quiser a data, o buffet verifica se está livre e refaz a reserva." : "Qualquer dúvida sobre valores já pagos ou outra data."} />
+          {org.whatsapp ? <Button title="Chamar no WhatsApp" icon={<Ionicons name="logo-whatsapp" size={18} color="#fff" />} onPress={() => view.wa(status === "EXPIRED" ? `Olá! Minha reserva de ${formatDateLong(ev.starts_at)} venceu. Ainda dá para fazer a festa nessa data?` : `Olá! Sobre minha festa de ${formatDateLong(ev.starts_at)}.`)} /> : <Muted>O buffet não informou WhatsApp. Procure pelo telefone ou pela página pública.</Muted>}
+          <Button title="Ver a página do buffet" variant="outline" onPress={() => openWeb(`${WEB_URL}/p/${org.slug}`, org.name)} />
+        </Card>
+      </>
+    );
+  }
   return (
     <>
       <Card>
@@ -64,7 +84,7 @@ function Overview({ token }: { token: string }) {
 
       {quote ? (
         <Card>
-          <CardTitle title="O que está incluído" right={r.quote_token ? <Pressable onPress={() => Linking.openURL(`${WEB_URL}/q/${r.quote_token}/pdf`)}><Text style={{ color: colors.brand, fontWeight: "600", fontSize: 13 }}>PDF</Text></Pressable> : undefined} />
+          <CardTitle title="O que está incluído" right={r.quote_token ? <Pressable onPress={() => openWeb(`${WEB_URL}/q/${r.quote_token}/pdf`, "Orçamento")}><Text style={{ color: colors.brand, fontWeight: "600", fontSize: 13 }}>PDF</Text></Pressable> : undefined} />
           {quote.items.map((it, i) => (
             <Row key={i} style={{ justifyContent: "space-between" }}>
               <Text style={[styles.text, { flex: 1 }]}>{it.description}{Number(it.quantity) !== 1 && !/\(\d+\)/.test(it.description) ? ` × ${Number(it.quantity)}` : ""}</Text>
@@ -94,13 +114,13 @@ function Overview({ token }: { token: string }) {
       {r.contract ? (
         <Card>
           <CardTitle title={`Contrato nº ${r.contract.number}`} subtitle={CONTRACT_STATUS_LABEL[r.contract.status] ?? r.contract.status} />
-          <Button title={r.contract.status === "ACCEPTED" ? "Ver contrato" : "Ler e aceitar o contrato"} variant={r.contract.status === "ACCEPTED" ? "outline" : "primary"} onPress={() => Linking.openURL(`${WEB_URL}/c/${r.contract!.token}`)} />
+          <Button title={r.contract.status === "ACCEPTED" ? "Ver contrato" : "Ler e aceitar o contrato"} variant={r.contract.status === "ACCEPTED" ? "outline" : "primary"} onPress={() => openWeb(`${WEB_URL}/c/${r.contract!.token}`, `Contrato nº ${r.contract!.number}`)} />
         </Card>
       ) : null}
 
       <Card>
         <CardTitle title="Link desta festa" subtitle="Guarde para abrir de novo ou em outro aparelho" />
-        <Text selectable style={{ color: colors.muted, fontSize: 13 }}>{pageUrl}</Text>
+        <Pressable onPress={() => openWeb(pageUrl, view.title)}><Text style={{ color: colors.brand, fontSize: 13, textDecorationLine: "underline" }}>{pageUrl}</Text></Pressable>
         <Row>
           <Button title="Copiar link" size="sm" variant="outline" onPress={async () => { await Clipboard.setStringAsync(pageUrl); Alert.alert("Copiado"); }} />
           <Button title="Enviar pra mim" size="sm" variant="outline" onPress={() => Share.share({ message: pageUrl })} />
