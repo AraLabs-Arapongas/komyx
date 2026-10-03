@@ -1,6 +1,6 @@
 import { Nunito_400Regular, Nunito_600SemiBold, Nunito_700Bold, Nunito_800ExtraBold, Nunito_900Black, useFonts } from "@expo-google-fonts/nunito";
 import React from "react";
-import { Platform, Text, TextInput, type TextStyle } from "react-native";
+import { Platform, Text, type TextStyle } from "react-native";
 import { fonts } from "./theme";
 
 export function useAppFonts() {
@@ -20,7 +20,7 @@ export function faceFor(weight: TextStyle["fontWeight"]) {
 
 let patched = false;
 /**
- * Makes every <Text> and <TextInput> use Nunito without touching each screen: the weight each
+ * Makes every <Text> use Nunito without touching each screen: the weight each
  * style asks for picks the face. Called once after the fonts load.
  */
 export function applyAppFont() {
@@ -37,7 +37,8 @@ export function applyAppFont() {
     return;
   }
   type Styled = React.ReactElement<{ style?: unknown }>;
-  for (const Comp of [Text, TextInput] as unknown as { render?: (...args: unknown[]) => Styled }[]) {
+  // Text only: TextInput gets its face from styles.input (patching it broke iOS placeholders).
+  for (const Comp of [Text] as unknown as { render?: (...args: unknown[]) => Styled }[]) {
     const original = Comp.render;
     if (typeof original !== "function") continue;
     Comp.render = function (this: unknown, ...args: unknown[]) {

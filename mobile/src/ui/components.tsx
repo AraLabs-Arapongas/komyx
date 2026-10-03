@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useFocusEffect } from "expo-router";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, type PressableProps, type TextInputProps, type ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, radius, shadow, space, tones } from "./theme";
+import { colors, fonts, radius, shadow, space, tones } from "./theme";
 
 /**
  * `safeTop` pads the status bar / notch too: use it on screens without a native header.
@@ -130,7 +130,8 @@ export const styles = StyleSheet.create({
   button: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: 16 },
   buttonText: { fontWeight: "800" },
   label: { fontSize: 13, fontWeight: "600", color: colors.foreground },
-  input: { height: 48, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, backgroundColor: colors.surface, fontSize: 16, color: colors.foreground },
+  // Explicit face and zero tracking: iOS spaced out placeholder letters when the font came from the global patch.
+  input: { fontFamily: fonts.regular, letterSpacing: 0, height: 48, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, backgroundColor: colors.surface, fontSize: 16, color: colors.foreground },
   muted: { color: colors.muted, fontSize: 13 },
   row: { flexDirection: "row", alignItems: "center", gap: space.sm },
   empty: { borderWidth: 1, borderStyle: "dashed", borderColor: colors.border, borderRadius: radius.lg, padding: 24, alignItems: "center" },
