@@ -44,11 +44,11 @@ export default async function GuestConfirmPage({ params }: PageProps<"/g/[token]
             )}
             <div className="space-y-3 px-6 pt-5 pb-6 text-center">
               <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[var(--sun)]">Você está convidado</p>
-              <h1 className="display text-3xl leading-tight">{title}</h1>
+              <h1 className="display text-3xl font-black leading-tight">{title}</h1>
               {ev.celebrant_name && ev.celebrant_age != null && !ev.invite_title ? <p className="font-bold text-[var(--sun)]">{ev.celebrant_name} faz {ev.celebrant_age} anos!</p> : null}
               {ev.invite_message ? <p className="text-[15px] leading-relaxed text-white/85 whitespace-pre-wrap">{ev.invite_message}</p> : null}
               <div className="mx-auto grid max-w-xs gap-2 pt-1 text-left text-sm">
-                <p className="flex items-center gap-2.5 rounded-2xl bg-white/10 px-3 py-2.5"><CalendarDays className="h-5 w-5 shrink-0 text-[var(--sun)]" /><span><span className="font-bold capitalize">{formatDateLong(ev.starts_at)}</span><br />{formatTime(ev.starts_at)} às {formatTime(ev.ends_at)}</span></p>
+                <p className="flex items-center gap-2.5 rounded-2xl bg-white/10 px-3 py-2.5"><CalendarDays className="h-5 w-5 shrink-0 text-[var(--sun)]" /><span><span className="font-bold">{formatDateLong(ev.starts_at)}</span><br />{formatTime(ev.starts_at)} às {formatTime(ev.ends_at)}</span></p>
                 <p className="flex items-center gap-2.5 rounded-2xl bg-white/10 px-3 py-2.5"><MapPin className="h-5 w-5 shrink-0 text-[var(--sun)]" /><span><span className="font-bold">{org.name}</span>{org.address ? <><br />{org.address}</> : null}</span></p>
               </div>
             </div>

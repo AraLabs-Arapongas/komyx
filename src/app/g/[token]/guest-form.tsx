@@ -37,7 +37,7 @@ export function GuestForm({ token, mapsUrl }: { token: string; mapsUrl: string |
       <div className="space-y-4 text-center">
         <div className="mx-auto h-16 w-16 rounded-full bg-[var(--mint)] grid place-items-center text-[var(--ink)]"><PartyPopper className="h-8 w-8" /></div>
         <div>
-          <p className="display text-2xl">Presença confirmada!</p>
+          <p className="display text-2xl font-black">Presença confirmada!</p>
           <p className="text-sm text-muted">Obrigado. Nos vemos na festa.</p>
         </div>
         <a href={`/g/${token}/evento.ics`} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--ink)] text-white font-bold"><CalendarPlus className="h-5 w-5" /> Salvar no calendário</a>
@@ -48,7 +48,7 @@ export function GuestForm({ token, mapsUrl }: { token: string; mapsUrl: string |
   return (
     <form action={action} className="space-y-4">
       <div>
-        <p className="display text-2xl">Você vai?</p>
+        <p className="display text-2xl font-black">Você vai?</p>
         <p className="text-sm text-muted">Confirme para o anfitrião saber quantos esperar.</p>
       </div>
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
