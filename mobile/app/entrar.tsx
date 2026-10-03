@@ -61,7 +61,7 @@ export default function Entrar() {
     setError(null);
     Keyboard.dismiss();
     if (d.kind === "token") {
-      router.replace(d.tokenKind === "g" ? { pathname: "/cliente/convite/[token]", params: { token: d.token! } } : { pathname: "/cliente/reserva/[token]", params: { token: d.token! } });
+      router.replace(d.tokenKind === "g" ? { pathname: "/convidado/[token]", params: { token: d.token! } } : { pathname: "/cliente/reserva/[token]", params: { token: d.token! } });
       return;
     }
     if (d.kind === "email") {

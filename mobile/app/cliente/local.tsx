@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import { useGlobalSearchParams } from "expo-router";
+import { router } from "expo-router";
+import { useParty } from "@/lib/party-context";
 import { Alert, Image, Linking, Share, Text, View } from "react-native";
 import { formatDateLong, formatPhone, formatTime } from "@/lib/format";
 import { useReservationView } from "@/lib/reservation-view";
@@ -10,9 +11,10 @@ import { colors } from "@/ui/theme";
 
 /** Where and when: the buffet's address, directions, a shareable location and the contact. */
 export default function Local() {
-  const { token } = useGlobalSearchParams<{ token: string }>();
-  const { q, view } = useReservationView(token);
-  if (q.isLoading) return <Loading />;
+  const { token, ready } = useParty();
+  const { q, view } = useReservationView(token ?? "");
+  if (!ready || (token && q.isLoading)) return <Loading />;
+  if (!token) return <Screen><Empty title="Escolha uma festa" description="Em Início, toque na festa que você quer acompanhar." /><Button title="Ir para Início" variant="secondary" onPress={() => router.replace("/cliente")} /></Screen>;
   if (!view) return <Screen><Empty title="Reserva não encontrada" /></Screen>;
   const { ev, org, address, mapsUrl } = view;
   const shareText = `${view.title} · ${formatDateLong(ev.starts_at)} às ${formatTime(ev.starts_at)}\n${org.name}${address ? ` · ${address}` : ""}${mapsUrl ? `\n${mapsUrl}` : ""}`;

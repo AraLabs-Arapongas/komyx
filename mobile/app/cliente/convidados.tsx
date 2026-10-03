@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useGlobalSearchParams } from "expo-router";
+import { router } from "expo-router";
+import { useParty } from "@/lib/party-context";
 import { useState } from "react";
 import { Alert, Pressable, Share, Text, View } from "react-native";
 import { formatCurrency, formatDateLong, formatTime } from "@/lib/format";
@@ -8,12 +9,13 @@ import { Button, Card, CardTitle, Divider, Empty, Field, Input, Loading, Muted, 
 import { colors } from "@/ui/theme";
 
 export default function Convidados() {
-  const { token } = useGlobalSearchParams<{ token: string }>();
-  const { q, view, ask, addGuest, removeGuest } = useReservationView(token);
+  const { token, ready } = useParty();
+  const { q, view, ask, addGuest, removeGuest } = useReservationView(token ?? "");
   const [guestName, setGuestName] = useState("");
   const [guestAdults, setGuestAdults] = useState("2");
   const [guestChildren, setGuestChildren] = useState("0");
-  if (q.isLoading) return <Loading />;
+  if (!ready || (token && q.isLoading)) return <Loading />;
+  if (!token) return <Screen><Empty title="Escolha uma festa" description="Em Início, toque na festa que você quer acompanhar." /><Button title="Ir para Início" variant="secondary" onPress={() => router.replace("/cliente")} /></Screen>;
   if (!view) return <Screen><Empty title="Reserva não encontrada" /></Screen>;
   const { r, ev, showPrices, guestsPeople, pending, first, guestUrl, capacity: c } = view;
   const pct = (n: number, t: number) => (t > 0 ? Math.min(100, Math.round((n / t) * 100)) : 0);

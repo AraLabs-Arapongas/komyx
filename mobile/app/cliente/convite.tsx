@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useGlobalSearchParams } from "expo-router";
+import { router } from "expo-router";
+import { useParty } from "@/lib/party-context";
 import { Image, Linking, Share, Text } from "react-native";
 import { formatDateLong, formatTime } from "@/lib/format";
 import { useReservationView } from "@/lib/reservation-view";
@@ -8,9 +9,10 @@ import { colors } from "@/ui/theme";
 
 /** How the invite looks to a guest, plus the two actions: personalize it (web editor) and send it. */
 export default function Convite() {
-  const { token } = useGlobalSearchParams<{ token: string }>();
-  const { q, view } = useReservationView(token);
-  if (q.isLoading) return <Loading />;
+  const { token, ready } = useParty();
+  const { q, view } = useReservationView(token ?? "");
+  if (!ready || (token && q.isLoading)) return <Loading />;
+  if (!token) return <Screen><Empty title="Escolha uma festa" description="Em Início, toque na festa que você quer acompanhar." /><Button title="Ir para Início" variant="secondary" onPress={() => router.replace("/cliente")} /></Screen>;
   if (!view) return <Screen><Empty title="Reserva não encontrada" /></Screen>;
   const { ev, org, guestUrl, inviteEditUrl } = view;
   const personalized = Boolean(ev.invite_title || ev.invite_message || ev.invite_image_url);

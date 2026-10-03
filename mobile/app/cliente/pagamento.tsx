@@ -1,5 +1,6 @@
 import * as Clipboard from "expo-clipboard";
-import { useGlobalSearchParams } from "expo-router";
+import { router } from "expo-router";
+import { useParty } from "@/lib/party-context";
 import { useState } from "react";
 import { Alert, Pressable, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
@@ -10,10 +11,11 @@ import { Button, Card, CardTitle, Divider, Empty, Loading, Muted, Row, Screen, s
 import { colors } from "@/ui/theme";
 
 export default function Pagamento() {
-  const { token } = useGlobalSearchParams<{ token: string }>();
-  const { q, view, ask } = useReservationView(token);
+  const { token, ready } = useParty();
+  const { q, view, ask } = useReservationView(token ?? "");
   const [showPayload, setShowPayload] = useState(false);
-  if (q.isLoading) return <Loading />;
+  if (!ready || (token && q.isLoading)) return <Loading />;
+  if (!token) return <Screen><Empty title="Escolha uma festa" description="Em Início, toque na festa que você quer acompanhar." /><Button title="Ir para Início" variant="secondary" onPress={() => router.replace("/cliente")} /></Screen>;
   if (!view) return <Screen><Empty title="Reserva não encontrada" /></Screen>;
   const { r, org, quote, showPrices, installments, extrasTotal, total, balance, needsDeposit, txid, pixAmount, pix, pending, first } = view;
   if (!quote || !showPrices) return <Screen><Empty title="Valores combinados com o buffet" description={org.whatsapp ? "Este buffet trata pagamentos direto com você. Fale com eles pelo WhatsApp." : "Este buffet trata pagamentos direto com você."} />{org.whatsapp ? <Button title={`Falar com ${org.name}`} variant="secondary" onPress={() => view.wa("Olá! Sobre o pagamento da minha festa.")} /> : null}</Screen>;
