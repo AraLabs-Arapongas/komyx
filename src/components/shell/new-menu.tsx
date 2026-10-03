@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Plus, CalendarCheck, PartyPopper, FileText, UserPlus } from "lucide-react";
+import { Plus, FileText, UserPlus } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
 
+// One way in for parties: the wizard decides at the end whether the date is held, confirmed or
+// left as a quote. Reserva/evento/orçamento used to be three entries into the same screen.
 const ITEMS = [
-  { href: "/eventos/novo?status=PRE_RESERVED", label: "Nova reserva", icon: CalendarCheck },
-  { href: "/eventos/novo?status=CONFIRMED", label: "Novo evento", icon: PartyPopper },
-  { href: "/eventos/novo?status=QUOTE", label: "Novo orçamento", icon: FileText },
+  { href: "/eventos/novo", label: "Novo orçamento", icon: FileText },
   { href: "/clientes/novo", label: "Novo cliente", icon: UserPlus },
 ];
 
-/** Primary "+ Novo" button with the four entry points. */
+/** Primary "+ Novo" button with the two entry points. */
 export function NewMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

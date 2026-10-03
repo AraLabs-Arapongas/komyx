@@ -14,7 +14,7 @@ export default async function NewEventPage({ searchParams }: PageProps<"/eventos
   const supabase = await createClient();
   const another = sp.another === "1";
   const initialStatus = sp.status === "QUOTE" || sp.status === "CONFIRMED" ? sp.status : "PRE_RESERVED";
-  const title = initialStatus === "QUOTE" ? "Novo orçamento" : initialStatus === "CONFIRMED" ? "Novo evento" : "Nova reserva";
+  const title = "Novo orçamento";
 
   const customerId = typeof sp.customer === "string" ? sp.customer : undefined;
   const requestId = typeof sp.request === "string" ? sp.request : undefined;
@@ -34,7 +34,7 @@ export default async function NewEventPage({ searchParams }: PageProps<"/eventos
 
   return (
     <>
-      <PageHeader title={title} subtitle="Cliente, data, pacote. O orçamento nasce junto; você decide se reserva a data." back="/agenda" />
+      <PageHeader title={title} subtitle="Cliente, pacote, cardápio e data. No final você decide: só orçamento, segurar a data ou já confirmar." back="/agenda" />
       <PageBody>
         <NewEventWizard
           slug={org.slug}
