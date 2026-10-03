@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useMemo } from "react";
 import { Alert, Linking } from "react-native";
 import { addReservationGuest, loadReservation, removeReservationGuest, requestChange, type ChangeRequest, type Reservation } from "./client";
 import { formatCurrency, whatsappUrl } from "./format";
@@ -53,9 +54,13 @@ function derive(r: Reservation, token: string) {
 
 export type AskInput = { kind: ChangeRequest["kind"]; message: string; payload?: Record<string, unknown> };
 
-export function useReservationView(token: string) {
+export function useReservationView(token: string, { refetchOnFocus = false } = {}) {
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["reservation", token], queryFn: () => loadReservation(token) });
+  const q = useQuery({ queryKey: ["reservation", token], queryFn: () => loadReservation(token), enabled: Boolean(token) });
+  // Tabs stay mounted, so a screen that comes back into view (from another tab or from the
+  // WebView where a guest just confirmed) asks the server again.
+  const refetch = q.refetch;
+  useFocusEffect(useCallback(() => { if (refetchOnFocus && token) refetch(); }, [refetchOnFocus, token, refetch]));
   const invalidate = () => qc.invalidateQueries({ queryKey: ["reservation", token] });
   const ask = useMutation({
     mutationFn: (v: AskInput) => requestChange(token, v.kind, v.message, v.payload),

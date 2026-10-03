@@ -12,7 +12,7 @@ import { colors } from "@/ui/theme";
 /** Where and when: the buffet's address, directions, a shareable location and the contact. */
 export default function Local() {
   const { token, ready } = useParty();
-  const { q, view } = useReservationView(token ?? "");
+  const { q, view } = useReservationView(token ?? "", { refetchOnFocus: true });
   if (!ready || (token && q.isLoading)) return <Loading />;
   if (!token) return <Screen><Empty title="Escolha uma festa" description="Em Início, toque na festa que você quer acompanhar." /><Button title="Ir para Início" variant="secondary" onPress={() => router.replace("/cliente")} /></Screen>;
   if (!view) return <Screen><Empty title="Reserva não encontrada" /></Screen>;

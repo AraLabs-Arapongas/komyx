@@ -37,7 +37,7 @@ function Jump({ icon, label, value, tone, onPress }: { icon: keyof typeof Ionico
 
 /** The chosen party: status, jump tiles into the tabs, what is included, requests, contract, link. */
 function Overview({ token }: { token: string }) {
-  const { q, view, ask } = useReservationView(token);
+  const { q, view, ask } = useReservationView(token, { refetchOnFocus: true });
   const [sheet, setSheet] = useState<AskKind | null>(null);
   if (q.isLoading) return <Loading />;
   if (!view) return <Card><Text style={styles.cardTitle}>Reserva não encontrada</Text><Muted>O link pode ter sido desativado. Fale com o buffet.</Muted></Card>;

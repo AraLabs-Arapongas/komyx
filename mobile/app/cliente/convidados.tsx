@@ -10,7 +10,7 @@ import { colors } from "@/ui/theme";
 
 export default function Convidados() {
   const { token, ready } = useParty();
-  const { q, view, ask, addGuest, removeGuest } = useReservationView(token ?? "");
+  const { q, view, ask, addGuest, removeGuest } = useReservationView(token ?? "", { refetchOnFocus: true });
   const [guestName, setGuestName] = useState("");
   const [guestAdults, setGuestAdults] = useState("2");
   const [guestChildren, setGuestChildren] = useState("0");

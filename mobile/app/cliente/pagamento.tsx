@@ -12,7 +12,7 @@ import { colors } from "@/ui/theme";
 
 export default function Pagamento() {
   const { token, ready } = useParty();
-  const { q, view, ask } = useReservationView(token ?? "");
+  const { q, view, ask } = useReservationView(token ?? "", { refetchOnFocus: true });
   const [showPayload, setShowPayload] = useState(false);
   if (!ready || (token && q.isLoading)) return <Loading />;
   if (!token) return <Screen><Empty title="Escolha uma festa" description="Em Início, toque na festa que você quer acompanhar." /><Button title="Ir para Início" variant="secondary" onPress={() => router.replace("/cliente")} /></Screen>;

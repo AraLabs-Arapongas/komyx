@@ -11,7 +11,7 @@ import { colors } from "@/ui/theme";
 /** How the invite looks to a guest, plus the two actions: personalize it (web editor) and send it. */
 export default function Convite() {
   const { token, ready } = useParty();
-  const { q, view } = useReservationView(token ?? "");
+  const { q, view } = useReservationView(token ?? "", { refetchOnFocus: true });
   if (!ready || (token && q.isLoading)) return <Loading />;
   if (!token) return <Screen><Empty title="Escolha uma festa" description="Em Início, toque na festa que você quer acompanhar." /><Button title="Ir para Início" variant="secondary" onPress={() => router.replace("/cliente")} /></Screen>;
   if (!view) return <Screen><Empty title="Reserva não encontrada" /></Screen>;
