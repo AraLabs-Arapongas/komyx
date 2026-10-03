@@ -1,5 +1,7 @@
 "use client";
 
+import { ImageInput } from "@/components/ui/image-input";
+
 import { useActionState, useEffect } from "react";
 import { savePackage, saveAddon, saveTheme } from "@/lib/actions/settings";
 import { Field, Input, Textarea } from "@/components/ui/input";
@@ -69,7 +71,7 @@ export function ThemeForm({ theme, onSaved }: { theme?: Theme; onSaved?: () => v
       <Field label="Descrição" htmlFor={`theme_desc_${k}`}><Textarea id={`theme_desc_${k}`} name="description" defaultValue={theme?.description ?? ""} className="min-h-16" placeholder="O que entra na decoração" /></Field>
       <div className="grid grid-cols-[1fr_90px] gap-2 items-end">
         <Field label={theme?.photo_url ? "Trocar foto" : "Foto"} htmlFor={`theme_photo_${k}`} hint="JPG, PNG ou WebP até 8MB">
-          <input id={`theme_photo_${k}`} name="photo" type="file" accept="image/jpeg,image/png,image/webp" className="block w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-brand-soft file:px-3 file:py-1.5 file:text-brand file:font-medium" />
+          <ImageInput id={`theme_photo_${k}`} name="photo" />
         </Field>
         <Field label="Ordem" htmlFor={`theme_order_${k}`}><Input id={`theme_order_${k}`} name="sort_order" type="number" min={0} defaultValue={theme?.sort_order ?? 0} /></Field>
       </div>

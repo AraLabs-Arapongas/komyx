@@ -1,5 +1,7 @@
 "use client";
 
+import { ImageInput } from "@/components/ui/image-input";
+
 import { useActionState, useState } from "react";
 import { updateInviteByToken } from "@/lib/actions/public";
 import { Field, Input, Textarea } from "@/components/ui/input";
@@ -22,8 +24,7 @@ export function InviteEditor({ token, imageUrl, title, message, guestUrl }: { to
           // eslint-disable-next-line @next/next/no-img-element
           <img src={preview} alt="Convite" className="w-full rounded-xl border border-border" />
         ) : <div className="aspect-[3/4] rounded-xl border border-dashed border-border grid place-items-center text-sm text-muted">Envie a arte do convite (JPG, PNG ou WebP)</div>}
-        <input name="image" type="file" accept="image/jpeg,image/png,image/webp" className="block w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-brand-soft file:px-3 file:py-1.5 file:text-brand file:font-medium"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) setPreview(URL.createObjectURL(f)); }} />
+        <ImageInput name="image" onFile={(f) => setPreview(URL.createObjectURL(f))} />
       </div>
       <div className="rounded-2xl border border-border bg-surface p-4 space-y-3">
         <Field label="Título" htmlFor="invite_title"><Input id="invite_title" name="invite_title" defaultValue={title} placeholder="Ex.: Aniversário do Samuel · 4 anos" /></Field>

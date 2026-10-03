@@ -1,5 +1,7 @@
 "use client";
 
+import { ImageInput } from "@/components/ui/image-input";
+
 import { useActionState } from "react";
 import { useState } from "react";
 import { updateShowPrices, updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage, updateTheme, updateCoverCaption } from "@/lib/actions/settings";
@@ -67,7 +69,7 @@ export function ImageUploadForm({ kind, currentUrl }: { kind: "logo" | "cover"; 
         <img src={currentUrl} alt="" className={kind === "logo" ? "h-20 w-20 rounded-xl object-cover border border-border" : "h-20 w-full rounded-xl object-cover border border-border"} />
       ) : <div className="h-20 rounded-xl border border-dashed border-border grid place-items-center text-xs text-muted">Sem imagem</div>}
       <input type="hidden" name="kind" value={kind} />
-      <input name="file" type="file" accept="image/jpeg,image/png,image/webp" className="block w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-brand-soft file:px-3 file:py-1.5 file:text-brand file:font-medium" required />
+      <ImageInput name="file" required />
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       <SubmitButton size="sm" variant="outline" pendingText="Enviando...">Enviar</SubmitButton>
     </form>
@@ -199,7 +201,7 @@ export function GalleryForm({ gallery }: { gallery: { url: string; caption?: str
       <form action={action} className="space-y-2">
         {state && !state.ok ? <Alert>{state.error}</Alert> : null}
         {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
-        <input name="files" type="file" accept="image/jpeg,image/png,image/webp" multiple className="block w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-brand-soft file:px-3 file:py-1.5 file:text-brand file:font-medium" required />
+        <ImageInput name="files" multiple required />
         <SubmitButton size="sm" variant="outline" pendingText="Enviando...">Adicionar fotos</SubmitButton>
       </form>
     </div>

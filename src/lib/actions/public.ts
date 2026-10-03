@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { saveInviteByToken } from "@/lib/invite-save";
 
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -305,26 +306,12 @@ const inviteSchema = z.object({
 export async function updateInviteByToken(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
   const parsed = inviteSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return fail("Verifique os campos.");
-  const ctx = await eventByLink(parsed.data.token, "INVITE_EDIT");
-  if (!ctx) return fail("Este link não está mais disponível.");
-
   const file = formData.get("image");
-  const patch: { invite_title: string | null; invite_message: string | null; invite_updated_at: string; invite_image_url?: string } = {
-    invite_title: parsed.data.invite_title,
-    invite_message: parsed.data.invite_message,
-    invite_updated_at: new Date().toISOString(),
-  };
-  if (file instanceof File && file.size > 0) {
-    if (file.size > 8 * 1024 * 1024) return fail("Imagem muito grande (máx. 8MB).");
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return fail("Use JPG, PNG ou WebP.");
-    const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-    const path = `${ctx.link.organization_id}/invites/${ctx.link.event_id}-${Date.now()}.${ext}`;
-    const { error: upErr } = await ctx.admin.storage.from("org-media").upload(path, file, { contentType: file.type, upsert: true });
-    if (upErr) return fail(upErr.message);
-    patch.invite_image_url = ctx.admin.storage.from("org-media").getPublicUrl(path).data.publicUrl;
+  try {
+    await saveInviteByToken(parsed.data.token, { title: parsed.data.invite_title, message: parsed.data.invite_message, file: file instanceof File ? file : null });
+  } catch (e) {
+    return fail((e as Error).message);
   }
-  const { error } = await ctx.admin.from("events").update(patch).eq("id", ctx.link.event_id);
-  if (error) return fail(translateDbError(error));
   return { ok: true, message: "Convite salvo! Compartilhe o link de confirmação com os convidados." };
 }
 

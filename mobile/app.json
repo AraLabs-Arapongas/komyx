@@ -60,10 +60,18 @@
           "imageWidth": 260,
           "resizeMode": "contain",
           "backgroundColor": "#1b1f3a",
-          "dark": { "backgroundColor": "#1b1f3a" }
+          "dark": {
+            "backgroundColor": "#1b1f3a"
+          }
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Komyx usa suas fotos para a arte do convite da festa."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
