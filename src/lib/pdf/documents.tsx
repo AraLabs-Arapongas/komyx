@@ -30,6 +30,7 @@ export type QuotePdfData = {
     id: string; status: string; subtotal: number | string; discount_total: number | string; total: number | string; notes: string | null; created_at: string;
     items: { description: string; quantity: number | string; unit_price: number | string; total: number | string | null }[];
     installments: { label: string; percent: number | string; amount: number | string; rule: string; days_before: number | null; due_date: string | null }[];
+    menu?: { name: string; text: string; pending: boolean }[];
   };
 };
 
@@ -74,6 +75,17 @@ export function QuotePdf({ data }: { data: QuotePdfData }) {
         <View style={styles.row}><Text>Subtotal</Text><Text>{formatCurrency(quote.subtotal)}</Text></View>
         {Number(quote.discount_total) > 0 ? <View style={styles.row}><Text>Desconto</Text><Text>- {formatCurrency(quote.discount_total)}</Text></View> : null}
         <View style={styles.totalRow}><Text style={[styles.bold, { fontSize: 12 }]}>Total</Text><Text style={[styles.bold, { fontSize: 12 }]}>{formatCurrency(quote.total)}</Text></View>
+        {quote.menu && quote.menu.length ? (
+          <>
+            <Text style={styles.h2}>Cardápio incluído</Text>
+            {quote.menu.map((m, i) => (
+              <View key={i} style={styles.row}>
+                <Text style={{ width: "28%" }}>{m.name}</Text>
+                <Text style={{ width: "72%" }}>{m.text}{m.pending ? " (a escolher)" : ""}</Text>
+              </View>
+            ))}
+          </>
+        ) : null}
         {quote.installments.length ? (
           <>
             <Text style={styles.h2}>Forma de pagamento</Text>

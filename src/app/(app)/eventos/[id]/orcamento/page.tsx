@@ -13,6 +13,10 @@ import { eventTitle } from "@/components/events/event-card";
 import { QUOTE_STATUS_LABEL, QUOTE_STATUS_TONE } from "@/lib/labels";
 import { formatCurrency, formatDate, formatTime, whatsappLink, shortUrl } from "@/lib/utils";
 import { installmentDueLabel } from "@/lib/contract";
+import { loadMenuGroups } from "@/lib/data/menu";
+import { menuView } from "@/lib/menu";
+import { MenuSummary } from "@/components/menu/menu-summary";
+import { QuoteMenuForm } from "./quote-menu-form";
 import { QuoteItemForm, DiscountForm, QuoteStatusForm, ShareQuote, ParticipantsForm, InstallmentsForm } from "./quote-forms";
 
 export const metadata = { title: "Orçamento" };
@@ -44,6 +48,12 @@ export default async function QuotePage({ params, searchParams }: PageProps<"/ev
   if (!quoteId) redirect(`/eventos/${id}/orcamento?quote=${quote.id}`);
 
   const { data: addons } = await supabase.from("package_addons").select("id, name, price").eq("active", true).order("sort_order").order("name");
+  const [menuGroups, { data: menuPicks }] = await Promise.all([
+    quote.package_id ? loadMenuGroups(supabase, { packageIds: [quote.package_id] }) : Promise.resolve([]),
+    supabase.from("quote_menu_choices").select("group_id, item_id").eq("quote_id", quote.id),
+  ]);
+  const pickedIds = (menuPicks ?? []).map((p) => p.item_id);
+  const initialPicks = menuGroups.map((g) => ({ group_id: g.id, item_ids: (menuPicks ?? []).filter((p) => p.group_id === g.id).map((p) => p.item_id) }));
   const items = [...quote.quote_items].sort((a, b) => a.sort_order - b.sort_order);
   const installments = [...quote.quote_installments].sort((a, b) => a.sequence - b.sequence);
   const locked = quote.status === "ACCEPTED" || quote.status === "REJECTED";
@@ -63,6 +73,15 @@ export default async function QuotePage({ params, searchParams }: PageProps<"/ev
             {locked ? <p className="text-sm">{quote.adults} adultos · {quote.children} crianças</p> : <ParticipantsForm quoteId={quote.id} eventId={id} adults={quote.adults} childrenCount={quote.children} pkg={quote.packages} />}
           </CardBody>
         </Card>
+
+        {menuGroups.length ? (
+          <Card>
+            <CardHeader title="Cardápio" subtitle={locked ? "O que está incluído neste orçamento" : "O que o cliente escolheu dentro do pacote; ajuste se precisar"} />
+            <CardBody>
+              {locked ? <MenuSummary view={menuView(menuGroups, pickedIds)} /> : <QuoteMenuForm quoteId={quote.id} eventId={id} groups={menuGroups} initial={initialPicks} />}
+            </CardBody>
+          </Card>
+        ) : null}
 
         <Card>
           <CardHeader title="Itens" />

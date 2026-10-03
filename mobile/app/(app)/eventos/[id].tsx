@@ -10,6 +10,8 @@ import { allocateInstallments, dueShort, INSTALLMENT_STATUS_LABEL, INSTALLMENT_S
 import { EVENT_STATUS_LABEL, EVENT_STATUS_TONE, PAYMENT_METHOD_LABEL, QUOTE_STATUS_LABEL, type EventStatus, type PaymentMethod } from "@/lib/labels";
 import { eventTitle, type Financials } from "@/lib/queries";
 import { confirmEventRemote } from "@/lib/confirm";
+import { loadQuoteMenu } from "@/lib/menu-data";
+import { MenuSummary } from "@/ui/menu-picker";
 import { supabase, WEB_URL } from "@/lib/supabase";
 import { Badge, Button, Card, CardTitle, Divider, Input, Loading, Muted, Row, Screen, Stat, styles } from "@/ui/components";
 import { colors } from "@/ui/theme";
@@ -23,13 +25,15 @@ async function loadEvent(id: string) {
     supabase.from("events").select("*, customers(id, name, whatsapp, email), packages(name)").eq("id", id).maybeSingle(),
     supabase.from("guests").select("id, name, adults, children, source, notes, checked_in_at, checked_in_adults, checked_in_children").eq("event_id", id).order("created_at"),
     supabase.from("payments").select("id, amount, paid_at, method, notes").eq("event_id", id).order("paid_at", { ascending: false }),
-    supabase.from("quotes").select("id, status, total, decided_at, created_at, quote_installments(sequence, label, percent, amount, rule, days_before, due_date)").eq("event_id", id).order("created_at", { ascending: false }).limit(1),
+    supabase.from("quotes").select("id, package_id, status, total, decided_at, created_at, quote_installments(sequence, label, percent, amount, rule, days_before, due_date)").eq("event_id", id).order("created_at", { ascending: false }).limit(1),
     supabase.from("public_links").select("id, token, short, type").eq("event_id", id).eq("active", true),
     supabase.from("event_extras").select("id, description, quantity, unit_price, total, source").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("event_financials").select("*").eq("event_id", id).maybeSingle(),
     supabase.from("payment_reversals").select("id, amount, paid_at, method, reason, reopened, reversed_at").eq("event_id", id).order("reversed_at", { ascending: false }),
   ]);
-  return { event: ev.data, guests: (guests.data ?? []) as Guest[], payments: (payments.data ?? []) as Payment[], quote: quotes.data?.[0] ?? null, links: links.data ?? [], extras: (extras.data ?? []) as Extra[], fin: fin.data as Financials | null, reversals: (reversals.data ?? []) as { id: string; amount: number; paid_at: string; method: Payment["method"]; reason: string | null; reopened: boolean; reversed_at: string }[] };
+  const q0 = quotes.data?.[0];
+  const menu = q0 ? await loadQuoteMenu(q0.id, (q0 as { package_id: string | null }).package_id) : [];
+  return { menu, event: ev.data, guests: (guests.data ?? []) as Guest[], payments: (payments.data ?? []) as Payment[], quote: quotes.data?.[0] ?? null, links: links.data ?? [], extras: (extras.data ?? []) as Extra[], fin: fin.data as Financials | null, reversals: (reversals.data ?? []) as { id: string; amount: number; paid_at: string; method: Payment["method"]; reason: string | null; reopened: boolean; reversed_at: string }[] };
 }
 
 export default function EventDetail() {
@@ -137,7 +141,7 @@ export default function EventDetail() {
   }
 
   if (q.isLoading || !q.data) return <Loading />;
-  const { event: ev, guests, payments, quote, extras, fin, reversals } = q.data;
+  const { event: ev, guests, payments, quote, extras, fin, reversals, menu } = q.data;
   if (!ev) return <Screen><Muted>Evento não encontrado.</Muted></Screen>;
   const customer = ev.customers as { id: string; name: string; whatsapp: string; email: string | null };
   const title = eventTitle(ev as never);
@@ -208,6 +212,7 @@ export default function EventDetail() {
               <Pressable onPress={() => Linking.openURL(`${WEB_URL}/eventos/${id}/orcamento?quote=${quote.id}`)}><Text style={{ color: colors.brand, fontWeight: "600", fontSize: 13 }}>Abrir na web</Text></Pressable>
             </Row>
           ) : <Muted>Sem orçamento ainda. Monte pelo Komyx na web.</Muted>}
+          {menu.length ? <View style={{ gap: 4, padding: 10, borderRadius: 12, backgroundColor: colors.stone50, borderWidth: 1, borderColor: colors.border }}><Text style={styles.h3}>Cardápio</Text><MenuSummary view={menu} /></View> : null}
           {installments.length ? <Text style={styles.h3}>Parcelas</Text> : null}
           {installments.map((i, idx) => (
             <View key={idx} style={{ borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8, gap: 6 }}>

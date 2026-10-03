@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { MessageCircle, Download } from "lucide-react";
 import { installmentDueLabel } from "@/lib/contract";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { loadQuoteMenu } from "@/lib/data/menu";
+import { MenuSummary } from "@/components/menu/menu-summary";
 import { PublicFooter } from "@/components/public/public-footer";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
@@ -24,13 +26,14 @@ export default async function PublicQuotePage({ params }: PageProps<"/q/[token]"
   if (!link?.events) notFound();
   const { data: quote } = await admin
     .from("quotes")
-    .select("status, subtotal, discount_total, discount_type, discount_value, total, notes, sent_at, decided_at, quote_items(id, description, quantity, unit_price, total, sort_order), quote_installments(id, sequence, label, percent, amount, rule, days_before, due_date)")
+    .select("id, package_id, status, subtotal, discount_total, discount_type, discount_value, total, notes, sent_at, decided_at, quote_items(id, description, quantity, unit_price, total, sort_order), quote_installments(id, sequence, label, percent, amount, rule, days_before, due_date)")
     .eq("event_id", link.event_id)
     .neq("status", "DRAFT")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (!quote) notFound();
+  const menu = await loadQuoteMenu(admin, quote.id, quote.package_id);
 
   const ev = link.events;
   const org = ev.organizations!;
@@ -53,6 +56,7 @@ export default async function PublicQuotePage({ params }: PageProps<"/q/[token]"
           <Badge tone={QUOTE_STATUS_TONE[quote.status]}>{QUOTE_STATUS_LABEL[quote.status]}</Badge>
         </header>
         <div className="rounded-2xl border border-border bg-surface p-5 space-y-4">
+          {menu.length ? <div className="rounded-xl bg-stone-50 p-3"><p className="text-sm font-semibold mb-1">Cardápio incluído</p><MenuSummary view={menu} /></div> : null}
           <ul className="divide-y divide-border">
             {items.map((it) => (
               <li key={it.id} className="flex items-center justify-between gap-3 py-2.5">

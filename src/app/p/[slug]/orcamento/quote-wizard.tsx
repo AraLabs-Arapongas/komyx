@@ -1,5 +1,9 @@
 "use client";
 
+import { MenuPicker } from "@/components/menu/menu-picker";
+import { MenuSummary } from "@/components/menu/menu-summary";
+import { groupsForPackage, menuView, type MenuGroup, type MenuPick } from "@/lib/menu";
+
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import { OCCASIONS } from "@/lib/labels";
@@ -19,6 +23,7 @@ type Props = {
   slug: string;
   packages: (PackagePricing & { description: string | null })[];
   addons: Addon[];
+  menuGroups?: MenuGroup[];
   themes: { id: string; name: string; description: string | null; photo_url: string | null }[];
   defaultSource: string;
   preselectedPackage: string;
@@ -41,12 +46,13 @@ function addMinutes(time: string, minutes: number) {
 }
 function fmtDate(key: string) { const [y, m, d] = key.split("-"); return `${d}/${m}/${y}`; }
 
-export function QuoteWizard({ slug, packages, addons, themes, defaultSource, preselectedPackage, today, durationMinutes, showPrices, selfBooking, validityHours, depositPercent, depositLabel }: Props) {
+export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], defaultSource, preselectedPackage, today, durationMinutes, showPrices, selfBooking, validityHours, depositPercent, depositLabel }: Props) {
   const [state, action] = useActionState<ActionResult<PublicSubmitResult> | undefined, FormData>(submitPublicRequest, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   const initial = packages.find((p) => p.id === preselectedPackage) ?? null;
   const [step, setStep] = useState(initial ? 1 : 0);
   const [packageId, setPackageId] = useState<string | null>(initial?.id ?? null);
+  const [picks, setPicks] = useState<MenuPick[]>([]);
   const [themeId, setThemeId] = useState<string | null>(null);
   const [adults, setAdults] = useState(initial?.included_adults ?? 10);
   const [children, setChildren] = useState(initial?.included_children ?? 10);
@@ -202,6 +208,12 @@ export function QuoteWizard({ slug, packages, addons, themes, defaultSource, pre
                 <span className="display font-bold text-lg">Sem pacote</span><p className="text-xs" style={{ color: "var(--muted-ink)" }}>Quero algo personalizado; o buffet monta comigo.</p>
               </button>
             </div>
+            {groupsForPackage(menuGroups, packageId).length ? (
+              <div className="pt-2 space-y-2">
+                <h3 className="display font-extrabold text-xl">Monte o cardápio</h3>
+                <MenuPicker tone="festa" groups={groupsForPackage(menuGroups, packageId)} picks={picks} onChange={setPicks} />
+              </div>
+            ) : null}
             {themes.length ? (
               <div className="pt-2">
                 <h3 className="display font-extrabold text-xl">Tem um tema em mente? <span className="text-sm font-normal" style={{ color: "var(--muted-ink)" }}>(opcional)</span></h3>
@@ -298,6 +310,7 @@ export function QuoteWizard({ slug, packages, addons, themes, defaultSource, pre
               <dt style={{ color: "var(--muted-ink)" }}>Pacote</dt><dd className="font-bold">{pkg ? pkg.name : "Sem pacote (personalizado)"}{pkg && showPrices ? ` · ${formatCurrency(pkg.base_price)}` : ""}</dd>
               <dt style={{ color: "var(--muted-ink)" }}>Data</dt><dd className="font-bold">{date ? `${fmtDate(date)}, das ${time} às ${addMinutes(time, durationMinutes)}` : "A combinar"}</dd>
               <dt style={{ color: "var(--muted-ink)" }}>Pessoas</dt><dd className="font-bold">{adults} adultos · {children} crianças{pkg && (adults > pkg.included_adults || children > pkg.included_children) ? <span className="font-normal" style={{ color: "var(--muted-ink)" }}> (com extras além do pacote)</span> : null}</dd>
+              {groupsForPackage(menuGroups, packageId).length ? <><dt style={{ color: "var(--muted-ink)" }}>Cardápio</dt><dd><MenuSummary view={menuView(groupsForPackage(menuGroups, packageId), picks.flatMap((p) => p.item_ids))} muted="" /></dd></> : null}
               <dt style={{ color: "var(--muted-ink)" }}>Adicionais</dt><dd className="font-bold">{addonLines.length ? addonLines.map((l) => `${l.description} × ${l.quantity}`).join(", ") : "Nenhum"}</dd>
               <dt style={{ color: "var(--muted-ink)" }}>Contato</dt><dd className="font-bold">{contact.name} · {contact.whatsapp}</dd>
               {contact.celebrant_name ? <><dt style={{ color: "var(--muted-ink)" }}>Aniversariante</dt><dd className="font-bold">{contact.celebrant_name}</dd></> : null}

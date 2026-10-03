@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { PackageForm, AddonForm, ThemeForm } from "./forms";
 import { NewItemMenu } from "./new-item-menu";
+import { PackageMenuEditor } from "./menu-editor";
+import { loadMenuGroups } from "@/lib/data/menu";
 import { EmptyState } from "@/components/ui/page";
 
 export const metadata = { title: "Pacotes" };
@@ -14,10 +16,11 @@ export const metadata = { title: "Pacotes" };
 export default async function PackagesPage() {
   await requireOwner();
   const supabase = await createClient();
-  const [{ data: packages }, { data: addons }, { data: themes }] = await Promise.all([
+  const [{ data: packages }, { data: addons }, { data: themes }, menuGroups] = await Promise.all([
     supabase.from("packages").select("*").order("active", { ascending: false }).order("sort_order").order("name"),
     supabase.from("package_addons").select("*").order("active", { ascending: false }).order("sort_order").order("name"),
     supabase.from("party_themes").select("*").order("active", { ascending: false }).order("sort_order").order("name"),
+    loadMenuGroups(supabase),
   ]);
 
   return (
@@ -25,7 +28,7 @@ export default async function PackagesPage() {
       <PageHeader title="Pacotes e adicionais" back="/menu" action={<NewItemMenu />} />
       <PageBody>
         <Card>
-          <CardHeader title="Pacotes" subtitle="Preço-base, participantes incluídos e valor por participante extra" />
+          <CardHeader title="Pacotes" subtitle="Preço-base, pessoas incluídas, valor por pessoa extra e o cardápio de cada pacote" />
           <CardBody className="space-y-3">
             {(packages ?? []).map((p) => (
               <details key={p.id} className="rounded-xl border border-border">
@@ -38,6 +41,7 @@ export default async function PackagesPage() {
                 </summary>
                 <div className="border-t border-border p-3 space-y-3">
                   <PackageForm pkg={p} />
+                  <div className="border-t border-border pt-3"><PackageMenuEditor packageId={p.id} groups={menuGroups.filter((g) => g.package_id === p.id)} /></div>
                   <form action={togglePackage}>
                     <input type="hidden" name="id" value={p.id} />
                     <input type="hidden" name="active" value={p.active ? "false" : "true"} />

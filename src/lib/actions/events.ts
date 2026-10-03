@@ -11,6 +11,8 @@ import { addHours, localToIso } from "@/lib/utils";
 import { dateSchema, formToObject, optionalText, phoneSchema, timeSchema, uuid, zodFieldErrors, UUID_RE } from "./helpers";
 import { upsertCustomerByPhone } from "./customers";
 import { buildQuoteLines } from "@/lib/pricing";
+import { parsePicks, type MenuPick } from "@/lib/menu";
+import { saveQuoteMenuChoices } from "@/lib/data/menu";
 
 const intOrNull = z
   .string()
@@ -40,6 +42,7 @@ const preReservationSchema = z.object({
   status: z.enum(["QUOTE", "PRE_RESERVED", "CONFIRMED"]).default("PRE_RESERVED"),
   request_id: uuidOrNull,
   force_same_day: z.string().optional().transform((v) => v === "on" || v === "1"),
+  menu: z.string().optional(),
   addons: z.string().optional().transform((v) => {
     if (!v) return null;
     try { const arr = JSON.parse(v); return Array.isArray(arr) ? arr.filter((a) => a && typeof a.addon_id === "string" && Number(a.quantity) > 0).map((a) => ({ addon_id: String(a.addon_id), quantity: Math.min(Math.round(Number(a.quantity)), 500) })) : null; } catch { return null; }
@@ -131,26 +134,27 @@ export async function createEvent(_prev: ActionResult | undefined, formData: For
 
   let quoteCreated = false;
   if (d.request_id) {
-    const { data: req } = await supabase.from("public_requests").select("package_id, addons, adults, children, source").eq("id", d.request_id).maybeSingle();
+    const { data: req } = await supabase.from("public_requests").select("package_id, addons, adults, children, source, menu").eq("id", d.request_id).maybeSingle();
     await supabase.from("public_requests").update({ status: "CONVERTED", event_id: data.id }).eq("id", d.request_id);
     if (req?.source) await supabase.from("customers").update({ source: req.source }).eq("id", customerId).is("source", null);
     // Self-service request: build the quote from what the client chose.
     if (req?.package_id || (Array.isArray(req?.addons) && req.addons.length > 0)) {
-      await createQuoteFromRequest(data.id, org.id, profile.id, d.adults ?? req?.adults ?? 0, d.children ?? req?.children ?? 0, req.package_id ?? d.package_id, req.addons);
+      const picks = parsePicks(d.menu);
+      await createQuoteFromRequest(data.id, org.id, profile.id, d.adults ?? req?.adults ?? 0, d.children ?? req?.children ?? 0, req.package_id ?? d.package_id, req.addons, picks.length ? picks : parsePicks(req.menu));
       quoteCreated = true;
     }
     revalidatePath("/solicitacoes");
   }
   // Everything starts as a quote: create it right away from the package, participants and addons.
   if (!quoteCreated) {
-    await createQuoteFromRequest(data.id, org.id, profile.id, d.adults ?? 0, d.children ?? 0, d.package_id, d.addons);
+    await createQuoteFromRequest(data.id, org.id, profile.id, d.adults ?? 0, d.children ?? 0, d.package_id, d.addons, parsePicks(d.menu));
   }
 
   revalidateEvents(data.id);
   redirect(`/eventos/${data.id}?created=${d.status}`);
 }
 
-async function createQuoteFromRequest(eventId: string, orgId: string, userId: string, adults: number, children: number, packageId: string | null, addons: unknown) {
+async function createQuoteFromRequest(eventId: string, orgId: string, userId: string, adults: number, children: number, packageId: string | null, addons: unknown, menu: MenuPick[] = []) {
   const supabase = await createClient();
   const { data: pkg } = packageId
     ? await supabase.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price").eq("id", packageId).maybeSingle()
@@ -167,6 +171,7 @@ async function createQuoteFromRequest(eventId: string, orgId: string, userId: st
   if (!quote) return;
   const lines = buildQuoteLines(pkg, adults, children, addonLines);
   if (lines.length) await supabase.from("quote_items").insert(lines.map((l) => ({ ...l, organization_id: orgId, quote_id: quote.id })));
+  if (menu.length) await saveQuoteMenuChoices(supabase, orgId, quote.id, pkg?.id ?? null, menu);
   return quote.id;
 }
 

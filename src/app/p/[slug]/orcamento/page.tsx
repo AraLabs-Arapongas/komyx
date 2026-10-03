@@ -6,6 +6,7 @@ import { toDateKey } from "@/lib/utils";
 import { QuoteWizard } from "./quote-wizard";
 import { resolveTheme, themeStyle } from "@/lib/theme";
 import { PublicFooter } from "@/components/public/public-footer";
+import { loadMenuGroups } from "@/lib/data/menu";
 
 export const metadata = { title: "Monte seu orçamento" };
 
@@ -22,6 +23,7 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
     admin.from("party_themes").select("id, name, description, photo_url").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name"),
   ]);
 
+  const menuGroups = await loadMenuGroups(admin, { orgId: org.id, packageIds: (packages ?? []).map((p) => p.id) });
   const theme = resolveTheme(org.plan, org.theme);
   return (
     <main className={`flex-1 font-${theme.font}`} style={themeStyle(theme)}>
@@ -39,7 +41,7 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
             </div>
           </div>
         </div>
-        <QuoteWizard slug={org.slug} packages={packages ?? []} addons={addons ?? []} themes={themes ?? []} defaultSource={src} preselectedPackage={preselected} today={toDateKey(new Date())} durationMinutes={org.default_event_duration_minutes} showPrices={org.show_prices_public} selfBooking={org.self_booking_enabled} validityHours={org.pre_reservation_validity_hours} depositPercent={(() => { const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { percent?: number }[]) : []; return plan[0]?.percent ?? null; })()} depositLabel={(() => { const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { label?: string }[]) : []; return plan[0]?.label ?? null; })()} />
+        <QuoteWizard slug={org.slug} menuGroups={menuGroups} packages={packages ?? []} addons={addons ?? []} themes={themes ?? []} defaultSource={src} preselectedPackage={preselected} today={toDateKey(new Date())} durationMinutes={org.default_event_duration_minutes} showPrices={org.show_prices_public} selfBooking={org.self_booking_enabled} validityHours={org.pre_reservation_validity_hours} depositPercent={(() => { const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { percent?: number }[]) : []; return plan[0]?.percent ?? null; })()} depositLabel={(() => { const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { label?: string }[]) : []; return plan[0]?.label ?? null; })()} />
       </div>
       <PublicFooter variant="light" orgName={org.name} />
     </main>

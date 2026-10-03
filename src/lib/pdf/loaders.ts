@@ -1,4 +1,6 @@
 import "server-only";
+import { loadQuoteMenu } from "@/lib/data/menu";
+import { menuSummaryLines } from "@/lib/menu";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { eventTitle } from "@/components/events/event-card";
@@ -12,7 +14,7 @@ const ORG_COLS = "name, legal_name, document, address, whatsapp, pix_key";
 export async function loadQuotePdfData(supabase: Client, quoteId: string): Promise<QuotePdfData | null> {
   const { data: q } = await supabase
     .from("quotes")
-    .select(`id, status, subtotal, discount_total, total, notes, created_at, adults, children,
+    .select(`id, status, subtotal, discount_total, total, notes, created_at, adults, children, package_id,
       quote_items(description, quantity, unit_price, total, sort_order),
       quote_installments(label, percent, amount, rule, days_before, due_date, sequence),
       events(title, starts_at, ends_at, customers(name, whatsapp)),
@@ -20,12 +22,14 @@ export async function loadQuotePdfData(supabase: Client, quoteId: string): Promi
     .eq("id", quoteId)
     .maybeSingle();
   if (!q || !q.events || !q.organizations || !q.events.customers) return null;
+  const menu = menuSummaryLines(await loadQuoteMenu(supabase, q.id, q.package_id));
   return {
     org: q.organizations,
     customer: q.events.customers,
     event: { title: eventTitle(q.events), starts_at: q.events.starts_at, ends_at: q.events.ends_at, adults: q.adults, children: q.children },
     quote: {
       id: q.id, status: q.status, subtotal: q.subtotal, discount_total: q.discount_total, total: q.total, notes: q.notes, created_at: q.created_at,
+      menu,
       items: [...q.quote_items].sort((a, b) => a.sort_order - b.sort_order),
       installments: [...q.quote_installments].sort((a, b) => a.sequence - b.sequence),
     },

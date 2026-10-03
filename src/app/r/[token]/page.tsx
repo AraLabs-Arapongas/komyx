@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { CalendarDays, Download, MessageCircle, FileSignature } from "lucide-react";
 import { loadReservation } from "@/lib/data/reservation";
+import { MenuSummary } from "@/components/menu/menu-summary";
 import { PublicFooter } from "@/components/public/public-footer";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Badge } from "@/components/ui/badge";
@@ -106,6 +107,7 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
               <p className="display font-bold text-xl">Orçamento</p>
               {r.quoteToken ? <a href={`/q/${r.quoteToken}/pdf`} className={buttonClass("outline", "sm")}><Download className="h-4 w-4" /> PDF</a> : null}
             </div>
+            {r.menu.length ? <div className="rounded-2xl p-3" style={{ background: "var(--paper-2)" }}><p className="display font-bold mb-1">Cardápio</p><MenuSummary view={r.menu} muted="" /></div> : null}
             <ul className="divide-y text-sm" style={{ borderColor: "#ece7dc" }}>
               {quote.items.map((it, i) => <li key={i} className="flex justify-between gap-3 py-2"><span>{it.description}{Number(it.quantity) !== 1 ? ` × ${Number(it.quantity)}` : ""}</span>{org.show_prices_public ? <span className="font-bold">{formatCurrency(it.total)}</span> : null}</li>)}
             </ul>

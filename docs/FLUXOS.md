@@ -165,3 +165,8 @@ RPCs (security definer, por token RESERVATION ativo): `reservation_by_token` (es
 
 Seed: "Festa da Alice" (cliente Ana Beatriz Rocha, celular `11999990003` com código de teste) confirmada só com o sinal pago (R$ 1.275 de R$ 4.250). Link: `/r/demo-reservation-link-alice-0123456789abcd`.
 
+## Cardápio do pacote
+
+Cada pacote tem grupos de cardápio (`package_menu_groups`: Salgados, Docinhos, Bebidas…) com itens (`package_menu_items`). `choose_count` diz quantos itens o cliente escolhe no grupo; `null` significa que tudo do grupo está incluído. O dono edita em **Pacotes → Editar → Cardápio do pacote** (um item por linha; itens removidos são desativados, não apagados, para não quebrar orçamentos antigos).
+
+Na criação do orçamento (assistente do site, assistente do app e página pública `/p/[slug]/orcamento`) o passo do pacote mostra o cardápio e as escolhas vão para `quote_menu_choices` (a página pública guarda um snapshot em `public_requests.menu` e ele vira escolha quando o pedido vira orçamento). Dá para deixar grupos incompletos: ficam marcados como "a escolher". O cardápio aparece na página do orçamento (editável até o aceite), no PDF, em `/q/[token]`, em `/r/[token]`, na tela do evento do app e no app do cliente (RPC `reservation_menu`).

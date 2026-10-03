@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { saveInviteByToken } from "@/lib/invite-save";
+import { saveQuoteMenuChoices } from "@/lib/data/menu";
+import { parsePicks } from "@/lib/menu";
 
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -74,6 +76,7 @@ const requestSchema = z.object({
   celebrant_birth_date: z.union([dateSchema, z.literal("")]).optional().transform((v) => v || null),
   package_id: z.string().optional().transform((v) => (v && UUID_RE.test(v) ? v : null)),
   theme_id: z.string().optional().transform((v) => (v && UUID_RE.test(v) ? v : null)),
+  menu: z.string().optional(),
   addons: z.string().optional().transform((v) => {
     if (!v) return null;
     try {
@@ -157,6 +160,7 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
     package_id: pkg?.id ?? null,
     theme_id: d.theme_id,
     addons: addonsSnapshot,
+    menu: pkg ? parsePicks(d.menu) : null,
     estimated_total,
     message: d.message,
   }).select("id").single();
@@ -229,6 +233,7 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
     .single();
   if (quote) {
     if (lines.length) await admin.from("quote_items").insert(lines.map((l) => ({ ...l, organization_id: org.id, quote_id: quote.id })));
+    await saveQuoteMenuChoices(admin, org.id, quote.id, pkg?.id ?? null, parsePicks(d.menu));
     const { data: inst } = await admin.from("quote_installments").select("label, amount, rule").eq("quote_id", quote.id).order("sequence").limit(1);
     if (inst?.[0]) deposit = { amount: Number(inst[0].amount), label: inst[0].label };
     if (lines.length) {

@@ -6,6 +6,9 @@ import { Alert, Pressable, ScrollView, Share, Switch, Text, View } from "react-n
 import { useAuth } from "@/lib/auth";
 import { formatCurrency, formatPhone, maskPhoneInput, normalizePhone, toDateKey } from "@/lib/format";
 import { addMinutes, bestPackageFor, buildQuoteLines, localToIso, sumLines, type AddonPricing, type PackagePricing } from "@/lib/pricing";
+import { groupsForPackage, menuView, parsePicks, type MenuPick } from "@/lib/menu";
+import { loadMenuGroups, saveQuoteMenuChoices } from "@/lib/menu-data";
+import { MenuPicker, MenuSummary } from "@/ui/menu-picker";
 import { supabase, WEB_URL } from "@/lib/supabase";
 import { Button, Card, Field, Input, Loading, Muted, Row, styles } from "@/ui/components";
 import { colors } from "@/ui/theme";
@@ -82,13 +85,15 @@ export default function NovoOrcamento() {
         supabase.from("package_addons").select("id, name, price, description").eq("active", true).order("sort_order").order("name"),
         supabase.from("party_themes").select("id, name").eq("active", true).order("sort_order").order("name"),
       ]);
-      return { packages: (p.data ?? []) as (PackagePricing & { description: string | null })[], addons: (a.data ?? []) as (AddonPricing & { description: string | null })[], themes: (t.data ?? []) as Theme[] };
+      const menus = await loadMenuGroups((p.data ?? []).map((x) => x.id));
+      return { packages: (p.data ?? []) as (PackagePricing & { description: string | null })[], addons: (a.data ?? []) as (AddonPricing & { description: string | null })[], themes: (t.data ?? []) as Theme[], menus };
     },
   });
 
   // Choosing a package fills in the people it includes, unless they were typed by hand.
   const [peopleFromPackage, setPeopleFromPackage] = useState(true);
   const [fittedPackage, setFittedPackage] = useState<string | null>(null);
+  const [picks, setPicks] = useState<MenuPick[]>([]);
   function pickPackage(p: { id: string; included_adults: number | null; included_children: number | null }) {
     setPackageId(p.id);
     if (peopleFromPackage || (!adults && !children)) {
@@ -106,7 +111,7 @@ export default function NovoOrcamento() {
         if (data) { setCustomer(data as Customer); setStep(1); }
       }
       if (params.request) {
-        const { data: r } = await supabase.from("public_requests").select("name, whatsapp, desired_date, desired_time, adults, children, participants, package_id, theme_id, addons, celebrant_name, message").eq("id", params.request).maybeSingle();
+        const { data: r } = await supabase.from("public_requests").select("name, whatsapp, desired_date, desired_time, adults, children, participants, package_id, theme_id, addons, menu, celebrant_name, message").eq("id", params.request).maybeSingle();
         if (!r) return;
         setTerm(maskPhoneInput(r.whatsapp)); setNewName(r.name);
         if (r.desired_date) { setDate(r.desired_date); setMonth(r.desired_date.slice(0, 7)); }
@@ -120,6 +125,7 @@ export default function NovoOrcamento() {
           if (best) { setPackageId(best.id); setFittedPackage(best.name); }
         }
         if (r.theme_id) setThemeId(r.theme_id);
+        if (r.menu) setPicks(parsePicks(r.menu));
         if (Array.isArray(r.addons)) setQty(Object.fromEntries((r.addons as { addon_id: string; quantity: number }[]).map((x) => [x.addon_id, x.quantity])));
         if (r.celebrant_name) setCelebrant(r.celebrant_name);
         if (r.message) setNotes(r.message);
@@ -201,6 +207,7 @@ export default function NovoOrcamento() {
       if (qe) throw new Error(qe.message);
       // Public quote link: the client sees the quote PDF from the party panel.
       await supabase.from("public_links").insert({ organization_id: org.id, event_id: ev.id, type: "QUOTE", created_by: profile.id });
+      if (pkg) await saveQuoteMenuChoices(org.id, quote.id, groupsForPackage(catalog.data?.menus ?? [], pkg.id), picks);
       if (lines.length) {
         const { error: ie } = await supabase.from("quote_items").insert(lines.map((l) => ({ ...l, organization_id: org.id, quote_id: quote.id })));
         if (ie) throw new Error(ie.message);
@@ -277,6 +284,12 @@ export default function NovoOrcamento() {
                 <Pressable onPress={() => setPackageId(null)} style={{ padding: 14, borderRadius: 14, borderWidth: 2, borderColor: packageId === null ? colors.brand : colors.border, backgroundColor: colors.surface }}>
                   <Text style={styles.h3}>Sem pacote</Text><Muted>Personalizado; itens entram depois no orçamento.</Muted>
                 </Pressable>
+                {groupsForPackage(catalog.data.menus, packageId).length ? (
+                  <View style={{ gap: 6 }}>
+                    <Text style={styles.label}>Cardápio do {pkg?.name}</Text>
+                    <MenuPicker groups={groupsForPackage(catalog.data.menus, packageId)} picks={picks} onChange={setPicks} />
+                  </View>
+                ) : null}
                 {catalog.data.themes.length ? (
                   <View style={{ gap: 6 }}>
                     <Text style={styles.label}>Tema (opcional)</Text>
@@ -373,6 +386,12 @@ export default function NovoOrcamento() {
                 <Row key={(r as string[])[0]} style={{ justifyContent: "space-between" }}><Muted>{(r as string[])[0]}</Muted><Text style={[styles.text, { fontWeight: "600", flexShrink: 1, textAlign: "right" }]}>{(r as string[])[1]}</Text></Row>
               ))}
             </Card>
+            {pkg && groupsForPackage(catalog.data?.menus ?? [], pkg.id).length ? (
+              <Card>
+                <Text style={styles.h3}>Cardápio</Text>
+                <MenuSummary view={menuView(groupsForPackage(catalog.data?.menus ?? [], pkg.id), picks.flatMap((x) => x.item_ids))} />
+              </Card>
+            ) : null}
             <Card>
               <Text style={styles.h3}>Orçamento</Text>
               {lines.length === 0 ? <Muted>Sem itens ainda (personalizado).</Muted> : lines.map((l) => <Row key={l.description} style={{ justifyContent: "space-between" }}><Muted>{l.description}{l.kind === "ADDON" && l.quantity > 1 ? ` × ${l.quantity}` : ""}</Muted><Text style={styles.text}>{formatCurrency(l.quantity * l.unit_price)}</Text></Row>)}

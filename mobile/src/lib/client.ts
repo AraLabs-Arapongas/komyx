@@ -1,3 +1,4 @@
+import type { MenuView } from "./menu";
 import { supabase } from "./supabase";
 
 export type ReservationGuest = { id: string; name: string; adults: number; children: number; source: "MANUAL" | "PUBLIC" | "CLIENT"; checked_in: boolean; notes: string | null };
@@ -18,12 +19,15 @@ export type Reservation = {
   guests: ReservationGuest[];
   requests: ChangeRequest[];
   addons: Addon[];
+  /** Package menu with the picks: [{name, choose_count, items:[{name, chosen}]}]. */
+  menu: MenuView[];
 };
 
 export async function loadReservation(token: string) {
-  const { data, error } = await supabase.rpc("reservation_by_token", { p_token: token });
+  const [{ data, error }, menuRes] = await Promise.all([supabase.rpc("reservation_by_token", { p_token: token }), supabase.rpc("reservation_menu", { p_token: token })]);
   if (error) throw new Error(error.message);
-  return (data as Reservation | null) ?? null;
+  if (!data) return null;
+  return { ...(data as Omit<Reservation, "menu">), menu: ((menuRes.data as MenuView[] | null) ?? []) } as Reservation;
 }
 
 const clean = (m: string) => m.replace(/^.*?: /, "");

@@ -267,3 +267,62 @@ begin
   insert into public.celebrants (organization_id, customer_id, event_id, name, birth_date) values
     (v_org, 'aaaaaaaa-0000-0000-0000-000000000002', 'bbbbbbbb-0000-0000-0000-000000000008', 'Sofia', v_day - interval '4 years');
 end $$;
+
+-- Package menus: what each demo package includes and what the client picks.
+do $$
+declare v_org uuid; v_pkg uuid; v_g uuid; v_name text; v_i int;
+  v_salgados text[] := array['Coxinha', 'Kibe', 'Esfiha de carne', 'Bolinha de queijo', 'Enroladinho de salsicha', 'Pastel de queijo', 'Mini pizza', 'Risole de frango'];
+  v_doces text[] := array['Brigadeiro', 'Beijinho', 'Cajuzinho', 'Bicho de pé', 'Olho de sogra', 'Brigadeiro de Nutella', 'Surpresa de uva'];
+  v_bebidas text[] := array['Refrigerante (Coca, Guaraná, Fanta)', 'Suco de laranja', 'Suco de uva', 'Água com e sem gás'];
+  v_quentes text[] := array['Mini hambúrguer', 'Cachorro-quente', 'Pipoca', 'Batata frita', 'Crepe', 'Algodão-doce'];
+  v_bolo text[] := array['Chocolate com brigadeiro', 'Baunilha com doce de leite', 'Red velvet', 'Cenoura com chocolate'];
+  v_bar text[] := array['Cerveja (Heineken, Brahma)', 'Caipirinha', 'Drinks sem álcool', 'Espumante'];
+begin
+  select id into v_org from public.organizations where slug = 'festa-cia-buffet';
+  if v_org is null then return; end if;
+  if exists (select 1 from public.package_menu_groups where organization_id = v_org) then return; end if;
+
+  for v_name in select unnest(array['Pacote Bronze', 'Pacote Prata', 'Pacote Ouro']) loop
+    select id into v_pkg from public.packages where organization_id = v_org and name = v_name;
+    if v_pkg is null then continue; end if;
+
+    insert into public.package_menu_groups (organization_id, package_id, name, choose_count, sort_order) values (v_org, v_pkg, 'Salgados', case v_name when 'Pacote Bronze' then 3 when 'Pacote Prata' then 4 else 6 end, 1) returning id into v_g;
+    for v_i in 1..array_length(v_salgados, 1) loop insert into public.package_menu_items (organization_id, group_id, name, sort_order) values (v_org, v_g, v_salgados[v_i], v_i); end loop;
+
+    insert into public.package_menu_groups (organization_id, package_id, name, choose_count, sort_order) values (v_org, v_pkg, 'Docinhos', case v_name when 'Pacote Bronze' then 3 when 'Pacote Prata' then 4 else 5 end, 2) returning id into v_g;
+    for v_i in 1..array_length(v_doces, 1) loop insert into public.package_menu_items (organization_id, group_id, name, sort_order) values (v_org, v_g, v_doces[v_i], v_i); end loop;
+
+    insert into public.package_menu_groups (organization_id, package_id, name, choose_count, sort_order) values (v_org, v_pkg, 'Bebidas', null, 3) returning id into v_g;
+    for v_i in 1..array_length(v_bebidas, 1) loop insert into public.package_menu_items (organization_id, group_id, name, sort_order) values (v_org, v_g, v_bebidas[v_i], v_i); end loop;
+
+    if v_name <> 'Pacote Bronze' then
+      insert into public.package_menu_groups (organization_id, package_id, name, choose_count, sort_order) values (v_org, v_pkg, 'Quentes e lanches', case v_name when 'Pacote Prata' then 2 else 4 end, 4) returning id into v_g;
+      for v_i in 1..array_length(v_quentes, 1) loop insert into public.package_menu_items (organization_id, group_id, name, sort_order) values (v_org, v_g, v_quentes[v_i], v_i); end loop;
+      insert into public.package_menu_groups (organization_id, package_id, name, choose_count, sort_order) values (v_org, v_pkg, 'Sabor do bolo', 1, 5) returning id into v_g;
+      for v_i in 1..array_length(v_bolo, 1) loop insert into public.package_menu_items (organization_id, group_id, name, sort_order) values (v_org, v_g, v_bolo[v_i], v_i); end loop;
+    end if;
+    if v_name = 'Pacote Ouro' then
+      insert into public.package_menu_groups (organization_id, package_id, name, choose_count, sort_order) values (v_org, v_pkg, 'Open bar', null, 6) returning id into v_g;
+      for v_i in 1..array_length(v_bar, 1) loop insert into public.package_menu_items (organization_id, group_id, name, sort_order) values (v_org, v_g, v_bar[v_i], v_i); end loop;
+    end if;
+  end loop;
+
+  -- Sofia (Prata) already picked; Alice (Prata) still has to choose the sweets.
+  insert into public.quote_menu_choices (organization_id, quote_id, group_id, item_id)
+  select v_org, q.id, g.id, i.id
+  from public.quotes q join public.package_menu_groups g on g.package_id = q.package_id join public.package_menu_items i on i.group_id = g.id
+  where q.id = 'cccccccc-0000-0000-0000-000000000008' and (
+    (g.name = 'Salgados' and i.name in ('Coxinha', 'Kibe', 'Mini pizza', 'Bolinha de queijo')) or
+    (g.name = 'Docinhos' and i.name in ('Brigadeiro', 'Beijinho', 'Cajuzinho', 'Brigadeiro de Nutella')) or
+    (g.name = 'Quentes e lanches' and i.name in ('Mini hambúrguer', 'Pipoca')) or
+    (g.name = 'Sabor do bolo' and i.name = 'Chocolate com brigadeiro'))
+  on conflict do nothing;
+  insert into public.quote_menu_choices (organization_id, quote_id, group_id, item_id)
+  select v_org, q.id, g.id, i.id
+  from public.quotes q join public.package_menu_groups g on g.package_id = q.package_id join public.package_menu_items i on i.group_id = g.id
+  where q.id = 'cccccccc-0000-0000-0000-000000000007' and (
+    (g.name = 'Salgados' and i.name in ('Coxinha', 'Esfiha de carne', 'Pastel de queijo', 'Risole de frango')) or
+    (g.name = 'Quentes e lanches' and i.name in ('Crepe', 'Algodão-doce')) or
+    (g.name = 'Sabor do bolo' and i.name = 'Red velvet'))
+  on conflict do nothing;
+end $$;

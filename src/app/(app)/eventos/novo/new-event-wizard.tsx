@@ -10,6 +10,9 @@ import { Alert } from "@/components/ui/page";
 import { MonthPicker, fmtBrDate } from "@/components/calendar/month-picker";
 import { CustomerField } from "@/components/events/customer-field";
 import { cn, formatCurrency, formatPhone } from "@/lib/utils";
+import { MenuPicker } from "@/components/menu/menu-picker";
+import { MenuSummary } from "@/components/menu/menu-summary";
+import { groupsForPackage, menuView, type MenuGroup, type MenuPick } from "@/lib/menu";
 import { bestPackageFor, buildQuoteLines, sumLines, extrasFor, LEAD_SOURCES, type PackagePricing, type AddonPricing } from "@/lib/pricing";
 
 type Customer = { id: string; name: string; whatsapp: string };
@@ -23,9 +26,11 @@ type Props = {
     id: string; name: string; whatsapp: string; adults: number | null; children: number | null; message: string | null; source: string | null;
     celebrant_name: string | null; celebrant_birth_date: string | null; package_id: string | null; theme_id?: string | null; estimated_total: number | string | null;
     addons: { addon_id: string; quantity: number }[] | null;
+    menu?: MenuPick[];
   } | null;
   defaults: { date: string; start: string; durationMinutes: number; validityHours: number; today: string };
   initialStatus: "QUOTE" | "PRE_RESERVED" | "CONFIRMED";
+  menuGroups?: MenuGroup[];
   isOwner: boolean;
   sameDayWarning?: string | null;
 };
@@ -38,7 +43,7 @@ function addMinutes(time: string, minutes: number) {
   return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
 }
 
-export function NewEventWizard({ slug, packages, addons, themes, customer, request, defaults, initialStatus, isOwner, sameDayWarning }: Props) {
+export function NewEventWizard({ slug, packages, addons, themes, customer, request, defaults, initialStatus, isOwner, sameDayWarning, menuGroups = [] }: Props) {
   const [state, action] = useActionState(createEvent, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   // A request that names a package keeps it; otherwise the package that fits its head count.
@@ -48,6 +53,7 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
 
   const [step, setStep] = useState(0);
   const [packageId, setPackageId] = useState<string | null>(initialPkg?.id ?? null);
+  const [picks, setPicks] = useState<MenuPick[]>(request?.menu ?? []);
   const [themeId, setThemeId] = useState<string | null>(request?.theme_id ?? null);
   const [adults, setAdults] = useState<number>(request?.adults ?? initialPkg?.included_adults ?? 0);
   const [children, setChildren] = useState<number>(request?.children ?? initialPkg?.included_children ?? 0);
@@ -90,6 +96,7 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {request ? <input type="hidden" name="request_id" value={request.id} /> : null}
       <input type="hidden" name="package_id" value={packageId ?? ""} />
+      <input type="hidden" name="menu" value={JSON.stringify(picks)} />
       <input type="hidden" name="theme_id" value={themeId ?? ""} />
       <input type="hidden" name="adults" value={adults} />
       <input type="hidden" name="children" value={children} />
@@ -136,6 +143,12 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
                   <span className="font-semibold">Sem pacote</span><p className="text-xs text-muted">Personalizado; o orçamento parte do zero.</p>
                 </button>
               </div>
+              {groupsForPackage(menuGroups, packageId).length ? (
+                <div className="pt-1 space-y-2">
+                  <p className="text-sm font-medium">Cardápio do {pkg?.name} <span className="text-muted font-normal">· o que o cliente escolhe</span></p>
+                  <MenuPicker groups={groupsForPackage(menuGroups, packageId)} picks={picks} onChange={setPicks} />
+                </div>
+              ) : null}
               {themes.length ? (
                 <div className="pt-1">
                   <p className="text-sm font-medium">Tema da festa <span className="text-muted font-normal">(opcional)</span></p>
@@ -227,6 +240,7 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
                 <dt className="text-muted">Data</dt><dd className="font-medium">{fmtBrDate(date)}, das {start} às {end}</dd>
                 <dt className="text-muted">Pacote</dt><dd className="font-medium">{pkg ? pkg.name : "Sem pacote (personalizado)"}</dd>
                 <dt className="text-muted">Pessoas</dt><dd className="font-medium">{adults} adultos · {children} crianças{pkg && (extraAdults || extraChildren) ? <span className="text-muted font-normal"> (com extras)</span> : null}</dd>
+                {groupsForPackage(menuGroups, packageId).length ? <><dt className="text-muted">Cardápio</dt><dd className="font-medium"><MenuSummary view={menuView(groupsForPackage(menuGroups, packageId), picks.flatMap((p) => p.item_ids))} /></dd></> : null}
                 <dt className="text-muted">Adicionais</dt><dd className="font-medium">{lines.filter((l) => l.kind === "ADDON").map((l) => `${l.description} × ${l.quantity}`).join(", ") || "Nenhum"}</dd>
                 {contact.celebrant_name ? <><dt className="text-muted">Aniversariante</dt><dd className="font-medium">{contact.celebrant_name}{contact.celebrant_age ? `, ${contact.celebrant_age} anos` : ""}</dd></> : null}
                 <dt className="text-muted">Orçamento</dt><dd className="font-semibold text-brand">{formatCurrency(total)}</dd>

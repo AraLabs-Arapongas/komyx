@@ -14,6 +14,7 @@ import { WEB_URL, supabase } from "@/lib/supabase";
 import { openWeb } from "@/lib/web";
 import { KomyxMark } from "@/ui/brand";
 import { AskSheet, type AskKind } from "@/ui/client/ask-sheet";
+import { MenuSummary } from "@/ui/menu-picker";
 import { Badge, Button, Card, CardTitle, Loading, Muted, Row, Screen, styles } from "@/ui/components";
 import { Sprinkles } from "@/ui/festive-header";
 import { colors } from "@/ui/theme";
@@ -85,6 +86,7 @@ function Overview({ token }: { token: string }) {
       {quote ? (
         <Card>
           <CardTitle title="O que está incluído" right={r.quote_token ? <Pressable onPress={() => openWeb(`${WEB_URL}/q/${r.quote_token}/pdf`, "Orçamento")}><Text style={{ color: colors.brand, fontWeight: "600", fontSize: 13 }}>PDF</Text></Pressable> : undefined} />
+          {r.menu.length ? <View style={{ gap: 4, padding: 10, borderRadius: 12, backgroundColor: colors.stone50, borderWidth: 1, borderColor: colors.border }}><MenuSummary view={r.menu} /></View> : null}
           {quote.items.map((it, i) => (
             <Row key={i} style={{ justifyContent: "space-between" }}>
               <Text style={[styles.text, { flex: 1 }]}>{it.description}{Number(it.quantity) !== 1 && !/\(\d+\)/.test(it.description) ? ` × ${Number(it.quantity)}` : ""}</Text>

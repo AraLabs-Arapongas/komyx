@@ -922,6 +922,113 @@ export type Database = {
           },
         ]
       }
+      package_menu_groups: {
+        Row: {
+          choose_count: number | null
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          package_id: string
+          sort_order: number
+        }
+        Insert: {
+          choose_count?: number | null
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          package_id: string
+          sort_order?: number
+        }
+        Update: {
+          choose_count?: number | null
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          package_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_menu_groups_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "admin_org_stats"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "package_menu_groups_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_menu_groups_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      package_menu_items: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          group_id: string
+          id: string
+          name: string
+          organization_id: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          group_id: string
+          id?: string
+          name: string
+          organization_id: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          group_id?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_menu_items_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "package_menu_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_menu_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "admin_org_stats"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "package_menu_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packages: {
         Row: {
           active: boolean
@@ -1307,6 +1414,7 @@ export type Database = {
           estimated_total: number | null
           event_id: string | null
           id: string
+          menu: Json | null
           message: string | null
           name: string
           occasion: string | null
@@ -1331,6 +1439,7 @@ export type Database = {
           estimated_total?: number | null
           event_id?: string | null
           id?: string
+          menu?: Json | null
           message?: string | null
           name: string
           occasion?: string | null
@@ -1355,6 +1464,7 @@ export type Database = {
           estimated_total?: number | null
           event_id?: string | null
           id?: string
+          menu?: Json | null
           message?: string | null
           name?: string
           occasion?: string | null
@@ -1554,6 +1664,76 @@ export type Database = {
           },
           {
             foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_menu_choices: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          item_id: string
+          organization_id: string
+          quote_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          item_id: string
+          organization_id: string
+          quote_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          item_id?: string
+          organization_id?: string
+          quote_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_menu_choices_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "package_menu_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_menu_choices_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "package_menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_menu_choices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "admin_org_stats"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "quote_menu_choices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_menu_choices_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "event_financials"
+            referencedColumns: ["quote_id"]
+          },
+          {
+            foreignKeyName: "quote_menu_choices_quote_id_fkey"
             columns: ["quote_id"]
             isOneToOne: false
             referencedRelation: "quotes"
@@ -1817,6 +1997,7 @@ export type Database = {
         Returns: string
       }
       reservation_by_token: { Args: { p_token: string }; Returns: Json }
+      reservation_menu: { Args: { p_token: string }; Returns: Json }
       reservation_remove_guest: {
         Args: { p_guest_id: string; p_token: string }
         Returns: boolean
