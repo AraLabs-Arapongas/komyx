@@ -63,7 +63,7 @@ export default function Convite() {
   return (
     <Screen refreshing={q.isFetching} onRefresh={() => q.refetch()} resetScrollKey={token}>
       <Pressable onPress={inviteToken ? changePhoto : undefined} disabled={uploading} style={{ borderRadius: 20, overflow: "hidden", backgroundColor: colors.stone100, borderWidth: ev.invite_image_url ? 0 : 1.5, borderStyle: ev.invite_image_url ? "solid" : "dashed", borderColor: colors.border }}>
-        {ev.invite_image_url ? <Image alt="Convite" source={{ uri: ev.invite_image_url }} style={{ width: "100%", aspectRatio: 1 }} resizeMode="cover" /> : (
+        {ev.invite_image_url ? <Image alt="Convite" source={{ uri: ev.invite_image_url }} style={{ width: "100%", aspectRatio: 4 / 3 }} resizeMode="cover" /> : (
           <View style={{ aspectRatio: 4 / 3, alignItems: "center", justifyContent: "center", gap: 8 }}>
             <Ionicons name="image-outline" size={40} color={colors.dim} />
             <Text style={[styles.text, { color: colors.muted }]}>Toque para escolher a arte do convite</Text>
@@ -76,6 +76,13 @@ export default function Convite() {
           </View>
         ) : null}
       </Pressable>
+
+      {guestUrl ? (
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <Button title="Enviar convite" style={{ flex: 1.4 }} icon={<Ionicons name="logo-whatsapp" size={18} color="#fff" />} onPress={() => Share.share({ message: shareText })} />
+          <Button title="Prévia" variant="outline" style={{ flex: 1 }} icon={<Ionicons name="eye-outline" size={18} color={colors.foreground} />} onPress={() => openWeb(guestUrl, "Convite")} />
+        </View>
+      ) : <Muted style={{ textAlign: "center" }}>O buffet ainda não liberou o link de confirmação.</Muted>}
 
       {editing ? (
         <Card>
@@ -99,12 +106,8 @@ export default function Convite() {
         </Card>
       )}
 
-      <Card>
-        <CardTitle title="Enviar aos convidados" subtitle="Eles abrem o convite, veem o local e confirmam presença pelo link." />
-        {guestUrl ? <Button title="Compartilhar convite" icon={<Ionicons name="share-outline" size={18} color="#fff" />} onPress={() => Share.share({ message: shareText })} /> : <Muted>O buffet ainda não liberou o link de confirmação.</Muted>}
-        {guestUrl ? <Button title="Ver como o convidado vê" variant="outline" onPress={() => openWeb(guestUrl, "Convite")} /> : null}
-        {inviteEditUrl ? <Button title="Editar no site" variant="ghost" size="sm" onPress={() => openWeb(inviteEditUrl, "Personalizar convite")} /> : null}
-      </Card>
+      <Muted style={{ textAlign: "center", paddingHorizontal: 12 }}>Quem recebe o link vê o convite, o local e confirma presença. As confirmações aparecem em Convidados.</Muted>
+      {inviteEditUrl ? <Button title="Editar no site" variant="ghost" size="sm" onPress={() => openWeb(inviteEditUrl, "Personalizar convite")} /> : null}
     </Screen>
   );
 }
