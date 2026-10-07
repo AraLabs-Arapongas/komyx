@@ -13,8 +13,16 @@ import { publicFontClass } from "@/lib/fonts";
 import { LAUNCH_PRICE, LIST_PRICE, MONTHLY_PRICE, TABLET_PLAN_PER_MONTH, SUPPORT_WHATSAPP } from "@/lib/billing";
 import { PriceCard } from "@/components/marketing/price-card";
 import { formatCurrency, whatsappLink } from "@/lib/utils";
+import { homeJsonLd, publicPageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Komyx · Gestão para buffets: agenda, orçamento, contrato e convite", description: "O cliente monta o orçamento e reserva com Pix pela sua página. Você confirma, gera o contrato e cobra pelo WhatsApp." };
+// Targets "sistema para buffet infantil": www.komyx.com.br is where Komyx competes for the category
+// (aralabs.com.br/produtos/komyx is only a showcase). Absolute title: the layout template would add "· Komyx" twice.
+export const metadata = publicPageMetadata({
+  title: "Sistema para buffet infantil: orçamento online e Pix · Komyx",
+  description: "Orçamento online, reserva com sinal no Pix, contrato automático, convite com RSVP e portaria no celular. Teste o Komyx grátis por 1 mês, sem cartão.",
+  path: "/",
+  absoluteTitle: true,
+});
 
 const STEPS_OWNER = [
   ["Cadastre pacotes e temas", "Preço-base, adultos e crianças incluídos, adicionais e fotos das decorações."],
@@ -36,6 +44,7 @@ const ALL_FEATURES = ["Agenda, orçamentos e eventos", "Clientes e aniversariant
 export default function LandingPage() {
   return (
     <main className={`${publicFontClass} public-theme font-festa landing-snap flex-1 flex flex-col`}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd()).replace(/</g, "\\u003c") }} />
       {/* HERO */}
       {/* No overflow-hidden here: it would turn the section into a scroll container and steal the snap pages from the document. */}
       <section className="relative" style={{ background: "var(--ink)", color: "var(--paper)" }}>
@@ -53,7 +62,7 @@ export default function LandingPage() {
           </header>
           <div className="relative mx-auto w-full max-w-5xl px-4 pt-8 pb-2 max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center max-md:pb-20">
             <HeroStickers />
-            <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-[3.25rem] leading-[1.02] max-w-3xl lg:max-w-2xl">A festa se vende sozinha. Você só confirma.</h1>
+            <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-[3.25rem] leading-[1.02] max-w-3xl lg:max-w-2xl"><span className="block text-base sm:text-lg leading-tight tracking-wide mb-3" style={{ color: "var(--sun)" }}>Sistema para buffet infantil</span>{" "}A festa se vende sozinha. Você só confirma.</h1>
             <p className="mt-5 text-lg/relaxed max-w-prose" style={{ color: "#cfd2e6" }}>Agenda, orçamento, Pix, contrato, convite e portaria em um lugar só, feito para buffet infantil e de eventos. Sem planilha, sem caderno, sem perder festa no WhatsApp.</p>
             <div className="mt-7 flex flex-col sm:flex-row gap-3">
               <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98]" style={{ background: "var(--berry)", color: "#fff" }}><Sparkles className="h-5 w-5" /> Testar 1 mês grátis</Link>

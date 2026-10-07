@@ -1,7 +1,8 @@
 import { LegalPage, Section } from "@/components/legal/legal-page";
+import { publicPageMetadata } from "@/lib/seo";
 import { SUPPORT_WHATSAPP } from "@/lib/billing";
 
-export const metadata = { title: "Suporte", description: "Ajuda com o Komyx para buffets e clientes." };
+export const metadata = publicPageMetadata({ title: "Suporte", description: "Ajuda com o Komyx para buffets e clientes.", path: "/suporte" });
 
 export default function SupportPage() {
   const wa = SUPPORT_WHATSAPP ? `https://wa.me/${SUPPORT_WHATSAPP.replace(/\D/g, "")}` : null;
@@ -20,7 +21,7 @@ export default function SupportPage() {
       </Section>
 
       <Section title="Tenho um buffet">
-        <p>Entre com o e-mail e a senha da sua conta. Esqueceu a senha? Use "Esqueci minha senha" na tela de entrar.</p>
+        <p>Entre com o e-mail e a senha da sua conta. Esqueceu a senha? Use &ldquo;Esqueci minha senha&rdquo; na tela de entrar.</p>
         <p>Para excluir sua conta e os dados do seu buffet, escreva para contato@aralabs.com.br pelo e-mail cadastrado. Fazemos a exclusão em até 15 dias.</p>
       </Section>
 

@@ -1,6 +1,7 @@
 import { LegalPage, Section } from "@/components/legal/legal-page";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Política de Privacidade", description: "Como o Komyx trata os dados de buffets, clientes e convidados." };
+export const metadata = publicPageMetadata({ title: "Política de Privacidade", description: "Como o Komyx trata os dados de buffets, clientes e convidados.", path: "/privacidade" });
 
 export default function PrivacyPage() {
   return (

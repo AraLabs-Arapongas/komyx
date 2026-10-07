@@ -9,14 +9,26 @@ import { PolaroidGallery, type GalleryItem } from "@/components/public/polaroid-
 import { PublicFooter } from "@/components/public/public-footer";
 import { RequestForm } from "./request-form";
 import { resolveTheme, themeStyle } from "@/lib/theme";
+import { OG_IMAGE, SITE_NAME } from "@/lib/seo";
 
 type Testimonial = { name: string; text: string };
 
 export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("name, tagline, description").eq("slug", slug).maybeSingle();
-  return { title: org ? `${org.name}` : "Buffet", description: org?.tagline ?? org?.description ?? undefined };
+  const { data: org } = await admin.from("organizations").select("name, tagline, description, cover_url").eq("slug", slug).maybeSingle();
+  const title = org ? `${org.name}` : "Buffet";
+  const description = org?.tagline ?? org?.description ?? undefined;
+  // Self canonical without ?src= (tracking param from Instagram/WhatsApp links); the buffet's cover is its share image.
+  const path = `/p/${slug}`;
+  const images = org?.cover_url ? [org.cover_url] : [OG_IMAGE];
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { type: "website", siteName: SITE_NAME, locale: "pt_BR", url: path, title, description, images },
+    twitter: { card: "summary_large_image", title, description, images: org?.cover_url ? [org.cover_url] : [OG_IMAGE.url] },
+  };
 }
 
 function splitFeatures(text: string | null) {

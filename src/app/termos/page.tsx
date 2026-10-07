@@ -1,8 +1,9 @@
 import { LegalPage, Section } from "@/components/legal/legal-page";
+import { publicPageMetadata } from "@/lib/seo";
 import { MONTHLY_PRICE, TRIAL_DAYS } from "@/lib/billing";
 import { formatCurrency } from "@/lib/utils";
 
-export const metadata = { title: "Termos de Uso", description: "Condições de uso do Komyx para buffets e clientes." };
+export const metadata = publicPageMetadata({ title: "Termos de Uso", description: "Condições de uso do Komyx para buffets e clientes.", path: "/termos" });
 
 export default function TermsPage() {
   return (
