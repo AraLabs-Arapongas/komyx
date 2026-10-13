@@ -112,11 +112,12 @@ test.describe("Cliente", () => {
     const { data: guestLink } = await db.from("public_links").insert({ organization_id: org!.id, event_id: eventId, type: "GUEST_CONFIRM" }).select("token").single();
 
     await page.goto(`/g/${guestLink!.token}`);
-    await expect(page.getByText("Você está convidado para")).toBeVisible();
-    await page.getByLabel("Seu nome (ou da família)").fill("Convidado E2E");
-    await page.getByLabel("Adultos", { exact: true }).fill("2");
-    await page.getByLabel("Crianças", { exact: true }).fill("2");
-    await page.getByRole("button", { name: "Confirmar presença" }).click();
+    await expect(page.getByText("Você está convidado")).toBeVisible();
+    await page.getByLabel("Seu nome ou da família").fill("Convidado E2E");
+    await page.getByRole("button", { name: "Mais adultos" }).click();
+    await page.getByRole("button", { name: "Mais crianças" }).click();
+    await page.getByRole("button", { name: "Mais crianças" }).click();
+    await page.getByRole("button", { name: "Confirmar 4 pessoas" }).click();
     await expect(page.getByText("Presença confirmada")).toBeVisible();
     const ics = await page.request.get(`/g/${guestLink!.token}/evento.ics`);
     expect(ics.status()).toBe(200);
