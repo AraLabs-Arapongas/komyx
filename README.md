@@ -32,7 +32,7 @@ Studio local: http://127.0.0.1:54823
 
 ### Dados de exemplo
 
-`supabase db reset` aplica as migrations e o `supabase/seed.sql`:
+`supabase db reset` aplica as migrations e o `supabase/seed.sql` num banco **local**. Produção não tem dados de exemplo (removidos em 2026-10-13); o e2e (`pnpm test:e2e`) precisa de um banco com o seed.
 
 | Usuário | Senha | Papel |
 | --- | --- | --- |

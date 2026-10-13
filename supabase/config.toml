@@ -264,14 +264,6 @@ template = "Komyx: seu codigo e {{ .Code }}. Vale por 10 minutos."
 # Controls the minimum amount of time that must pass before sending another sms otp.
 max_frequency = "5s"
 
-# Seed customers get a fixed code locally; nothing is sent for these numbers.
-[auth.sms.test_otp]
-5511999990001 = "123456"
-5511999990002 = "123456"
-5511999990003 = "123456"
-5511999990004 = "123456"
-5511999990005 = "123456"
-
 # Send SMS hook → Next.js route that talks to the SMS provider (see src/app/api/auth/send-sms/route.ts).
 # Local-only secret; production uses env(SEND_SMS_HOOK_SECRETS).
 [auth.hook.send_sms]
@@ -440,12 +432,3 @@ additional_redirect_urls = ["https://komyx.com.br", "https://komyx.com.br/**", "
 enabled = true
 uri = "https://komyx.com.br/api/auth/send-sms"
 secrets = "env(SEND_SMS_HOOK_SECRET)"
-
-# Seed phones never send a real SMS in production either: the code is always 123456.
-# Remove before launch together with the seed accounts.
-[remotes.production.auth.sms.test_otp]
-5511999990001 = "123456"
-5511999990002 = "123456"
-5511999990003 = "123456"
-5511999990004 = "123456"
-5511999990005 = "123456"

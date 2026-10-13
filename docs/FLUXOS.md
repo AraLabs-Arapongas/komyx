@@ -2,6 +2,8 @@
 
 Ambiente local: `pnpm dev` em http://localhost:3000 · Supabase em http://127.0.0.1:54823 (Studio).
 
+Contas do `supabase/seed.sql`, só em banco local (produção não tem dados de exemplo desde 2026-10-13).
+
 | Quem | Login | Senha | Entra em |
 | --- | --- | --- | --- |
 | Dona do buffet (owner) | dona@festabuffet.test | senha12345 | /home |
