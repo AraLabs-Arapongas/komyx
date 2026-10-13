@@ -14,19 +14,24 @@ Pré-requisitos: Node 20+, pnpm, Docker, Supabase CLI.
 
 ```bash
 pnpm install
-# Banco: só produção (projeto ggvkgxxadvhekmvccceu). Não há Supabase local.
-# Migrações: supabase db push (linkado ao projeto). Seed: supabase/seed.sql via SQL editor/MCP.
+supabase start          # Supabase local (Docker): API :54821, Studio http://127.0.0.1:54823
+supabase db reset       # aplica as migrations + supabase/seed.sql no banco LOCAL
 pnpm dev                # http://localhost:3000
 ```
 
-`.env.local` (veja `.env.example`):
+Desenvolvimento usa sempre o Supabase local; produção (`ggvkgxxadvhekmvccceu`) só recebe migrations prontas (`supabase db push`) e nunca o seed. As variáveis de produção ficam só na Vercel.
+
+`.env.local` (veja `.env.example`; chaves de `supabase status -o env`):
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://ggvkgxxadvhekmvccceu.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54821
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 SUPABASE_SECRET_KEY=sb_secret_...
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+SMS_PROVIDER=log
 ```
+
+Login do cliente por celular em dev: o Supabase local chama o hook `send_sms` do `pnpm dev`, que com `SMS_PROVIDER=log` imprime o código no terminal (`[sms:log] ...`). Nenhum SMS real sai.
 
 Studio local: http://127.0.0.1:54823
 

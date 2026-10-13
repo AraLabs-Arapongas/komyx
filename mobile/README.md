@@ -11,9 +11,9 @@ npm install
 npx expo start              # tecle i (simulador iOS), a (Android) ou leia o QR no Expo Go
 ```
 
-- O app usa o Supabase de produção (`ggvkgxxadvhekmvccceu`); não existe mais banco local. Chave publicável em `.env` (veja `.env.example`).
-- `EXPO_PUBLIC_WEB_URL` aponta para `https://www.komyx.com.br`; para testar o site local no app, troque pelo IP da máquina na LAN (`http://192.168.x.x:3000`).
-- Tela "Entrar" única: e-mail → senha (buffet); celular → código por SMS (cliente). Contas de teste (só em dev): dona@festabuffet.test / ana@festabuffet.test · senha `senha12345`; clientes 11999990002 (Roberto) e 11999990001 (Carla) · código `123456` (test_otp do Supabase local).
+- Em dev o app usa o Supabase local pelo IP da máquina na rede (`http://192.168.x.x:54821`), o mesmo banco do `pnpm dev`. Chave publicável em `.env` (veja `.env.example`). Builds de loja (EAS production) usam o Supabase de produção.
+- `EXPO_PUBLIC_WEB_URL` aponta para o site local pelo IP da máquina (`http://192.168.x.x:3000`).
+- Tela "Entrar" única: e-mail → senha (buffet); celular → código por SMS (cliente). Contas de teste (só em dev): dona@festabuffet.test / ana@festabuffet.test · senha `senha12345`; clientes 11999990002 (Roberto) e 11999990001 (Carla) · o código aparece no terminal do `pnpm dev` (`[sms:log]`).
 - Deep links: `komyx://r/<token>` abre a reserva, `komyx://g/<token>` abre o convite.
 
 ## O que tem
