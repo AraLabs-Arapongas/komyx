@@ -7,6 +7,7 @@ import { formatCurrency, whatsappLink } from "@/lib/utils";
 import { Bunting } from "@/components/public/bunting";
 import { PolaroidGallery, type GalleryItem } from "@/components/public/polaroid-gallery";
 import { PublicFooter } from "@/components/public/public-footer";
+import { DemoBanner } from "@/components/public/demo-banner";
 import { RequestForm } from "./request-form";
 import { resolveTheme, themeStyle } from "@/lib/theme";
 import { OG_IMAGE, SITE_NAME } from "@/lib/seo";
@@ -43,7 +44,7 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
   const admin = createAdminClient();
   const { data: org } = await admin
     .from("organizations")
-    .select("id, name, slug, logo_url, cover_url, cover_caption, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, show_prices_public, status")
+    .select("id, name, slug, logo_url, cover_url, cover_caption, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, show_prices_public, status, is_demo")
     .eq("slug", slug)
     .neq("kind", "platform") // the Komyx platform org holds the admins, it is not a buffet
     .maybeSingle();
@@ -62,6 +63,7 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
 
   return (
     <main className={`flex-1 font-${theme.font}`} style={themeStyle(theme)}>
+      {org.is_demo ? <DemoBanner /> : null}
       {/* HERO: the invitation */}
       <section className="relative overflow-hidden" style={{ background: "var(--ink)", color: "var(--paper)" }}>
         <div className="absolute inset-x-0 top-0"><Bunting /></div>

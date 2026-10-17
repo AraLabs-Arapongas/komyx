@@ -777,6 +777,7 @@ export type Database = {
           highlights: string[]
           id: string
           instagram: string | null
+          is_demo: boolean
           kind: string
           legal_name: string | null
           logo_url: string | null
@@ -816,6 +817,7 @@ export type Database = {
           highlights?: string[]
           id?: string
           instagram?: string | null
+          is_demo?: boolean
           kind?: string
           legal_name?: string | null
           logo_url?: string | null
@@ -855,6 +857,7 @@ export type Database = {
           highlights?: string[]
           id?: string
           instagram?: string | null
+          is_demo?: boolean
           kind?: string
           legal_name?: string | null
           logo_url?: string | null
@@ -1912,6 +1915,7 @@ export type Database = {
         Row: {
           events_30d: number | null
           events_total: number | null
+          is_demo: boolean | null
           last_event_at: string | null
           members: number | null
           organization_id: string | null
@@ -1922,6 +1926,7 @@ export type Database = {
         Insert: {
           events_30d?: never
           events_total?: never
+          is_demo?: boolean | null
           last_event_at?: never
           members?: never
           organization_id?: string | null
@@ -1932,6 +1937,7 @@ export type Database = {
         Update: {
           events_30d?: never
           events_total?: never
+          is_demo?: boolean | null
           last_event_at?: never
           members?: never
           organization_id?: string | null

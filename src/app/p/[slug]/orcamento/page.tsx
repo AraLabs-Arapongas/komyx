@@ -6,6 +6,7 @@ import { toDateKey } from "@/lib/utils";
 import { QuoteWizard } from "./quote-wizard";
 import { resolveTheme, themeStyle } from "@/lib/theme";
 import { PublicFooter } from "@/components/public/public-footer";
+import { DemoBanner } from "@/components/public/demo-banner";
 import { loadMenuGroups } from "@/lib/data/menu";
 
 export const metadata = { title: "Monte seu orçamento" };
@@ -15,7 +16,7 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
   const src = typeof sp.src === "string" ? sp.src : typeof sp.utm_source === "string" ? sp.utm_source : "";
   const preselected = typeof sp.package === "string" ? sp.package : "";
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("id, name, slug, logo_url, whatsapp, default_event_duration_minutes, plan, theme, show_prices_public, self_booking_enabled, pre_reservation_validity_hours, payment_plan, status").eq("slug", slug).neq("kind", "platform").maybeSingle();
+  const { data: org } = await admin.from("organizations").select("id, name, slug, logo_url, whatsapp, default_event_duration_minutes, plan, theme, show_prices_public, self_booking_enabled, pre_reservation_validity_hours, payment_plan, status, is_demo").eq("slug", slug).neq("kind", "platform").maybeSingle();
   if (!org || org.status !== "active") notFound();
   const [{ data: packages }, { data: addons }, { data: themes }] = await Promise.all([
     admin.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price, description").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name"),
@@ -27,6 +28,7 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
   const theme = resolveTheme(org.plan, org.theme);
   return (
     <main className={`flex-1 font-${theme.font}`} style={themeStyle(theme)}>
+      {org.is_demo ? <DemoBanner /> : null}
       <div className="mx-auto max-w-2xl px-4 py-4 sm:py-6 space-y-4">
         <div className="flex items-center gap-3">
           <Link href={`/p/${org.slug}`} className="h-10 w-10 grid place-items-center rounded-full bg-white border" style={{ borderColor: "#ece7dc" }} aria-label="Voltar"><ChevronLeft className="h-5 w-5" /></Link>

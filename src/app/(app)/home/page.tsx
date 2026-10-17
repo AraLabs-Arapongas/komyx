@@ -112,7 +112,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                     <Link href={`/solicitacoes?id=${r.id}`} className="font-medium truncate block text-brand hover:underline underline-offset-4"><Inbox className="inline h-4 w-4 mr-1.5" />{r.name}</Link>
                     {r.message ? <p className="text-sm truncate" title={r.message}>“{r.message}”</p> : null}
                     <p className="text-xs text-muted">
-                      {r.desired_date ? `${r.desired_date.split("-").reverse().join("/")}${r.desired_time ? ` ${r.desired_time.slice(0, 5)}` : ""}` : "sem data"} · {r.adults != null || r.children != null ? `${r.adults ?? 0}A ${r.children ?? 0}C` : `${r.participants ?? "?"} pessoas`} · {leadSourceLabel(r.source)}{r.estimated_total != null ? ` · $<Money value={r.estimated_total} />` : ""} · {formatPhone(r.whatsapp)}
+                      {r.desired_date ? `${r.desired_date.split("-").reverse().join("/")}${r.desired_time ? ` ${r.desired_time.slice(0, 5)}` : ""}` : "sem data"} · {r.adults != null || r.children != null ? `${r.adults ?? 0}A ${r.children ?? 0}C` : `${r.participants ?? "?"} pessoas`} · {leadSourceLabel(r.source)}{r.estimated_total != null ? <> · <Money value={r.estimated_total} /></> : null} · {formatPhone(r.whatsapp)}
                     </p>
                   </div>
                   <div className="flex gap-1.5">

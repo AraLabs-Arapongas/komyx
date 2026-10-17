@@ -66,6 +66,7 @@ export default function LandingPage() {
             <p className="mt-5 text-lg/relaxed max-w-prose" style={{ color: "#cfd2e6" }}>Agenda, orçamento, Pix, contrato, convite e portaria em um lugar só, feito para buffet infantil e de eventos. Sem planilha, sem caderno, sem perder festa no WhatsApp.</p>
             <div className="mt-7 flex flex-col sm:flex-row gap-3">
               <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98]" style={{ background: "var(--berry)", color: "#fff" }}><Sparkles className="h-5 w-5" /> Testar 1 mês grátis</Link>
+              <Link href="/p/komyx-buffet" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold text-base ring-2 ring-inset ring-white/30 hover:bg-white/10">Ver uma página de buffet</Link>
             </div>
             <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}><span className="font-extrabold" style={{ color: "var(--sun)" }}>1 mês grátis.</span> Depois, de <s>{formatCurrency(LIST_PRICE)}</s> por {formatCurrency(MONTHLY_PRICE)}/mês, ou {formatCurrency(LAUNCH_PRICE)}/mês no anual.</p>
           </div>

@@ -16,18 +16,24 @@ function daysAgoIso(days: number) {
 export default async function AdminDashboard() {
   const admin = createAdminClient();
   const since30 = daysAgoIso(30);
+  // The demo buffet (is_demo, rebuilt every night) stays out of the platform numbers.
+  const { data: demoOrgs } = await admin.from("organizations").select("id").eq("is_demo", true);
+  const notDemo = demoOrgs?.length ? `(${demoOrgs.map((o) => o.id).join(",")})` : null;
+  const ev30 = admin.from("events").select("id", { count: "exact", head: true }).gte("created_at", since30);
+  const self30 = admin.from("events").select("id", { count: "exact", head: true }).gte("created_at", since30).eq("origin", "SELF_SERVICE");
+  const req30 = admin.from("public_requests").select("id", { count: "exact", head: true }).gte("created_at", since30);
   const [orgs, stats, recentOrgs, events30, selfService30, requests30] = await Promise.all([
-    admin.from("organizations").select("id, status, plan"),
+    admin.from("organizations").select("id, status, plan").eq("is_demo", false),
     admin.from("admin_org_stats").select("*"),
-    admin.from("organizations").select("id, name, slug, plan, status, created_at").order("created_at", { ascending: false }).limit(8),
-    admin.from("events").select("id", { count: "exact", head: true }).gte("created_at", since30),
-    admin.from("events").select("id", { count: "exact", head: true }).gte("created_at", since30).eq("origin", "SELF_SERVICE"),
-    admin.from("public_requests").select("id", { count: "exact", head: true }).gte("created_at", since30),
+    admin.from("organizations").select("id, name, slug, plan, status, created_at, is_demo").order("created_at", { ascending: false }).limit(8),
+    notDemo ? ev30.not("organization_id", "in", notDemo) : ev30,
+    notDemo ? self30.not("organization_id", "in", notDemo) : self30,
+    notDemo ? req30.not("organization_id", "in", notDemo) : req30,
   ]);
   const all = orgs.data ?? [];
   const active = all.filter((o) => o.status === "active").length;
   const premium = all.filter((o) => o.plan === "premium").length;
-  const paymentsTotal = (stats.data ?? []).reduce((a, s) => a + Number(s.payments_total ?? 0), 0);
+  const paymentsTotal = (stats.data ?? []).filter((s) => !s.is_demo).reduce((a, s) => a + Number(s.payments_total ?? 0), 0);
   const statById = new Map((stats.data ?? []).map((s) => [s.organization_id, s]));
 
   return (
@@ -54,7 +60,7 @@ export default async function AdminDashboard() {
                   <li key={o.id}>
                     <Link href={`/admin/buffets/${o.id}`} className="flex items-center justify-between gap-3 py-2.5">
                       <div className="min-w-0"><p className="font-medium truncate">{o.name}</p><p className="text-xs text-muted">/p/{o.slug} · criado {formatDateTime(o.created_at)} · {st?.events_total ?? 0} eventos</p></div>
-                      <div className="flex gap-1"><Badge tone={o.plan === "premium" ? "brand" : "zinc"}>{o.plan}</Badge><Badge tone={o.status === "active" ? "green" : "red"}>{o.status === "active" ? "ativo" : "suspenso"}</Badge></div>
+                      <div className="flex gap-1">{o.is_demo ? <Badge tone="amber">demo</Badge> : null}<Badge tone={o.plan === "premium" ? "brand" : "zinc"}>{o.plan}</Badge><Badge tone={o.status === "active" ? "green" : "red"}>{o.status === "active" ? "ativo" : "suspenso"}</Badge></div>
                     </Link>
                   </li>
                 );

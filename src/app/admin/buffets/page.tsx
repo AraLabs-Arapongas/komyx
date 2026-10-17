@@ -13,7 +13,7 @@ export default async function AdminBuffetsPage({ searchParams }: PageProps<"/adm
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
   const status = sp.status === "suspended" ? "suspended" : sp.status === "active" ? "active" : sp.status === "cancelled" ? "cancelled" : "all";
   const admin = createAdminClient();
-  let query = admin.from("organizations").select("id, name, slug, plan, status, created_at, whatsapp").eq("kind", "buffet").order("created_at", { ascending: false }).limit(200);
+  let query = admin.from("organizations").select("id, name, slug, plan, status, created_at, whatsapp, is_demo").eq("kind", "buffet").order("created_at", { ascending: false }).limit(200);
   if (q) query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%`);
   if (status !== "all") query = query.eq("status", status);
   const [{ data: orgs }, { data: stats }, { data: owners }] = await Promise.all([
@@ -50,7 +50,7 @@ export default async function AdminBuffetsPage({ searchParams }: PageProps<"/adm
                     <tr key={o.id} className="hover:bg-stone-50">
                       <td className="px-4 py-2.5"><Link href={`/admin/buffets/${o.id}`} className="font-medium hover:underline">{o.name}</Link><p className="text-xs text-muted">/p/{o.slug} · desde {formatDate(o.created_at)}</p></td>
                       <td className="px-2 py-2.5 text-xs">{ow ? <>{ow.name}<br /><span className="text-muted">{ow.email}</span></> : <span className="text-muted">—</span>}</td>
-                      <td className="px-2 py-2.5"><div className="flex gap-1"><Badge tone={o.plan === "premium" ? "brand" : "zinc"}>{o.plan}</Badge>{o.status !== "active" ? <Badge tone="red">suspenso</Badge> : null}</div></td>
+                      <td className="px-2 py-2.5"><div className="flex gap-1">{o.is_demo ? <Badge tone="amber">demo</Badge> : null}<Badge tone={o.plan === "premium" ? "brand" : "zinc"}>{o.plan}</Badge>{o.status !== "active" ? <Badge tone="red">suspenso</Badge> : null}</div></td>
                       <td className="px-2 py-2.5">{st?.events_total ?? 0} <span className="text-xs text-muted">({st?.events_30d ?? 0} em 30d)</span></td>
                       <td className="px-2 py-2.5">{formatCurrency(st?.payments_total ?? 0)}</td>
                       <td className="px-2 py-2.5 text-xs text-muted">{st?.last_event_at ? formatDate(st.last_event_at) : "—"}</td>

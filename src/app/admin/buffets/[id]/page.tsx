@@ -28,6 +28,7 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
       <PageHeader title={org.name} subtitle={`/p/${org.slug}`} back="/admin/buffets" action={<Link href={`/p/${org.slug}`} target="_blank" className="text-sm text-brand font-medium inline-flex items-center gap-1">Página pública <ExternalLink className="h-3.5 w-3.5" /></Link>} />
       <PageBody>
         {sp.created ? <Alert tone="success">Buffet criado. Envie e-mail e senha ao responsável.</Alert> : null}
+        {org.is_demo ? <Alert tone="info">Buffet de demonstração: recriado toda noite por <code>app.reset_demo_buffet()</code>. Não é cobrado nem suspenso, e fica fora dos números da plataforma.</Alert> : null}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             ["Eventos", `${stat?.events_total ?? 0}`, `${stat?.events_30d ?? 0} nos últimos 30 dias`],
