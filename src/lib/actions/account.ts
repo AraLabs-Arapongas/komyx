@@ -38,3 +38,14 @@ export async function changeMyPassword(_prev: ActionResult | undefined, formData
   if (error) return fail("Não foi possível alterar a senha. Tente de novo.");
   return { ok: true, message: "Senha alterada." };
 }
+
+/** Opt in/out of the email copy of notifications (see /api/notifications/email). */
+export async function setEmailNotifications(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const on = formData.get("email_notifications") === "on";
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles").update({ email_notifications: on }).eq("id", profile.id);
+  if (error) return fail(translateDbError(error));
+  revalidatePath("/conta");
+  return { ok: true, message: on ? "Você vai receber os avisos por e-mail." : "Avisos por e-mail desligados." };
+}

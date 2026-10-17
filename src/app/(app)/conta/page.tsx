@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { formatCurrency, formatDate, whatsappLink } from "@/lib/utils";
 import { PLAN_LABEL, PLAN_PRICES, BILLING_STATUS_LABEL, INVOICE_STATUS_LABEL, INVOICE_STATUS_TONE, SUPPORT_WHATSAPP } from "@/lib/billing";
-import { NameForm, PasswordForm } from "./account-forms";
+import { NameForm, PasswordForm, EmailNotificationsForm } from "./account-forms";
 import { CancelSubscription } from "./cancel-subscription";
 import { reactivateSubscription } from "@/lib/actions/subscription";
 import { Alert } from "@/components/ui/page";
@@ -19,6 +19,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
   const isOwner = profile.role === "owner";
   const bill = await getBilling(profile);
   const supabase = await createClient();
+  const { data: prefs } = await supabase.from("profiles").select("email_notifications").eq("id", profile.id).single();
   const { data: invoices } = isOwner ? await supabase.from("saas_invoices").select("id, description, amount, due_at, paid_at, status, method, receipt_url").order("due_at", { ascending: false }).limit(36) : { data: [] };
   const price = PLAN_PRICES[org.plan] ?? 0;
   const dayDate = (d: string) => formatDate(`${d}T12:00:00-03:00`);
@@ -35,6 +36,9 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
             <div className="border-t border-border pt-4">
               <p className="text-sm font-medium mb-3">Alterar senha</p>
               <PasswordForm />
+            </div>
+            <div className="border-t border-border pt-4">
+              <EmailNotificationsForm enabled={prefs?.email_notifications ?? true} />
             </div>
           </CardBody>
         </Card>

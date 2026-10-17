@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { updateMyName, changeMyPassword } from "@/lib/actions/account";
+import { updateMyName, changeMyPassword, setEmailNotifications } from "@/lib/actions/account";
 import { Field, Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -37,6 +37,20 @@ export function PasswordForm() {
         <Field label="Confirmar nova senha" htmlFor="confirm_password" error={fe.confirm_password}><Input id="confirm_password" name="confirm_password" type="password" autoComplete="new-password" required /></Field>
       </div>
       <SubmitButton size="sm" variant="outline" pendingText="Alterando...">Alterar senha</SubmitButton>
+    </form>
+  );
+}
+
+export function EmailNotificationsForm({ enabled }: { enabled: boolean }) {
+  const [state, action, pending] = useActionState(setEmailNotifications, undefined);
+  return (
+    <form action={action} className="space-y-3">
+      {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+      {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="email_notifications" defaultChecked={enabled} disabled={pending} onChange={(e) => e.currentTarget.form?.requestSubmit()} className="mt-0.5 h-4 w-4 accent-[var(--brand)]" />
+        <span>Receber avisos por e-mail<span className="block text-xs text-muted">Pedidos de orçamento, reservas online, contratos aceitos e pedidos dos clientes.</span></span>
+      </label>
     </form>
   );
 }
