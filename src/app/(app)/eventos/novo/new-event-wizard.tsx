@@ -10,7 +10,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { MonthPicker, fmtBrDate } from "@/components/calendar/month-picker";
 import { CustomerField } from "@/components/events/customer-field";
-import { cn, formatCurrency, formatPhone } from "@/lib/utils";
+import { ageOn, cn, formatCurrency, formatPhone } from "@/lib/utils";
 import { MenuPicker } from "@/components/menu/menu-picker";
 import { MenuSummary } from "@/components/menu/menu-summary";
 import { groupsForPackage, menuView, type MenuGroup, type MenuPick } from "@/lib/menu";
@@ -67,6 +67,8 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(customer);
   const [contact, setContact] = useState({ name: request?.name ?? "", whatsapp: request?.whatsapp ?? "", source: request?.source ?? "", celebrant_name: request?.celebrant_name ?? "", celebrant_age: "", celebrant_birth_date: request?.celebrant_birth_date ?? "", title: "", notes: request?.message ?? "" });
   const [status, setStatus] = useState<Props["initialStatus"]>(initialStatus);
+  // Age follows the birth date (age on the party day) until the owner types one.
+  const celebrantAge = contact.celebrant_age !== "" ? contact.celebrant_age : ageOn(contact.celebrant_birth_date, date);
 
   const pkg = packages.find((p) => p.id === packageId) ?? null;
   const lines = useMemo(() => buildQuoteLines(pkg, adults, children, addons.filter((a) => (qty[a.id] ?? 0) > 0).map((a) => ({ addon: a, quantity: qty[a.id] }))), [pkg, adults, children, addons, qty]);
@@ -111,7 +113,7 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
       <input type="hidden" name="source" value={contact.source} />
       <input type="hidden" name="title" value={contact.title} />
       <input type="hidden" name="celebrant_name" value={contact.celebrant_name} />
-      <input type="hidden" name="celebrant_age" value={contact.celebrant_age} />
+      <input type="hidden" name="celebrant_age" value={celebrantAge} />
       <input type="hidden" name="celebrant_birth_date" value={contact.celebrant_birth_date} />
       <input type="hidden" name="notes" value={contact.notes} />
       <input type="hidden" name="status" value={status} />
@@ -225,9 +227,9 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
               )}
               <div className="grid grid-cols-[1fr_80px] gap-3">
                 <Field label="Aniversariante" htmlFor="w_celebrant"><Input id="w_celebrant" value={contact.celebrant_name} onChange={upd("celebrant_name")} placeholder="Nome" /></Field>
-                <Field label="Idade" htmlFor="w_age" error={fe.celebrant_age}><Input id="w_age" type="number" inputMode="numeric" min={0} max={150} value={contact.celebrant_age} onChange={upd("celebrant_age")} /></Field>
+                <Field label="Idade" htmlFor="w_age" error={fe.celebrant_age}><Input id="w_age" type="number" inputMode="numeric" min={0} max={150} value={celebrantAge} onChange={upd("celebrant_age")} /></Field>
               </div>
-              <Field label="Data de nascimento do aniversariante" htmlFor="w_birth" hint="Entra na lista de aniversariantes para lembrar no próximo ano."><Input id="w_birth" type="date" value={contact.celebrant_birth_date} onChange={upd("celebrant_birth_date")} /></Field>
+              <Field label="Data de nascimento do aniversariante" htmlFor="w_birth" hint="Entra na lista de aniversariantes para lembrar no próximo ano."><Input id="w_birth" type="date" value={contact.celebrant_birth_date} onChange={(e) => setContact((c) => ({ ...c, celebrant_birth_date: e.target.value, celebrant_age: "" }))} /></Field>
               <Field label="Nome do evento" htmlFor="w_title"><Input id="w_title" value={contact.title} onChange={upd("title")} placeholder="Ex.: Aniversário da Júlia" /></Field>
               <Field label="Observações" htmlFor="w_notes"><Textarea id="w_notes" value={contact.notes} onChange={upd("notes")} className="min-h-16" /></Field>
             </>
@@ -243,7 +245,7 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
                 <dt className="text-muted">Pessoas</dt><dd className="font-medium">{adults} adultos · {children} crianças{pkg && (extraAdults || extraChildren) ? <span className="text-muted font-normal"> (com extras)</span> : null}</dd>
                 {groupsForPackage(menuGroups, packageId).length ? <><dt className="text-muted">Cardápio</dt><dd className="font-medium"><MenuSummary view={menuView(groupsForPackage(menuGroups, packageId), picks.flatMap((p) => p.item_ids))} /></dd></> : null}
                 <dt className="text-muted">Adicionais</dt><dd className="font-medium">{lines.filter((l) => l.kind === "ADDON").map((l) => `${l.description} × ${l.quantity}`).join(", ") || "Nenhum"}</dd>
-                {contact.celebrant_name ? <><dt className="text-muted">Aniversariante</dt><dd className="font-medium">{contact.celebrant_name}{contact.celebrant_age ? `, ${contact.celebrant_age} anos` : ""}</dd></> : null}
+                {contact.celebrant_name ? <><dt className="text-muted">Aniversariante</dt><dd className="font-medium">{contact.celebrant_name}{celebrantAge ? `, ${celebrantAge} anos` : ""}</dd></> : null}
                 <dt className="text-muted">Orçamento</dt><dd className="font-semibold text-brand">{formatCurrency(total)}</dd>
               </dl>
               <Field label="Reservar a data?" htmlFor="w_status" hint="O orçamento é criado em todos os casos.">

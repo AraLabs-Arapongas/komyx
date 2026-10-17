@@ -69,6 +69,14 @@ export function formatPhone(digits: string) {
   return digits;
 }
 
+/** Age turned on `on` by someone born on `birth` (both YYYY-MM-DD); "" when either is missing or the birth is later. */
+export function ageOn(birth: string | null | undefined, on: string | null | undefined) {
+  if (!birth || !on || birth > on) return "";
+  const [by, bm, bd] = birth.split("-").map(Number);
+  const [y, m, d] = on.split("-").map(Number);
+  return String(y - by - (m < bm || (m === bm && d < bd) ? 1 : 0));
+}
+
 /** Masks a Brazilian phone while it is typed: (11) 99999-9999, or (11) 9999-9999 for landlines. A pasted +55 is dropped. */
 export function maskPhone(input: string) {
   let d = normalizePhone(input);

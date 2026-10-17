@@ -176,6 +176,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
       <input type="hidden" name="package_id" value={packageId ?? ""} />
       <input type="hidden" name="theme_id" value={themeId ?? ""} />
       <input type="hidden" name="addons" value={addonsJson} />
+      <input type="hidden" name="menu" value={JSON.stringify(picks)} />
       <input type="hidden" name="desired_date" value={date} />
       <input type="hidden" name="desired_time" value={time} />
       <input type="hidden" name="adults" value={adults} />
@@ -184,7 +185,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
       <input type="hidden" name="name" value={contact.name} />
       <input type="hidden" name="whatsapp" value={contact.whatsapp} />
       <input type="hidden" name="occasion" value={contact.occasion} />
-            <input type="hidden" name="celebrant_name" value={contact.celebrant_name} />
+      <input type="hidden" name="celebrant_name" value={contact.celebrant_name} />
       <input type="hidden" name="celebrant_birth_date" value={contact.celebrant_birth_date} />
       <input type="hidden" name="message" value={contact.message} />
 

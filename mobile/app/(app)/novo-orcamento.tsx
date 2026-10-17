@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, Share, Switch, Text, View } from "react-native";
 import { useAuth } from "@/lib/auth";
-import { formatCurrency, formatPhone, maskPhoneInput, normalizePhone, toDateKey } from "@/lib/format";
+import { ageOn, formatCurrency, formatPhone, maskPhoneInput, normalizePhone, toDateKey } from "@/lib/format";
 import { addMinutes, bestPackageFor, buildQuoteLines, localToIso, sumLines, type AddonPricing, type PackagePricing } from "@/lib/pricing";
 import { groupsForPackage, menuView, parsePicks, type MenuPick } from "@/lib/menu";
 import { loadMenuGroups, saveQuoteMenuChoices } from "@/lib/menu-data";
@@ -66,6 +66,8 @@ export default function NovoOrcamento() {
   const [children, setChildren] = useState("");
   const [celebrant, setCelebrant] = useState("");
   const [celebrantAge, setCelebrantAge] = useState("");
+  // Birth date from the public request: the age follows it (age on the party day) until the owner types one.
+  const [birthDate, setBirthDate] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<Status>("PRE_RESERVED");
@@ -111,7 +113,7 @@ export default function NovoOrcamento() {
         if (data) { setCustomer(data as Customer); setStep(1); }
       }
       if (params.request) {
-        const { data: r } = await supabase.from("public_requests").select("name, whatsapp, desired_date, desired_time, adults, children, participants, package_id, theme_id, addons, menu, celebrant_name, message").eq("id", params.request).maybeSingle();
+        const { data: r } = await supabase.from("public_requests").select("name, whatsapp, desired_date, desired_time, adults, children, participants, package_id, theme_id, addons, menu, celebrant_name, celebrant_birth_date, message").eq("id", params.request).maybeSingle();
         if (!r) return;
         setTerm(maskPhoneInput(r.whatsapp)); setNewName(r.name);
         if (r.desired_date) { setDate(r.desired_date); setMonth(r.desired_date.slice(0, 7)); }
@@ -128,6 +130,7 @@ export default function NovoOrcamento() {
         if (r.menu) setPicks(parsePicks(r.menu));
         if (Array.isArray(r.addons)) setQty(Object.fromEntries((r.addons as { addon_id: string; quantity: number }[]).map((x) => [x.addon_id, x.quantity])));
         if (r.celebrant_name) setCelebrant(r.celebrant_name);
+        if (r.celebrant_birth_date) setBirthDate(r.celebrant_birth_date);
         if (r.message) setNotes(r.message);
       }
     })();
@@ -158,6 +161,7 @@ export default function NovoOrcamento() {
 
   const pkg = catalog.data?.packages.find((p) => p.id === packageId) ?? null;
   const addonLines = useMemo(() => (catalog.data?.addons ?? []).filter((a) => (qty[a.id] ?? 0) > 0).map((a) => ({ addon: a, quantity: qty[a.id] })), [catalog.data, qty]);
+  const age = celebrantAge || ageOn(birthDate, date);
   const nAdults = Number(adults) || 0;
   const nChildren = Number(children) || 0;
   const lines = useMemo(() => buildQuoteLines(pkg, nAdults, nChildren, addonLines), [pkg, nAdults, nChildren, addonLines]);
@@ -199,7 +203,7 @@ export default function NovoOrcamento() {
       const expires_at = status === "PRE_RESERVED" ? new Date(Date.now() + org.pre_reservation_validity_hours * 3_600_000).toISOString() : null;
       const { data: ev, error: ee } = await supabase.from("events").insert({
         organization_id: org.id, customer_id: customerId, title: title.trim() || null, starts_at: localToIso(date, start), ends_at: localToIso(date, end), status,
-        package_id: packageId, theme_id: themeId, adults: nAdults, children: nChildren, celebrant_name: celebrant.trim() || null, celebrant_age: celebrantAge ? Number(celebrantAge) : null,
+        package_id: packageId, theme_id: themeId, adults: nAdults, children: nChildren, celebrant_name: celebrant.trim() || null, celebrant_age: age ? Number(age) : null,
         notes: notes.trim() || null, expires_at, created_by: profile.id,
       }).select("id").single();
       if (ee) throw new Error(ee.message);
@@ -207,6 +211,7 @@ export default function NovoOrcamento() {
       if (qe) throw new Error(qe.message);
       // Public quote link: the client sees the quote PDF from the party panel.
       await supabase.from("public_links").insert({ organization_id: org.id, event_id: ev.id, type: "QUOTE", created_by: profile.id });
+      if (celebrant.trim() && birthDate) await supabase.from("celebrants").insert({ organization_id: org.id, customer_id: customerId, event_id: ev.id, name: celebrant.trim(), birth_date: birthDate });
       if (pkg) await saveQuoteMenuChoices(org.id, quote.id, groupsForPackage(catalog.data?.menus ?? [], pkg.id), picks);
       if (lines.length) {
         const { error: ie } = await supabase.from("quote_items").insert(lines.map((l) => ({ ...l, organization_id: org.id, quote_id: quote.id })));
@@ -371,8 +376,9 @@ export default function NovoOrcamento() {
             {pkg && (nAdults > pkg.included_adults || nChildren > pkg.included_children) ? <Muted>Além do pacote: adicionais cobrados por pessoa.</Muted> : null}
             <Row>
               <View style={{ flex: 2 }}><Field label="Aniversariante"><Input value={celebrant} onChangeText={setCelebrant} placeholder="Nome" autoCapitalize="words" /></Field></View>
-              <View style={{ flex: 1 }}><Field label="Idade"><Input value={celebrantAge} onChangeText={(v: string) => setCelebrantAge(v.replace(/\D/g, ""))} keyboardType="number-pad" placeholder="5" /></Field></View>
+              <View style={{ flex: 1 }}><Field label="Idade"><Input value={age} onChangeText={(v: string) => setCelebrantAge(v.replace(/\D/g, ""))} keyboardType="number-pad" placeholder="5" /></Field></View>
             </Row>
+            {birthDate ? <Muted>Nascimento {birthDate.split("-").reverse().join("/")} (do pedido)</Muted> : null}
             <Field label="Título da festa (opcional)"><Input value={title} onChangeText={setTitle} placeholder={celebrant ? `Festa ${celebrant}` : "Ex.: Festa do Theo"} /></Field>
             <Field label="Observações (opcional)"><Input value={notes} onChangeText={setNotes} placeholder="Tema, restrições, combinados…" multiline style={{ height: 80, textAlignVertical: "top", paddingTop: 10 }} /></Field>
           </>

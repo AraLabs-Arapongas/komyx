@@ -65,3 +65,11 @@ export function maskPhoneInput(value: string) {
   if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
+
+/** Age turned on `on` by someone born on `birth` (both YYYY-MM-DD); "" when either is missing or the birth is later. */
+export function ageOn(birth: string | null | undefined, on: string | null | undefined) {
+  if (!birth || !on || birth > on) return "";
+  const [by, bm, bd] = birth.split("-").map(Number);
+  const [y, m, d] = on.split("-").map(Number);
+  return String(y - by - (m < bm || (m === bm && d < bd) ? 1 : 0));
+}
