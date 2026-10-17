@@ -40,7 +40,7 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 
 ### 1.2b Rodapé da conta e notificações
 - Rodapé da sidebar (e no Menu no celular): quem está logado, botão sair, **plano e vencimento da fatura** com barra de progresso do ciclo (datas definidas pelo admin do Komyx; fica amarelo a 7 dias e vermelho vencida).
-- **Sino de notificações** (sidebar / canto superior no celular) com contador, lista rápida e página `/notificacoes`. Chegam exatamente três eventos: **pedido de orçamento** da página pública, **reserva online** (aguardando sinal) e **contrato aceito** pelo cliente. Confirmação de convidado não notifica (aparece na ficha do evento).
+- **Sino de notificações** (sidebar / canto superior no celular) com contador, lista rápida e página `/notificacoes`. Chegam exatamente três eventos: **pedido de orçamento** da página pública, **reserva online** (aguardando sinal) e **contrato aceito** pelo cliente. Confirmação de convidado não notifica (aparece na ficha do evento). Cada notificação (incluindo `client_request` do app do cliente) também vai por **e-mail** para dono e equipe; cada um desliga em Minha conta ("Receber avisos por e-mail"). Fluxo: trigger em `notifications` → pg_net → `/api/notifications/email`.
 
 ### 1.3 Vender uma festa (atendimento)
 1. **Solicitações** (`/solicitacoes`): leads da página pública com origem (Instagram, Google…), pessoas, aniversariante, estimativa. Botão **Criar orçamento** já leva tudo preenchido (pacote, adultos/crianças, data, aniversariante); se o lead montou orçamento, o orçamento é criado sozinho.
@@ -148,7 +148,7 @@ Acesso só para perfis com `is_platform_admin` (flag que só a service role alte
 
 ### Ainda não existe (decisões para depois)
 - Cobrança do plano (assinatura) e trial.
-- Notificação ao dono quando entra reserva/lead (e-mail/WhatsApp/push). Hoje: card na Home.
+- Notificação ao dono quando entra reserva/lead por WhatsApp/push (e-mail já existe).
 - Conciliação automática do Pix (API de PSP). Hoje: código `FESTA…` no extrato + 1 clique.
 - Domínio próprio por buffet no Premium.
 - Impersonar buffet pelo admin (entrar como owner).

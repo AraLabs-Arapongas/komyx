@@ -671,6 +671,7 @@ export type Database = {
         Row: {
           body: string | null
           created_at: string
+          emailed_at: string | null
           href: string | null
           id: string
           organization_id: string
@@ -681,6 +682,7 @@ export type Database = {
         Insert: {
           body?: string | null
           created_at?: string
+          emailed_at?: string | null
           href?: string | null
           id?: string
           organization_id: string
@@ -691,6 +693,7 @@ export type Database = {
         Update: {
           body?: string | null
           created_at?: string
+          emailed_at?: string | null
           href?: string | null
           id?: string
           organization_id?: string
@@ -1292,6 +1295,7 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          email_notifications: boolean
           id: string
           is_platform_admin: boolean
           name: string
@@ -1302,6 +1306,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email: string
+          email_notifications?: boolean
           id: string
           is_platform_admin?: boolean
           name: string
@@ -1312,6 +1317,7 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string
+          email_notifications?: boolean
           id?: string
           is_platform_admin?: boolean
           name?: string
