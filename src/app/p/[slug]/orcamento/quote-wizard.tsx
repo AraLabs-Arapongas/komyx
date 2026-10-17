@@ -94,6 +94,29 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
     if (p) { setAdults(p.included_adults); setChildren(p.included_children); }
   }
 
+  // Without a package there is no base price: the buffet quotes by hand, so no estimate and no Pix self-reservation.
+  const priced = pkg !== null;
+  const addonLines = lines.filter((l) => l.kind === "ADDON");
+  const theme = themes.find((t) => t.id === themeId) ?? null;
+  const menuGroupsOfPkg = groupsForPackage(menuGroups, packageId);
+  const muted = { color: "var(--muted-ink)" };
+  // Everything the client chose: shown on the review step and again once the request is sent.
+  const summary = (
+    <dl className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-2 text-sm">
+      <dt style={muted}>Pacote</dt><dd className="font-bold">{pkg ? pkg.name : "Sem pacote (personalizado)"}{pkg && showPrices ? ` · ${formatCurrency(pkg.base_price)}` : ""}</dd>
+      <dt style={muted}>Data</dt><dd className="font-bold">{date ? `${fmtDate(date)}, das ${time} às ${addMinutes(time, durationMinutes)}` : "A combinar"}</dd>
+      <dt style={muted}>Pessoas</dt><dd className="font-bold">{adults} adultos · {children} crianças{pkg && (adults > pkg.included_adults || children > pkg.included_children) ? <span className="font-normal" style={muted}> (com extras além do pacote)</span> : null}</dd>
+      {theme ? <><dt style={muted}>Tema</dt><dd className="font-bold">{theme.name}</dd></> : null}
+      {menuGroupsOfPkg.length ? <><dt style={muted}>Cardápio</dt><dd><MenuSummary view={menuView(menuGroupsOfPkg, picks.flatMap((p) => p.item_ids))} muted="" /></dd></> : null}
+      <dt style={muted}>Adicionais</dt><dd className="font-bold">{addonLines.length ? addonLines.map((l) => `${l.description} × ${l.quantity}`).join(", ") : "Nenhum"}</dd>
+      <dt style={muted}>Ocasião</dt><dd className="font-bold">{OCCASIONS.find((o) => o.value === contact.occasion)?.label ?? contact.occasion}</dd>
+      {contact.celebrant_name ? <><dt style={muted}>Aniversariante</dt><dd className="font-bold">{contact.celebrant_name}{contact.celebrant_birth_date ? <span className="font-normal" style={muted}> · nasceu em {fmtDate(contact.celebrant_birth_date)}</span> : null}</dd></> : null}
+      <dt style={muted}>Contato</dt><dd className="font-bold">{contact.name} · {contact.whatsapp}</dd>
+      {contact.message.trim() ? <><dt style={muted}>Observações</dt><dd className="whitespace-pre-line">{contact.message.trim()}</dd></> : null}
+      {showPrices ? <><dt style={muted}>Total estimado</dt><dd className="display font-extrabold text-xl" style={{ color: "var(--berry)" }}>{priced ? formatCurrency(state?.ok && state.data?.estimated_total != null ? state.data.estimated_total : total) : "A combinar"}</dd></> : null}
+    </dl>
+  );
+
   if (state?.ok && state.data?.reservation) {
     const r = state.data.reservation;
     const quoteUrl = r.quote_token ? appUrl(`/q/${r.quote_token}`) : null;
@@ -141,6 +164,8 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
             {quoteUrl ? <p className="mt-2 text-xs break-all" style={{ color: "var(--muted-ink)" }}>Seu orçamento: <a href={quoteUrl} className="underline">{quoteUrl}</a></p> : null}
           </li>
         </ol>
+        <h3 className="display font-bold text-lg pt-2">Resumo da reserva</h3>
+        {summary}
       </div>
     );
   }
@@ -150,23 +175,16 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
       <div className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8 space-y-3">
         <p className="display font-extrabold text-2xl">Recebemos seu pedido 🎉</p>
         <Alert tone="success">{state.message}</Alert>
-        <ul className="text-sm space-y-1" style={{ color: "var(--muted-ink)" }}>
-          {pkg ? <li>Pacote: <b style={{ color: "var(--ink)" }}>{pkg.name}</b></li> : null}
-          {date ? <li>Data: <b style={{ color: "var(--ink)" }}>{fmtDate(date)} às {time}</b></li> : null}
-          <li>Pessoas: <b style={{ color: "var(--ink)" }}>{adults} adultos e {children} crianças</b></li>
-          {showPrices && state.data?.estimated_total != null ? <li>Estimativa: <b style={{ color: "var(--ink)" }}>{formatCurrency(state.data.estimated_total)}</b></li> : null}
-        </ul>
+        <h3 className="display font-bold text-lg pt-2">Resumo do pedido</h3>
+        {summary}
       </div>
     );
   }
 
   const busyDays = new Set(busy[month] ?? []);
   const canNext = step === 0 ? packageChosen : step === 1 ? Boolean(date) : step === 2 ? adults + children > 0 : step === 3 ? contact.name.trim().length >= 2 && isValidPhone(contact.whatsapp) : true;
-  // Without a package there is no base price: the buffet quotes by hand, so no estimate and no Pix self-reservation.
-  const priced = pkg !== null;
   const depositAmount = depositPercent != null && priced ? Math.round(total * depositPercent) / 100 : null;
   const canReserve = selfBooking && Boolean(date) && priced;
-  const addonLines = lines.filter((l) => l.kind === "ADDON");
   const upd = (k: keyof typeof contact) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setContact((c) => ({ ...c, [k]: e.target.value }));
 
   return (
@@ -315,16 +333,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
         {step === 4 ? (
           <>
             <h2 className="display font-extrabold text-2xl">Confira antes de enviar</h2>
-            <dl className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-2 text-sm">
-              <dt style={{ color: "var(--muted-ink)" }}>Pacote</dt><dd className="font-bold">{pkg ? pkg.name : "Sem pacote (personalizado)"}{pkg && showPrices ? ` · ${formatCurrency(pkg.base_price)}` : ""}</dd>
-              <dt style={{ color: "var(--muted-ink)" }}>Data</dt><dd className="font-bold">{date ? `${fmtDate(date)}, das ${time} às ${addMinutes(time, durationMinutes)}` : "A combinar"}</dd>
-              <dt style={{ color: "var(--muted-ink)" }}>Pessoas</dt><dd className="font-bold">{adults} adultos · {children} crianças{pkg && (adults > pkg.included_adults || children > pkg.included_children) ? <span className="font-normal" style={{ color: "var(--muted-ink)" }}> (com extras além do pacote)</span> : null}</dd>
-              {groupsForPackage(menuGroups, packageId).length ? <><dt style={{ color: "var(--muted-ink)" }}>Cardápio</dt><dd><MenuSummary view={menuView(groupsForPackage(menuGroups, packageId), picks.flatMap((p) => p.item_ids))} muted="" /></dd></> : null}
-              <dt style={{ color: "var(--muted-ink)" }}>Adicionais</dt><dd className="font-bold">{addonLines.length ? addonLines.map((l) => `${l.description} × ${l.quantity}`).join(", ") : "Nenhum"}</dd>
-              <dt style={{ color: "var(--muted-ink)" }}>Contato</dt><dd className="font-bold">{contact.name} · {contact.whatsapp}</dd>
-              {contact.celebrant_name ? <><dt style={{ color: "var(--muted-ink)" }}>Aniversariante</dt><dd className="font-bold">{contact.celebrant_name}</dd></> : null}
-              {showPrices ? <><dt style={{ color: "var(--muted-ink)" }}>Total estimado</dt><dd className="display font-extrabold text-xl" style={{ color: "var(--berry)" }}>{priced ? formatCurrency(total) : "A combinar"}</dd></> : null}
-            </dl>
+            {summary}
             {canReserve ? (
               <div className="rounded-2xl p-4 text-sm space-y-1" style={{ background: "var(--paper-2)" }}>
                 <p className="display font-bold text-lg">Como funciona a reserva</p>
