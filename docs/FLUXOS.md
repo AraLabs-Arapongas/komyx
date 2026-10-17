@@ -15,6 +15,17 @@ Em desenvolvimento a tela de login tem um select "Conta de teste" que preenche e
 
 Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`.
 
+## Buffet demo (Komyx Buffet)
+
+Buffet permanente em produção, em `/p/komyx-buffet`: vitrine da home ("Ver uma página de buffet"), demonstração de vendas e revisão da App Store. Conta criada pelo cadastro normal (buffet "Komyx Buffet", dono `demo@komyx.com.br`); `organizations.is_demo = true` (só o Komyx altera).
+
+- **Reset toda noite** às 03:30 (pg_cron `reset-demo-buffet`): `app.reset_demo_buffet()` mantém a organização e os logins e recria todo o resto com datas a partir de hoje: perfil da página, 3 pacotes com cardápio, 5 adicionais, 6 temas, 7 clientes e 8 festas (orçamento enviado, pré-reserva online, confirmada só com sinal, confirmada paga, festa de hoje com lista para a portaria, duas realizadas, e a Festa do Miguel com contrato, convidados, convite e 2 pedidos do cliente pendentes), 2 pedidos de orçamento do site. Também desfaz mudanças nas configurações, cancelamento e suspensão.
+- **Resetar agora**: `select app.reset_demo_buffet();` no SQL Editor.
+- **Cliente demo**: celular `11900000001` (Juliana, Festa do Miguel), link `/r/komyx-buffet-demo-reservation-0001`. O app do cliente entra com o Test Phone Number `5511900000001` configurado no Supabase.
+- Página pública e orçamento mostram a faixa "Buffet de demonstração do Komyx". Demo não manda e-mail de aviso (trigger de notificações ignora `is_demo`), não é cobrada e fica fora dos números do `/admin` (aparece com selo "demo").
+- Fotos em `public/demo/komyx-buffet/`. Com `site_url` (ou `notify_email_url`) no Vault, o reset grava URLs absolutas, para o app também carregar as imagens.
+- Local: crie `demo@komyx.com.br` como o seed cria os outros usuários (`org_name` "Komyx Buffet") e rode `select app.reset_demo_buffet();`.
+
 ---
 
 ## 1. Dona do buffet

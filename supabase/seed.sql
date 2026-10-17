@@ -1,7 +1,7 @@
 -- Demo seed for the local Supabase (`supabase db reset --local`). Idempotent blocks; dates relative
 -- to today. Demo owner + staff (password: senha12345), one buffet, packages with menus, addons,
--- customers, events in every state, contracts, links. Production only sees it during an App Store
--- review, through scripts/apple-review.sh (which then drops the extra logins and sets a new password).
+-- customers, events in every state, contracts, links. Local only: production never gets the seed
+-- (its showcase and App Store demo is Komyx Buffet, rebuilt by app.reset_demo_buffet()).
 
 -- Auth users (password hash for "senha12345")
 insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change)

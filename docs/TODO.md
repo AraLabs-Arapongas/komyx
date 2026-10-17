@@ -3,7 +3,9 @@
 ## Produção (depende do Thiago)
 - [ ] Gerar secret (`openssl rand -hex 32`) → Vercel `NOTIFY_EMAIL_SECRET`
 - [ ] Vault no Supabase: `notify_email_url` (https://www.komyx.com.br/api/notifications/email) e `notify_email_secret`
-- [ ] `supabase db push` (migrations 20261017120000 e 20261017130000)
+- [ ] Criar a conta demo pelo cadastro do site: buffet "Komyx Buffet", e-mail demo@komyx.com.br (slug `komyx-buffet`)
+- [ ] `supabase db push` (migrations 20261017120000, 20261017130000 e 20261017150000); se a conta demo veio depois, `select app.reset_demo_buffet();` no SQL Editor
+- [ ] Configurar Test Phone Number 5511900000001 no Supabase (para o app do cliente demo e a Apple)
 - [ ] Push dos commits locais (logo depois do db push)
 - [ ] Testar aviso por e-mail com um pedido de orçamento real
 
@@ -15,9 +17,7 @@
 - [ ] Cobrança dos planos (escolher provedor: Asaas, Mercado Pago, Stripe…)
 - [ ] Conciliação do Pix (provedor com API)
 - [ ] Reenvio de e-mail de aviso que falhar
-- [ ] Buffet real como vitrine → voltar botão "Ver uma página de buffet" na home
 - [ ] Endereço inventado sem login mostra `/login` em vez da 404
 
 ## Ao enviar versão para a Apple
-- `scripts/apple-review.sh up | pbcopy` → SQL Editor; senha no App Review; Test Phone Number 5511999990002=123456
-- Depois da aprovação: `scripts/apple-review.sh down | pbcopy` e tirar o número de teste
+- `scripts/apple-review.sh` mostra o passo a passo: `select app.reset_demo_buffet();`, login demo@komyx.com.br, cliente 11900000001
