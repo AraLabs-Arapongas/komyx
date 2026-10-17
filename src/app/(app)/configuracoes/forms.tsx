@@ -4,7 +4,7 @@ import { ImageInput } from "@/components/ui/image-input";
 
 import { useActionState } from "react";
 import { useState } from "react";
-import { updateHeroStyle, updateShowPrices, updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage, updateTheme, updateCoverCaption } from "@/lib/actions/settings";
+import { updateHeroStyle, updateSeoListed, updateShowPrices, updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage, updateTheme, updateCoverCaption } from "@/lib/actions/settings";
 import { Trash2 } from "lucide-react";
 import { HERO_STYLES, type HeroStyle } from "@/lib/hero";
 import { HeroStylePreview } from "@/components/public/hero/style-preview";
@@ -253,6 +253,23 @@ export function ShowPricesForm({ showPrices }: { showPrices: boolean }) {
         <input type="checkbox" name="show_prices_public" value="true" defaultChecked={showPrices} className="mt-1 h-4 w-4" />
         <span><b>Mostrar valores dos pacotes na página pública.</b> Se desativada, o cliente solicita orçamento sem ver preço.</span>
       </label>
+    </form>
+  );
+}
+
+/** "Aparecer no Google" plus the tip that matters most for being found by name. */
+export function SeoListedForm({ listed }: { listed: boolean }) {
+  const [state, action] = useActionState(updateSeoListed, undefined);
+  return (
+    <form data-settings action={action} className="space-y-3">
+      {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+      {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
+      <input type="hidden" name="seo_listed" value="false" />
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="seo_listed" value="true" defaultChecked={listed} className="mt-1 h-4 w-4" />
+        <span><b>Aparecer no Google.</b> Sua página entra na busca com nome, cidade, fotos e pacotes.</span>
+      </label>
+      <p className="text-sm text-muted">Para quem pesquisa o nome do seu buffet achar esta página primeiro, coloque o link dela como <b>site</b> no seu perfil do Google (Google Meu Negócio) e na bio do Instagram.</p>
     </form>
   );
 }

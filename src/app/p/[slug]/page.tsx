@@ -10,16 +10,19 @@ import { PublicFooter } from "@/components/public/public-footer";
 import { RequestForm } from "./request-form";
 import { resolveTheme, themeStyle } from "@/lib/theme";
 import { resolveHeroStyle } from "@/lib/hero";
-import { OG_IMAGE, SITE_NAME } from "@/lib/seo";
+import { OG_IMAGE, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 type Testimonial = { name: string; text: string };
 
 export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("name, tagline, description, cover_url").eq("slug", slug).neq("kind", "platform").eq("public_page", true).maybeSingle();
-  const title = org ? `${org.name}` : "Buffet";
-  const description = org?.tagline ?? org?.description ?? undefined;
+  const { data: org } = await admin.from("organizations").select("name, tagline, description, cover_url, city, is_demo, seo_listed").eq("slug", slug).neq("kind", "platform").eq("public_page", true).maybeSingle();
+  // "Buffet Margarida · Buffet infantil em Arapongas/PR": the name people search plus what and where.
+  const title = org ? { absolute: `${org.name} · Buffet infantil${org.city ? ` em ${org.city}` : ""}` } : "Buffet";
+  const description = org ? [org.tagline ?? org.description, org.city ? `Orçamento online, datas livres e pacotes em ${org.city}.` : null].filter(Boolean).join(" ") || undefined : undefined;
+  // Demo buffets are not real places; a buffet can also turn "Aparecer no Google" off.
+  const hidden = !org || org.is_demo || !org.seo_listed;
   // Self canonical without ?src= (tracking param from Instagram/WhatsApp links); the buffet's cover is its share image.
   const path = `/p/${slug}`;
   const images = org?.cover_url ? [org.cover_url] : [OG_IMAGE];
@@ -27,8 +30,9 @@ export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Prom
     title,
     description,
     alternates: { canonical: path },
-    openGraph: { type: "website", siteName: SITE_NAME, locale: "pt_BR", url: path, title, description, images },
-    twitter: { card: "summary_large_image", title, description, images: org?.cover_url ? [org.cover_url] : [OG_IMAGE.url] },
+    ...(hidden ? { robots: { index: false, follow: false } } : {}),
+    openGraph: { type: "website", siteName: SITE_NAME, locale: "pt_BR", url: path, title: org ? (title as { absolute: string }).absolute : "Buffet", description, images },
+    twitter: { card: "summary_large_image", title: org ? (title as { absolute: string }).absolute : "Buffet", description, images: org?.cover_url ? [org.cover_url] : [OG_IMAGE.url] },
   };
 }
 
@@ -44,7 +48,7 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
   const admin = createAdminClient();
   const { data: org } = await admin
     .from("organizations")
-    .select("id, name, slug, logo_url, cover_url, cover_caption, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, hero_style, show_prices_public, status, is_demo")
+    .select("id, name, slug, logo_url, cover_url, cover_caption, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, hero_style, show_prices_public, status, is_demo, city")
     .eq("slug", slug)
     .neq("kind", "platform").eq("public_page", true) // the Komyx platform org holds the admins, it is not a buffet; public_page = false hides a buffet (e.g. the App Store review demo)
     .maybeSingle();
@@ -63,8 +67,26 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
   const theme = resolveTheme(org.plan, org.theme);
   const showPrices = org.show_prices_public;
 
+  // What Google needs to show the buffet as a place: name, address, phone, photos, prices.
+  const minPrice = (packages ?? []).reduce<number | null>((m, p) => (m === null || Number(p.base_price) < m ? Number(p.base_price) : m), null);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "EventVenue",
+    name: org.name,
+    url: `${SITE_URL}/p/${org.slug}`,
+    description: org.tagline ?? org.description ?? undefined,
+    image: [org.cover_url, ...gallery.map((g) => g.url)].filter(Boolean).slice(0, 6),
+    logo: org.logo_url ?? undefined,
+    telephone: org.whatsapp ? `+55${org.whatsapp.replace(/\D/g, "")}` : undefined,
+    address: org.address ? { "@type": "PostalAddress", streetAddress: org.address, addressLocality: org.city ?? undefined, addressCountry: "BR" } : undefined,
+    maximumAttendeeCapacity: org.capacity ?? undefined,
+    priceRange: showPrices && minPrice !== null ? `A partir de ${formatCurrency(minPrice)}` : undefined,
+    sameAs: org.instagram ? [`https://instagram.com/${org.instagram}`] : undefined,
+  };
+
   return (
     <main className={`flex-1 font-${theme.font}`} style={themeStyle(theme)}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       {/* HERO: the invitation, in the style the buffet picked */}
       <BuffetHero style={resolveHeroStyle(org.hero_style)} org={org} gallery={gallery} packages={packages ?? []} waUrl={waUrl} q={q} />
 

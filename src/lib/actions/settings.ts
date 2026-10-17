@@ -327,6 +327,18 @@ export async function updateShowPrices(_prev: ActionResult | undefined, formData
   return { ok: true, message: show ? "Valores visíveis na página pública." : "Valores ocultos: o cliente pede orçamento sem ver preço." };
 }
 
+/** "Aparecer no Google": listed pages go into the sitemap; unlisted ones get noindex. */
+export async function updateSeoListed(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const v = formData.getAll("seo_listed").map(String);
+  const listed = v.includes("true") || v.includes("on");
+  const profile = await requireOwner();
+  const supabase = await createClient();
+  const { error } = await supabase.from("organizations").update({ seo_listed: listed }).eq("id", profile.organization_id);
+  if (error) return fail(translateDbError(error));
+  revalidatePath("/configuracoes", "layout");
+  return { ok: true, message: listed ? "Sua página aparece no Google." : "Sua página não será mostrada pelo Google." };
+}
+
 /** Every plan: which hero style opens the public page. */
 export async function updateHeroStyle(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
   const style = String(formData.get("hero_style") ?? "");

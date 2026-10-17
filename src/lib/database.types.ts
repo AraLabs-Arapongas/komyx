@@ -776,6 +776,7 @@ export type Database = {
           gallery: Json
           hero_style: string
           public_page: boolean
+          seo_listed: boolean
           highlights: string[]
           id: string
           instagram: string | null
@@ -818,6 +819,7 @@ export type Database = {
           gallery?: Json
           hero_style?: string
           public_page?: boolean
+          seo_listed?: boolean
           highlights?: string[]
           id?: string
           instagram?: string | null
@@ -860,6 +862,7 @@ export type Database = {
           gallery?: Json
           hero_style?: string
           public_page?: boolean
+          seo_listed?: boolean
           highlights?: string[]
           id?: string
           instagram?: string | null

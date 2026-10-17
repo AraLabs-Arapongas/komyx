@@ -8,7 +8,7 @@ import { buttonClass } from "@/components/ui/button";
 import { appUrl, cn } from "@/lib/utils";
 import { resolveTheme } from "@/lib/theme";
 import { resolveHeroStyle } from "@/lib/hero";
-import { PublicProfileForm, GalleryForm, ThemeForm, ImageUploadForm, CoverCaptionForm, ShowPricesForm, HeroStyleForm } from "../forms";
+import { PublicProfileForm, GalleryForm, ThemeForm, ImageUploadForm, CoverCaptionForm, ShowPricesForm, SeoListedForm, HeroStyleForm } from "../forms";
 import { UnsavedGuard } from "../unsaved-guard";
 
 export const metadata = { title: "Página pública" };
@@ -56,6 +56,10 @@ export default async function PublicPageSettings({ searchParams }: PageProps<"/c
               <Card>
                 <CardHeader title="Preços" />
                 <CardBody><ShowPricesForm showPrices={org.show_prices_public} /></CardBody>
+              </Card>
+              <Card>
+                <CardHeader title="Google" />
+                <CardBody><SeoListedForm listed={org.seo_listed} /></CardBody>
               </Card>
             </>
           ) : null}
