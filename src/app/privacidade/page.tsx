@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <p>O Komyx é um serviço da AraLabs para buffets de festas e para os clientes que contratam esses buffets. Esta política explica quais dados tratamos, para quê e quais são os seus direitos, em linha com a Lei Geral de Proteção de Dados (Lei 13.709/2018).</p>
 
       <Section title="1. Quem somos">
-        <p>Controladora dos dados da plataforma: <strong>AraLabs</strong>, Arapongas/PR, Brasil. Contato: <a href="mailto:contato@aralabs.com.br" className="underline underline-offset-4">contato@aralabs.com.br</a>.</p>
+        <p>Controladora dos dados da plataforma: <strong>AraLabs</strong>, Arapongas/PR, Brasil. Contato: <a href="mailto:contato@komyx.com.br" className="underline underline-offset-4">contato@komyx.com.br</a>.</p>
         <p>Cada buffet é controlador dos dados dos seus próprios clientes e convidados. O Komyx atua como operador desses dados em nome do buffet.</p>
       </Section>
 
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="6. Seus direitos">
-        <p>Você pode pedir confirmação do tratamento, acesso, correção, anonimização, portabilidade ou exclusão dos seus dados, e revogar consentimentos. Clientes e convidados devem procurar primeiro o buffet responsável pela festa; se preferir, escreva para <a href="mailto:contato@aralabs.com.br" className="underline underline-offset-4">contato@aralabs.com.br</a> e encaminharemos.</p>
+        <p>Você pode pedir confirmação do tratamento, acesso, correção, anonimização, portabilidade ou exclusão dos seus dados, e revogar consentimentos. Clientes e convidados devem procurar primeiro o buffet responsável pela festa; se preferir, escreva para <a href="mailto:contato@komyx.com.br" className="underline underline-offset-4">contato@komyx.com.br</a> e encaminharemos.</p>
         <p>Contas de buffet podem ser excluídas a pedido do titular, com remoção dos dados pessoais associados.</p>
       </Section>
 

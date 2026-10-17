@@ -11,7 +11,7 @@ export default function SupportPage() {
       <p>Precisa de ajuda com o Komyx? Fale com a gente. Respondemos em dias úteis, das 9h às 18h (horário de Brasília).</p>
 
       <Section title="Fale conosco">
-        <p>E-mail: <a href="mailto:contato@aralabs.com.br" className="underline underline-offset-4">contato@aralabs.com.br</a></p>
+        <p>E-mail: <a href="mailto:contato@komyx.com.br" className="underline underline-offset-4">contato@komyx.com.br</a></p>
         {wa ? <p>WhatsApp: <a href={wa} target="_blank" rel="noopener" className="underline underline-offset-4">{SUPPORT_WHATSAPP}</a></p> : null}
       </Section>
 
@@ -22,7 +22,7 @@ export default function SupportPage() {
 
       <Section title="Tenho um buffet">
         <p>Entre com o e-mail e a senha da sua conta. Esqueceu a senha? Use &ldquo;Esqueci minha senha&rdquo; na tela de entrar.</p>
-        <p>Para excluir sua conta e os dados do seu buffet, escreva para contato@aralabs.com.br pelo e-mail cadastrado. Fazemos a exclusão em até 15 dias.</p>
+        <p>Para excluir sua conta e os dados do seu buffet, escreva para contato@komyx.com.br pelo e-mail cadastrado. Fazemos a exclusão em até 15 dias.</p>
       </Section>
 
       <Section title="Mais">

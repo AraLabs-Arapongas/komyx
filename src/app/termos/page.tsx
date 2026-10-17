@@ -46,7 +46,7 @@ export default function TermsPage() {
       </Section>
 
       <Section title="9. Foro e contato">
-        <p>Aplica-se a lei brasileira. Fica eleito o foro de Arapongas/PR. Dúvidas: <a href="mailto:contato@aralabs.com.br" className="underline underline-offset-4">contato@aralabs.com.br</a>.</p>
+        <p>Aplica-se a lei brasileira. Fica eleito o foro de Arapongas/PR. Dúvidas: <a href="mailto:contato@komyx.com.br" className="underline underline-offset-4">contato@komyx.com.br</a>.</p>
       </Section>
     </LegalPage>
   );
