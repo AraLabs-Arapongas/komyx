@@ -166,17 +166,15 @@ begin
   end if;
   select id into v_owner from public.profiles where organization_id = v_org order by (role = 'owner') desc, created_at limit 1;
 
-  -- Images live in the site's public/demo/komyx-buffet. Absolute URLs when the site address is known
-  -- (Vault `site_url`, or the origin of `notify_email_url`), so the mobile app can load them too.
+  -- Images are the buffet's own uploads in Storage, like any buffet's: org-media/<org id>/demo/*.
+  -- Vault `storage_public_url` holds the project's public URL for the bucket (production); locally it
+  -- falls back to the local stack. Upload with: supabase storage cp -r <dir> ss:///org-media/<org id>/demo --experimental
   begin
-    select rtrim(decrypted_secret, '/') into v_base from vault.decrypted_secrets where name = 'site_url';
-    if v_base is null then
-      select substring(decrypted_secret from '^(https?://[^/]+)') into v_base from vault.decrypted_secrets where name = 'notify_email_url';
-    end if;
+    select rtrim(decrypted_secret, '/') into v_base from vault.decrypted_secrets where name = 'storage_public_url';
   exception when others then
     v_base := null;
   end;
-  v_img := coalesce(v_base, '') || '/demo/komyx-buffet/';
+  v_img := coalesce(v_base, 'http://127.0.0.1:54821/storage/v1/object/public/org-media') || '/' || v_org || '/demo/';
 
   -- 1) Wipe everything of the org except the org row and its logins.
   delete from public.event_change_requests where organization_id = v_org;

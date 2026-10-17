@@ -23,7 +23,7 @@ Buffet permanente em produção, em `/p/komyx-buffet`: vitrine da home ("Ver uma
 - **Resetar agora**: `select app.reset_demo_buffet();` no SQL Editor.
 - **Cliente demo**: celular `11900000001` (Juliana, Festa do Miguel), link `/r/komyx-buffet-demo-reservation-0001`. O app do cliente entra com o Test Phone Number `5511900000001` configurado no Supabase.
 - Página pública e orçamento mostram a faixa "Buffet de demonstração do Komyx". Demo não manda e-mail de aviso (trigger de notificações ignora `is_demo`), não é cobrada e fica fora dos números do `/admin` (aparece com selo "demo").
-- Fotos em `public/demo/komyx-buffet/`. Com `site_url` (ou `notify_email_url`) no Vault, o reset grava URLs absolutas, para o app também carregar as imagens.
+- Fotos no Storage, como as de qualquer buffet: `org-media/<id do Komyx Buffet>/demo/` (logo.png, capa.jpg, galeria-1..6, tema-*, convite-1/2). O reset monta as URLs com o Vault `storage_public_url` (produção) ou o Supabase local. Para trocar uma foto: `supabase storage cp <arquivo> ss:///org-media/<id>/demo/<nome> --experimental` (com `--linked` ou `--local`). Cópias otimizadas em `~/Pictures/komyx-buffet-otimizadas/`.
 - Local: crie `demo@komyx.com.br` como o seed cria os outros usuários (`org_name` "Komyx Buffet") e rode `select app.reset_demo_buffet();`.
 
 ---
