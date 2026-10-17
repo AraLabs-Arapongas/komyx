@@ -52,6 +52,8 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
   const initial = packages.find((p) => p.id === preselectedPackage) ?? null;
   const [step, setStep] = useState(initial ? 1 : 0);
   const [packageId, setPackageId] = useState<string | null>(initial?.id ?? null);
+  // Nothing is picked until the visitor chooses (a package from the buffet page counts); "Sem pacote" is a choice too.
+  const [packageChosen, setPackageChosen] = useState(Boolean(initial));
   const [picks, setPicks] = useState<MenuPick[]>([]);
   const [themeId, setThemeId] = useState<string | null>(null);
   const [adults, setAdults] = useState(initial?.included_adults ?? 10);
@@ -82,6 +84,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
 
   function choosePackage(id: string | null) {
     setPackageId(id);
+    setPackageChosen(true);
     const p = packages.find((x) => x.id === id);
     if (p) { setAdults(p.included_adults); setChildren(p.included_children); }
   }
@@ -153,7 +156,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
   }
 
   const busyDays = new Set(busy[month] ?? []);
-  const canNext = step === 0 ? true : step === 1 ? Boolean(date) : step === 2 ? adults + children > 0 : step === 3 ? contact.name.trim().length >= 2 && contact.whatsapp.replace(/\D/g, "").length >= 10 : true;
+  const canNext = step === 0 ? packageChosen : step === 1 ? Boolean(date) : step === 2 ? adults + children > 0 : step === 3 ? contact.name.trim().length >= 2 && contact.whatsapp.replace(/\D/g, "").length >= 10 : true;
   // Without a package there is no base price: the buffet quotes by hand, so no estimate and no Pix self-reservation.
   const priced = pkg !== null;
   const depositAmount = depositPercent != null && priced ? Math.round(total * depositPercent) / 100 : null;
@@ -204,7 +207,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
                   {p.description ? <p className="text-sm mt-1">{p.description}</p> : null}
                 </button>
               ))}
-              <button type="button" onClick={() => choosePackage(null)} className={cn("text-left rounded-2xl border-2 p-4", packageId === null ? "border-[var(--berry)] bg-white" : "border-[#ece7dc] bg-white/60")}>
+              <button type="button" onClick={() => choosePackage(null)} className={cn("text-left rounded-2xl border-2 p-4", packageChosen && packageId === null ? "border-[var(--berry)] bg-white" : "border-[#ece7dc] bg-white/60 hover:border-[var(--berry)]/40")}>
                 <span className="display font-bold text-lg">Sem pacote</span><p className="text-xs" style={{ color: "var(--muted-ink)" }}>Quero algo personalizado; o buffet monta comigo.</p>
               </button>
             </div>
@@ -343,7 +346,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
       <div className="sticky bottom-3 z-10 rounded-3xl p-3 sm:p-4 flex flex-wrap items-center gap-3 shadow-[0_12px_40px_rgba(27,31,58,0.35)]" style={{ background: "var(--ink)", color: "var(--paper)" }}>
         <div className="flex-1 min-w-[12rem] text-sm" style={{ color: "#cfd2e6" }}>
           {showPrices && priced ? <p><b className="display text-2xl text-white">{formatCurrency(total)}</b> estimado</p> : <p className="display text-lg text-white">{priced ? "Valor enviado no WhatsApp" : "Valor a combinar"}</p>}
-          <p className="truncate">{pkg ? pkg.name : "Sem pacote"}{date ? ` · ${fmtDate(date)} ${time}` : ""} · {adults}A {children}C{lines.filter((l) => l.kind === "ADDON").length ? ` · ${lines.filter((l) => l.kind === "ADDON").length} adicional(is)` : ""}</p>
+          <p className="truncate">{pkg ? pkg.name : packageChosen ? "Sem pacote" : "Escolha um pacote para continuar"}{date ? ` · ${fmtDate(date)} ${time}` : ""} · {adults}A {children}C{lines.filter((l) => l.kind === "ADDON").length ? ` · ${lines.filter((l) => l.kind === "ADDON").length} adicional(is)` : ""}</p>
         </div>
         <div className="flex gap-2 ml-auto">
           {step > 0 ? <button type="button" onClick={() => setStep((s) => s - 1)} className="h-11 px-4 rounded-full font-bold ring-2 ring-inset ring-white/30 whitespace-nowrap">Voltar</button> : null}
