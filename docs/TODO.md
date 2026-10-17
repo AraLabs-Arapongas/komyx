@@ -1,7 +1,7 @@
 # Komyx · pendências
 
 ## Produção (depende do Thiago)
-- [ ] Testar aviso por e-mail com um pedido de orçamento real (num buffet que não seja demo: demos não mandam e-mail)
+- [ ] Testar aviso por e-mail: pedir orçamento em www.komyx.com.br/p/komyx-buffet → chega em demo@komyx.com.br (Gmail). O reset noturno e o Buffet Revisão não mandam e-mail
 - [ ] Definir a senha de apple@komyx.com.br (Buffet Revisão) em www.komyx.com.br/esqueci-senha
 
 ## App (próxima versão na loja)
@@ -19,4 +19,4 @@
 ## Demos (prontos)
 - Komyx Buffet (/p/komyx-buffet): vitrine e vendas · dono demo@komyx.com.br · cliente 11900000001 / 123456
 - Buffet Revisão (sem página pública): App Store · dono apple@komyx.com.br · cliente 11900000010 / 123456
-- Os dois voltam ao original toda noite (03:30) por `app.reset_demo_buffet()`; fotos no Storage `org-media/<org>/demo/`
+- Os dois voltam ao original toda noite (03:30) por `app.reset_demo_buffet()`, sem e-mail; ações reais no Komyx Buffet avisam por e-mail; fotos no Storage `org-media/<org>/demo/`
