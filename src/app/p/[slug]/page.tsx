@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { MapPin, Camera, MessageCircle, Calculator, Check, Star } from "lucide-react";
+import { MapPin, Camera, MessageCircle, Check, Star } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatCurrency, whatsappLink } from "@/lib/utils";
-import { Bunting } from "@/components/public/bunting";
+import { BuffetHero } from "@/components/public/hero/hero";
 import { PolaroidGallery, type GalleryItem } from "@/components/public/polaroid-gallery";
 import { PublicFooter } from "@/components/public/public-footer";
-import { DemoBanner } from "@/components/public/demo-banner";
 import { RequestForm } from "./request-form";
 import { resolveTheme, themeStyle } from "@/lib/theme";
+import { resolveHeroStyle } from "@/lib/hero";
 import { OG_IMAGE, SITE_NAME } from "@/lib/seo";
 
 type Testimonial = { name: string; text: string };
@@ -44,7 +44,7 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
   const admin = createAdminClient();
   const { data: org } = await admin
     .from("organizations")
-    .select("id, name, slug, logo_url, cover_url, cover_caption, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, show_prices_public, status, is_demo")
+    .select("id, name, slug, logo_url, cover_url, cover_caption, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, hero_style, show_prices_public, status, is_demo")
     .eq("slug", slug)
     .neq("kind", "platform") // the Komyx platform org holds the admins, it is not a buffet
     .maybeSingle();
@@ -55,7 +55,6 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
   const testimonials = (Array.isArray(org.testimonials) ? org.testimonials : []) as Testimonial[];
   const highlights = org.highlights ?? [];
   const featuredIndex = packages && packages.length >= 3 ? 1 : packages && packages.length === 2 ? 1 : 0;
-  const years = org.founded_year ? new Date().getFullYear() - org.founded_year : null;
   const mapsUrl = org.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(org.address)}` : null;
   const waUrl = org.whatsapp ? whatsappLink(org.whatsapp, `Olá! Vi a página do ${org.name} e quero saber sobre datas e valores.`) : null;
   const theme = resolveTheme(org.plan, org.theme);
@@ -63,54 +62,8 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
 
   return (
     <main className={`flex-1 font-${theme.font}`} style={themeStyle(theme)}>
-      {org.is_demo ? <DemoBanner /> : null}
-      {/* HERO: the invitation */}
-      <section className="relative overflow-hidden" style={{ background: "var(--ink)", color: "var(--paper)" }}>
-        <div className="absolute inset-x-0 top-0"><Bunting /></div>
-        <div className="mx-auto max-w-5xl px-4 pt-24 sm:pt-32 pb-12 sm:pb-16 grid gap-8 md:grid-cols-[1.1fr_0.9fr] md:items-center">
-          <div>
-            <div className="flex items-center gap-3 mb-5">
-              {org.logo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={org.logo_url} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-[var(--sun)]" />
-              ) : <span className="h-12 w-12 rounded-full grid place-items-center font-bold display text-xl" style={{ background: "var(--sun)", color: "var(--ink)" }}>{org.name[0]}</span>}
-              <span className="font-bold tracking-wide uppercase text-sm" style={{ color: "var(--sun)" }}>{org.name}</span>
-            </div>
-            <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-6xl leading-[1.02]">{org.tagline ?? `Festa infantil sem dor de cabeça no ${org.name}`}</h1>
-            {org.description ? <p className="mt-5 text-lg/relaxed max-w-prose" style={{ color: "#cfd2e6" }}>{org.description}</p> : null}
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Link href={`/p/${org.slug}/orcamento${q}`} className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold text-base transition-transform active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sun)]" style={{ background: "var(--berry)", color: "#fff" }}>
-                <Calculator className="h-5 w-5" /> Monte seu orçamento
-              </Link>
-              {waUrl ? (
-                <a href={waUrl} target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold text-base ring-2 ring-inset ring-white/30 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sun)]">
-                  <MessageCircle className="h-5 w-5" /> Falar no WhatsApp
-                </a>
-              ) : null}
-            </div>
-            <p className="mt-3 text-sm" style={{ color: "#9da1bd" }}>Leva 2 minutos. Você escolhe pacote, data e quantidade de pessoas e já vê o valor.</p>
-            <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm" style={{ color: "#cfd2e6" }}>
-              {org.capacity ? <div><dt className="sr-only">Capacidade</dt><dd><b className="display text-2xl text-white">{org.capacity}</b> pessoas</dd></div> : null}
-              {years && years > 0 ? <div><dt className="sr-only">Experiência</dt><dd><b className="display text-2xl text-white">{years}</b> anos de festas</dd></div> : null}
-              {packages?.length ? <div><dt className="sr-only">Pacotes</dt><dd><b className="display text-2xl text-white">{packages.length}</b> pacotes{showPrices ? ` a partir de ${formatCurrency(Math.min(...packages.map((p) => Number(p.base_price))))}` : ""}</dd></div> : null}
-            </dl>
-          </div>
-          <div className="relative">
-            {org.cover_url || gallery[0] ? (
-              <div className="polaroid bg-white p-3 pb-5 shadow-[0_24px_60px_rgba(0,0,0,0.45)] rounded-sm mx-auto max-w-sm" style={{ transform: "rotate(2.5deg)" }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={org.cover_url ?? gallery[0].url} alt={(org.cover_url ? org.cover_caption : gallery[0]?.caption) ?? org.name} className="aspect-[4/3] w-full object-cover rounded-[2px]" />
-                {(org.cover_url ? org.cover_caption : gallery[0]?.caption) ? <p className="mt-3 text-sm font-semibold" style={{ color: "var(--ink)" }}>{org.cover_url ? org.cover_caption : gallery[0]?.caption}</p> : null}
-              </div>
-            ) : (
-              <div className="rounded-3xl p-8 text-center" style={{ background: "rgba(255,255,255,0.06)" }}>
-                <p className="display text-6xl">🎉</p>
-                <p className="mt-2 text-sm" style={{ color: "#cfd2e6" }}>Fotos em breve</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* HERO: the invitation, in the style the buffet picked */}
+      <BuffetHero style={resolveHeroStyle(org.hero_style)} org={org} gallery={gallery} packages={packages ?? []} waUrl={waUrl} q={q} />
 
       {waUrl ? (
         <a href={waUrl} target="_blank" rel="noopener" aria-label="Falar no WhatsApp" className="md:hidden fixed bottom-4 right-4 z-30 h-14 w-14 rounded-full grid place-items-center shadow-lg" style={{ background: "#25D366", color: "#fff" }}>

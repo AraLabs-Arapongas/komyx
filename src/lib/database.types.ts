@@ -774,6 +774,7 @@ export type Database = {
           document: string | null
           founded_year: number | null
           gallery: Json
+          hero_style: string
           highlights: string[]
           id: string
           instagram: string | null
@@ -814,6 +815,7 @@ export type Database = {
           document?: string | null
           founded_year?: number | null
           gallery?: Json
+          hero_style?: string
           highlights?: string[]
           id?: string
           instagram?: string | null
@@ -854,6 +856,7 @@ export type Database = {
           document?: string | null
           founded_year?: number | null
           gallery?: Json
+          hero_style?: string
           highlights?: string[]
           id?: string
           instagram?: string | null

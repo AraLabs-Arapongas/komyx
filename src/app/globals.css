@@ -191,3 +191,21 @@ html[data-privacy="on"] .money {
   /* Inside the horizontal phone strip the float would be clipped by the overflow container. */
   .landing-snap .float-slow { animation: none; }
 }
+
+/* Public page hero (src/components/public/hero): cinema slideshow, art entrance */
+/* Slide k>0 fades in 1.5s before its 7s slot and out at the end of it; slide 0 stays underneath and
+   shows while no other slide is visible. Keyframes per slide count so the fades land on the slots. */
+.public-theme .cinema-slide { opacity: 0; animation-duration: var(--cycle); animation-delay: var(--delay); animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-fill-mode: both; will-change: opacity; }
+@keyframes cinema-fade-2 { 0% { opacity: 0; } 10.71% { opacity: 1; } 50% { opacity: 1; } 60.71% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes cinema-fade-3 { 0% { opacity: 0; } 7.14% { opacity: 1; } 33.33% { opacity: 1; } 40.48% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes cinema-fade-4 { 0% { opacity: 0; } 5.36% { opacity: 1; } 25% { opacity: 1; } 30.36% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes cinema-fade-5 { 0% { opacity: 0; } 4.29% { opacity: 1; } 20% { opacity: 1; } 24.29% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes cinema-fade-6 { 0% { opacity: 0; } 3.57% { opacity: 1; } 16.67% { opacity: 1; } 20.24% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes cinema-zoom { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.12) translate(-1.5%, 1%); } }
+.public-theme .cinema-img { animation: cinema-zoom 18s ease-in-out infinite alternate; animation-delay: calc(var(--i, 0) * -5s); will-change: transform; }
+@keyframes hero-art-in { from { opacity: 0; transform: scale(0.94) rotate(-2deg); } to { opacity: 1; transform: none; } }
+.public-theme .hero-art { animation: hero-art-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .public-theme .cinema-slide { animation: none; }
+  .public-theme .cinema-img, .public-theme .hero-art { animation: none; }
+}
