@@ -16,7 +16,7 @@ type Testimonial = { name: string; text: string };
 export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("name, tagline, description, cover_url").eq("slug", slug).maybeSingle();
+  const { data: org } = await admin.from("organizations").select("name, tagline, description, cover_url").eq("slug", slug).neq("kind", "platform").maybeSingle();
   const title = org ? `${org.name}` : "Buffet";
   const description = org?.tagline ?? org?.description ?? undefined;
   // Self canonical without ?src= (tracking param from Instagram/WhatsApp links); the buffet's cover is its share image.
@@ -45,6 +45,7 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
     .from("organizations")
     .select("id, name, slug, logo_url, cover_url, cover_caption, whatsapp, address, instagram, description, tagline, highlights, gallery, testimonials, founded_year, capacity, plan, theme, show_prices_public, status")
     .eq("slug", slug)
+    .neq("kind", "platform") // the Komyx platform org holds the admins, it is not a buffet
     .maybeSingle();
   if (!org || org.status !== "active") notFound();
   const { data: packages } = await admin.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price, description").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name");
