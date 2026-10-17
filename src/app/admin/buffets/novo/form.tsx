@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { adminCreateBuffet } from "@/lib/actions/admin";
 import { Field, Input, Select } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 
@@ -17,7 +18,7 @@ export function NewBuffetForm() {
         <Field label="Slug (opcional)" htmlFor="slug" error={fe.slug} hint="Vazio = gerado do nome"><Input id="slug" name="slug" placeholder="festa-e-cia" /></Field>
         <Field label="Plano" htmlFor="plan"><Select id="plan" name="plan" defaultValue="basic"><option value="basic">Básico</option><option value="premium">Premium</option></Select></Field>
       </div>
-      <Field label="WhatsApp do buffet (opcional)" htmlFor="whatsapp" error={fe.whatsapp}><Input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" /></Field>
+      <Field label="WhatsApp do buffet (opcional)" htmlFor="whatsapp" error={fe.whatsapp}><PhoneInput id="whatsapp" name="whatsapp" /></Field>
       <hr className="border-border" />
       <p className="text-sm font-medium">Responsável (owner)</p>
       <div className="grid grid-cols-2 gap-3">

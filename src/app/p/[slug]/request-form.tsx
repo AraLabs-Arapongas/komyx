@@ -5,6 +5,7 @@ import { FestaSelect } from "@/components/public/festa-select";
 import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
 import type { ActionResult } from "@/lib/action-result";
 import { Field, Input, Textarea } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { LEAD_SOURCES } from "@/lib/pricing";
@@ -20,7 +21,7 @@ export function RequestForm({ slug, defaultSource }: { slug: string; defaultSour
       <input type="hidden" name="slug" value={slug} />
       {defaultSource && !known ? <input type="hidden" name="source" value={defaultSource} /> : null}
       <Field label="Seu nome" htmlFor="req_name" error={fe.name}><Input id="req_name" name="name" autoComplete="name" required /></Field>
-      <Field label="WhatsApp" htmlFor="req_whatsapp" error={fe.whatsapp}><Input id="req_whatsapp" name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" placeholder="(11) 99999-9999" required /></Field>
+      <Field label="WhatsApp" htmlFor="req_whatsapp" error={fe.whatsapp}><PhoneInput id="req_whatsapp" name="whatsapp" autoComplete="tel" required /></Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Data desejada" htmlFor="req_date" error={fe.desired_date}><Input id="req_date" name="desired_date" type="date" /></Field>
         <Field label="Horário" htmlFor="req_time"><Input id="req_time" name="desired_time" type="time" step={900} /></Field>

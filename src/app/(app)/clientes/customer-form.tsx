@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { createCustomer, updateCustomer } from "@/lib/actions/customers";
 import { Card, CardBody } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { LEAD_SOURCES } from "@/lib/pricing";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -27,7 +28,7 @@ export function CustomerForm({ customer, returnTo }: { customer?: Customer; retu
       <Card>
         <CardBody className="pt-4 space-y-4">
           <Field label="Nome" htmlFor="name" error={fe.name}><Input id="name" name="name" defaultValue={customer?.name ?? ""} required /></Field>
-          <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp} hint="DDD + número"><Input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" defaultValue={customer?.whatsapp ?? ""} required /></Field>
+          <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp} hint="DDD + número"><PhoneInput id="whatsapp" name="whatsapp" defaultValue={customer?.whatsapp ?? ""} required /></Field>
           <Field label="E-mail (opcional)" htmlFor="email" error={fe.email}><Input id="email" name="email" type="email" defaultValue={customer?.email ?? ""} /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="CPF (para contrato)" htmlFor="document"><Input id="document" name="document" defaultValue={customer?.document ?? ""} placeholder="CPF 000.000.000-00" /></Field>

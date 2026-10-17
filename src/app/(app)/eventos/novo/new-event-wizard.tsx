@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import { createEvent } from "@/lib/actions/events";
 import { Card, CardBody } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { MonthPicker, fmtBrDate } from "@/components/calendar/month-picker";
@@ -218,7 +219,7 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
               ) : (
                 <>
                   <CustomerField initialName={contact.name} error={fe.customer_name} onPick={(c) => setSelectedCustomer(c)} onChange={(v) => setContact((c) => ({ ...c, name: v }))} />
-                  <Field label="WhatsApp" htmlFor="w_whatsapp" error={fe.whatsapp} hint="DDD + número. Cliente novo é cadastrado automaticamente ao salvar."><Input id="w_whatsapp" type="tel" inputMode="tel" value={contact.whatsapp} onChange={upd("whatsapp")} placeholder="(11) 99999-9999" /></Field>
+                  <Field label="WhatsApp" htmlFor="w_whatsapp" error={fe.whatsapp} hint="DDD + número. Cliente novo é cadastrado automaticamente ao salvar."><PhoneInput id="w_whatsapp" value={contact.whatsapp} onValue={(v) => setContact((c) => ({ ...c, whatsapp: v }))} /></Field>
                   <Field label="Como conheceu o buffet?" htmlFor="w_source"><Select id="w_source" value={contact.source} onChange={upd("source")}><option value="">Não informado</option>{LEAD_SOURCES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</Select></Field>
                 </>
               )}

@@ -9,6 +9,7 @@ import { Trash2 } from "lucide-react";
 import { HERO_STYLES, type HeroStyle } from "@/lib/hero";
 import { HeroStylePreview } from "@/components/public/hero/style-preview";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 
@@ -28,7 +29,7 @@ export function OrganizationForm({ org }: { org: Org }) {
       <Field label="Nome do buffet" htmlFor="org_name" error={fe.name}><Input id="org_name" name="name" defaultValue={org.name} required /></Field>
       <Field label="Endereço público" htmlFor="slug" hint="Definido pelo Komyx. Para alterar, fale com o suporte."><Input id="slug" value={`/p/${org.slug}`} readOnly disabled /></Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="WhatsApp" htmlFor="org_whatsapp" error={fe.whatsapp}><Input id="org_whatsapp" name="whatsapp" type="tel" inputMode="tel" defaultValue={org.whatsapp ?? ""} /></Field>
+        <Field label="WhatsApp" htmlFor="org_whatsapp" error={fe.whatsapp}><PhoneInput id="org_whatsapp" name="whatsapp" defaultValue={org.whatsapp ?? ""} /></Field>
         <Field label="Instagram" htmlFor="instagram" error={fe.instagram}><Input id="instagram" name="instagram" defaultValue={org.instagram ?? ""} placeholder="@seubuffet" /></Field>
       </div>
       <Field label="Endereço" htmlFor="address"><Input id="address" name="address" defaultValue={org.address ?? ""} /></Field>

@@ -5,6 +5,7 @@ import { Pencil } from "lucide-react";
 import { updateCustomer } from "@/lib/actions/customers";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { buttonClass } from "@/components/ui/button";
@@ -51,7 +52,7 @@ export function CustomerDetails({ customer, startEditing = false }: { customer: 
           <input type="hidden" name="id" value={customer.id} />
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Nome" htmlFor="name" error={fe.name}><Input id="name" name="name" defaultValue={customer.name} required /></Field>
-            <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp} hint="DDD + número"><Input id="whatsapp" name="whatsapp" type="tel" inputMode="tel" defaultValue={customer.whatsapp} required /></Field>
+            <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp} hint="DDD + número"><PhoneInput id="whatsapp" name="whatsapp" defaultValue={customer.whatsapp} required /></Field>
             <Field label="E-mail (opcional)" htmlFor="email" error={fe.email}><Input id="email" name="email" type="email" defaultValue={customer.email ?? ""} /></Field>
             <Field label="Origem" htmlFor="source">
               <Select id="source" name="source" defaultValue={customer.source ?? ""}>

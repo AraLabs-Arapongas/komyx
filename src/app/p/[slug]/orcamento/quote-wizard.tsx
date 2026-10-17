@@ -15,6 +15,7 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { appUrl, formatDateTime, formatDateLong, formatTime, whatsappLink } from "@/lib/utils";
 import type { ActionResult } from "@/lib/action-result";
 import { Field, Input, Textarea } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -292,7 +293,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
             <h2 className="display font-extrabold text-2xl">Pra quem mandamos a resposta?</h2>
 
             <Field label="Seu nome" htmlFor="name" error={fe.name}><Input id="name" value={contact.name} onChange={upd("name")} autoComplete="name" required /></Field>
-            <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp}><Input id="whatsapp" value={contact.whatsapp} onChange={upd("whatsapp")} type="tel" inputMode="tel" autoComplete="tel" placeholder="(11) 99999-9999" required /></Field>
+            <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp}><PhoneInput id="whatsapp" value={contact.whatsapp} onValue={(v) => setContact((c) => ({ ...c, whatsapp: v }))} autoComplete="tel" required /></Field>
             <Field label="Ocasião" htmlFor="occasion">
               <FestaSelect id="occasion" value={contact.occasion} onChange={(v) => setContact((c) => ({ ...c, occasion: v }))} options={OCCASIONS} />
             </Field>

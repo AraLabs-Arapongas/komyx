@@ -69,6 +69,17 @@ export function formatPhone(digits: string) {
   return digits;
 }
 
+/** Masks a Brazilian phone while it is typed: (11) 99999-9999, or (11) 9999-9999 for landlines. A pasted +55 is dropped. */
+export function maskPhone(input: string) {
+  let d = normalizePhone(input);
+  if (d.length > 11 && d.startsWith("55")) d = d.slice(2);
+  d = d.slice(0, 11);
+  if (d.length <= 2) return d ? `(${d}` : "";
+  const rest = d.slice(2);
+  const split = d.length === 11 ? 5 : 4;
+  return rest.length <= split ? `(${d.slice(0, 2)}) ${rest}` : `(${d.slice(0, 2)}) ${rest.slice(0, split)}-${rest.slice(split)}`;
+}
+
 export function whatsappLink(phone: string, message?: string) {
   let d = normalizePhone(phone);
   if (d.length === 10 || d.length === 11) d = `55${d}`;
