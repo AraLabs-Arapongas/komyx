@@ -124,7 +124,7 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
   const d = parsed.data;
   const isBirthday = !d.occasion || d.occasion === "BIRTHDAY";
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("id, name, legal_name, city, whatsapp, pix_key, self_booking_enabled, one_event_per_day, pre_reservation_validity_hours, default_event_duration_minutes, status").eq("slug", d.slug).neq("kind", "platform").maybeSingle();
+  const { data: org } = await admin.from("organizations").select("id, name, legal_name, city, whatsapp, pix_key, self_booking_enabled, one_event_per_day, pre_reservation_validity_hours, default_event_duration_minutes, status").eq("slug", d.slug).neq("kind", "platform").eq("public_page", true).maybeSingle();
   if (!org || org.status !== "active") return fail("Buffet não encontrado.");
 
   let estimated_total: number | null = null;
