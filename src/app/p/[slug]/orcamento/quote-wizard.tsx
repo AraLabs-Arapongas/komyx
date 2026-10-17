@@ -5,7 +5,8 @@ import { MenuSummary } from "@/components/menu/menu-summary";
 import { groupsForPackage, menuView, type MenuGroup, type MenuPick } from "@/lib/menu";
 
 import { useActionState, useEffect, useMemo, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Maximize2 } from "lucide-react";
+import { PhotoLightbox } from "@/components/public/photo-lightbox";
 import { OCCASIONS } from "@/lib/labels";
 import { MonthPicker } from "@/components/calendar/month-picker";
 import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
@@ -56,6 +57,8 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
   const [packageChosen, setPackageChosen] = useState(Boolean(initial));
   const [picks, setPicks] = useState<MenuPick[]>([]);
   const [themeId, setThemeId] = useState<string | null>(null);
+  const [themeZoom, setThemeZoom] = useState<number | null>(null);
+  const zoomThemes = themes.filter((t) => t.photo_url);
   const [adults, setAdults] = useState(initial?.included_adults ?? 10);
   const [children, setChildren] = useState(initial?.included_children ?? 10);
   const [qty, setQty] = useState<Record<string, number>>({});
@@ -222,11 +225,16 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
                 <h3 className="display font-extrabold text-xl">Tem um tema em mente? <span className="text-sm font-normal" style={{ color: "var(--muted-ink)" }}>(opcional)</span></h3>
                 <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {themes.map((t) => (
-                    <button type="button" key={t.id} onClick={() => setThemeId(themeId === t.id ? null : t.id)} className={cn("text-left rounded-2xl border-2 overflow-hidden bg-white transition", themeId === t.id ? "border-[var(--berry)]" : "border-[#ece7dc] hover:border-[var(--berry)]/40")}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {t.photo_url ? <img src={t.photo_url} alt="" className="h-24 w-full object-cover" /> : <div className="h-24 w-full" style={{ background: "var(--paper-2)" }} />}
-                      <div className="p-2"><p className="font-bold text-sm">{t.name}</p>{t.description ? <p className="text-xs line-clamp-2" style={{ color: "var(--muted-ink)" }}>{t.description}</p> : null}</div>
-                    </button>
+                    <div key={t.id} className={cn("relative rounded-2xl border-2 overflow-hidden bg-white transition", themeId === t.id ? "border-[var(--berry)]" : "border-[#ece7dc] hover:border-[var(--berry)]/40")}>
+                      <button type="button" onClick={() => setThemeId(themeId === t.id ? null : t.id)} aria-pressed={themeId === t.id} className="block w-full text-left">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        {t.photo_url ? <img src={t.photo_url} alt="" className="h-24 w-full object-cover" /> : <div className="h-24 w-full" style={{ background: "var(--paper-2)" }} />}
+                        <div className="p-2"><p className="font-bold text-sm">{t.name}</p>{t.description ? <p className="text-xs line-clamp-2" style={{ color: "var(--muted-ink)" }}>{t.description}</p> : null}</div>
+                      </button>
+                      {t.photo_url ? (
+                        <button type="button" onClick={() => setThemeZoom(zoomThemes.findIndex((z) => z.id === t.id))} aria-label={`Ver o tema ${t.name} em tela cheia`} className="absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm hover:bg-black/60"><Maximize2 className="h-4 w-4" /></button>
+                      ) : null}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -366,6 +374,13 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
           )}
         </div>
       </div>
+      {themeZoom !== null ? (
+        <PhotoLightbox
+          items={zoomThemes.map((t) => ({ url: t.photo_url!, caption: t.name, description: t.description }))}
+          index={themeZoom} onIndex={setThemeZoom} onClose={() => setThemeZoom(null)}
+          action={(i) => ({ label: themeId === zoomThemes[i].id ? "Tema escolhido ✓" : "Escolher este tema", onClick: () => { setThemeId(zoomThemes[i].id); setThemeZoom(null); } })}
+        />
+      ) : null}
     </form>
   );
 }
