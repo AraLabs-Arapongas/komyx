@@ -443,5 +443,5 @@ secrets = "env(SEND_SMS_HOOK_SECRET)"
 
 [remotes.production.auth.hook.send_email]
 enabled = true
-uri = "https://komyx.com.br/api/auth/send-email"
+uri = "https://www.komyx.com.br/api/auth/send-email"
 secrets = "env(SEND_EMAIL_HOOK_SECRET)"
