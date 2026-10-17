@@ -7,6 +7,7 @@ import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import type { MenuGroup } from "@/lib/menu";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 function GroupForm({ packageId, group, index, onDone }: { packageId: string; group?: MenuGroup; index: number; onDone?: () => void }) {
   const [state, action] = useActionState(saveMenuGroup, undefined);
@@ -23,10 +24,7 @@ function GroupForm({ packageId, group, index, onDone }: { packageId: string; gro
       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto] sm:items-end">
         <Field label="Grupo" htmlFor={`mg_name_${k}`} error={fe.name}><Input id={`mg_name_${k}`} name="name" defaultValue={group?.name ?? ""} placeholder="Ex.: Salgados" required /></Field>
         <Field label="Cliente escolhe" htmlFor={`mg_mode_${k}`}>
-          <select id={`mg_mode_${k}`} name="choose_mode" value={mode} onChange={(e) => setMode(e.target.value as "all" | "n")} className="h-10 rounded-xl border border-border bg-white px-3 text-sm">
-            <option value="n">alguns itens</option>
-            <option value="all">tudo incluído</option>
-          </select>
+          <SelectMenu id={`mg_mode_${k}`} name="choose_mode" value={mode} onChange={(v) => setMode(v as "all" | "n")} options={[{ value: "n", label: "alguns itens" }, { value: "all", label: "tudo incluído" }]} />
         </Field>
         <Field label="Quantos" htmlFor={`mg_count_${k}`} error={fe.choose_count}>
           <Input id={`mg_count_${k}`} name="choose_count" type="number" min={1} max={50} defaultValue={group?.choose_count ?? 3} disabled={mode === "all"} className="w-24" />

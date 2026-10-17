@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { FestaSelect } from "@/components/public/festa-select";
+import { FestaSelect } from "@/components/ui/select-menu";
 import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
 import type { ActionResult } from "@/lib/action-result";
 import { Field, Input, Textarea } from "@/components/ui/input";

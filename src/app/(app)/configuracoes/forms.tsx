@@ -8,10 +8,11 @@ import { updateHeroStyle, updateSeoListed, updateShowPrices, updateOrganization,
 import { Trash2 } from "lucide-react";
 import { HERO_STYLES, type HeroStyle } from "@/lib/hero";
 import { HeroStylePreview } from "@/components/public/hero/style-preview";
-import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { Field, Input, Textarea } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 type Org = {
   name: string; slug: string; whatsapp: string | null; address: string | null; instagram: string | null; description: string | null;
@@ -114,10 +115,7 @@ export function PaymentPlanForm({ plan }: { plan: PlanItem[] }) {
           <Field label="%" htmlFor={`plan_pct_${i}`}><Input id={`plan_pct_${i}`} name="percent" inputMode="decimal" value={r.percent} onChange={(e) => update(i, { percent: Number(e.target.value) })} /></Field>
           <button type="button" onClick={() => setRows((x) => x.filter((_, idx) => idx !== i))} className="h-11 w-11 grid place-items-center text-muted hover:text-red-600" aria-label="Remover parcela"><Trash2 className="h-4 w-4" /></button>
           <div className="col-span-3 grid grid-cols-[1fr_110px] gap-2">
-            <Select name="rule" value={r.rule} onChange={(e) => update(i, { rule: e.target.value as PlanItem["rule"] })}>
-              <option value="ON_ACCEPT">No aceite do orçamento</option>
-              <option value="DAYS_BEFORE_EVENT">X dias antes da festa</option>
-            </Select>
+            <SelectMenu name="rule" aria-label="Quando vence" value={r.rule} onChange={(v) => update(i, { rule: v as PlanItem["rule"] })} options={[{ value: "ON_ACCEPT", label: "No aceite do orçamento" }, { value: "DAYS_BEFORE_EVENT", label: "X dias antes da festa" }]} />
             <Input name="days_before" type="number" min={0} placeholder="dias" value={r.rule === "DAYS_BEFORE_EVENT" ? r.days_before ?? 0 : ""} disabled={r.rule !== "DAYS_BEFORE_EVENT"} onChange={(e) => update(i, { days_before: Number(e.target.value) })} />
           </div>
         </div>
@@ -230,11 +228,7 @@ export function ThemeForm({ plan, theme }: { plan: string; theme: { primary: str
           ))}
         </div>
         <Field label="Fonte" htmlFor="theme_font">
-          <Select id="theme_font" name="font" defaultValue={theme.font}>
-            <option value="festa">Festa — alegre e redonda</option>
-            <option value="elegante">Elegante — serifada, para eventos sociais</option>
-            <option value="moderno">Moderno — reta e minimalista</option>
-          </Select>
+          <SelectMenu id="theme_font" name="font" defaultValue={theme.font} options={[{ value: "festa", label: "Festa — alegre e redonda" }, { value: "elegante", label: "Elegante — serifada, para eventos sociais" }, { value: "moderno", label: "Moderno — reta e minimalista" }]} />
         </Field>
       </fieldset>
       

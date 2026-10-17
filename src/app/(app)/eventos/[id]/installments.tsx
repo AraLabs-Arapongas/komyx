@@ -6,6 +6,7 @@ import { allocateInstallments, dueShort, INSTALLMENT_STATUS_LABEL, INSTALLMENT_S
 import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
 import { toDateKey } from "@/lib/utils";
 import { ReversePaymentButton } from "@/components/events/reverse-payment";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 /** Installment plan of the latest quote with paid/pending status and a one-click "Recebida" per open installment. */
 export function Installments({ eventId, payments = [], eventConfirmed = false, installments, paidTotal, extrasTotal = 0, eventStartsAt, acceptedAt }: { eventId: string; payments?: { id: string; amount: number; notes: string | null }[]; eventConfirmed?: boolean; installments: InstallmentLike[]; paidTotal: number; extrasTotal?: number; eventStartsAt: string; acceptedAt?: string | null }) {
@@ -50,9 +51,7 @@ export function Installments({ eventId, payments = [], eventConfirmed = false, i
                 <input type="hidden" name="amount" value={i.remaining.toFixed(2).replace(".", ",")} />
                 <input type="hidden" name="paid_at" value={toDateKey(new Date())} />
                 <input type="hidden" name="notes" value={`Parcela ${idx + 1} · ${i.label}`} />
-                <select name="method" defaultValue="PIX" aria-label="Forma de pagamento" className="h-8 rounded-lg border border-border bg-white px-1.5 text-xs">
-                  {Object.entries(PAYMENT_METHOD_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
+                <SelectMenu name="method" defaultValue="PIX" aria-label="Forma de pagamento" size="sm" className="w-28" options={Object.entries(PAYMENT_METHOD_LABEL).map(([value, label]) => ({ value, label }))} />
                 <button className="h-8 rounded-lg bg-emerald-600 px-2.5 text-xs font-medium text-white hover:bg-emerald-700">Recebida</button>
               </form>
             ) : null}

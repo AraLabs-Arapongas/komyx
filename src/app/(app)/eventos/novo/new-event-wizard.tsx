@@ -4,7 +4,7 @@ import { useActionState, useEffect, useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import { createEvent } from "@/lib/actions/events";
 import { Card, CardBody } from "@/components/ui/card";
-import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { Field, Input, Textarea } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -15,6 +15,7 @@ import { MenuPicker } from "@/components/menu/menu-picker";
 import { MenuSummary } from "@/components/menu/menu-summary";
 import { groupsForPackage, menuView, type MenuGroup, type MenuPick } from "@/lib/menu";
 import { bestPackageFor, buildQuoteLines, sumLines, extrasFor, LEAD_SOURCES, type PackagePricing, type AddonPricing } from "@/lib/pricing";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 type Customer = { id: string; name: string; whatsapp: string };
 type Props = {
@@ -222,7 +223,7 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
                 <>
                   <CustomerField initialName={contact.name} error={fe.customer_name} onPick={(c) => setSelectedCustomer(c)} onChange={(v) => setContact((c) => ({ ...c, name: v }))} />
                   <Field label="WhatsApp" htmlFor="w_whatsapp" error={fe.whatsapp} hint="DDD + número. Cliente novo é cadastrado automaticamente ao salvar."><PhoneInput id="w_whatsapp" value={contact.whatsapp} onValue={(v) => setContact((c) => ({ ...c, whatsapp: v }))} /></Field>
-                  <Field label="Como conheceu o buffet?" htmlFor="w_source"><Select id="w_source" value={contact.source} onChange={upd("source")}><option value="">Não informado</option>{LEAD_SOURCES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}</Select></Field>
+                  <Field label="Como conheceu o buffet?" htmlFor="w_source"><SelectMenu id="w_source" value={contact.source} onChange={(v) => setContact((c) => ({ ...c, source: v }))} options={[{ value: "", label: "Não informado" }, ...LEAD_SOURCES]} /></Field>
                 </>
               )}
               <div className="grid grid-cols-[1fr_80px] gap-3">
@@ -249,11 +250,11 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
                 <dt className="text-muted">Orçamento</dt><dd className="font-semibold text-brand">{formatCurrency(total)}</dd>
               </dl>
               <Field label="Reservar a data?" htmlFor="w_status" hint="O orçamento é criado em todos os casos.">
-                <Select id="w_status" value={status} onChange={(e) => setStatus(e.target.value as Props["initialStatus"])}>
-                  <option value="PRE_RESERVED">Sim, segurar a data por {defaults.validityHours}h (aguardando confirmação)</option>
-                  <option value="QUOTE">Não, só o orçamento (não bloqueia a agenda)</option>
-                  <option value="CONFIRMED">Já está fechado: confirmar evento</option>
-                </Select>
+                <SelectMenu id="w_status" value={status} onChange={(v) => setStatus(v as Props["initialStatus"])} options={[
+                  { value: "PRE_RESERVED", label: `Sim, segurar a data por ${defaults.validityHours}h (aguardando confirmação)` },
+                  { value: "QUOTE", label: "Não, só o orçamento (não bloqueia a agenda)" },
+                  { value: "CONFIRMED", label: "Já está fechado: confirmar festa" },
+                ]} />
               </Field>
               {sameDay && status !== "QUOTE" && isOwner ? (
                 <label className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm">

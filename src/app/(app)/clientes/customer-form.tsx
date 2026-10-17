@@ -3,12 +3,13 @@
 import { useActionState } from "react";
 import { createCustomer, updateCustomer } from "@/lib/actions/customers";
 import { Card, CardBody } from "@/components/ui/card";
-import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { Field, Input, Textarea } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { LEAD_SOURCES } from "@/lib/pricing";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import type { ActionResult } from "@/lib/action-result";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 type Customer = { id?: string; name: string; whatsapp: string; email: string | null; notes: string | null; document?: string | null; source?: string | null };
 
@@ -33,10 +34,7 @@ export function CustomerForm({ customer, returnTo }: { customer?: Customer; retu
           <div className="grid grid-cols-2 gap-3">
             <Field label="CPF (para contrato)" htmlFor="document"><Input id="document" name="document" defaultValue={customer?.document ?? ""} placeholder="CPF 000.000.000-00" /></Field>
             <Field label="Origem" htmlFor="source">
-              <Select id="source" name="source" defaultValue={customer?.source ?? ""}>
-                <option value="">Não informado</option>
-                {LEAD_SOURCES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </Select>
+              <SelectMenu id="source" name="source" defaultValue={customer?.source ?? ""} options={[{ value: "", label: "Não informado" }, ...LEAD_SOURCES]} />
             </Field>
           </div>
           <Field label="Observações" htmlFor="notes"><Textarea id="notes" name="notes" defaultValue={customer?.notes ?? ""} /></Field>

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { ACCOUNTS, cleanupOrgBySlug, login, logout, uniq } from "./helpers";
+import { ACCOUNTS, cleanupOrgBySlug, login, logout, pickOption, uniq } from "./helpers";
 
 /**
  * Admin da plataforma: cria buffet + dono, suspende (app e página pública bloqueiam), reativa.
@@ -27,7 +27,7 @@ test.describe("Admin Komyx", () => {
     await page.goto("/admin/buffets/novo");
     await page.getByLabel("Nome do buffet").fill("Buffet E2E");
     await page.getByLabel("Slug (opcional)").fill(slug);
-    await page.getByLabel("Plano").selectOption("premium");
+    await pickOption(page, "Plano", "Premium");
     await page.getByLabel("Nome", { exact: true }).fill("Dono E2E");
     await page.getByLabel("E-mail").fill(ownerEmail);
     await page.getByLabel("Senha inicial").fill("senha12345");
@@ -42,7 +42,7 @@ test.describe("Admin Komyx", () => {
     expect((await page.request.get(`/p/${slug}`)).status()).toBe(200);
 
     // Suspend
-    await page.getByLabel("Status").selectOption("suspended");
+    await pickOption(page, "Status", "Suspenso");
     await page.getByRole("button", { name: "Salvar", exact: true }).first().click();
     await expect(page.getByText("Buffet atualizado.")).toBeVisible();
     expect((await page.request.get(`/p/${slug}`)).status()).toBe(404);
@@ -59,7 +59,7 @@ test.describe("Admin Komyx", () => {
     await logout(page);
     await login(page, ACCOUNTS.admin);
     await page.goto(detailUrl);
-    await page.getByLabel("Status").selectOption("active");
+    await pickOption(page, "Status", "Ativo");
     await page.getByRole("button", { name: "Salvar", exact: true }).first().click();
     await expect(page.getByText("Buffet atualizado.")).toBeVisible();
     await logout(page);

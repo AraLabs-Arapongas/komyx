@@ -2,11 +2,12 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { addPayment } from "@/lib/actions/guests-payments";
-import { Field, Input, Select } from "@/components/ui/input";
+import { Field, Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
 import { toDateKey } from "@/lib/utils";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 export function PaymentForm({ eventId }: { eventId: string }) {
   const [state, action] = useActionState(addPayment, undefined);
@@ -28,9 +29,7 @@ export function PaymentForm({ eventId }: { eventId: string }) {
           <Input id="paid_at" name="paid_at" type="date" defaultValue={toDateKey(new Date())} required />
         </Field>
         <Field label="Forma" htmlFor="method">
-          <Select id="method" name="method" defaultValue="PIX">
-            {Object.entries(PAYMENT_METHOD_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-          </Select>
+          <SelectMenu id="method" name="method" defaultValue="PIX" options={Object.entries(PAYMENT_METHOD_LABEL).map(([value, label]) => ({ value, label }))} />
         </Field>
         <Field label="Observação" htmlFor="payment_notes">
           <Input id="payment_notes" name="notes" placeholder="Ex.: entrada de 30%" />

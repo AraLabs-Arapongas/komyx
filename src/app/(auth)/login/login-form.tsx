@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { login } from "../actions";
 import { Card, CardBody } from "@/components/ui/card";
-import { Field, Input, Select } from "@/components/ui/input";
+import { Field, Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 export type DevAccount = { label: string; email: string; password: string };
 
@@ -20,10 +21,7 @@ export function LoginForm({ next, initialError, devAccounts = [] }: { next?: str
       <CardBody className="pt-5 space-y-4">
         {devAccounts.length ? (
           <Field label="Conta de teste (só em desenvolvimento)" htmlFor="dev_account">
-            <Select id="dev_account" defaultValue="" onChange={(e) => { const a = devAccounts.find((x) => x.email === e.target.value); if (a) { setEmail(a.email); setPassword(a.password); } }}>
-              <option value="">Selecionar…</option>
-              {devAccounts.map((a) => <option key={a.email} value={a.email}>{a.label} · {a.email}</option>)}
-            </Select>
+            <SelectMenu id="dev_account" placeholder="Selecionar…" onChange={(v) => { const a = devAccounts.find((x) => x.email === v); if (a) { setEmail(a.email); setPassword(a.password); } }} options={devAccounts.map((a) => ({ value: a.email, label: `${a.label} · ${a.email}` }))} />
           </Field>
         ) : null}
         <form action={action} className="space-y-4">

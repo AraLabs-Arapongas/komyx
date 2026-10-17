@@ -6,11 +6,12 @@ import { addQuoteItem, updateQuoteDiscount, changeQuoteStatus, updateQuotePartic
 import { Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { extrasFor, type PackagePricing } from "@/lib/pricing";
-import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { buttonClass } from "@/components/ui/button";
 import type { DiscountType, QuoteStatus } from "@/lib/labels";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 export function QuoteItemForm({ quoteId, eventId }: { quoteId: string; eventId: string }) {
   const [state, action] = useActionState(addQuoteItem, undefined);
@@ -43,10 +44,7 @@ export function DiscountForm({ quoteId, eventId, discountType, discountValue, no
       <input type="hidden" name="event_id" value={eventId} />
       <div className="grid grid-cols-2 gap-3">
         <Field label="Tipo" htmlFor="discount_type">
-          <Select id="discount_type" name="discount_type" defaultValue={discountType}>
-            <option value="AMOUNT">Valor (R$)</option>
-            <option value="PERCENT">Percentual (%)</option>
-          </Select>
+          <SelectMenu id="discount_type" name="discount_type" defaultValue={discountType} options={[{ value: "AMOUNT", label: "Valor (R$)" }, { value: "PERCENT", label: "Percentual (%)" }]} />
         </Field>
         <Field label="Desconto" htmlFor="discount_value"><Input id="discount_value" name="discount_value" inputMode="decimal" defaultValue={discountValue} /></Field>
       </div>
@@ -141,11 +139,7 @@ export function InstallmentsForm({ quoteId, eventId, installments }: { quoteId: 
             <button type="button" onClick={() => setRows((x) => x.filter((_, idx) => idx !== i))} className="h-11 w-11 grid place-items-center text-muted hover:text-red-600" aria-label="Remover"><Trash2 className="h-4 w-4" /></button>
           </div>
           <div className="grid grid-cols-[1fr_120px] gap-2">
-            <Select name="rule" value={r.rule} onChange={(e) => update(i, { rule: e.target.value as Inst["rule"] })}>
-              <option value="ON_ACCEPT">No aceite</option>
-              <option value="DAYS_BEFORE_EVENT">X dias antes da festa</option>
-              <option value="FIXED_DATE">Data fixa</option>
-            </Select>
+            <SelectMenu name="rule" aria-label="Quando vence" value={r.rule} onChange={(v) => update(i, { rule: v as Inst["rule"] })} options={[{ value: "ON_ACCEPT", label: "No aceite" }, { value: "DAYS_BEFORE_EVENT", label: "X dias antes da festa" }, { value: "FIXED_DATE", label: "Data fixa" }]} />
             {r.rule === "FIXED_DATE" ? (
               <><input type="hidden" name="days_before" value="" /><Input name="due_date" type="date" value={r.due_date ?? ""} onChange={(e) => update(i, { due_date: e.target.value })} /></>
             ) : (

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Field, Input, Select } from "@/components/ui/input";
+import { Field, Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils";
 import { extrasFor, type PackagePricing } from "@/lib/pricing";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 /**
  * Package + adults/children inputs. Selecting a package fills the included counts;
@@ -33,10 +34,7 @@ export function ParticipantsFields({ packages, initialPackageId, initialAdults, 
   return (
     <div className="space-y-4">
       <Field label="Pacote" htmlFor="package_id" hint={pkg ? `Inclui ${pkg.included_adults} adultos e ${pkg.included_children} crianças por ${formatCurrency(pkg.base_price)}.` : "Sem pacote = personalizado; o orçamento parte do zero."}>
-        <Select id="package_id" name="package_id" value={packageId} onChange={(e) => choosePackage(e.target.value)}>
-          <option value="">Sem pacote (personalizado)</option>
-          {packages.map((p) => <option key={p.id} value={p.id}>{p.name} · {formatCurrency(p.base_price)}</option>)}
-        </Select>
+        <SelectMenu id="package_id" name="package_id" value={packageId} onChange={choosePackage} options={[{ value: "", label: "Sem pacote (personalizado)" }, ...packages.map((p) => ({ value: p.id, label: `${p.name} · ${formatCurrency(p.base_price)}` }))]} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Adultos" htmlFor="adults" error={errors.adults}>

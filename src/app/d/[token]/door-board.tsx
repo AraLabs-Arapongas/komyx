@@ -4,11 +4,12 @@ import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Search, UserPlus, ShoppingBag, Minus, Plus } from "lucide-react";
 import { doorCheckIn, doorAddGuest, doorAddExtra, doorRegisterPayment } from "@/lib/actions/public";
-import { Field, Input, Select } from "@/components/ui/input";
+import { Field, Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { CopyButton } from "@/components/ui/copy-button";
 import { cn, formatCurrency } from "@/lib/utils";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 type Guest = { id: string; name: string; adults: number; children: number; checked_in_at: string | null; checked_in_adults: number; checked_in_children: number; source: string; notes: string | null };
 type Extra = { id: string; description: string; quantity: number; unit_price: number; total: number; created_at: string };
@@ -173,10 +174,7 @@ function AddExtraForm({ token, addons, onDone }: { token: string; addons: Addon[
       <input type="hidden" name="token" value={token} />
       {addons.length > 0 ? (
         <Field label="Item do catálogo" htmlFor="door_addon">
-          <Select id="door_addon" name="addon_id" value={addonId} onChange={(e) => setAddonId(e.target.value)}>
-            <option value="">Item livre</option>
-            {addons.map((a) => <option key={a.id} value={a.id}>{a.name} · {formatCurrency(a.price)}</option>)}
-          </Select>
+          <SelectMenu id="door_addon" name="addon_id" value={addonId} onChange={setAddonId} options={[{ value: "", label: "Item livre" }, ...addons.map((a) => ({ value: a.id, label: `${a.name} · ${formatCurrency(a.price)}` }))]} />
         </Field>
       ) : null}
       {!addon ? (

@@ -5,24 +5,35 @@ import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type FestaOption = { value: string; label: string };
+export type SelectOption = { value: string; label: string };
+
+const TONES = {
+  // Owner app: brand colors. Public pages: the buffet's festive theme (CSS vars set on <main>).
+  app: { accent: "var(--color-brand)", ring: "focus:ring-brand/40", hover: "hover:border-brand/50", active: "bg-brand-soft", font: "", ink: "var(--color-foreground)" },
+  festa: { accent: "var(--berry)", ring: "focus:ring-[var(--berry)]/30", hover: "hover:border-[var(--berry)]/50", active: "bg-[var(--paper-2)]", font: "font-festa", ink: "var(--ink)" },
+};
 
 /**
- * Select for the public pages, in the festive look (the native one renders as the OS menu).
- * Controlled (value + onChange) or uncontrolled (defaultValue); `name` posts the value with the form.
- * The list is portaled with fixed positioning (cards clip their content) and opens upwards when
- * there is no room below, counting the wizard's sticky bar. Keyboard: arrows, Enter, Esc,
- * Home/End and type-ahead.
+ * Our select (the native one renders as the OS menu). Controlled (value + onChange) or uncontrolled
+ * (defaultValue); `name` posts the value with the form. The list is portaled with fixed positioning
+ * (cards clip their content) and opens upwards when there is no room below, counting a sticky bottom
+ * bar. Keyboard: arrows, Enter, Esc, Home/End and type-ahead.
  */
-export function FestaSelect({ id, name, value, defaultValue = "", onChange, options, placeholder = "Selecione" }: {
+export function SelectMenu({ id, name, value, defaultValue = "", onChange, options, placeholder = "Selecione", tone = "app", size = "md", className, "aria-label": ariaLabel, disabled }: {
   id?: string;
   name?: string;
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
-  options: FestaOption[];
+  options: SelectOption[];
   placeholder?: string;
+  tone?: keyof typeof TONES;
+  size?: "sm" | "md";
+  className?: string;
+  "aria-label"?: string;
+  disabled?: boolean;
 }) {
+  const t = TONES[tone];
   const [inner, setInner] = useState(defaultValue);
   const current = value ?? inner;
   const [open, setOpen] = useState(false);
@@ -97,26 +108,27 @@ export function FestaSelect({ id, name, value, defaultValue = "", onChange, opti
   };
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className={cn("relative", className)}>
       {name ? <input type="hidden" name={name} value={current} /> : null}
-      <button type="button" id={id} onClick={() => (open ? setOpen(false) : openList())} onKeyDown={onKeyDown}
-        aria-haspopup="listbox" aria-expanded={open} aria-controls={listId}
-        className={cn("flex h-11 w-full items-center justify-between gap-2 rounded-xl border bg-surface px-3.5 text-left focus:outline-none focus:ring-2 focus:ring-[var(--berry)]/30 transition-colors",
-          open ? "border-[var(--berry)]" : "border-border hover:border-[var(--berry)]/50")}>
+      <button type="button" id={id} disabled={disabled} onClick={() => (open ? setOpen(false) : openList())} onKeyDown={onKeyDown}
+        aria-haspopup="listbox" aria-expanded={open} aria-controls={listId} aria-label={ariaLabel}
+        className={cn("flex w-full items-center justify-between gap-2 border bg-surface text-left focus:outline-none focus:ring-2 transition-colors disabled:opacity-60",
+          size === "sm" ? "h-8 rounded-lg px-2 text-xs" : "h-11 rounded-xl px-3.5", t.ring,
+          open ? "" : cn("border-border", t.hover))} style={open ? { borderColor: t.accent } : undefined}>
         <span className={cn("truncate", selected ? "text-foreground" : "text-stone-400")}>{selected?.label ?? placeholder}</span>
-        <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} style={{ color: "var(--berry)" }} />
+        <ChevronDown className={cn("shrink-0 transition-transform", size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4", open && "rotate-180")} style={{ color: t.accent }} />
       </button>
       {open && pos && host ? createPortal(
         <ul ref={listRef} id={listId} role="listbox" aria-activedescendant={`${listId}-${active}`} tabIndex={-1}
-          className="fixed z-[60] overflow-auto rounded-2xl border bg-white p-1.5 shadow-[0_18px_50px_rgba(27,31,58,0.22)] font-festa"
-          style={{ borderColor: "#ece7dc", left: pos.left, width: pos.width, top: pos.top, bottom: pos.bottom, maxHeight: pos.maxHeight, color: "var(--ink)" }}>
+          className={cn("fixed z-[60] overflow-auto rounded-2xl border bg-white p-1.5 shadow-[0_18px_50px_rgba(27,31,58,0.22)]", t.font)}
+          style={{ borderColor: "#ece7dc", left: pos.left, width: Math.max(pos.width, 180), top: pos.top, bottom: pos.bottom, maxHeight: pos.maxHeight, color: t.ink }}>
           {options.map((o, i) => {
             const isSel = o.value === current;
             return (
               <li key={o.value} id={`${listId}-${i}`} data-index={i} role="option" aria-selected={isSel}
                 onPointerEnter={() => setActive(i)} onClick={() => choose(o.value)}
-                className={cn("flex cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-[15px]", i === active ? "bg-[var(--paper-2)]" : "", isSel && "font-bold")}
-                style={isSel ? { color: "var(--berry)" } : undefined}>
+                className={cn("flex cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2.5", tone === "festa" ? "text-[15px]" : "text-sm", i === active ? t.active : "", isSel && (tone === "festa" ? "font-bold" : "font-semibold"))}
+                style={isSel ? { color: t.accent } : undefined}>
                 <span>{o.label}</span>
                 {isSel ? <Check className="h-4 w-4 shrink-0" /> : null}
               </li>
@@ -127,4 +139,9 @@ export function FestaSelect({ id, name, value, defaultValue = "", onChange, opti
       ) : null}
     </div>
   );
+}
+
+/** Public pages: same select in the buffet's festive look. */
+export function FestaSelect(props: Omit<Parameters<typeof SelectMenu>[0], "tone">) {
+  return <SelectMenu {...props} tone="festa" />;
 }

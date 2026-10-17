@@ -7,7 +7,7 @@ import { groupsForPackage, menuView, type MenuGroup, type MenuPick } from "@/lib
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { Check, Maximize2 } from "lucide-react";
 import { PhotoLightbox } from "@/components/public/photo-lightbox";
-import { FestaSelect } from "@/components/public/festa-select";
+import { FestaSelect } from "@/components/ui/select-menu";
 import { OCCASIONS } from "@/lib/labels";
 import { MonthPicker } from "@/components/calendar/month-picker";
 import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";

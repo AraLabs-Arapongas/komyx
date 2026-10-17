@@ -4,13 +4,14 @@ import { useActionState, useEffect, useState } from "react";
 import { Pencil } from "lucide-react";
 import { updateCustomer } from "@/lib/actions/customers";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { Field, Input, Textarea } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { buttonClass } from "@/components/ui/button";
 import { LEAD_SOURCES, leadSourceLabel } from "@/lib/pricing";
 import { formatPhone } from "@/lib/utils";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 type Customer = { id: string; name: string; whatsapp: string; email: string | null; notes: string | null; document: string | null; source: string | null; marketing_opt_in: boolean };
 
@@ -55,10 +56,7 @@ export function CustomerDetails({ customer, startEditing = false }: { customer: 
             <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp} hint="DDD + número"><PhoneInput id="whatsapp" name="whatsapp" defaultValue={customer.whatsapp} required /></Field>
             <Field label="E-mail (opcional)" htmlFor="email" error={fe.email}><Input id="email" name="email" type="email" defaultValue={customer.email ?? ""} /></Field>
             <Field label="Origem" htmlFor="source">
-              <Select id="source" name="source" defaultValue={customer.source ?? ""}>
-                <option value="">Não informado</option>
-                {LEAD_SOURCES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </Select>
+              <SelectMenu id="source" name="source" defaultValue={customer.source ?? ""} options={[{ value: "", label: "Não informado" }, ...LEAD_SOURCES]} />
             </Field>
             <Field label="CPF (só para o contrato)" htmlFor="document"><Input id="document" name="document" defaultValue={customer.document ?? ""} placeholder="000.000.000-00" /></Field>
           </div>

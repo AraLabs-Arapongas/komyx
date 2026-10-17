@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { test, caption, clearCaption, installCaptions, saveVideo, spotlight } from "./caption";
-import { ACCOUNTS, cleanupOrgBySlug, login, logout, uniq } from "../e2e/helpers";
+import { ACCOUNTS, cleanupOrgBySlug, login, logout, pickOption, uniq } from "../e2e/helpers";
 
 test.describe("Vídeo · Admin Komyx", () => {
   const slug = uniq("demo-buffet");
@@ -23,7 +23,7 @@ test.describe("Vídeo · Admin Komyx", () => {
     await caption(page, "Novo buffet: cria a empresa e o acesso do responsável de uma vez");
     await page.getByLabel("Nome do buffet").fill("Buffet Demonstração");
     await page.getByLabel("Slug (opcional)").fill(slug);
-    await page.getByLabel("Plano").selectOption("premium");
+    await pickOption(page, "Plano", "Premium");
     await page.getByLabel("Nome", { exact: true }).fill("Patrícia Demo");
     await page.getByLabel("E-mail").fill(ownerEmail);
     await page.getByLabel("Senha inicial").fill("senha12345");
@@ -35,7 +35,7 @@ test.describe("Vídeo · Admin Komyx", () => {
     await caption(page, "Suspender pausa o acesso e a página pública; os dados ficam guardados");
     const status = page.getByLabel("Status");
     await spotlight(page, status);
-    await status.selectOption("suspended");
+    await pickOption(page, "Status", "Suspenso");
     await page.getByRole("button", { name: "Salvar", exact: true }).first().click();
     await expect(page.getByText("Buffet atualizado.")).toBeVisible();
     await page.waitForTimeout(1200);
@@ -52,7 +52,7 @@ test.describe("Vídeo · Admin Komyx", () => {
     await login(page, ACCOUNTS.admin);
     await page.goto(detailUrl);
     await caption(page, "Reativar devolve o acesso na hora");
-    await page.getByLabel("Status").selectOption("active");
+    await pickOption(page, "Status", "Ativo");
     await page.getByRole("button", { name: "Salvar", exact: true }).first().click();
     await expect(page.getByText("Buffet atualizado.")).toBeVisible();
     await page.waitForTimeout(1000);

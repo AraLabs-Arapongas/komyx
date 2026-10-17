@@ -3,10 +3,11 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { addEventExtra } from "@/lib/actions/guests-payments";
 import { updateInvite } from "@/lib/actions/events";
-import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { formatCurrency } from "@/lib/utils";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 export function ExtraForm({ eventId, addons }: { eventId: string; addons: { id: string; name: string; price: number | string }[] }) {
   const [state, action] = useActionState(addEventExtra, undefined);
@@ -37,10 +38,7 @@ export function ExtraForm({ eventId, addons }: { eventId: string; addons: { id: 
       <div className="grid grid-cols-2 @xl:grid-cols-[150px_1fr_70px_110px_auto] gap-2 items-end">
         {addons.length > 0 ? (
           <Field label="Do catálogo" htmlFor="extra_addon">
-            <Select id="extra_addon" value={addonId} onChange={(e) => pick(e.target.value)}>
-              <option value="">Item livre</option>
-              {addons.map((a) => <option key={a.id} value={a.id}>{a.name} · {formatCurrency(a.price)}</option>)}
-            </Select>
+            <SelectMenu id="extra_addon" value={addonId} onChange={pick} options={[{ value: "", label: "Item livre" }, ...addons.map((a) => ({ value: a.id, label: `${a.name} · ${formatCurrency(a.price)}` }))]} />
           </Field>
         ) : null}
         <Field label="Descrição" htmlFor="extra_desc" error={fe.description}><Input id="extra_desc" name="description" value={desc} onChange={(e) => setDesc(e.target.value)} required /></Field>

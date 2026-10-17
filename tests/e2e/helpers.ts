@@ -87,3 +87,9 @@ export async function deleteUserByEmail(email: string) {
   const { data: profile } = await db.from("profiles").select("id").eq("email", email).maybeSingle();
   if (profile) await db.auth.admin.deleteUser(profile.id);
 }
+
+/** Picks an option in our SelectMenu (a button + listbox, not a native <select>). */
+export async function pickOption(page: Page, label: string, option: string) {
+  await page.getByLabel(label, { exact: true }).click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}

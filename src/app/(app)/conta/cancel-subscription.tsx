@@ -3,9 +3,10 @@
 import { useActionState, useState } from "react";
 import { cancelSubscription } from "@/lib/actions/subscription";
 import { buttonClass } from "@/components/ui/button";
-import { Field, Input, Select } from "@/components/ui/input";
+import { Field, Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
+import { SelectMenu } from "@/components/ui/select-menu";
 
 const REASONS = ["Vou parar com o buffet", "Está caro", "Faltam recursos", "Uso outro sistema", "Outro motivo"];
 
@@ -32,10 +33,7 @@ export function CancelSubscription({ accessHint }: { accessHint: string }) {
             </div>
             {state && !state.ok ? <Alert>{state.error}</Alert> : null}
             <Field label="Por que está cancelando? (opcional)" htmlFor="cancel_reason">
-              <Select id="cancel_reason" name="reason" defaultValue="">
-                <option value="">Prefiro não dizer</option>
-                {REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
-              </Select>
+              <SelectMenu id="cancel_reason" name="reason" defaultValue="" options={[{ value: "", label: "Prefiro não dizer" }, ...REASONS.map((r) => ({ value: r, label: r }))]} />
             </Field>
             <Field label='Digite CANCELAR para confirmar' htmlFor="cancel_confirm" error={fe.confirm}><Input id="cancel_confirm" name="confirm" autoComplete="off" placeholder="CANCELAR" /></Field>
             <div className="flex justify-end gap-2">
