@@ -50,7 +50,7 @@ function addMinutes(time: string, minutes: number) {
 function fmtDate(key: string) { const [y, m, d] = key.split("-"); return `${d}/${m}/${y}`; }
 
 export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], defaultSource, preselectedPackage, today, durationMinutes, showPrices, selfBooking, validityHours, depositPercent, depositLabel }: Props) {
-  const [state, action] = useActionState<ActionResult<PublicSubmitResult> | undefined, FormData>(submitPublicRequest, undefined);
+  const [state, action, sending] = useActionState<ActionResult<PublicSubmitResult> | undefined, FormData>(submitPublicRequest, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   const initial = packages.find((p) => p.id === preselectedPackage) ?? null;
   const [step, setStep] = useState(initial ? 1 : 0);
@@ -211,7 +211,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
       <ol className="flex items-center gap-1 text-xs font-bold" aria-label="Etapas">
         {STEPS.map((s, i) => (
           <li key={s} className="flex items-center gap-1 flex-1 min-w-0">
-            <button type="button" onClick={() => i < step && setStep(i)} disabled={i > step} className={cn("flex items-center gap-1.5 rounded-full px-2.5 py-1.5 w-full", i === step ? "text-white" : i < step ? "text-[var(--ink)]" : "text-[var(--muted-ink)]")} style={{ background: i === step ? "var(--ink)" : i < step ? "var(--paper-2)" : "transparent" }}>
+            <button type="button" onClick={() => i < step && setStep(i)} disabled={i > step || sending} className={cn("flex items-center gap-1.5 rounded-full px-2.5 py-1.5 w-full", i === step ? "text-white" : i < step ? "text-[var(--ink)]" : "text-[var(--muted-ink)]")} style={{ background: i === step ? "var(--ink)" : i < step ? "var(--paper-2)" : "transparent" }}>
               <span className="grid h-5 w-5 place-items-center rounded-full text-[10px]" style={{ background: i < step ? "var(--mint)" : i === step ? "var(--sun)" : "#e5e1d6", color: "var(--ink)" }}>{i < step ? <Check className="h-3 w-3" /> : i + 1}</span>
               <span className="truncate">{s}</span>
             </button>
@@ -349,7 +349,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
             ) : (
               <p className="text-sm rounded-2xl p-4" style={{ background: "var(--paper-2)" }}>Enviamos o orçamento e a disponibilidade da data pelo seu WhatsApp. Enviar não reserva a data.</p>
             )}
-            <button type="button" onClick={() => setStep(3)} className="text-sm font-bold underline-offset-4 hover:underline" style={{ color: "var(--berry)" }}>Corrigir algo</button>
+            <button type="button" disabled={sending} onClick={() => setStep(3)} className="text-sm font-bold underline-offset-4 hover:underline disabled:opacity-40" style={{ color: "var(--berry)" }}>Corrigir algo</button>
           </>
         ) : null}
       </div>
@@ -364,7 +364,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
           <p className="truncate">{pkg ? pkg.name : packageChosen ? "Sem pacote" : "Escolha um pacote para continuar"}{date ? ` · ${fmtDate(date)} ${time}` : ""} · {adults}A {children}C{lines.filter((l) => l.kind === "ADDON").length ? ` · ${lines.filter((l) => l.kind === "ADDON").length} adicional(is)` : ""}</p>
         </div>
         <div className="flex gap-2 ml-auto">
-          {step > 0 ? <button type="button" onClick={() => setStep((s) => s - 1)} className="h-11 px-4 rounded-full font-bold ring-2 ring-inset ring-white/30 whitespace-nowrap">Voltar</button> : null}
+          {step > 0 ? <button type="button" disabled={sending} onClick={() => setStep((s) => s - 1)} className="h-11 px-4 rounded-full font-bold ring-2 ring-inset ring-white/30 whitespace-nowrap disabled:opacity-40">Voltar</button> : null}
           {step < STEPS.length - 1 ? (
             <button type="button" disabled={!canNext} onClick={() => setStep((s) => s + 1)} className="h-11 px-5 rounded-full font-extrabold disabled:opacity-40 whitespace-nowrap" style={{ background: "var(--berry)", color: "#fff" }}>Continuar</button>
           ) : selfBooking && date ? (
