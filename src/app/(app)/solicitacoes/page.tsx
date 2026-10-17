@@ -37,7 +37,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/solicit
   if (tab === "clientes") {
     return (
       <>
-        <PageHeader title="Solicitações" subtitle="Pedidos dos clientes pelo app da festa. Aprovar não altera a festa." />
+        <PageHeader title="Solicitações" subtitle="Pedidos dos clientes pelo app da festa. Aprovar aplica o pedido na festa e no valor." />
         <PageBody>
           {tabs}
           <ClientRequests answered={sp.f === "respondidos"} />

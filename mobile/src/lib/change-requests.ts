@@ -1,5 +1,5 @@
 import { confirmEventRemote } from "./confirm";
-import { supabase } from "./supabase";
+import { supabase, WEB_URL } from "./supabase";
 
 export type OwnerRequest = {
   id: string; event_id: string; kind: "EXTRA" | "PEOPLE" | "PAYMENT_NOTICE" | "OTHER"; message: string | null;
@@ -28,34 +28,35 @@ const decide = async (id: string, status: "APPROVED" | "REJECTED") => {
   if (error) throw new Error(error.message);
 };
 
-/**
- * Approving applies the request: an extra goes into the party's extras (price as typed),
- * new head counts go onto the event, a payment notice records the payment (which can confirm the
- * party and send the contract), anything else is just marked handled.
- */
-export async function approveRequest(r: OwnerRequest, organizationId: string, userId: string, price?: number) {
-  if (r.kind === "EXTRA") {
-    const description = r.payload?.description ?? r.message ?? "Extra";
-    const { error } = await supabase.from("event_extras").insert({ organization_id: organizationId, event_id: r.event_id, addon_id: r.payload?.addon_id ?? null, description, quantity: 1, unit_price: price ?? Number(r.payload?.price ?? 0), source: "STAFF", created_by: userId });
-    if (error) throw new Error(error.message);
-  } else if (r.kind === "PEOPLE") {
-    const patch: { adults?: number; children?: number } = {};
-    if (typeof r.payload?.adults === "number") patch.adults = r.payload.adults;
-    if (typeof r.payload?.children === "number") patch.children = r.payload.children;
-    if (Object.keys(patch).length) {
-      const { error } = await supabase.from("events").update(patch).eq("id", r.event_id);
-      if (error) throw new Error(error.message);
-    }
-  } else if (r.kind === "PAYMENT_NOTICE") {
-    const amount = price ?? Number(r.payload?.amount ?? 0);
-    if (!(amount > 0)) throw new Error("Informe o valor recebido.");
-    await confirmEventRemote(r.event_id, { payment: { amount, method: "PIX", notes: `Pix avisado pelo cliente${r.payload?.txid ? ` · ${r.payload.txid}` : ""}` } });
-    return; // the server marks the notice approved
-  }
-  await decide(r.id, "APPROVED");
+/** Same server routine as the site (/api/change-requests/[id]/decide), with the staff member's session. */
+async function decideRemote(id: string, body: { approve: boolean; reply?: string | null; amount?: number; price?: number }) {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error("Faça login de novo.");
+  const res = await fetch(`${WEB_URL}/api/change-requests/${id}/decide`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+  const json = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+  if (!res.ok || !json.ok) throw new Error(json.error ?? `Não foi possível responder (erro ${res.status}).`);
 }
 
-export const rejectRequest = (id: string) => decide(id, "REJECTED");
+/**
+ * Approving applies the request on the server: new head counts go onto the party and its quote
+ * (total and instalments follow), an extra goes into the party's extras (price as typed), a payment
+ * notice records the payment (which can confirm the party and send the contract).
+ */
+export async function approveRequest(r: OwnerRequest, price?: number) {
+  if (r.kind === "PAYMENT_NOTICE") {
+    const amount = price ?? Number(r.payload?.amount ?? 0);
+    if (!(amount > 0)) throw new Error("Informe o valor recebido.");
+    return decideRemote(r.id, { approve: true, amount });
+  }
+  return decideRemote(r.id, { approve: true, price: r.kind === "EXTRA" ? price : undefined });
+}
+
+export const rejectRequest = (id: string) => decideRemote(id, { approve: false });
 
 /**
  * The payment behind a "já paguei" was already recorded by hand: close the notice and make sure

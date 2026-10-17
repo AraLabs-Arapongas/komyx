@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Linking, Pressable, Text, View } from "react-native";
-import { useAuth } from "@/lib/auth";
 import { approveRequest, loadOwnerRequests, noticeAlreadyRecorded, rejectRequest, REQUEST_KIND_LABEL, type OwnerRequest } from "@/lib/change-requests";
 import { formatCurrency, formatDate, formatDateTime, whatsappUrl } from "@/lib/format";
 import { Badge, Button, Card, Empty, Input, Loading, Muted, Row, Screen, styles } from "@/ui/components";
@@ -11,13 +10,12 @@ import { colors } from "@/ui/theme";
 const STATUS: Record<OwnerRequest["status"], { label: string; tone: "amber" | "green" | "red" }> = { PENDING: { label: "Aguardando", tone: "amber" }, APPROVED: { label: "Aprovado", tone: "green" }, REJECTED: { label: "Recusado", tone: "red" } };
 
 function RequestCard({ r }: { r: OwnerRequest }) {
-  const { profile } = useAuth();
   const qc = useQueryClient();
   const needsPrice = r.kind === "EXTRA" && r.payload?.price == null;
   const [price, setPrice] = useState(r.kind === "PAYMENT_NOTICE" && r.payload?.amount ? String(r.payload.amount).replace(".", ",") : "");
   const refresh = () => { qc.invalidateQueries({ queryKey: ["owner-requests"] }); qc.invalidateQueries({ queryKey: ["pending-requests"] }); qc.invalidateQueries({ queryKey: ["home"] }); };
   const typedPrice = price ? Number(price.replace(/\./g, "").replace(",", ".")) : undefined;
-  const approve = useMutation({ mutationFn: () => approveRequest(r, profile!.organization_id, profile!.id, typedPrice), onSuccess: refresh, onError: (e) => Alert.alert("Aprovar", (e as Error).message) });
+  const approve = useMutation({ mutationFn: () => approveRequest(r, typedPrice), onSuccess: refresh, onError: (e) => Alert.alert("Aprovar", (e as Error).message) });
   const recorded = useMutation({ mutationFn: () => noticeAlreadyRecorded(r), onSuccess: refresh, onError: (e) => Alert.alert("Pagamento", (e as Error).message) });
   const reject = useMutation({ mutationFn: () => rejectRequest(r.id), onSuccess: refresh, onError: (e) => Alert.alert("Recusar", (e as Error).message) });
   const ev = r.events;

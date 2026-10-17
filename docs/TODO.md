@@ -9,8 +9,7 @@
 
 ## App
 - [ ] Instalar EAS Update (`expo-updates`) na próxima versão da loja, para mudanças só de JS irem sem revisão
-- [ ] Próxima versão leva: Aprovado/Recusado + resposta do buffet nos pedidos do cliente
-- [ ] Decidir: aprovar pedido no app do dono aplica a mudança; na web só responde. Alinhar os dois
+- [ ] Próxima versão leva: Aprovado/Recusado + resposta do buffet, prévia do valor ao pedir mais pessoas, app do dono aprovando pelo servidor
 
 ## Produto
 - [ ] Cobrança dos planos (escolher provedor: Asaas, Mercado Pago, Stripe…)

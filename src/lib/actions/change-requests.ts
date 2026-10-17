@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { requireProfile } from "@/lib/data/session";
+import { getOrganization, requireProfile } from "@/lib/data/session";
+import { decideRequest } from "@/lib/change-requests";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { uuid } from "./helpers";
 
@@ -13,32 +14,25 @@ const decideSchema = z.object({
   reply: z.string().trim().max(500, "Resposta muito longa (até 500 caracteres).").optional().transform((v) => (v ? v : null)),
 });
 
-/**
- * The buffet answers a client request. It is only an acknowledgement: the party is not changed here
- * (the owner does that on the event page), so approving "mais 10 pessoas" does not edit the head count.
- */
+const amountSchema = z.string().optional().transform((v) => (v ? Number(v.replace(/\./g, "").replace(",", ".")) : undefined));
+
+/** Web door into decideRequest: approving applies the request to the party (see src/lib/change-requests.ts). */
 export async function decideChangeRequest(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
   const parsed = decideSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Verifique os campos.");
-  const profile = await requireProfile();
+  const amount = amountSchema.parse(formData.get("amount") ? String(formData.get("amount")) : undefined);
+  const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("event_change_requests")
-    .update({ status: parsed.data.decision, reply: parsed.data.reply, decided_at: new Date().toISOString(), decided_by: profile.id })
-    .eq("id", parsed.data.id)
-    .eq("status", "PENDING")
-    .select("event_id, created_at")
-    .maybeSingle();
-  if (error) return fail(translateDbError(error));
-  if (!data) return fail("Este pedido já foi respondido.");
-
-  // The notification is inserted by the request's trigger in the same transaction, so it shares created_at.
-  await supabase.from("notifications").update({ read_at: new Date().toISOString() })
-    .eq("type", "client_request").eq("href", `/eventos/${data.event_id}`).eq("created_at", data.created_at).is("read_at", null);
+  let eventId: string;
+  try {
+    ({ eventId } = await decideRequest({ supabase, org, userId: profile.id }, parsed.data.id, { approve: parsed.data.decision === "APPROVED", reply: parsed.data.reply, amount }));
+  } catch (e) {
+    return fail(e instanceof Error && !("code" in e) ? e.message : translateDbError(e as { message: string }));
+  }
 
   revalidatePath("/solicitacoes");
-  revalidatePath(`/eventos/${data.event_id}`);
+  revalidatePath(`/eventos/${eventId}`, "layout");
   revalidatePath("/notificacoes");
   revalidatePath("/home");
-  return { ok: true, message: parsed.data.decision === "APPROVED" ? "Pedido aprovado." : "Pedido recusado." };
+  return { ok: true, message: parsed.data.decision === "APPROVED" ? "Pedido aprovado e aplicado na festa." : "Pedido recusado." };
 }

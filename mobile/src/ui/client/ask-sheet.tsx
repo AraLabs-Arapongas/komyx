@@ -27,6 +27,16 @@ export function AskSheet({
   const [peopleAdults, setPeopleAdults] = useState("");
   const [peopleChildren, setPeopleChildren] = useState("");
   const { r, ev, org, showPrices, first } = view;
+  // What the new head count costs, with the package's extra-person prices (the buffet applies the
+  // same rule when it approves): only people above what the package includes are charged.
+  const peopleDelta = (() => {
+    const pkg = r.package;
+    if (!pkg) return null;
+    const a = peopleAdults ? Number(peopleAdults) : ev.adults ?? 0, c = peopleChildren ? Number(peopleChildren) : ev.children ?? 0;
+    const over = (n: number, inc: number) => Math.max(0, n - inc);
+    const cost = (na: number, nc: number) => over(na, pkg.included_adults) * Number(pkg.extra_adult_price ?? 0) + over(nc, pkg.included_children) * Number(pkg.extra_child_price ?? 0);
+    return Math.round((cost(a, c) - cost(ev.adults ?? 0, ev.children ?? 0)) * 100) / 100;
+  })();
   const close = () => {
     onChange(null);
     setFreeText("");
@@ -126,7 +136,7 @@ export function AskSheet({
           <Text style={styles.cardTitle}>Mudar o número de pessoas</Text>
           <Muted>
             Hoje: {ev.adults ?? 0} adultos · {ev.children ?? 0} crianças.
-            Pessoas além do pacote podem mudar o valor; o buffet confirma.
+            {r.package ? ` O pacote inclui ${r.package.included_adults} adultos e ${r.package.included_children} crianças.` : ""}
           </Muted>
           <Row>
             <Field label="Adultos">
@@ -150,6 +160,20 @@ export function AskSheet({
               />
             </Field>
           </Row>
+          {(peopleAdults || peopleChildren) && peopleDelta !== null ? (
+            <View style={{ padding: 12, borderRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, gap: 2 }}>
+              {peopleDelta === 0 ? (
+                <Text style={styles.text}>Sem mudança no valor da festa.</Text>
+              ) : showPrices ? (
+                <>
+                  <Text style={[styles.text, { fontWeight: "800" }]}>{peopleDelta > 0 ? "+" : "−"} {formatCurrency(Math.abs(peopleDelta))} no valor da festa</Text>
+                  <Muted>Total passa para {formatCurrency(view.total + peopleDelta)}, se o buffet aprovar.</Muted>
+                </>
+              ) : (
+                <Text style={styles.text}>O valor da festa muda; o buffet confirma o novo total.</Text>
+              )}
+            </View>
+          ) : null}
           <Button
             title="Enviar pedido"
             loading={ask.isPending}

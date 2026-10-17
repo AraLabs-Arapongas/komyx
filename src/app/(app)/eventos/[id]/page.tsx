@@ -78,7 +78,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
 
   const { data: event } = await supabase
     .from("events")
-    .select("*, customers(id, name, whatsapp, email, document, source), packages(id, name), party_themes(name)")
+    .select("*, customers(id, name, whatsapp, email, document, source), packages(id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price), party_themes(name)")
     .eq("id", id)
     .maybeSingle();
   if (!event) notFound();
@@ -101,6 +101,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
 
   const changeRequests = (changeRes.data ?? []) as unknown as ChangeRequestRow[];
   const pendingChanges = changeRequests.filter((r) => r.status === "PENDING").length;
+  const tab = sp.aba === "pedidos" && changeRequests.length > 0 ? "pedidos" : "festa";
   const customer = event.customers!;
   const title = eventTitle(event);
   const link = (type: string) => links.find((l) => l.type === type);
@@ -169,14 +170,31 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
           </CardBody>
         </Card>
 
-        {/* Requests the client sent from the app; answering does not change the party */}
+        {/* Two tabs once the client has sent requests: the party itself, and the requests with their history */}
         {changeRequests.length > 0 ? (
-          <Card id="pedidos" className="scroll-mt-20">
-            <CardHeader title="Pedidos do cliente" subtitle={pendingChanges ? `${pendingChanges} aguardando resposta · o cliente vê a resposta no app` : "O cliente vê a resposta no app"} />
+          <nav className="flex gap-1 border-b border-border" aria-label="Seções do evento">
+            {([["festa", "Festa"], ["pedidos", "Pedidos do cliente"]] as const).map(([key, label]) => (
+              <Link key={key} href={key === "festa" ? `/eventos/${id}` : `/eventos/${id}?aba=pedidos`} scroll={false} aria-current={tab === key ? "page" : undefined}
+                className={cn("-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium", tab === key ? "border-brand text-brand" : "border-transparent text-muted hover:text-foreground")}>
+                {label}{key === "pedidos" && pendingChanges ? <span className="rounded-full bg-brand px-1.5 text-[11px] leading-5 text-brand-fg">{pendingChanges}</span> : null}
+              </Link>
+            ))}
+          </nav>
+        ) : null}
+
+        {tab === "pedidos" ? (
+          <Card>
+            <CardHeader title="Pedidos do cliente" subtitle="Aprovar aplica o pedido na festa e no valor · o cliente vê a resposta no app" />
             <CardBody className="divide-y divide-border [&>*]:py-3 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
-              {changeRequests.map((r) => <ChangeRequestItem key={r.id} r={{ ...r, events: { title: event.title, starts_at: event.starts_at, adults: event.adults, children: event.children, customers: { name: customer.name } } }} />)}
+              {changeRequests.map((r) => <ChangeRequestItem key={r.id} r={{ ...r, events: { title: event.title, starts_at: event.starts_at, adults: event.adults, children: event.children, customers: { name: customer.name }, packages: event.packages } }} />)}
             </CardBody>
           </Card>
+        ) : <>
+        {pendingChanges ? (
+          <Alert tone="info">
+            {pendingChanges === 1 ? "1 pedido do cliente aguardando resposta." : `${pendingChanges} pedidos do cliente aguardando resposta.`}{" "}
+            <Link href={`/eventos/${id}?aba=pedidos`} scroll={false} className="font-medium underline underline-offset-4">Ver pedidos</Link>
+          </Alert>
         ) : null}
 
         {/* Row: client · party data · documents */}
@@ -362,6 +380,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
             </CardBody>
           </Card>
         </div>
+        </>}
       </PageBody>
     </>
   );
