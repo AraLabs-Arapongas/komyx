@@ -2,7 +2,7 @@ import type { MenuView } from "./menu";
 import { supabase } from "./supabase";
 
 export type ReservationGuest = { id: string; name: string; adults: number; children: number; source: "MANUAL" | "PUBLIC" | "CLIENT"; checked_in: boolean; notes: string | null };
-export type ChangeRequest = { id: string; kind: "EXTRA" | "PEOPLE" | "PAYMENT_NOTICE" | "OTHER"; message: string | null; payload: Record<string, unknown> | null; status: "PENDING" | "APPROVED" | "REJECTED"; created_at: string };
+export type ChangeRequest = { id: string; kind: "EXTRA" | "PEOPLE" | "PAYMENT_NOTICE" | "OTHER"; message: string | null; payload: Record<string, unknown> | null; status: "PENDING" | "APPROVED" | "REJECTED"; created_at: string; decided_at?: string | null; reply?: string | null };
 export type Addon = { id: string; name: string; price: number; description: string | null };
 
 export type Reservation = {

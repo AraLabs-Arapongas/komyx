@@ -22,7 +22,7 @@ import { colors } from "@/ui/theme";
 import type { Party } from "@/ui/client/party-card";
 const REQUEST_LABEL: Record<ChangeRequest["kind"], string> = { EXTRA: "Pedido de extra", PEOPLE: "Mudança de pessoas", PAYMENT_NOTICE: "Aviso de pagamento", OTHER: "Pedido" };
 const REQUEST_TONE: Record<ChangeRequest["status"], "amber" | "green" | "red"> = { PENDING: "amber", APPROVED: "green", REJECTED: "red" };
-const REQUEST_STATUS: Record<ChangeRequest["status"], string> = { PENDING: "aguardando o buffet", APPROVED: "confirmado", REJECTED: "não foi possível" };
+const REQUEST_STATUS: Record<ChangeRequest["status"], string> = { PENDING: "Aguardando o buffet", APPROVED: "Aprovado", REJECTED: "Recusado" };
 
 /** Tile that jumps to a tab with the one number that matters there. */
 function Jump({ icon, label, value, tone, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; tone?: "warn" | "ok"; onPress: () => void }) {
@@ -106,7 +106,7 @@ function Overview({ token }: { token: string }) {
         <CardTitle title="Pedidos ao buffet" subtitle="Extras, mais gente, outra coisa: você pede, o buffet confirma." right={pending.length ? <Badge tone="amber">{pending.length} aguardando</Badge> : undefined} />
         {r.requests.slice(0, 5).map((x) => (
           <Row key={x.id} style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
-            <View style={{ flex: 1 }}><Text style={styles.text}>{REQUEST_LABEL[x.kind]}{x.payload && typeof x.payload.description === "string" ? ` · ${x.payload.description}` : ""}</Text>{x.message && x.kind !== "PAYMENT_NOTICE" ? <Muted>{x.message}</Muted> : null}<Muted>{formatDate(x.created_at)}</Muted></View>
+            <View style={{ flex: 1 }}><Text style={styles.text}>{REQUEST_LABEL[x.kind]}{x.payload && typeof x.payload.description === "string" ? ` · ${x.payload.description}` : ""}</Text>{x.message && x.kind !== "PAYMENT_NOTICE" ? <Muted>{x.message}</Muted> : null}<Muted>{formatDate(x.created_at)}</Muted>{x.reply ? <Text style={[styles.text, { fontStyle: "italic" }]}>{org.name}: “{x.reply}”</Text> : null}</View>
             <Badge tone={REQUEST_TONE[x.status]}>{REQUEST_STATUS[x.status]}</Badge>
           </Row>
         ))}
