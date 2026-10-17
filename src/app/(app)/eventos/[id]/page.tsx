@@ -23,6 +23,7 @@ import { ExtraForm, InviteForm } from "./extra-forms";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Installments } from "./installments";
 import { ReversePaymentButton } from "@/components/events/reverse-payment";
+import { ChangeRequestItem, type ChangeRequestRow } from "@/components/events/change-request-item";
 import { allocateInstallments, type InstallmentLike } from "@/lib/installments";
 import { balancePix, chargeMessage, eventTxid } from "@/lib/charge";
 
@@ -82,7 +83,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
     .maybeSingle();
   if (!event) notFound();
 
-  const [guestsRes, paymentsRes, reversalsRes, links, quotesRes, contractsRes, extrasRes, addonsRes, fin] = await Promise.all([
+  const [guestsRes, paymentsRes, reversalsRes, links, quotesRes, contractsRes, extrasRes, addonsRes, fin, changeRes] = await Promise.all([
     supabase.from("guests").select("id, name, adults, children, participants, source, notes, checked_in_at, checked_in_adults, checked_in_children, created_at").eq("event_id", id).order("created_at"),
     supabase.from("payments").select("id, amount, paid_at, method, notes").eq("event_id", id).order("paid_at", { ascending: false }),
     supabase.from("payment_reversals").select("id, amount, paid_at, method, notes, reason, reopened, reversed_at, reversed_by").eq("event_id", id).order("reversed_at", { ascending: false }),
@@ -92,11 +93,14 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
     supabase.from("event_extras").select("id, description, quantity, unit_price, total, source, created_at").eq("event_id", id).order("created_at", { ascending: false }),
     supabase.from("package_addons").select("id, name, price").eq("active", true).order("sort_order").order("name"),
     loadEventFinancials(supabase, id),
+    supabase.from("event_change_requests").select("id, event_id, kind, message, payload, status, created_at, decided_at, reply, decider:profiles(name)").eq("event_id", id).order("created_at", { ascending: false }).limit(20),
   ]);
   const reverserIds = [...new Set((reversalsRes.data ?? []).map((r) => r.reversed_by).filter((x): x is string => Boolean(x)))];
   const { data: reversers } = reverserIds.length ? await supabase.from("profiles").select("id, name").in("id", reverserIds) : { data: [] as { id: string; name: string }[] };
   const reverserNames = new Map((reversers ?? []).map((p) => [p.id, p.name]));
 
+  const changeRequests = (changeRes.data ?? []) as unknown as ChangeRequestRow[];
+  const pendingChanges = changeRequests.filter((r) => r.status === "PENDING").length;
   const customer = event.customers!;
   const title = eventTitle(event);
   const link = (type: string) => links.find((l) => l.type === type);
@@ -164,6 +168,16 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
             <StatusActions eventId={id} status={event.status} pixTxid={event.pix_txid} balance={balance} depositAmount={latestQuote ? Number([...latestQuote.quote_installments].sort((a, b) => a.sequence - b.sequence)[0]?.amount ?? 0) || null : null} />
           </CardBody>
         </Card>
+
+        {/* Requests the client sent from the app; answering does not change the party */}
+        {changeRequests.length > 0 ? (
+          <Card id="pedidos" className="scroll-mt-20">
+            <CardHeader title="Pedidos do cliente" subtitle={pendingChanges ? `${pendingChanges} aguardando resposta · o cliente vê a resposta no app` : "O cliente vê a resposta no app"} />
+            <CardBody className="divide-y divide-border [&>*]:py-3 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+              {changeRequests.map((r) => <ChangeRequestItem key={r.id} r={{ ...r, events: { title: event.title, starts_at: event.starts_at, adults: event.adults, children: event.children, customers: { name: customer.name } } }} />)}
+            </CardBody>
+          </Card>
+        ) : null}
 
         {/* Row: client · party data · documents */}
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -257,7 +271,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
 
         {/* Row: payments · extras */}
         <div className="grid gap-3 xl:grid-cols-2">
-          <Card>
+          <Card id="pagamentos" className="scroll-mt-20">
             <CardHeader title="Pagamentos" subtitle={`Pago ${formatCurrency(fin?.paid_total ?? 0)} · falta receber ${formatCurrency(fin?.balance ?? 0)}`}
               action={chargeHref ? <a href={chargeHref} target="_blank" rel="noopener" className={buttonClass("primary", "sm", "whitespace-nowrap")}><MessageCircle className="h-4 w-4" /> Cobrar {formatCurrency(balance)}</a> : null} />
             <CardBody className="space-y-3">
@@ -297,7 +311,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
             </CardBody>
           </Card>
 
-          <Card>
+          <Card id="extras" className="scroll-mt-20">
             <CardHeader title="Pedidos extras na festa" subtitle={`Somam ao saldo · ${formatCurrency(fin?.extras_total ?? 0)}`} />
             <CardBody className="space-y-3">
               {(extrasRes.data ?? []).length > 0 ? (
