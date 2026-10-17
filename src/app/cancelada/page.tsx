@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { reactivateSubscription } from "@/lib/actions/subscription";
 import { buttonClass } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Assinatura cancelada" };
 
@@ -18,9 +19,9 @@ export default async function CancelledPage() {
         <h1 className="text-2xl font-semibold">Assinatura cancelada</h1>
         <p className="text-muted">O {org?.name} cancelou o Komyx{until ? ` e o acesso terminou em ${until}` : ""}. Agenda, clientes, orçamentos e contratos continuam guardados por 90 dias. Reative quando quiser e tudo volta como estava.</p>
         {profile.role === "owner" ? (
-          <form action={reactivateSubscription}><button className={buttonClass("primary", "lg")}>Reativar assinatura</button></form>
+          <form action={reactivateSubscription}><PendingButton className={buttonClass("primary", "lg")}>Reativar assinatura</PendingButton></form>
         ) : <p className="text-sm text-muted">Só a proprietária pode reativar.</p>}
-        <form action="/auth/signout" method="post"><button className="text-sm text-muted">Sair</button></form>
+        <form action="/auth/signout" method="post"><PendingButton className="text-sm text-muted">Sair</PendingButton></form>
       </div>
     </main>
   );

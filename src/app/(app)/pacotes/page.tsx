@@ -10,6 +10,7 @@ import { NewItemMenu } from "./new-item-menu";
 import { PackageMenuEditor } from "./menu-editor";
 import { loadMenuGroups } from "@/lib/data/menu";
 import { EmptyState } from "@/components/ui/page";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Pacotes" };
 
@@ -45,7 +46,7 @@ export default async function PackagesPage() {
                   <form action={togglePackage}>
                     <input type="hidden" name="id" value={p.id} />
                     <input type="hidden" name="active" value={p.active ? "false" : "true"} />
-                    <button className="text-sm text-muted hover:text-foreground">{p.active ? "Desativar pacote" : "Reativar pacote"}</button>
+                    <PendingButton className="text-sm text-muted hover:text-foreground">{p.active ? "Desativar pacote" : "Reativar pacote"}</PendingButton>
                   </form>
                 </div>
               </details>
@@ -71,7 +72,7 @@ export default async function PackagesPage() {
                   <form action={toggleAddon}>
                     <input type="hidden" name="id" value={a.id} />
                     <input type="hidden" name="active" value={a.active ? "false" : "true"} />
-                    <button className="text-sm text-muted hover:text-foreground">{a.active ? "Desativar" : "Reativar"}</button>
+                    <PendingButton className="text-sm text-muted hover:text-foreground">{a.active ? "Desativar" : "Reativar"}</PendingButton>
                   </form>
                 </div>
               </details>
@@ -101,7 +102,7 @@ export default async function PackagesPage() {
                   <form action={toggleTheme}>
                     <input type="hidden" name="id" value={t.id} />
                     <input type="hidden" name="active" value={t.active ? "false" : "true"} />
-                    <button className="text-sm text-muted hover:text-foreground">{t.active ? "Desativar tema" : "Reativar tema"}</button>
+                    <PendingButton className="text-sm text-muted hover:text-foreground">{t.active ? "Desativar tema" : "Reativar tema"}</PendingButton>
                   </form>
                 </div>
               </details>

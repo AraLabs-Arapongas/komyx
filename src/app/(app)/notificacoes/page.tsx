@@ -5,6 +5,7 @@ import { markAllNotificationsRead, markNotificationRead } from "@/lib/actions/no
 import { PageBody, PageHeader, EmptyState } from "@/components/ui/page";
 import { buttonClass } from "@/components/ui/button";
 import { cn, formatDateTime } from "@/lib/utils";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Notificações" };
 
@@ -16,7 +17,7 @@ export default async function NotificationsPage() {
   const unread = (items ?? []).filter((n) => !n.read_at).length;
   return (
     <>
-      <PageHeader title="Notificações" subtitle={unread ? `${unread} não lida(s)` : "Tudo lido"} action={unread ? <form action={markAllNotificationsRead}><button className={buttonClass("outline", "sm")}>Marcar todas como lidas</button></form> : null} />
+      <PageHeader title="Notificações" subtitle={unread ? `${unread} não lida(s)` : "Tudo lido"} action={unread ? <form action={markAllNotificationsRead}><PendingButton className={buttonClass("outline", "sm")}>Marcar todas como lidas</PendingButton></form> : null} />
       <PageBody>
         {items && items.length ? (
           <ul className="rounded-2xl border border-border bg-surface divide-y divide-border overflow-hidden">
@@ -30,7 +31,7 @@ export default async function NotificationsPage() {
                     {n.body ? <p className="text-sm text-muted">{n.body}</p> : null}
                     <p className="text-xs text-muted">{formatDateTime(n.created_at)}</p>
                   </div>
-                  {!n.read_at ? <form action={markNotificationRead}><input type="hidden" name="id" value={n.id} /><button className="text-xs text-muted hover:text-foreground">Lida</button></form> : null}
+                  {!n.read_at ? <form action={markNotificationRead}><input type="hidden" name="id" value={n.id} /><PendingButton className="text-xs text-muted hover:text-foreground">Lida</PendingButton></form> : null}
                 </li>
               );
             })}

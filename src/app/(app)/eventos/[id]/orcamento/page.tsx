@@ -18,6 +18,7 @@ import { menuView } from "@/lib/menu";
 import { MenuSummary } from "@/components/menu/menu-summary";
 import { QuoteMenuForm } from "./quote-menu-form";
 import { QuoteItemForm, DiscountForm, QuoteStatusForm, ShareQuote, ParticipantsForm, InstallmentsForm } from "./quote-forms";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Orçamento" };
 
@@ -39,7 +40,7 @@ export default async function QuotePage({ params, searchParams }: PageProps<"/ev
         <PageBody>
           <form action={createQuoteAndGo}>
             <input type="hidden" name="event_id" value={id} />
-            <button className={buttonClass("primary", "lg", "w-full")}>Montar orçamento</button>
+            <PendingButton className={buttonClass("primary", "lg", "w-full")}>Montar orçamento</PendingButton>
           </form>
         </PageBody>
       </>
@@ -100,7 +101,7 @@ export default async function QuotePage({ params, searchParams }: PageProps<"/ev
                         <form action={removeQuoteItem}>
                           <input type="hidden" name="id" value={it.id} />
                           <input type="hidden" name="event_id" value={id} />
-                          <button className="text-xs text-muted hover:text-red-600">Remover</button>
+                          <PendingButton className="text-xs text-muted hover:text-red-600">Remover</PendingButton>
                         </form>
                       ) : null}
                     </div>
@@ -129,7 +130,7 @@ export default async function QuotePage({ params, searchParams }: PageProps<"/ev
                       <input type="hidden" name="addon_id" value={a.id} />
                       <div className="min-w-0 flex-1"><p className="font-medium truncate">{a.name}</p><p className="text-xs text-muted">{formatCurrency(a.price)}</p></div>
                       <input name="quantity" type="number" min={1} defaultValue={1} className="h-9 w-16 rounded-lg border border-border px-2 text-sm" aria-label="Quantidade" />
-                      <button className={buttonClass("secondary", "sm")}>Adicionar</button>
+                      <PendingButton className={buttonClass("secondary", "sm")}>Adicionar</PendingButton>
                     </form>
                   ))}
                 </CardBody>
@@ -171,7 +172,7 @@ export default async function QuotePage({ params, searchParams }: PageProps<"/ev
             <QuoteStatusForm quoteId={quote.id} eventId={id} status={quote.status} />
             <div className="flex flex-wrap gap-2">
               <a href={pdfUrl} className={buttonClass("outline", "sm")}><Download className="h-4 w-4" /> Baixar PDF</a>
-              <form action={generateContractAndGo}><input type="hidden" name="event_id" value={id} /><button className={buttonClass("outline", "sm")}><FileSignature className="h-4 w-4" /> Gerar contrato</button></form>
+              <form action={generateContractAndGo}><input type="hidden" name="event_id" value={id} /><PendingButton className={buttonClass("outline", "sm")}><FileSignature className="h-4 w-4" /> Gerar contrato</PendingButton></form>
             </div>
             <ShareQuote publicUrl={publicUrl} whatsappUrl={whatsappLink(customer.whatsapp, message)} />
           </CardBody>

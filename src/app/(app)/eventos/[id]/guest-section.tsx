@@ -9,6 +9,7 @@ import { Alert } from "@/components/ui/page";
 import { buttonClass } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { whatsappLink } from "@/lib/utils";
+import { PendingButton } from "@/components/ui/pending-button";
 
 type Guest = { id: string; name: string; adults: number; children: number; participants: number | null; source: "MANUAL" | "PUBLIC" | "DOOR" | "CLIENT"; notes: string | null; checked_in_at: string | null; checked_in_adults: number; checked_in_children: number };
 
@@ -34,7 +35,7 @@ export function GuestSection({ eventId, guests, guestLink, eventTitle, customerP
                 <form action={revokePublicLink}>
                   <input type="hidden" name="id" value={guestLink.id} />
                   <input type="hidden" name="event_id" value={eventId} />
-                  <button className="h-9 px-2 text-xs text-muted hover:text-red-600">Revogar</button>
+                  <PendingButton className="h-9 px-2 text-xs text-muted hover:text-red-600">Revogar</PendingButton>
                 </form>
               </div>
             </>
@@ -58,12 +59,12 @@ export function GuestSection({ eventId, guests, guestLink, eventTitle, customerP
                     <input type="hidden" name="event_id" value={eventId} />
                     <input type="hidden" name="checked_in_adults" value={arrived ? 0 : g.adults} />
                     <input type="hidden" name="checked_in_children" value={arrived ? 0 : g.children} />
-                    <button className={buttonClass(arrived ? "ghost" : "outline", "sm")}>{arrived ? "Desfazer" : "Chegou"}</button>
+                    <PendingButton className={buttonClass(arrived ? "ghost" : "outline", "sm")}>{arrived ? "Desfazer" : "Chegou"}</PendingButton>
                   </form>
                   <form action={removeGuest}>
                     <input type="hidden" name="id" value={g.id} />
                     <input type="hidden" name="event_id" value={eventId} />
-                    <button className="h-9 w-9 grid place-items-center text-muted hover:text-red-600" aria-label="Remover convidado"><Trash2 className="h-4 w-4" /></button>
+                    <PendingButton className="h-9 w-9 grid place-items-center text-muted hover:text-red-600" aria-label="Remover convidado"><Trash2 className="h-4 w-4" /></PendingButton>
                   </form>
                 </div>
               </li>

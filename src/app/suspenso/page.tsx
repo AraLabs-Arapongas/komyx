@@ -1,5 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Conta suspensa" };
 
@@ -11,7 +12,7 @@ export default function SuspendedPage() {
         <h1 className="text-2xl font-semibold">Conta suspensa</h1>
         <p className="text-muted">O acesso deste buffet ao Komyx está pausado. Seus dados estão guardados. Fale com o suporte para reativar.</p>
         <a href="https://wa.me/5511999999999?text=Ol%C3%A1%2C%20minha%20conta%20no%20Komyx%20est%C3%A1%20suspensa" target="_blank" rel="noopener" className={buttonClass("primary", "lg")}><MessageCircle className="h-5 w-5" /> Falar com o suporte</a>
-        <form action="/auth/signout" method="post"><button className="text-sm text-muted">Sair</button></form>
+        <form action="/auth/signout" method="post"><PendingButton className="text-sm text-muted">Sair</PendingButton></form>
       </div>
     </main>
   );

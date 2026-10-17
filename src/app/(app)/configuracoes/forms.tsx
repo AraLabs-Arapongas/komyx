@@ -13,6 +13,7 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { SelectMenu } from "@/components/ui/select-menu";
+import { PendingButton } from "@/components/ui/pending-button";
 
 type Org = {
   name: string; slug: string; whatsapp: string | null; address: string | null; instagram: string | null; description: string | null;
@@ -189,11 +190,11 @@ export function GalleryForm({ gallery }: { gallery: { url: string; caption?: str
               <form action={updateGalleryCaption} className="flex gap-1 p-2">
                 <input type="hidden" name="url" value={g.url} />
                 <input name="caption" defaultValue={g.caption ?? ""} placeholder="Legenda" className="h-9 min-w-0 flex-1 rounded-lg border border-border px-2 text-sm" />
-                <button className="h-9 px-2 text-xs font-medium text-brand">Salvar</button>
+                <PendingButton className="h-9 px-2 text-xs font-medium text-brand">Salvar</PendingButton>
               </form>
               <form action={removeGalleryImage} className="px-2 pb-2">
                 <input type="hidden" name="url" value={g.url} />
-                <button className="text-xs text-muted hover:text-red-600">Remover foto</button>
+                <PendingButton className="text-xs text-muted hover:text-red-600">Remover foto</PendingButton>
               </form>
             </li>
           ))}

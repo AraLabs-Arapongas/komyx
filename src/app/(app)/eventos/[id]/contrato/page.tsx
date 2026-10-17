@@ -11,6 +11,7 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { eventTitle } from "@/components/events/event-card";
 import { appUrl, formatDateTime, whatsappLink } from "@/lib/utils";
 import { ContractEditor, ContractStatusForm } from "./contract-forms";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Contrato" };
 
@@ -31,7 +32,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
       <>
         <PageHeader title="Contrato" back={`/eventos/${id}`} />
         <PageBody>
-          <form action={generateContractAndGo}><input type="hidden" name="event_id" value={id} /><button className={buttonClass("primary", "lg", "w-full")}>Gerar contrato</button></form>
+          <form action={generateContractAndGo}><input type="hidden" name="event_id" value={id} /><PendingButton className={buttonClass("primary", "lg", "w-full")}>Gerar contrato</PendingButton></form>
         </PageBody>
       </>
     );
@@ -69,7 +70,7 @@ export default async function ContractPage({ params, searchParams }: PageProps<"
 
         <div className="flex gap-2 pb-4">
           <Link href={`/eventos/${id}`} className={buttonClass("outline", "md", "flex-1")}>Voltar ao evento</Link>
-          <form action={generateContractAndGo} className="flex-1"><input type="hidden" name="event_id" value={id} /><button className={buttonClass("outline", "md", "w-full")}>Gerar nova versão</button></form>
+          <form action={generateContractAndGo} className="flex-1"><input type="hidden" name="event_id" value={id} /><PendingButton className={buttonClass("outline", "md", "w-full")}>Gerar nova versão</PendingButton></form>
         </div>
       </PageBody>
     </>

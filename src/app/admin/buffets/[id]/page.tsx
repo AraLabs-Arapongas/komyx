@@ -8,6 +8,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { appUrl, formatCurrency, formatDateTime } from "@/lib/utils";
 import { OrgAdminForm, ResetPasswordForm } from "./forms";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,7 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
                     <div className="min-w-0"><p className="font-medium truncate">{m.name} {m.is_platform_admin ? <Badge tone="amber" className="ml-1">admin komyx</Badge> : null}</p><p className="text-xs text-muted truncate">{m.email} · desde {formatDateTime(m.created_at)}</p></div>
                     <div className="flex items-center gap-2">
                       <Badge tone={m.role === "owner" ? "brand" : "zinc"}>{m.role === "owner" ? "Responsável" : "Equipe"}</Badge>
-                      <form action={adminSetRole}><input type="hidden" name="user_id" value={m.id} /><input type="hidden" name="org_id" value={org.id} /><input type="hidden" name="role" value={m.role === "owner" ? "staff" : "owner"} /><button className="text-xs text-muted hover:text-foreground">{m.role === "owner" ? "Tornar equipe" : "Tornar responsável"}</button></form>
+                      <form action={adminSetRole}><input type="hidden" name="user_id" value={m.id} /><input type="hidden" name="org_id" value={org.id} /><input type="hidden" name="role" value={m.role === "owner" ? "staff" : "owner"} /><PendingButton className="text-xs text-muted hover:text-foreground">{m.role === "owner" ? "Tornar equipe" : "Tornar responsável"}</PendingButton></form>
                     </div>
                   </div>
                   <ResetPasswordForm userId={m.id} orgId={org.id} />

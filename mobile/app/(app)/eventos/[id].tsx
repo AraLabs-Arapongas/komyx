@@ -94,6 +94,8 @@ export default function EventDetail() {
       { text: "Voltar para pré-reserva", style: "destructive", onPress: () => reversePayment.mutate({ id: p.id, reopen: true }) },
     ]);
   }
+  // One action at a time: a second tap while saving would record the same payment twice.
+  const busy = setStatus.isPending || addPayment.isPending;
   const checkIn = useMutation({
     mutationFn: async (g: Guest) => {
       const arrived = Boolean(g.checked_in_at);
@@ -175,7 +177,7 @@ export default function EventDetail() {
           {ev.pix_txid && (status === "PRE_RESERVED" || status === "EXPIRED") ? (
             <View style={{ backgroundColor: colors.greenSoft, borderRadius: 12, padding: 12, gap: 8 }}>
               <Text style={styles.text}><Text style={{ fontWeight: "700" }}>Reserva online.</Text> Procure no extrato um Pix com identificador <Text style={{ fontFamily: "Courier", fontWeight: "700" }}>{ev.pix_txid}</Text>{deposit ? ` de ${formatCurrency(deposit)}` : ""}.</Text>
-              <Button title="Recebi o sinal · confirmar" variant="success" size="sm" onPress={async () => {
+              <Button disabled={busy} loading={addPayment.isPending} title="Recebi o sinal · confirmar" variant="success" size="sm" onPress={async () => {
                 await addPayment.mutateAsync({ amount: deposit ?? 0, method: "PIX", notes: "Sinal da reserva online (Pix conferido no extrato)" });
                 if (quote && quote.status !== "ACCEPTED") await supabase.from("quotes").update({ status: "ACCEPTED" }).eq("id", quote.id);
                 setStatus.mutate("CONFIRMED");
@@ -183,13 +185,13 @@ export default function EventDetail() {
             </View>
           ) : null}
           <Row style={{ flexWrap: "wrap" }}>
-            {status === "QUOTE" ? <><Button title="Reservar a data" size="sm" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button title="Confirmar festa" size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /></> : null}
-            {status === "PRE_RESERVED" ? <><Button title={ev.pix_txid ? "Confirmar sem sinal" : "Confirmar festa"} size="sm" variant={ev.pix_txid ? "outline" : "primary"} onPress={() => setStatus.mutate("CONFIRMED")} /><Button title="Renovar prazo" size="sm" variant="outline" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button title="Liberar a data" size="sm" variant="ghost" onPress={() => setStatus.mutate("QUOTE")} /></> : null}
-            {status === "EXPIRED" ? <><Button title="Renovar reserva" size="sm" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button title={ev.pix_txid ? "Confirmar sem sinal" : "Confirmar festa"} size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /></> : null}
-            {status === "CONFIRMED" ? <><Button title="Marcar como realizado" size="sm" onPress={() => setStatus.mutate("DONE")} /><Button title="Voltar a reserva" size="sm" variant="outline" onPress={() => setStatus.mutate("PRE_RESERVED")} /></> : null}
-            {status === "DONE" ? <Button title="Reabrir como confirmado" size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /> : null}
-            {status === "CANCELLED" ? <Button title="Reabrir como reserva" size="sm" variant="outline" onPress={() => setStatus.mutate("PRE_RESERVED")} /> : null}
-            {status !== "CANCELLED" && status !== "DONE" ? <Button title="Cancelar" size="sm" variant="danger" onPress={() => Alert.alert("Cancelar evento?", "A data volta a ficar livre.", [{ text: "Voltar" }, { text: "Cancelar evento", style: "destructive", onPress: () => setStatus.mutate("CANCELLED") }])} /> : null}
+            {status === "QUOTE" ? <><Button disabled={busy} title="Reservar a data" size="sm" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button disabled={busy} title="Confirmar festa" size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /></> : null}
+            {status === "PRE_RESERVED" ? <><Button disabled={busy} title={ev.pix_txid ? "Confirmar sem sinal" : "Confirmar festa"} size="sm" variant={ev.pix_txid ? "outline" : "primary"} onPress={() => setStatus.mutate("CONFIRMED")} /><Button disabled={busy} title="Renovar prazo" size="sm" variant="outline" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button disabled={busy} title="Liberar a data" size="sm" variant="ghost" onPress={() => setStatus.mutate("QUOTE")} /></> : null}
+            {status === "EXPIRED" ? <><Button disabled={busy} title="Renovar reserva" size="sm" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button disabled={busy} title={ev.pix_txid ? "Confirmar sem sinal" : "Confirmar festa"} size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /></> : null}
+            {status === "CONFIRMED" ? <><Button disabled={busy} title="Marcar como realizado" size="sm" onPress={() => setStatus.mutate("DONE")} /><Button disabled={busy} title="Voltar a reserva" size="sm" variant="outline" onPress={() => setStatus.mutate("PRE_RESERVED")} /></> : null}
+            {status === "DONE" ? <Button disabled={busy} title="Reabrir como confirmado" size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /> : null}
+            {status === "CANCELLED" ? <Button disabled={busy} title="Reabrir como reserva" size="sm" variant="outline" onPress={() => setStatus.mutate("PRE_RESERVED")} /> : null}
+            {status !== "CANCELLED" && status !== "DONE" ? <Button disabled={busy} title="Cancelar" size="sm" variant="danger" onPress={() => Alert.alert("Cancelar evento?", "A data volta a ficar livre.", [{ text: "Voltar" }, { text: "Cancelar evento", style: "destructive", onPress: () => setStatus.mutate("CANCELLED") }])} /> : null}
           </Row>
         </Card>
 
@@ -227,7 +229,7 @@ export default function EventDetail() {
                 {i.status === "PARTIAL" ? (
                   <View><Text style={{ fontWeight: "700", color: colors.amber }}>Falta {formatCurrency(i.remaining)}</Text><Muted>pago {formatCurrency(i.paid)} de {formatCurrency(i.amountNum)}</Muted></View>
                 ) : <Text style={{ fontWeight: "600" }}>{formatCurrency(i.amountNum)}</Text>}
-                {i.status !== "PAID" ? <Button title="Recebida" size="sm" variant="success" onPress={() => Alert.alert(`Parcela ${idx + 1} recebida?`, `${formatCurrency(i.remaining)} · como foi pago?`, [{ text: "Voltar", style: "cancel" }, ...methods.slice(0, 4).map((m) => ({ text: PAYMENT_METHOD_LABEL[m], onPress: () => addPayment.mutate({ amount: i.remaining, method: m, notes: `Parcela ${idx + 1} · ${i.label}` }) }))])} /> : null}
+                {i.status !== "PAID" ? <Button disabled={busy} title="Recebida" size="sm" variant="success" onPress={() => Alert.alert(`Parcela ${idx + 1} recebida?`, `${formatCurrency(i.remaining)} · como foi pago?`, [{ text: "Voltar", style: "cancel" }, ...methods.slice(0, 4).map((m) => ({ text: PAYMENT_METHOD_LABEL[m], onPress: () => addPayment.mutate({ amount: i.remaining, method: m, notes: `Parcela ${idx + 1} · ${i.label}` }) }))])} /> : null}
               </Row>
             </View>
           ))}

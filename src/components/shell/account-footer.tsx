@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LogOut, CreditCard } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export type Billing = { cycleStart: string | null; dueAt: string | null; status: string; plan: string };
 
@@ -46,7 +47,7 @@ export function AccountFooter({ name, email, role, billing, compact = false }: {
           <p className="text-xs text-muted truncate">{email} · {role === "owner" ? "Proprietário" : "Equipe"}</p>
         </Link>
         <form action="/auth/signout" method="post">
-          <button className="h-9 w-9 grid place-items-center rounded-lg text-muted hover:bg-stone-100 hover:text-foreground" aria-label="Sair" title="Sair"><LogOut className="h-4 w-4" /></button>
+          <PendingButton className="h-9 w-9 grid place-items-center rounded-lg text-muted hover:bg-stone-100 hover:text-foreground" aria-label="Sair" title="Sair"><LogOut className="h-4 w-4" /></PendingButton>
         </form>
       </div>
     </div>

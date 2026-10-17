@@ -6,6 +6,7 @@ import { buttonClass } from "@/components/ui/button";
 import { EventCard, type EventListItem } from "@/components/events/event-card";
 import { attachFinancials } from "@/lib/data/financials";
 import { cn } from "@/lib/utils";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Eventos" };
 
@@ -47,7 +48,7 @@ export default async function EventsPage({ searchParams }: PageProps<"/eventos">
         <form className="flex gap-2">
           <input type="hidden" name="status" value={status} />
           <input name="q" defaultValue={q} placeholder="Buscar por título ou cliente" className="h-11 flex-1 rounded-xl border border-border bg-surface px-3.5" />
-          <button className={buttonClass("outline", "md")}>Buscar</button>
+          <PendingButton className={buttonClass("outline", "md")}>Buscar</PendingButton>
         </form>
         <div className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1">
           {FILTERS.map((f) => (

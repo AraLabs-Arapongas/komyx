@@ -4,6 +4,7 @@ import { PageBody, PageHeader, EmptyState } from "@/components/ui/page";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Buffets · Admin" };
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ export default async function AdminBuffetsPage({ searchParams }: PageProps<"/adm
         <form className="flex gap-2">
           <input type="hidden" name="status" value={status} />
           <input name="q" defaultValue={q} placeholder="Buscar por nome ou slug" className="h-11 flex-1 rounded-xl border border-border bg-surface px-3.5" />
-          <button className={buttonClass("outline", "md")}>Buscar</button>
+          <PendingButton className={buttonClass("outline", "md")}>Buscar</PendingButton>
         </form>
         <div className="flex gap-2">
           {[["all", "Todos"], ["active", "Ativos"], ["suspended", "Suspensos"], ["cancelled", "Cancelados"]].map(([k, l]) => (

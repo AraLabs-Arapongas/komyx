@@ -11,6 +11,7 @@ import { NameForm, PasswordForm, EmailNotificationsForm } from "./account-forms"
 import { CancelSubscription } from "./cancel-subscription";
 import { reactivateSubscription } from "@/lib/actions/subscription";
 import { Alert } from "@/components/ui/page";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Minha conta" };
 
@@ -59,7 +60,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
                   <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm space-y-2">
                     <p className="font-medium text-red-700">Assinatura cancelada{org.cancelled_at ? ` em ${dayDate(org.cancelled_at.slice(0, 10))}` : ""}.</p>
                     <p className="text-red-700/80">{org.access_until ? `Acesso até ${dayDate(org.access_until)}. ` : ""}Página pública fora do ar. Dados guardados por 90 dias depois do fim do acesso.</p>
-                    <form action={reactivateSubscription}><button className={buttonClass("primary", "sm")}>Reativar assinatura</button></form>
+                    <form action={reactivateSubscription}><PendingButton className={buttonClass("primary", "sm")}>Reativar assinatura</PendingButton></form>
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-2">

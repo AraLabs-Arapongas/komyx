@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ShieldCheck, Building2, LayoutDashboard, ArrowLeft, ListChecks } from "lucide-react";
 import { requireAdmin } from "@/lib/data/session";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const profile = await requireAdmin();
@@ -23,7 +24,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         </nav>
         <div className="mt-auto p-3 space-y-1">
           <Link href="/home" className="flex items-center gap-2 px-3 py-2 text-sm text-stone-400 hover:text-white"><ArrowLeft className="h-4 w-4" /> Voltar ao app</Link>
-          <form action="/auth/signout" method="post"><button className="w-full text-left text-sm text-stone-400 hover:text-white px-3 py-2">Sair</button></form>
+          <form action="/auth/signout" method="post"><PendingButton className="w-full text-left text-sm text-stone-400 hover:text-white px-3 py-2">Sair</PendingButton></form>
         </div>
       </aside>
       <div className="flex-1 flex flex-col min-w-0">

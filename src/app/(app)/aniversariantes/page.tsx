@@ -7,6 +7,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { eventTitle } from "@/components/events/event-card";
 import { formatDate, toDateKey } from "@/lib/utils";
 import { PromoMessage } from "./promo-message";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Aniversariantes próximos" };
 
@@ -92,7 +93,7 @@ export default async function CelebrantsPage() {
                         <form action={mutePromo}>
                           <input type="hidden" name="id" value={c.id} />
                           <input type="hidden" name="until" value={new Date(c.next.getTime() + 86_400_000).toISOString().slice(0, 10)} />
-                          <button className="h-9 px-2 text-xs text-muted hover:text-foreground" title="Oculta só este lembrete. Nada é apagado.">Não enviar promoção</button>
+                          <PendingButton className="h-9 px-2 text-xs text-muted hover:text-foreground" title="Oculta só este lembrete. Nada é apagado.">Não enviar promoção</PendingButton>
                         </form>
                       </div>
                     </li>

@@ -6,6 +6,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { formatDate } from "@/lib/utils";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Pendências · Admin Komyx" };
 export const dynamic = "force-dynamic";
@@ -24,9 +25,9 @@ function TodoRow({ todo }: { todo: Todo }) {
     <li className="group flex items-start gap-2 py-2">
       <form action={toggleTodo}>
         <input type="hidden" name="id" value={todo.id} />
-        <button type="submit" aria-label={done ? "Reabrir" : "Marcar como feito"} className="mt-0.5 text-muted hover:text-brand">
+        <PendingButton type="submit" aria-label={done ? "Reabrir" : "Marcar como feito"} className="mt-0.5 text-muted hover:text-brand">
           {done ? <CheckSquare className="h-5 w-5 text-emerald-600" /> : <Square className="h-5 w-5" />}
-        </button>
+        </PendingButton>
       </form>
       <p className={done ? "flex-1 text-sm text-muted line-through" : "flex-1 text-sm"}>
         {todo.title}
@@ -34,7 +35,7 @@ function TodoRow({ todo }: { todo: Todo }) {
       </p>
       <form action={deleteTodo}>
         <input type="hidden" name="id" value={todo.id} />
-        <button type="submit" aria-label="Apagar" className="mt-0.5 text-stone-300 opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-red-600"><X className="h-4 w-4" /></button>
+        <PendingButton type="submit" aria-label="Apagar" className="mt-0.5 text-stone-300 opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-red-600"><X className="h-4 w-4" /></PendingButton>
       </form>
     </li>
   );

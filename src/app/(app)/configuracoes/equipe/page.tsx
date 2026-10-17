@@ -5,6 +5,7 @@ import { PageBody, PageHeader } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StaffForm } from "../forms";
+import { PendingButton } from "@/components/ui/pending-button";
 
 export const metadata = { title: "Equipe" };
 
@@ -31,7 +32,7 @@ export default async function TeamSettings() {
                     {m.role === "staff" ? (
                       <form action={removeStaff}>
                         <input type="hidden" name="id" value={m.id} />
-                        <button className="text-xs text-muted hover:text-red-600">Remover</button>
+                        <PendingButton className="text-xs text-muted hover:text-red-600">Remover</PendingButton>
                       </form>
                     ) : null}
                   </div>

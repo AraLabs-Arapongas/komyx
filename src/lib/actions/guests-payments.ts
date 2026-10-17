@@ -80,6 +80,12 @@ export async function confirmInstallment(formData: FormData) {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   const supabase = await createClient();
   const { event_id, ...payment } = parsed.data;
+  // The page sends the total paid it showed: if more money came in since, this click is stale (a repeat
+  // or someone else already registered it) and must not pay the instalment again.
+  const seen = Number(String(formData.get("paid_before") ?? "").replace(",", "."));
+  const { data: paidRows } = await supabase.from("payments").select("amount").eq("event_id", event_id);
+  const paidNow = (paidRows ?? []).reduce((a, p) => a + Number(p.amount), 0);
+  if (Number.isFinite(seen) && Math.abs(paidNow - seen) > 0.005) { revalidateEvent(event_id); return; }
   await confirmEvent({ supabase, org, userId: profile.id }, event_id, { payment }).catch(() => null);
   revalidateEvent(event_id);
 }

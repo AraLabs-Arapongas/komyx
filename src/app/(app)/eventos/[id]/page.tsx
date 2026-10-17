@@ -26,6 +26,7 @@ import { ReversePaymentButton } from "@/components/events/reverse-payment";
 import { ChangeRequestItem, type ChangeRequestRow } from "@/components/events/change-request-item";
 import { allocateInstallments, type InstallmentLike } from "@/lib/installments";
 import { balancePix, chargeMessage, eventTxid } from "@/lib/charge";
+import { PendingButton } from "@/components/ui/pending-button";
 
 const CONTRACT_LABEL: Record<string, string> = { DRAFT: "Rascunho", SENT: "Enviado", ACCEPTED: "Aceito", CANCELLED: "Cancelado" };
 const CONTRACT_TONE: Record<string, "amber" | "green" | "slate" | "red" | "zinc"> = { DRAFT: "zinc", SENT: "amber", ACCEPTED: "green", CANCELLED: "red" };
@@ -62,7 +63,7 @@ function LinkRow({ icon, label, url, send, revoke }: {
             <div className="flex items-center gap-1.5 shrink-0">
               <CopyButton text={url} />
               {send ? <a href={send.href} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> {send.label}</a> : null}
-              {revoke ? <form action={revokePublicLink}><input type="hidden" name="id" value={revoke.linkId} /><input type="hidden" name="event_id" value={revoke.eventId} /><button className="h-9 px-2 text-xs text-muted hover:text-red-600">Revogar</button></form> : null}
+              {revoke ? <form action={revokePublicLink}><input type="hidden" name="id" value={revoke.linkId} /><input type="hidden" name="event_id" value={revoke.eventId} /><PendingButton className="h-9 px-2 text-xs text-muted hover:text-red-600">Revogar</PendingButton></form> : null}
             </div>
           </>
         ) : null}
@@ -243,7 +244,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                   <form action={createQuoteAndGo} className="mt-1.5 flex items-center justify-between gap-2">
                     <input type="hidden" name="event_id" value={id} />
                     <p className="text-xs text-muted">Parte do pacote e dos participantes.</p>
-                    <button className={buttonClass("primary", "sm", "whitespace-nowrap")}>Montar orçamento</button>
+                    <PendingButton className={buttonClass("primary", "sm", "whitespace-nowrap")}>Montar orçamento</PendingButton>
                   </form>
                 ) : (
                   <ul className="divide-y divide-border">
@@ -279,7 +280,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                   <p className="text-xs text-muted">{contracts.length ? "Gerado do orçamento aceito. Se o orçamento mudar, gere uma nova versão." : latestQuote?.status === "ACCEPTED" ? "Pronto para gerar a partir do orçamento aceito." : "Gerado automaticamente quando o orçamento for aceito."}</p>
                   <form action={generateContractAndGo}>
                     <input type="hidden" name="event_id" value={id} />
-                    <button className={buttonClass(contracts.length ? "outline" : "ghost", "sm", "whitespace-nowrap")}>{contracts.length ? "Nova versão" : "Gerar agora"}</button>
+                    <PendingButton className={buttonClass(contracts.length ? "outline" : "ghost", "sm", "whitespace-nowrap")}>{contracts.length ? "Nova versão" : "Gerar agora"}</PendingButton>
                   </form>
                 </div>
               </div>
@@ -341,7 +342,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <span className="font-medium whitespace-nowrap"><Money value={x.total} /></span>
-                        <form action={removeEventExtra}><input type="hidden" name="id" value={x.id} /><input type="hidden" name="event_id" value={id} /><button className="text-xs text-muted hover:text-red-600">Remover</button></form>
+                        <form action={removeEventExtra}><input type="hidden" name="id" value={x.id} /><input type="hidden" name="event_id" value={id} /><PendingButton className="text-xs text-muted hover:text-red-600">Remover</PendingButton></form>
                       </div>
                     </li>
                   ))}
