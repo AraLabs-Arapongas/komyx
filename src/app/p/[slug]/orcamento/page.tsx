@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
@@ -9,7 +10,15 @@ import { PublicFooter } from "@/components/public/public-footer";
 import { DemoBanner } from "@/components/public/demo-banner";
 import { loadMenuGroups } from "@/lib/data/menu";
 
-export const metadata = { title: "Monte seu orçamento" };
+export async function generateMetadata({ params }: PageProps<"/p/[slug]/orcamento">): Promise<Metadata> {
+  const { slug } = await params;
+  const { data: org } = await createAdminClient().from("organizations").select("name, logo_url").eq("slug", slug).neq("kind", "platform").eq("public_page", true).maybeSingle();
+  return {
+    title: org ? { absolute: `Monte seu orçamento · ${org.name}` } : "Monte seu orçamento",
+    alternates: { canonical: `/p/${slug}/orcamento` },
+    ...(org?.logo_url ? { icons: { icon: org.logo_url, apple: org.logo_url } } : {}),
+  };
+}
 
 export default async function SelfServiceQuotePage({ params, searchParams }: PageProps<"/p/[slug]/orcamento">) {
   const [{ slug }, sp] = await Promise.all([params, searchParams]);

@@ -17,7 +17,7 @@ type Testimonial = { name: string; text: string };
 export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("name, tagline, description, cover_url, city, is_demo, seo_listed").eq("slug", slug).neq("kind", "platform").eq("public_page", true).maybeSingle();
+  const { data: org } = await admin.from("organizations").select("name, tagline, description, cover_url, logo_url, city, is_demo, seo_listed").eq("slug", slug).neq("kind", "platform").eq("public_page", true).maybeSingle();
   // "Buffet Margarida · Buffet infantil em Arapongas/PR": the name people search plus what and where.
   const title = org ? { absolute: `${org.name} · Buffet infantil${org.city ? ` em ${org.city}` : ""}` } : "Buffet";
   const description = org ? [org.tagline ?? org.description, org.city ? `Orçamento online, datas livres e pacotes em ${org.city}.` : null].filter(Boolean).join(" ") || undefined : undefined;
@@ -30,6 +30,8 @@ export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Prom
     title,
     description,
     alternates: { canonical: path },
+    // The buffet's own logo in the browser tab (Komyx icon when it has none).
+    ...(org?.logo_url ? { icons: { icon: org.logo_url, apple: org.logo_url } } : {}),
     ...(hidden ? { robots: { index: false, follow: false } } : {}),
     openGraph: { type: "website", siteName: SITE_NAME, locale: "pt_BR", url: path, title: org ? (title as { absolute: string }).absolute : "Buffet", description, images },
     twitter: { card: "summary_large_image", title: org ? (title as { absolute: string }).absolute : "Buffet", description, images: org?.cover_url ? [org.cover_url] : [OG_IMAGE.url] },

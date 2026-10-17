@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   robots: { index: IS_INDEXABLE, follow: IS_INDEXABLE },
   openGraph: { type: "website", siteName: SITE_NAME, locale: "pt_BR", images: [OG_IMAGE] },
   twitter: { card: "summary_large_image", images: [OG_IMAGE.url] },
+  // favicon.ico lives in public/ (not app/) so a buffet page can replace the tab icon with its logo.
+  icons: { icon: [{ url: "/favicon.ico", sizes: "256x256" }, { url: "/icon.svg", type: "image/svg+xml" }], apple: "/apple-icon.png" },
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Komyx" },
 };
