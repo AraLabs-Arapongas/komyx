@@ -11,7 +11,7 @@ const TOKEN = "demo-reservation-link-alice-0123456789abcd";
 type Snapshot = {
   eventId: string; adults: number; children: number;
   quote: { id: string; adults: number; children: number } | null;
-  lines: { organization_id: string; quote_id: string; kind: string; addon_id: string | null; description: string; quantity: number; unit_price: number; sort_order: number }[];
+  lines: { organization_id: string; quote_id: string; kind: "PACKAGE" | "ADDON" | "EXTRA_PARTICIPANTS" | "CUSTOM"; addon_id: string | null; description: string; quantity: number; unit_price: number; sort_order: number }[];
 };
 
 test.describe("Pedidos do cliente", () => {
