@@ -23,6 +23,8 @@ export async function generateMetadata({ params }: PageProps<"/clientes/[id]">) 
 
 export default async function CustomerPage({ params, searchParams }: PageProps<"/clientes/[id]">) {
   const [{ id }, sp, org] = await Promise.all([params, searchParams, getOrganization()]);
+  // Opened from a party ("Ver ficha"): the back arrow returns to it instead of the client list.
+  const back = typeof sp.from === "string" && /^\/eventos\/[0-9a-f-]{36}$/i.test(sp.from) ? sp.from : "/clientes";
   const supabase = await createClient();
   const [{ data: customer }, { data: eventRows }] = await Promise.all([
     supabase.from("customers").select("id, name, whatsapp, email, notes, document, source, marketing_opt_in").eq("id", id).maybeSingle(),
@@ -38,7 +40,7 @@ export default async function CustomerPage({ params, searchParams }: PageProps<"
 
   return (
     <>
-      <PageHeader title={customer.name} subtitle={`${formatPhone(customer.whatsapp)}${customer.email ? ` · ${customer.email}` : ""}`} back="/clientes" />
+      <PageHeader title={customer.name} subtitle={`${formatPhone(customer.whatsapp)}${customer.email ? ` · ${customer.email}` : ""}`} back={back} />
       <PageBody>
         <div className="flex flex-wrap gap-2">
           <a href={whatsappLink(customer.whatsapp, `Olá ${customer.name.split(" ")[0]}! Aqui é do ${org.name}.`)} target="_blank" rel="noopener" className={buttonClass("secondary", "md")}><MessageCircle className="h-4 w-4" /> WhatsApp</a>

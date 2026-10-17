@@ -200,7 +200,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
         {/* Row: client · party data · documents */}
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           <Card>
-            <CardHeader title="Cliente" action={<Link href={`/clientes/${customer.id}`} className="text-sm text-brand font-medium">Ver ficha</Link>} />
+            <CardHeader title="Cliente" action={<Link href={`/clientes/${customer.id}?from=${encodeURIComponent(`/eventos/${event.id}`)}`} className="text-sm text-brand font-medium">Ver ficha</Link>} />
             <CardBody className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">

@@ -175,7 +175,7 @@ export default function EventDetail() {
           {ev.pix_txid && (status === "PRE_RESERVED" || status === "EXPIRED") ? (
             <View style={{ backgroundColor: colors.greenSoft, borderRadius: 12, padding: 12, gap: 8 }}>
               <Text style={styles.text}><Text style={{ fontWeight: "700" }}>Reserva online.</Text> Procure no extrato um Pix com identificador <Text style={{ fontFamily: "Courier", fontWeight: "700" }}>{ev.pix_txid}</Text>{deposit ? ` de ${formatCurrency(deposit)}` : ""}.</Text>
-              <Button title="Sinal recebido · confirmar festa" variant="success" size="sm" onPress={async () => {
+              <Button title="Recebi o sinal · confirmar" variant="success" size="sm" onPress={async () => {
                 await addPayment.mutateAsync({ amount: deposit ?? 0, method: "PIX", notes: "Sinal da reserva online (Pix conferido no extrato)" });
                 if (quote && quote.status !== "ACCEPTED") await supabase.from("quotes").update({ status: "ACCEPTED" }).eq("id", quote.id);
                 setStatus.mutate("CONFIRMED");
@@ -183,9 +183,9 @@ export default function EventDetail() {
             </View>
           ) : null}
           <Row style={{ flexWrap: "wrap" }}>
-            {status === "QUOTE" ? <><Button title="Reservar a data" size="sm" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button title="Confirmar" size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /></> : null}
-            {status === "PRE_RESERVED" ? <><Button title="Confirmar evento" size="sm" onPress={() => setStatus.mutate("CONFIRMED")} /><Button title="Renovar prazo" size="sm" variant="outline" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button title="Liberar a data" size="sm" variant="ghost" onPress={() => setStatus.mutate("QUOTE")} /></> : null}
-            {status === "EXPIRED" ? <><Button title="Renovar reserva" size="sm" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button title="Confirmar" size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /></> : null}
+            {status === "QUOTE" ? <><Button title="Reservar a data" size="sm" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button title="Confirmar festa" size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /></> : null}
+            {status === "PRE_RESERVED" ? <><Button title={ev.pix_txid ? "Confirmar sem sinal" : "Confirmar festa"} size="sm" variant={ev.pix_txid ? "outline" : "primary"} onPress={() => setStatus.mutate("CONFIRMED")} /><Button title="Renovar prazo" size="sm" variant="outline" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button title="Liberar a data" size="sm" variant="ghost" onPress={() => setStatus.mutate("QUOTE")} /></> : null}
+            {status === "EXPIRED" ? <><Button title="Renovar reserva" size="sm" onPress={() => setStatus.mutate("PRE_RESERVED")} /><Button title={ev.pix_txid ? "Confirmar sem sinal" : "Confirmar festa"} size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /></> : null}
             {status === "CONFIRMED" ? <><Button title="Marcar como realizado" size="sm" onPress={() => setStatus.mutate("DONE")} /><Button title="Voltar a reserva" size="sm" variant="outline" onPress={() => setStatus.mutate("PRE_RESERVED")} /></> : null}
             {status === "DONE" ? <Button title="Reabrir como confirmado" size="sm" variant="outline" onPress={() => setStatus.mutate("CONFIRMED")} /> : null}
             {status === "CANCELLED" ? <Button title="Reabrir como reserva" size="sm" variant="outline" onPress={() => setStatus.mutate("PRE_RESERVED")} /> : null}

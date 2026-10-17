@@ -22,7 +22,7 @@ export function StatusActions({ eventId, status, pixTxid, depositAmount, balance
           <p><b>Reserva online.</b> Procure no extrato um Pix com identificador <code className="rounded bg-white px-1.5 py-0.5">{pixTxid}</code>{depositAmount ? <> de <b>R$ {depositAmount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</b></> : null}.</p>
           <div className="flex flex-wrap items-center gap-2">
             <input name="amount" inputMode="decimal" placeholder={depositAmount ? depositAmount.toFixed(2).replace(".", ",") : "valor"} className="h-9 w-32 rounded-lg border border-border bg-white px-2" aria-label="Valor recebido" />
-            <SubmitButton size="sm" pendingText="Confirmando...">Sinal recebido · confirmar festa</SubmitButton>
+            <SubmitButton size="sm" pendingText="Confirmando...">Recebi o sinal · confirmar</SubmitButton>
           </div>
         </form>
       ) : null}
@@ -30,13 +30,13 @@ export function StatusActions({ eventId, status, pixTxid, depositAmount, balance
         {status === "QUOTE" ? (
           <>
             <form action={extendAction}><input type="hidden" name="id" value={eventId} /><SubmitButton size="sm">Reservar a data</SubmitButton></form>
-            <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CONFIRMED" /><SubmitButton size="sm" variant="outline">Confirmar evento</SubmitButton></form>
+            <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CONFIRMED" /><SubmitButton size="sm" variant="outline">{pixTxid ? "Confirmar sem sinal" : "Confirmar festa"}</SubmitButton></form>
             <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CANCELLED" /><SubmitButton size="sm" variant="ghost" className="text-red-600">Cancelar</SubmitButton></form>
           </>
         ) : null}
         {status === "PRE_RESERVED" ? (
           <>
-            <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CONFIRMED" /><SubmitButton size="sm">Confirmar evento</SubmitButton></form>
+            <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CONFIRMED" /><SubmitButton size="sm" variant={pixTxid ? "ghost" : "primary"}>{pixTxid ? "Confirmar sem sinal" : "Confirmar festa"}</SubmitButton></form>
             <form action={extendAction}><input type="hidden" name="id" value={eventId} /><SubmitButton size="sm" variant="outline">Renovar prazo</SubmitButton></form>
             <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="QUOTE" /><SubmitButton size="sm" variant="ghost">Liberar a data</SubmitButton></form>
             <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CANCELLED" /><SubmitButton size="sm" variant="ghost" className="text-red-600">Cancelar</SubmitButton></form>
@@ -45,7 +45,7 @@ export function StatusActions({ eventId, status, pixTxid, depositAmount, balance
         {status === "EXPIRED" ? (
           <>
             <form action={extendAction}><input type="hidden" name="id" value={eventId} /><SubmitButton size="sm">Renovar reserva</SubmitButton></form>
-            <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CONFIRMED" /><SubmitButton size="sm" variant="outline">Confirmar evento</SubmitButton></form>
+            <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CONFIRMED" /><SubmitButton size="sm" variant="outline">{pixTxid ? "Confirmar sem sinal" : "Confirmar festa"}</SubmitButton></form>
             <form action={action}><input type="hidden" name="id" value={eventId} /><input type="hidden" name="status" value="CANCELLED" /><SubmitButton size="sm" variant="ghost" className="text-red-600">Cancelar</SubmitButton></form>
           </>
         ) : null}
