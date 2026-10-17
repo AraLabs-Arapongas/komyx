@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { MapPin, Camera, MessageCircle, Check, Star } from "lucide-react";
+import { MapPin, Camera, MessageCircle, Check, Star, Navigation } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatCurrency, whatsappLink } from "@/lib/utils";
 import { BuffetHero } from "@/components/public/hero/hero";
@@ -56,6 +56,9 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
   const highlights = org.highlights ?? [];
   const featuredIndex = packages && packages.length >= 3 ? 1 : packages && packages.length === 2 ? 1 : 0;
   const mapsUrl = org.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(org.address)}` : null;
+  // Map embed needs no API key; Waze for the "como chegar" crowd.
+  const mapEmbedUrl = org.address ? `https://maps.google.com/maps?q=${encodeURIComponent(org.address)}&z=16&output=embed` : null;
+  const wazeUrl = org.address ? `https://waze.com/ul?q=${encodeURIComponent(org.address)}&navigate=yes` : null;
   const waUrl = org.whatsapp ? whatsappLink(org.whatsapp, `Olá! Vi a página do ${org.name} e quero saber sobre datas e valores.`) : null;
   const theme = resolveTheme(org.plan, org.theme);
   const showPrices = org.show_prices_public;
@@ -157,6 +160,25 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {/* WHERE: map + directions */}
+      {mapEmbedUrl ? (
+        <section className="mx-auto max-w-5xl px-4 mt-14">
+          <h2 className="display font-extrabold text-3xl sm:text-4xl mb-6">Onde fica</h2>
+          <div className="grid gap-5 md:grid-cols-[1.4fr_1fr] md:items-center">
+            <div className="overflow-hidden rounded-3xl border bg-white shadow-[0_12px_40px_rgba(27,31,58,0.12)]" style={{ borderColor: "#ece7dc" }}>
+              <iframe src={mapEmbedUrl} title={`Mapa: ${org.name}`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="block h-72 w-full sm:h-80 border-0" />
+            </div>
+            <div className="space-y-4">
+              <p className="flex items-start gap-2 text-lg/snug font-bold"><MapPin className="mt-1 h-5 w-5 shrink-0" style={{ color: "var(--berry)" }} /> {org.address}</p>
+              <div className="flex flex-wrap gap-3">
+                <a href={mapsUrl!} target="_blank" rel="noopener" className="inline-flex h-12 items-center gap-2 rounded-full px-5 font-extrabold text-white" style={{ background: "var(--berry)" }}><Navigation className="h-4 w-4" /> Como chegar</a>
+                <a href={wazeUrl!} target="_blank" rel="noopener" className="inline-flex h-12 items-center rounded-full px-5 font-bold" style={{ color: "var(--ink)", boxShadow: "inset 0 0 0 2px #e4ddcf" }}>Abrir no Waze</a>
+              </div>
+            </div>
+          </div>
         </section>
       ) : null}
 
