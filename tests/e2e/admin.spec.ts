@@ -72,4 +72,19 @@ test.describe("Admin Komyx", () => {
     await page.goto("/configuracoes/empresa");
     await expect(page.getByLabel("Endereço público")).toBeDisabled();
   });
+
+  test("pendências: adiciona, marca como feito e apaga", async ({ page }) => {
+    const title = uniq("Pendência E2E");
+    await login(page, ACCOUNTS.admin);
+    await page.goto("/admin/pendencias");
+    const produto = page.locator("form").filter({ has: page.locator('input[name=section][value=produto]') });
+    await produto.getByPlaceholder("Nova pendência").fill(title);
+    await produto.getByRole("button", { name: "Adicionar" }).click();
+    const row = page.locator("li").filter({ hasText: title });
+    await expect(row).toBeVisible();
+    await row.getByRole("button", { name: "Marcar como feito" }).click();
+    await expect(page.locator("li").filter({ hasText: title }).getByRole("button", { name: "Reabrir" })).toBeVisible();
+    await page.locator("li").filter({ hasText: title }).getByRole("button", { name: "Apagar" }).click();
+    await expect(page.locator("li").filter({ hasText: title })).toHaveCount(0);
+  });
 });

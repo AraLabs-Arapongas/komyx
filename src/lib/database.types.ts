@@ -1303,6 +1303,33 @@ export type Database = {
           },
         ]
       }
+      platform_todos: {
+        Row: {
+          created_at: string
+          done_at: string | null
+          id: string
+          section: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          done_at?: string | null
+          id?: string
+          section: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          done_at?: string | null
+          id?: string
+          section?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, Building2, LayoutDashboard, ArrowLeft } from "lucide-react";
+import { ShieldCheck, Building2, LayoutDashboard, ArrowLeft, ListChecks } from "lucide-react";
 import { requireAdmin } from "@/lib/data/session";
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
@@ -7,6 +7,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const links = [
     { href: "/admin", label: "Visão geral", icon: LayoutDashboard },
     { href: "/admin/buffets", label: "Buffets", icon: Building2 },
+    { href: "/admin/pendencias", label: "Pendências", icon: ListChecks },
   ];
   return (
     <div className="flex min-h-screen">
@@ -29,6 +30,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
         <div className="md:hidden sticky top-0 z-20 bg-stone-900 text-stone-100 px-4 h-12 flex items-center gap-4 text-sm">
           <Link href="/admin" className="font-semibold inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-amber-400" /> Admin</Link>
           <Link href="/admin/buffets">Buffets</Link>
+          <Link href="/admin/pendencias">Pendências</Link>
           <Link href="/home" className="ml-auto text-stone-400">App</Link>
         </div>
         {children}
