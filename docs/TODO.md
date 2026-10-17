@@ -1,7 +1,6 @@
 # Komyx · pendências
 
 ## Produção (depende do Thiago)
-- [ ] Testar aviso por e-mail: pedir orçamento em www.komyx.com.br/p/komyx-buffet → chega em demo@komyx.com.br (Gmail). O reset noturno e o Buffet Revisão não mandam e-mail
 - [ ] Definir a senha de apple@komyx.com.br (Buffet Revisão) em www.komyx.com.br/esqueci-senha
 
 ## App (próxima versão na loja)
@@ -15,6 +14,10 @@
 - [ ] Reenvio de e-mail de aviso que falhar
 - [ ] Endereço inventado sem login mostra `/login` em vez da 404
 - [ ] Hero no celular: nos estilos Bolha/Colagem/Confete a foto fica abaixo do texto (decidir se sobe)
+
+## Feito recentemente
+- Aviso por e-mail de pedido testado em produção (chega em demo@komyx.com.br); valor em R$ 4.200,00 e origem com rótulo
+- Select próprio nas páginas públicas (FestaSelect) e máscara (11) 99999-9999 em todos os campos de WhatsApp
 
 ## Demos (prontos)
 - Komyx Buffet (/p/komyx-buffet): vitrine e vendas · dono demo@komyx.com.br · cliente 11900000001 / 123456
