@@ -251,6 +251,7 @@ export type Database = {
           message: string | null
           organization_id: string
           payload: Json | null
+          reply: string | null
           status: string
         }
         Insert: {
@@ -263,6 +264,7 @@ export type Database = {
           message?: string | null
           organization_id: string
           payload?: Json | null
+          reply?: string | null
           status?: string
         }
         Update: {
@@ -275,6 +277,7 @@ export type Database = {
           message?: string | null
           organization_id?: string
           payload?: Json | null
+          reply?: string | null
           status?: string
         }
         Relationships: [
