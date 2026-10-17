@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, Share, Switch, Text, View } from "react-native";
 import { useAuth } from "@/lib/auth";
-import { ageOn, formatCurrency, formatPhone, maskPhoneInput, normalizePhone, toDateKey } from "@/lib/format";
+import { ageOn, formatCurrency, formatPhone, isValidPhone, maskPhoneInput, normalizePhone, toDateKey } from "@/lib/format";
 import { addMinutes, bestPackageFor, buildQuoteLines, localToIso, sumLines, type AddonPricing, type PackagePricing } from "@/lib/pricing";
 import { groupsForPackage, menuView, parsePicks, type MenuPick } from "@/lib/menu";
 import { loadMenuGroups, saveQuoteMenuChoices } from "@/lib/menu-data";
@@ -170,7 +170,7 @@ export default function NovoOrcamento() {
   const isOwner = profile?.role === "owner";
   const dateIsBusy = Boolean(date && busy.data?.has(date));
 
-  const canNext = step === 0 ? Boolean(customer) || (looksLikePhone && newName.trim().length >= 2) : step === 2 ? Boolean(date) : step === 3 ? nAdults + nChildren > 0 : true;
+  const canNext = step === 0 ? Boolean(customer) || (looksLikePhone && isValidPhone(digits) && newName.trim().length >= 2) : step === 2 ? Boolean(date) : step === 3 ? nAdults + nChildren > 0 : true;
 
   async function next() {
     setError(null);
@@ -265,6 +265,7 @@ export default function NovoOrcamento() {
                 {looksLikePhone && !search.data?.some((c) => normalizePhone(c.whatsapp) === digits) ? (
                   <Card tone="brand">
                     <Text style={styles.h3}>Cliente novo · {formatPhone(digits)}</Text>
+                    {!isValidPhone(digits) ? <Text style={{ color: colors.red }}>Número inválido. Use DDD + número, ex.: (11) 99999-9999.</Text> : null}
                     <Field label="Nome do responsável"><Input value={newName} onChangeText={setNewName} placeholder="Ex.: Mariana Costa" autoCapitalize="words" /></Field>
                   </Card>
                 ) : null}

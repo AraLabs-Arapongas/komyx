@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { isValidPhone } from "@/lib/utils";
 
 export function zodFieldErrors(err: z.ZodError) {
   const out: Record<string, string> = {};
@@ -13,7 +14,7 @@ export function zodFieldErrors(err: z.ZodError) {
 export const phoneSchema = z
   .string()
   .transform((v) => v.replace(/\D/g, ""))
-  .refine((v) => v.length === 10 || v.length === 11 || v.length === 13, "WhatsApp inválido. Use DDD + número.");
+  .refine(isValidPhone, "WhatsApp inválido. Use DDD + número, ex.: (11) 99999-9999.");
 
 export const optionalText = z.string().trim().optional().transform((v) => (v ? v : null));
 

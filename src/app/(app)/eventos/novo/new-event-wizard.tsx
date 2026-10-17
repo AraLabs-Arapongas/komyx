@@ -10,7 +10,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { MonthPicker, fmtBrDate } from "@/components/calendar/month-picker";
 import { CustomerField } from "@/components/events/customer-field";
-import { ageOn, cn, formatCurrency, formatPhone } from "@/lib/utils";
+import { ageOn, cn, formatCurrency, formatPhone, isValidPhone } from "@/lib/utils";
 import { MenuPicker } from "@/components/menu/menu-picker";
 import { MenuSummary } from "@/components/menu/menu-summary";
 import { groupsForPackage, menuView, type MenuGroup, type MenuPick } from "@/lib/menu";
@@ -91,7 +91,7 @@ export function NewEventWizard({ slug, packages, addons, themes, customer, reque
     if (p) { setAdults(p.included_adults); setChildren(p.included_children); }
   }
   const upd = (k: keyof typeof contact) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setContact((c) => ({ ...c, [k]: e.target.value }));
-  const customerOk = selectedCustomer ? true : contact.name.trim().length >= 2 && contact.whatsapp.replace(/\D/g, "").length >= 10;
+  const customerOk = selectedCustomer ? true : contact.name.trim().length >= 2 && isValidPhone(contact.whatsapp);
   const canNext = step === 1 ? Boolean(date) && end > start : step === 3 ? customerOk : true;
 
   return (

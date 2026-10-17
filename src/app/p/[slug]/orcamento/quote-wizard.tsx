@@ -12,7 +12,7 @@ import { OCCASIONS } from "@/lib/labels";
 import { MonthPicker } from "@/components/calendar/month-picker";
 import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
 import { CopyButton } from "@/components/ui/copy-button";
-import { appUrl, formatDateTime, formatDateLong, formatTime, whatsappLink } from "@/lib/utils";
+import { appUrl, formatDateTime, formatDateLong, formatTime, isValidPhone, whatsappLink } from "@/lib/utils";
 import type { ActionResult } from "@/lib/action-result";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -161,7 +161,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
   }
 
   const busyDays = new Set(busy[month] ?? []);
-  const canNext = step === 0 ? packageChosen : step === 1 ? Boolean(date) : step === 2 ? adults + children > 0 : step === 3 ? contact.name.trim().length >= 2 && contact.whatsapp.replace(/\D/g, "").length >= 10 : true;
+  const canNext = step === 0 ? packageChosen : step === 1 ? Boolean(date) : step === 2 ? adults + children > 0 : step === 3 ? contact.name.trim().length >= 2 && isValidPhone(contact.whatsapp) : true;
   // Without a package there is no base price: the buffet quotes by hand, so no estimate and no Pix self-reservation.
   const priced = pkg !== null;
   const depositAmount = depositPercent != null && priced ? Math.round(total * depositPercent) / 100 : null;
