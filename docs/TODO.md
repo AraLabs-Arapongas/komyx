@@ -5,10 +5,13 @@
 
 ## App (próxima versão na loja)
 - [ ] Instalar EAS Update (`expo-updates`), para mudanças só de JS irem sem revisão
-- [ ] Levar: Aprovado/Recusado + resposta do buffet, prévia do valor ao pedir mais pessoas, app do dono aprovando pelo servidor
+- [ ] Levar: Aprovado/Recusado + resposta do buffet, prévia do valor ao pedir mais pessoas, app do dono aprovando pelo servidor, idade pelo nascimento do pedido, validação do WhatsApp, textos "Recebi o sinal · confirmar" / "Confirmar sem sinal"
 - [ ] App Review: dono apple@komyx.com.br + senha; cliente 11900000010, código 123456 (válido até 17/10/2027)
 
 ## Produto
+- [ ] Início se atualiza sozinho com pedidos novos (sugestão: o sino, que já consulta a cada 30 s, atualiza a página; e atualiza ao voltar para a aba)
+- [ ] Início mais curto: no máximo 3 pedidos em uma linha + "Ver todas"; ordem: urgente, festa de hoje, pedidos, próximos 7 dias
+- [ ] Tema no orçamento público: tocar de novo não desmarca ("Sem tema" para tirar)
 - [ ] Cobrança dos planos (escolher provedor: Asaas, Mercado Pago, Stripe…)
 - [ ] Conciliação do Pix (provedor com API)
 - [ ] Reenvio de e-mail de aviso que falhar
@@ -18,6 +21,9 @@
 ## Feito recentemente
 - Aviso por e-mail de pedido testado em produção (chega em demo@komyx.com.br); valor em R$ 4.200,00 e origem com rótulo
 - Select próprio nas páginas públicas (FestaSelect) e máscara (11) 99999-9999 em todos os campos de WhatsApp
+- WhatsApp validado (DDD existente, celular 9 + 8 dígitos ou fixo)
+- Orçamento público envia o cardápio; resumo completo na revisão e depois de enviar; botões bloqueados durante o envio
+- Novo orçamento: idade pelo nascimento; ficha do cliente volta para a festa
 
 ## Demos (prontos)
 - Komyx Buffet (/p/komyx-buffet): vitrine e vendas · dono demo@komyx.com.br · cliente 11900000001 / 123456
