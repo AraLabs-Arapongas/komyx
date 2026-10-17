@@ -336,8 +336,10 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
         ) : null}
       </div>
 
-      {/* Summary + nav */}
-      <div className="sticky bottom-3 z-10 rounded-3xl p-3 sm:p-4 flex flex-wrap items-center gap-3 shadow-[0_12px_40px_rgba(27,31,58,0.35)]" style={{ background: "var(--ink)", color: "var(--paper)" }}>
+      {/* Summary + nav: pinned to the bottom of the screen on every step (short steps used to make it jump up) */}
+      <div aria-hidden className="h-32 sm:h-28" />
+      <div className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pointer-events-none">
+      <div className="pointer-events-auto mx-auto max-w-2xl rounded-3xl p-3 sm:p-4 flex flex-wrap items-center gap-3 shadow-[0_12px_40px_rgba(27,31,58,0.35)]" style={{ background: "var(--ink)", color: "var(--paper)" }}>
         <div className="flex-1 min-w-[12rem] text-sm" style={{ color: "#cfd2e6" }}>
           {showPrices && priced ? <p><b className="display text-2xl text-white">{formatCurrency(total)}</b> estimado</p> : <p className="display text-lg text-white">{priced ? "Valor enviado no WhatsApp" : "Valor a combinar"}</p>}
           <p className="truncate">{pkg ? pkg.name : "Sem pacote"}{date ? ` · ${fmtDate(date)} ${time}` : ""} · {adults}A {children}C{lines.filter((l) => l.kind === "ADDON").length ? ` · ${lines.filter((l) => l.kind === "ADDON").length} adicional(is)` : ""}</p>
@@ -359,6 +361,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
             <SubmitButton name="mode" value="lead" size="lg" className="rounded-full font-extrabold whitespace-nowrap" style={{ background: "var(--berry)" }} pendingText="Enviando...">Enviar pedido</SubmitButton>
           )}
         </div>
+      </div>
       </div>
     </form>
   );
