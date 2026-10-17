@@ -4,8 +4,10 @@ import { ImageInput } from "@/components/ui/image-input";
 
 import { useActionState } from "react";
 import { useState } from "react";
-import { updateShowPrices, updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage, updateTheme, updateCoverCaption } from "@/lib/actions/settings";
+import { updateHeroStyle, updateShowPrices, updateOrganization, uploadOrgImage, createStaff, updatePaymentPlan, updateContractTemplate, updatePublicProfile, uploadGalleryImages, updateGalleryCaption, removeGalleryImage, updateTheme, updateCoverCaption } from "@/lib/actions/settings";
 import { Trash2 } from "lucide-react";
+import { HERO_STYLES, type HeroStyle } from "@/lib/hero";
+import { HeroStylePreview } from "@/components/public/hero/style-preview";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -251,6 +253,27 @@ export function ShowPricesForm({ showPrices }: { showPrices: boolean }) {
         <input type="checkbox" name="show_prices_public" value="true" defaultChecked={showPrices} className="mt-1 h-4 w-4" />
         <span><b>Mostrar valores dos pacotes na página pública.</b> Se desativada, o cliente solicita orçamento sem ver preço.</span>
       </label>
+    </form>
+  );
+}
+
+/** Hero style of the public page (every plan): four cards with a tiny sketch of each layout. */
+export function HeroStyleForm({ style }: { style: HeroStyle }) {
+  const [state, action] = useActionState(updateHeroStyle, undefined);
+  return (
+    <form data-settings action={action} className="space-y-3">
+      {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+      {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {(Object.keys(HERO_STYLES) as HeroStyle[]).map((key) => (
+          <label key={key} className="relative cursor-pointer rounded-2xl border border-border p-2 has-checked:border-brand has-checked:ring-2 has-checked:ring-brand/30 focus-within:ring-2 focus-within:ring-brand/40">
+            <input type="radio" name="hero_style" value={key} defaultChecked={style === key} className="sr-only" />
+            <HeroStylePreview style={key} className="w-full rounded-xl" />
+            <p className="mt-2 text-sm font-semibold">{HERO_STYLES[key].label}</p>
+            <p className="text-xs text-muted">{HERO_STYLES[key].description}</p>
+          </label>
+        ))}
+      </div>
     </form>
   );
 }

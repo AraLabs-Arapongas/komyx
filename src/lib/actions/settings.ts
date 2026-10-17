@@ -8,6 +8,7 @@ import { attachUserToOrg } from "@/lib/data/attach-user";
 import { requireOwner } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { formToObject, moneySchema, optionalText, phoneSchema, uuid, zodFieldErrors, UUID_RE } from "./helpers";
+import { HERO_STYLES, type HeroStyle } from "@/lib/hero";
 
 const orgSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome"),
@@ -324,6 +325,18 @@ export async function updateShowPrices(_prev: ActionResult | undefined, formData
   if (error) return fail(translateDbError(error));
   revalidatePath("/configuracoes", "layout");
   return { ok: true, message: show ? "Valores visíveis na página pública." : "Valores ocultos: o cliente pede orçamento sem ver preço." };
+}
+
+/** Every plan: which hero style opens the public page. */
+export async function updateHeroStyle(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const style = String(formData.get("hero_style") ?? "");
+  if (!(style in HERO_STYLES)) return fail("Escolha um estilo.");
+  const profile = await requireOwner();
+  const supabase = await createClient();
+  const { error } = await supabase.from("organizations").update({ hero_style: style as HeroStyle }).eq("id", profile.organization_id);
+  if (error) return fail(translateDbError(error));
+  revalidatePath("/configuracoes", "layout");
+  return { ok: true, message: `Topo "${HERO_STYLES[style as HeroStyle].label}" salvo.` };
 }
 
 const themeItemSchema = z.object({

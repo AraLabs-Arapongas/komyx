@@ -7,7 +7,8 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { buttonClass } from "@/components/ui/button";
 import { appUrl, cn } from "@/lib/utils";
 import { resolveTheme } from "@/lib/theme";
-import { PublicProfileForm, GalleryForm, ThemeForm, ImageUploadForm, CoverCaptionForm, ShowPricesForm } from "../forms";
+import { resolveHeroStyle } from "@/lib/hero";
+import { PublicProfileForm, GalleryForm, ThemeForm, ImageUploadForm, CoverCaptionForm, ShowPricesForm, HeroStyleForm } from "../forms";
 import { UnsavedGuard } from "../unsaved-guard";
 
 export const metadata = { title: "Página pública" };
@@ -59,6 +60,12 @@ export default async function PublicPageSettings({ searchParams }: PageProps<"/c
             </>
           ) : null}
 
+          {tab === "aparencia" ? (
+            <Card>
+              <CardHeader title="Estilo do topo da página" subtitle="Como suas fotos abrem a página. Vale para todos os planos." action={<Link href={`/p/${org.slug}`} target="_blank" className={buttonClass("ghost", "sm")}>Ver página <ExternalLink className="h-3.5 w-3.5" /></Link>} />
+              <CardBody><HeroStyleForm style={resolveHeroStyle(org.hero_style)} /></CardBody>
+            </Card>
+          ) : null}
           {tab === "aparencia" ? (
             premium ? (
               <>
