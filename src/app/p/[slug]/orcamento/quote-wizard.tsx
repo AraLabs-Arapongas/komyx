@@ -7,13 +7,14 @@ import { groupsForPackage, menuView, type MenuGroup, type MenuPick } from "@/lib
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { Check, Maximize2 } from "lucide-react";
 import { PhotoLightbox } from "@/components/public/photo-lightbox";
+import { FestaSelect } from "@/components/public/festa-select";
 import { OCCASIONS } from "@/lib/labels";
 import { MonthPicker } from "@/components/calendar/month-picker";
 import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
 import { CopyButton } from "@/components/ui/copy-button";
 import { appUrl, formatDateTime, formatDateLong, formatTime, whatsappLink } from "@/lib/utils";
 import type { ActionResult } from "@/lib/action-result";
-import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -293,9 +294,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
             <Field label="Seu nome" htmlFor="name" error={fe.name}><Input id="name" value={contact.name} onChange={upd("name")} autoComplete="name" required /></Field>
             <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp}><Input id="whatsapp" value={contact.whatsapp} onChange={upd("whatsapp")} type="tel" inputMode="tel" autoComplete="tel" placeholder="(11) 99999-9999" required /></Field>
             <Field label="Ocasião" htmlFor="occasion">
-              <Select id="occasion" value={contact.occasion} onChange={upd("occasion")}>
-                {OCCASIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </Select>
+              <FestaSelect id="occasion" value={contact.occasion} onChange={(v) => setContact((c) => ({ ...c, occasion: v }))} options={OCCASIONS} />
             </Field>
             {contact.occasion === "BIRTHDAY" ? (
               <div className="grid grid-cols-2 gap-3">
@@ -305,10 +304,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
             ) : null}
             {defaultSource && !known ? null : (
               <Field label="Como nos conheceu?" htmlFor="source">
-                <Select id="source" value={contact.source} onChange={upd("source")}>
-                  <option value="">Selecione</option>
-                  {LEAD_SOURCES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-                </Select>
+                <FestaSelect id="source" value={contact.source} onChange={(v) => setContact((c) => ({ ...c, source: v }))} options={LEAD_SOURCES} />
               </Field>
             )}
             <Field label="Observações" htmlFor="message"><Textarea id="message" value={contact.message} onChange={upd("message")} placeholder="Tema, restrições, dúvidas..." className="min-h-16" /></Field>

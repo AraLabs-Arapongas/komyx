@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
+import { FestaSelect } from "@/components/public/festa-select";
 import { submitPublicRequest, type PublicSubmitResult } from "@/lib/actions/public";
 import type { ActionResult } from "@/lib/action-result";
-import { Field, Input, Select, Textarea } from "@/components/ui/input";
+import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { LEAD_SOURCES } from "@/lib/pricing";
@@ -34,10 +35,7 @@ export function RequestForm({ slug, defaultSource }: { slug: string; defaultSour
       </div>
       {defaultSource && !known ? null : (
         <Field label="Como nos conheceu?" htmlFor="req_source">
-          <Select id="req_source" name="source" defaultValue={known ? defaultSource : ""}>
-            <option value="">Selecione</option>
-            {LEAD_SOURCES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-          </Select>
+          <FestaSelect id="req_source" name="source" defaultValue={known ? defaultSource : ""} options={LEAD_SOURCES} />
         </Field>
       )}
       <Field label="Mensagem" htmlFor="req_message"><Textarea id="req_message" name="message" placeholder="Tipo de festa, tema, dúvidas..." /></Field>
