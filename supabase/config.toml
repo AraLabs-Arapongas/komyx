@@ -271,6 +271,14 @@ enabled = true
 uri = "http://host.docker.internal:3000/api/auth/send-sms"
 secrets = "v1,whsec_ZmVzdGVqYS1sb2NhbC1zZW5kLXNtcy1ob29rLXNlY3JldC0wMQ=="
 
+# Send email hook → Next.js route that renders the email and sends it (see src/app/api/auth/send-email/route.ts).
+# Locally EMAIL_PROVIDER=log prints the message (with the link) in the `pnpm dev` terminal.
+# Local-only secret; production uses env(SEND_EMAIL_HOOK_SECRET).
+[auth.hook.send_email]
+enabled = true
+uri = "http://host.docker.internal:3000/api/auth/send-email"
+secrets = "v1,whsec_WIpxKGU+76cd4tQLoRoN4UlCEVQ39g2wi8aa35Aig6w="
+
 # Configure logged in session timeouts.
 # [auth.sessions]
 # Force log out after the specified duration.
@@ -432,3 +440,8 @@ additional_redirect_urls = ["https://komyx.com.br", "https://komyx.com.br/**", "
 enabled = true
 uri = "https://komyx.com.br/api/auth/send-sms"
 secrets = "env(SEND_SMS_HOOK_SECRET)"
+
+[remotes.production.auth.hook.send_email]
+enabled = true
+uri = "https://komyx.com.br/api/auth/send-email"
+secrets = "env(SEND_EMAIL_HOOK_SECRET)"

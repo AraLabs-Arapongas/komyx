@@ -1,5 +1,5 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { verifyHookSignature } from "@/lib/auth/hook-signature";
 import { getSmsProvider } from "@/lib/sms";
 
 /**
@@ -10,7 +10,7 @@ import { getSmsProvider } from "@/lib/sms";
 export async function POST(req: Request) {
   const secretRaw = process.env.SEND_SMS_HOOK_SECRET ?? "";
   const raw = await req.text();
-  if (!verify(req.headers, raw, secretRaw)) {
+  if (!verifyHookSignature(req.headers, raw, secretRaw)) {
     return NextResponse.json({ error: "invalid signature" }, { status: 401 });
   }
   let payload: { user?: { phone?: string }; sms?: { otp?: string } };
@@ -27,24 +27,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: { http_code: 500, message: "Não conseguimos enviar o SMS agora. Tente de novo em instantes." } }, { status: 500 });
   }
   return NextResponse.json({});
-}
-
-/** Standard Webhooks signature check. Secret format: "v1,whsec_<base64>" (several may be comma-separated). */
-function verify(headers: Headers, body: string, secrets: string) {
-  const id = headers.get("webhook-id");
-  const ts = headers.get("webhook-timestamp");
-  const sigHeader = headers.get("webhook-signature");
-  if (!id || !ts || !sigHeader || !secrets) return false;
-  if (Math.abs(Date.now() / 1000 - Number(ts)) > 300) return false;
-  const keys = secrets.split("|").map((s) => s.trim()).filter(Boolean);
-  const provided = sigHeader.split(" ").map((p) => p.split(",")[1] ?? "").filter(Boolean);
-  for (const k of keys) {
-    const b64 = k.replace(/^v1,/, "").replace(/^whsec_/, "");
-    const expected = createHmac("sha256", Buffer.from(b64, "base64")).update(`${id}.${ts}.${body}`).digest("base64");
-    for (const p of provided) {
-      const a = Buffer.from(expected); const b = Buffer.from(p);
-      if (a.length === b.length && timingSafeEqual(a, b)) return true;
-    }
-  }
-  return false;
 }

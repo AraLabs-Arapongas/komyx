@@ -1,11 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as WebBrowser from "expo-web-browser";
 import { useMemo, useRef, useState } from "react";
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { maskPhoneInput, normalizePhone } from "@/lib/format";
-import { supabase } from "@/lib/supabase";
+import { supabase, WEB_URL } from "@/lib/supabase";
 import { KomyxLogo } from "@/ui/brand";
 import { Button, Field, Input, Muted, styles } from "@/ui/components";
 import { PartyBackdrop, party } from "@/ui/party";
@@ -133,6 +134,11 @@ export default function Entrar() {
           </Field>
           {d.kind === "email" ? (
             <Field label="Senha"><Input value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" onSubmitEditing={() => go()} returnKeyType="go" /></Field>
+          ) : null}
+          {d.kind === "email" ? (
+            <Pressable onPress={() => WebBrowser.openBrowserAsync(`${WEB_URL}/esqueci-senha`)} hitSlop={8} style={{ alignSelf: "flex-end", marginTop: -6 }}>
+              <Text style={{ color: party.berry, fontWeight: "700" }}>Esqueci minha senha</Text>
+            </Pressable>
           ) : null}
           {d.kind === "phone" && codeSent ? (
             <Field label={`Código enviado por SMS para ${id}`}>

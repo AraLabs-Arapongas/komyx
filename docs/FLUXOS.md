@@ -24,6 +24,10 @@ Buffet de exemplo: **Festa & Cia** → página pública em `/p/festa-cia-buffet`
 2. Home mostra o checklist **"Deixe seu buffet pronto para vender"**: WhatsApp → pacotes → Pix e prazo do sinal → fotos → primeira reserva. Some quando tudo está feito.
 3. Copia o **link da bio** (`/p/slug?src=instagram`) direto do checklist ou de Configurações.
 
+### 1.1b Esqueci minha senha
+
+`/login` (e a tela Entrar do app) → **Esqueci minha senha** → `/esqueci-senha`: e-mail → sempre a mesma resposta ("se existir uma conta…"). O Supabase chama o hook `send_email` → `/api/auth/send-email` → Resend (`EMAIL_PROVIDER=resend`; em dev `log` imprime o link no terminal do `pnpm dev`). O link (1 hora) vai para `/auth/confirm`, que entra na conta e abre `/nova-senha`: nova senha + confirmação → `/home`. Link usado ou expirado volta para `/esqueci-senha` com aviso. Os e-mails saem de `nao-responda@komyx.com.br` com resposta para `contato@komyx.com.br`.
+
 ### 1.2 Configurações (só owner)
 - **Dados do buffet**: nome, WhatsApp, Instagram, endereço, razão social, CNPJ, cidade (foro), **chave Pix**, duração padrão da festa, **validade da reserva em horas** (= prazo do sinal).
 - **Conteúdo da página pública**: frase principal, capacidade, ano de fundação, destaques, depoimentos, regra **um evento por dia**, **reserva online pelo cliente** (liga/desliga).

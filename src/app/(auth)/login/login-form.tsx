@@ -35,6 +35,7 @@ export function LoginForm({ next, initialError, devAccounts = [] }: { next?: str
           <Field label="Senha" htmlFor="password" error={fe.password}>
             <Input id="password" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </Field>
+          <p className="-mt-2 text-right text-sm"><Link href="/esqueci-senha" className="text-brand font-medium">Esqueci minha senha</Link></p>
           <SubmitButton className="w-full" size="lg" pendingText="Entrando...">Entrar</SubmitButton>
         </form>
         <p className="text-center text-sm text-muted">
