@@ -29,8 +29,12 @@ begin
     -- Valid textbook CNPJ (Asaas refuses invalid ones); the trial buffet keeps it empty on purpose.
     update public.organizations set description = r.about, whatsapp = '11988880000', public_page = true,
       document = case when r.login = 'teste' then null else 'CNPJ 11.222.333/0001-81' end,
-      legal_name = r.org_name || ' Ltda'
+      legal_name = r.org_name || ' Ltda', pix_key = '11988880000',
+      -- An operating buffet: the first-week checklist is done (package, Pix, photos, a party).
+      gallery = '[{"url":"/demo/festa-1.jpg","caption":"Salão pronto para a festa"},{"url":"/demo/festa-2.jpg","caption":"Mesa do bolo"}]'::jsonb
     where id = v_org;
+    insert into public.packages (organization_id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price, description, sort_order)
+    values (v_org, 'Pacote Festa', 3500, 30, 30, 60, 40, 'Buffet completo, 4h de festa, 2 monitores.', 1);
 
     insert into public.organization_billing (organization_id, cycle_start, due_at, status, billing_period)
     values (v_org,
