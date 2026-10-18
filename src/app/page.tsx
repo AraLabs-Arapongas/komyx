@@ -10,7 +10,7 @@ import { PolaroidMocks } from "@/components/marketing/polaroid-mocks";
 import { ScrollCue } from "@/components/marketing/scroll-cue";
 import { Reveal } from "@/components/marketing/reveal";
 import { publicFontClass } from "@/lib/fonts";
-import { LAUNCH_PRICE, LIST_PRICE, MONTHLY_PRICE, TABLET_PLAN_PER_MONTH, SUPPORT_WHATSAPP } from "@/lib/billing";
+import { LAUNCH_PRICE, LIST_PRICE, MONTHLY_PRICE, SHOW_TABLET_PLAN, TABLET_PLAN_PER_MONTH, SUPPORT_WHATSAPP } from "@/lib/billing";
 import { PriceCard } from "@/components/marketing/price-card";
 import { formatCurrency, whatsappLink } from "@/lib/utils";
 import { homeJsonLd, publicPageMetadata } from "@/lib/seo";
@@ -128,7 +128,8 @@ export default function LandingPage() {
         </Reveal>
       </section>
 
-      {/* TABLET PLAN */}
+      {/* TABLET PLAN (hidden while SHOW_TABLET_PLAN is false) */}
+      {SHOW_TABLET_PLAN ? (
       <section id="tablet" className="snap-page relative overflow-hidden max-md:flex max-md:flex-col max-md:justify-center" style={{ background: "var(--paper-2)" }}>
         <Reveal className="mx-auto w-full max-w-5xl px-4 py-14 max-md:py-8 grid gap-8 md:grid-cols-[1.1fr_0.9fr] md:items-center max-md:gap-5">
           <div data-stagger>
@@ -148,6 +149,7 @@ export default function LandingPage() {
           </div>
         </Reveal>
       </section>
+      ) : null}
 
       {/* CTA + FOOTER (one phone page) */}
       <div className="snap-page max-md:flex max-md:flex-col">

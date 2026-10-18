@@ -15,6 +15,8 @@ export const MONTHLY_PRICE = 149;
 export const LIST_PRICE = 199;
 /** "Komyx Balcão": annual plan with a 10" tablet on loan (comodato), kiosk mode for the door. Price per month. */
 export const TABLET_PLAN_PER_MONTH = 149;
+/** The tablet plan is off the home page (and its search data) until it is offered again. */
+export const SHOW_TABLET_PLAN = false;
 /** Free trial length for every new buffet (see migration trial_billing). */
 export const TRIAL_DAYS = 30;
 /** Cheapest per-month price (annual), used in "a partir de" copy. */

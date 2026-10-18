@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BILLING_PERIODS, TABLET_PLAN_PER_MONTH, TRIAL_DAYS } from "@/lib/billing";
+import { BILLING_PERIODS, SHOW_TABLET_PLAN, TABLET_PLAN_PER_MONTH, TRIAL_DAYS } from "@/lib/billing";
 
 /**
  * SEO for the public (marketing) pages. www.komyx.com.br is the source of truth for Komyx
@@ -46,7 +46,7 @@ export function homeJsonLd() {
       url: `${SITE_URL}/#precos`,
       availability: "https://schema.org/InStock",
     })),
-    {
+    ...(SHOW_TABLET_PLAN ? [{
       "@type": "Offer",
       name: "Komyx Balcão (plano anual + tablet na portaria)",
       price: TABLET_PLAN_PER_MONTH,
@@ -54,7 +54,7 @@ export function homeJsonLd() {
       priceSpecification: { "@type": "UnitPriceSpecification", price: TABLET_PLAN_PER_MONTH, priceCurrency: "BRL", unitCode: "MON", referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitCode: "MON" }, billingDuration: { "@type": "QuantitativeValue", value: 12, unitCode: "MON" } },
       url: `${SITE_URL}/#tablet`,
       availability: "https://schema.org/InStock",
-    },
+    }] : []),
   ];
   return {
     "@context": "https://schema.org",
