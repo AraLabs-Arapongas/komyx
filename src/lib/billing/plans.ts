@@ -1,3 +1,4 @@
+import { isValidDocument } from "@/lib/document";
 import { BILLING_PERIODS, MONTHLY_PRICE } from "@/lib/billing";
 import { addMonths } from "./invoices";
 
@@ -65,8 +66,8 @@ export function monthsUsed(periodStart: string, today: string) {
 /** What is missing for Komyx to charge the buffet (Asaas needs both). Empty = ready. */
 export function billingDataMissing(org: { document: string | null; whatsapp: string | null }) {
   const missing: string[] = [];
-  const doc = (org.document ?? "").replace(/\D/g, "");
-  if (doc.length !== 11 && doc.length !== 14) missing.push("CNPJ/CPF");
+  // An invalid number counts as missing: Asaas refuses it.
+  if (!isValidDocument(org.document)) missing.push("CNPJ/CPF");
   const phone = (org.whatsapp ?? "").replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, "");
   if (phone.length !== 10 && phone.length !== 11) missing.push("WhatsApp");
   return missing;

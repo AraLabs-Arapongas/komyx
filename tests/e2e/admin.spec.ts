@@ -106,9 +106,12 @@ test.describe("Admin Komyx", () => {
     await row.getByRole("button", { name: "Definir prioridade" }).click();
     await row.getByLabel("Prioridade").fill("1");
     await row.getByLabel("Prioridade").press("Enter");
-    await expect(page.locator("ul.divide-y > li").first()).toContainText(title);
-    await expect(page.locator("ul.divide-y > li").first().getByRole("button", { name: /^Prioridade 1/ })).toHaveText("P1");
-    await page.locator("ul.divide-y > li").first().getByRole("button", { name: "Apagar" }).click();
+    await expect(row.getByRole("button", { name: /^Prioridade 1/ })).toHaveText("P1");
+    // Sorted by priority across sections: nothing above the new P1 item has a lower priority than 1.
+    const texts = await page.locator("ul.divide-y > li").allInnerTexts();
+    const at = texts.findIndex((t) => t.includes(title));
+    expect(texts.slice(0, at).every((t) => /^P1\b/.test(t.trim()))).toBe(true);
+    await row.getByRole("button", { name: "Apagar" }).click();
     await expect(page.locator("li", { hasText: title })).toHaveCount(0);
   });
 });

@@ -10,6 +10,7 @@ import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { formToObject, moneySchema, optionalText, phoneSchema, uuid, zodFieldErrors, UUID_RE } from "./helpers";
 import { HERO_STYLES, type HeroStyle } from "@/lib/hero";
 import { maybeAutoEnable } from "@/lib/billing/subscription";
+import { INVALID_DOCUMENT, isValidDocument } from "@/lib/document";
 
 const orgSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome"),
@@ -20,7 +21,8 @@ const orgSchema = z.object({
   default_event_duration_minutes: z.string().transform(Number).refine((v) => v >= 30 && v <= 1440, "Entre 30 e 1440 minutos"),
   pre_reservation_validity_hours: z.string().transform(Number).refine((v) => v >= 1 && v <= 720, "Entre 1 e 720 horas"),
   legal_name: optionalText,
-  document: optionalText,
+  // Optional, but when filled it must be a real CPF/CNPJ: it goes to Asaas for the Komyx billing.
+  document: optionalText.refine((v) => !v || isValidDocument(v), INVALID_DOCUMENT),
   city: optionalText,
   pix_key: optionalText,
 });

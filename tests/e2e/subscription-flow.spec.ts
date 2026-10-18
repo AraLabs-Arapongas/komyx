@@ -109,7 +109,9 @@ test.describe.serial("Assinatura Komyx (regras + Asaas simulado)", () => {
     expect(plans.lateState({ status: "trial", due_at: "2026-10-08" }, [], "2026-10-18")).toMatchObject({ since: "2026-10-08", day: 10, payBy: "2026-10-17", pauseOn: "2026-10-18" });
     expect(plans.lateState({ status: "overdue", due_at: "2026-10-01" }, [{ id: "a", due_at: "2026-10-17", status: "open", payment_url: null, amount: 149 }], "2026-10-18")).toMatchObject({ since: "2026-10-17", day: 1 });
     expect([0, 1, 4, 5, 8, 9, 10, 15].map(plans.noticeDay)).toEqual([null, 1, 1, 5, 5, 9, 10, 10]);
-    expect(plans.billingDataMissing({ document: "12.345.678/0001-90", whatsapp: null })).toEqual(["WhatsApp"]);
+    expect(plans.billingDataMissing({ document: "11.222.333/0001-81", whatsapp: null })).toEqual(["WhatsApp"]);
+    // An invalid CPF/CNPJ counts as missing (Asaas refuses it).
+    expect(plans.billingDataMissing({ document: "12.345.678/0001-90", whatsapp: "11999990001" })).toEqual(["CNPJ/CPF"]);
   });
 
   test("teste grátis: liga a cobrança sozinha quando CNPJ/CPF e WhatsApp ficam completos", async () => {
@@ -120,7 +122,7 @@ test.describe.serial("Assinatura Komyx (regras + Asaas simulado)", () => {
     expect(bill?.status).toBe("trial");
     firstPayment = { id: "pay_first", customer: "cus_test", subscription: subId, value: 149, dueDate: bill!.due_at, billingType: "UNDEFINED", status: "PENDING", invoiceUrl: "https://sandbox.asaas.com/i/pay_first" };
 
-    await admin.from("organizations").update({ document: "12345678000190", whatsapp: "11987654321" }).eq("id", orgId);
+    await admin.from("organizations").update({ document: "11222333000181", whatsapp: "11987654321" }).eq("id", orgId);
     expect(await sub.maybeAutoEnable(admin, orgId)).toEqual({ enabled: true });
     expect(calls.map((c) => `${c.method} ${c.path}`)).toEqual(["POST /customers", "POST /subscriptions", `GET /subscriptions/${subId}/payments`]);
     expect(calls[1].body).toMatchObject({ value: 149, cycle: "MONTHLY", nextDueDate: bill!.due_at, billingType: "UNDEFINED" });

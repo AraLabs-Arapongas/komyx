@@ -4,6 +4,7 @@ import { toDateKey } from "@/lib/utils";
 import { addMonths } from "./invoices";
 import { cancelSubscription, createCustomer, createPayment, createSubscription, deletePayment, listSubscriptionPayments, methodFromBillingType, updateCustomer, updateSubscription, type AsaasPayment } from "./asaas";
 import { flagOverdue, settleInvoicePaid, settleInvoiceVoid } from "./settle";
+import { isValidDocument } from "@/lib/document";
 import { ASAAS_CYCLE, PERIOD_LABEL, isPeriodMonths, periodPrice, type PeriodMonths } from "./plans";
 
 /** Keeps a buffet's Komyx fee in sync with Asaas (customer, monthly subscription, charges). */
@@ -24,6 +25,7 @@ export async function ensureCustomer(admin: Admin, orgId: string) {
   ]);
   const doc = (org?.document ?? "").replace(/\D/g, "");
   if (doc.length !== 11 && doc.length !== 14) throw new BillingSetupError("Cadastre o CPF ou CNPJ do buffet (Configurações › Empresa) antes de cobrar pelo Asaas.");
+  if (!isValidDocument(doc)) throw new BillingSetupError("O CPF/CNPJ do buffet é inválido. Corrija em Configurações › Empresa.");
   const phone = (org?.whatsapp ?? "").replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, "");
   if (phone.length !== 10 && phone.length !== 11) throw new BillingSetupError("Cadastre o WhatsApp do buffet (Configurações › Empresa) antes de cobrar pelo Asaas.");
   if (!owner?.email) throw new BillingSetupError("O buffet não tem um responsável com e-mail para receber as cobranças.");

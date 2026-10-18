@@ -10,6 +10,7 @@ import { asaasConfigured } from "@/lib/billing/asaas";
 import { BillingSetupError, enableAutoBilling } from "@/lib/billing/asaas-sync";
 import { cancelWithOption, changePlan, logBilling, maybeAutoEnable, subscriptionContext } from "@/lib/billing/subscription";
 import { billingDataMissing, brDate, isPeriodMonths, PERIOD_LABEL } from "@/lib/billing/plans";
+import { INVALID_DOCUMENT, isValidDocument } from "@/lib/document";
 import { formatCurrency } from "@/lib/utils";
 import { phoneSchema, zodFieldErrors } from "./helpers";
 
@@ -21,7 +22,13 @@ function revalidateBilling() {
   revalidatePath("/admin/cobranca");
 }
 
-const asaasError = (e: unknown) => (e instanceof BillingSetupError ? e.message : `Não deu para falar com o sistema de cobrança agora. Tente de novo em instantes. (${e instanceof Error ? e.message : String(e)})`);
+const asaasError = (e: unknown) => {
+  if (e instanceof BillingSetupError) return e.message;
+  const msg = e instanceof Error ? e.message : String(e);
+  // Asaas rejected the data (400), not an outage: say what to fix instead of "try again".
+  if (/CPF|CNPJ/i.test(msg)) return "O CPF/CNPJ do buffet foi recusado pelo sistema de cobrança. Confira os números em Configurações › Empresa.";
+  return `Não deu para falar com o sistema de cobrança agora. Tente de novo em instantes. (${msg})`;
+};
 
 /** Minha conta › Seu plano: choose a plan (applies now in the trial, on the next renewal after that). */
 export async function choosePlan(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
@@ -133,7 +140,7 @@ export async function reactivateSubscription() {
 }
 
 const dataSchema = z.object({
-  document: z.string().transform((v) => v.replace(/\D/g, "")).refine((v) => v.length === 11 || v.length === 14, "CPF (11 dígitos) ou CNPJ (14 dígitos)"),
+  document: z.string().transform((v) => v.replace(/\D/g, "")).refine((v) => v.length === 11 || v.length === 14, "CPF (11 dígitos) ou CNPJ (14 dígitos)").refine(isValidDocument, INVALID_DOCUMENT),
   whatsapp: phoneSchema,
 });
 

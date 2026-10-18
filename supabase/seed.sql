@@ -124,7 +124,7 @@ begin
     (v_org, 'aaaaaaaa-0000-0000-0000-000000000002', 'bbbbbbbb-0000-0000-0000-000000000002', 'Theo', (current_date + 12) - interval '3 years'),
     (v_org, 'aaaaaaaa-0000-0000-0000-000000000004', null, 'Paulo', current_date + 40 - interval '50 years');
 
-  update public.organizations set legal_name = 'Festa & Cia Eventos Ltda', document = 'CNPJ 12.345.678/0001-90', city = 'São Paulo/SP', pix_key = '12.345.678/0001-90',
+  update public.organizations set legal_name = 'Festa & Cia Eventos Ltda', document = 'CNPJ 11.222.333/0001-81', city = 'São Paulo/SP', pix_key = '12.345.678/0001-90',
     tagline = 'A festa que seu filho vai lembrar. E você vai curtir.',
     highlights = array['Espaço climatizado', 'Brinquedão e piscina de bolinhas', 'Monitores o tempo todo', 'Estacionamento gratuito', 'Cardápio para alérgicos'],
     founded_year = 2014, capacity = 120, plan = 'premium',

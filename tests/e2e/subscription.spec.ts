@@ -27,7 +27,7 @@ test.describe.serial("Assinatura no app", () => {
 
   test.beforeAll(async () => {
     const db = adminDb();
-    const { data: org } = await db.from("organizations").insert({ name: "Buffet Assinatura E2E", slug, pix_key: "12345678000190", city: "Arapongas" }).select("id").single();
+    const { data: org } = await db.from("organizations").insert({ name: "Buffet Assinatura E2E", slug, pix_key: "11222333000181", city: "Arapongas" }).select("id").single();
     orgId = org!.id;
     const { data: u } = await db.auth.admin.createUser({ email: owner.email, password: owner.password, email_confirm: true, user_metadata: { name: "Dona Teste" }, app_metadata: { organization_id: orgId, role: "owner" } });
     const { data: p } = await db.from("profiles").select("organization_id").eq("id", u.user!.id).single();
@@ -65,7 +65,7 @@ test.describe.serial("Assinatura no app", () => {
     const end = addMonths(start, 1);
     await db.from("billing_invoices").insert({ organization_id: orgId, period_start: start, period_end: end, months: 1, amount: 149, due_at: start, status: "paid", paid_at: day(-10), method: "pix", notes: "E2E assinatura" });
     await db.from("organization_billing").update({ status: "ok", cycle_start: start, due_at: end, billing_period: 1 }).eq("organization_id", orgId);
-    await db.from("organizations").update({ document: "12345678000190", whatsapp: "11987654321" }).eq("id", orgId);
+    await db.from("organizations").update({ document: "11222333000181", whatsapp: "11987654321" }).eq("id", orgId);
 
     await login(page, owner);
     await expect(page.getByTestId("billing-banner")).toHaveCount(0);
