@@ -125,10 +125,25 @@ export async function adminSetAutoBilling(_prev: ActionResult | undefined, formD
       return { ok: true, message: `Cobrança automática ligada. Primeira cobrança em ${r.nextDueDate?.split("-").reverse().join("/") ?? "—"}.` };
     }
     await disableAutoBilling(admin, orgId.data);
+    // Saving Configurações › Empresa must not turn it back on by itself.
+    await admin.from("organization_billing").update({ auto_billing_disabled_at: new Date().toISOString() }).eq("organization_id", orgId.data);
     await logAdminAction(profile, "billing.auto_off", { organizationId: orgId.data });
     revalidate(orgId.data);
     return { ok: true, message: "Cobrança automática desligada." };
   } catch (e) {
     return fail(e instanceof BillingSetupError ? e.message : `Asaas: ${e instanceof Error ? e.message : String(e)}`);
   }
+}
+
+/** "Reembolsar R$ X por Pix": the admin sent the refund by hand (boleto, or Asaas refused it). */
+export async function adminMarkRefundDone(formData: FormData) {
+  const profile = await requireAdmin();
+  const id = uuid.safeParse(formData.get("id"));
+  if (!id.success) return;
+  const admin = createAdminClient();
+  const { data: r } = await admin.from("billing_refunds").update({ status: "done", method: "pix", done_at: new Date().toISOString(), done_by: profile.id })
+    .eq("id", id.data).in("status", ["manual", "requested"]).select("organization_id, amount, reason").maybeSingle();
+  if (!r) return;
+  await logAdminAction(profile, "refund.pix", { organizationId: r.organization_id, details: { refund_id: id.data, amount: r.amount, reason: r.reason } });
+  revalidate(r.organization_id);
 }

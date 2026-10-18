@@ -9,6 +9,7 @@ import { resolveTheme, themeStyle } from "@/lib/theme";
 import { PublicFooter } from "@/components/public/public-footer";
 import { DemoBanner } from "@/components/public/demo-banner";
 import { loadMenuGroups } from "@/lib/data/menu";
+import { isAccessPaused } from "@/lib/data/session";
 
 export async function generateMetadata({ params }: PageProps<"/p/[slug]/orcamento">): Promise<Metadata> {
   const { slug } = await params;
@@ -27,10 +28,12 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
   const admin = createAdminClient();
   const { data: org } = await admin.from("organizations").select("id, name, slug, logo_url, whatsapp, default_event_duration_minutes, plan, theme, show_prices_public, self_booking_enabled, pre_reservation_validity_hours, payment_plan, status, is_demo").eq("slug", slug).neq("kind", "platform").eq("public_page", true).maybeSingle();
   if (!org || org.status !== "active") notFound();
-  const [{ data: packages }, { data: addons }, { data: themes }] = await Promise.all([
+  const [{ data: packages }, { data: addons }, { data: themes }, paused] = await Promise.all([
     admin.from("packages").select("id, name, base_price, included_adults, included_children, extra_adult_price, extra_child_price, description").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name"),
     admin.from("package_addons").select("id, name, price, description").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name"),
     admin.from("party_themes").select("id, name, description, photo_url").eq("organization_id", org.id).eq("active", true).order("sort_order").order("name"),
+    // Access paused for a late Komyx payment: the page keeps taking requests, but online booking with Pix stops.
+    isAccessPaused(org.id),
   ]);
 
   const menuGroups = await loadMenuGroups(admin, { orgId: org.id, packageIds: (packages ?? []).map((p) => p.id) });
@@ -53,7 +56,7 @@ export default async function SelfServiceQuotePage({ params, searchParams }: Pag
             </div>
           </div>
         </div>
-        <QuoteWizard slug={org.slug} menuGroups={menuGroups} packages={packages ?? []} addons={addons ?? []} themes={themes ?? []} defaultSource={src} preselectedPackage={preselected} today={toDateKey(new Date())} durationMinutes={org.default_event_duration_minutes} showPrices={org.show_prices_public} selfBooking={org.self_booking_enabled} validityHours={org.pre_reservation_validity_hours} depositPercent={(() => { const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { percent?: number }[]) : []; return plan[0]?.percent ?? null; })()} depositLabel={(() => { const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { label?: string }[]) : []; return plan[0]?.label ?? null; })()} />
+        <QuoteWizard slug={org.slug} menuGroups={menuGroups} packages={packages ?? []} addons={addons ?? []} themes={themes ?? []} defaultSource={src} preselectedPackage={preselected} today={toDateKey(new Date())} durationMinutes={org.default_event_duration_minutes} showPrices={org.show_prices_public} selfBooking={org.self_booking_enabled && !paused} validityHours={org.pre_reservation_validity_hours} depositPercent={(() => { const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { percent?: number }[]) : []; return plan[0]?.percent ?? null; })()} depositLabel={(() => { const plan = Array.isArray(org.payment_plan) ? (org.payment_plan as { label?: string }[]) : []; return plan[0]?.label ?? null; })()} />
       </div>
       <PublicFooter variant="light" orgName={org.name} />
     </main>

@@ -13,6 +13,7 @@ import { AccessLinkForm, OrgAdminForm, ResetPasswordForm, SendResetForm } from "
 import { emailIsLogged } from "@/lib/auth/access-link";
 import { PendingButton } from "@/components/ui/pending-button";
 import { BrowserTabPanel, BrowserTabs } from "@/components/ui/browser-tabs";
+import { OrgSubscriptionPanel } from "@/app/admin/cobranca/subscription-panel";
 import { IDLE_DAYS, daysAgoIso, isIdle, orgLastActivity } from "../activity";
 
 const SOURCE_LABEL: Record<string, string> = { evento: "evento alterado", pedido: "pedido na página pública", pagamento: "pagamento registrado", login: "login da equipe" };
@@ -106,6 +107,7 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
         ) : null}
         {tab === "plano" ? (
           <>
+        <OrgSubscriptionPanel orgId={org.id} />
         <Card>
           <CardHeader title="Plano, status, cobrança e endereço" subtitle="Só o Komyx altera. Suspender bloqueia o app e a página pública; os dados ficam guardados. O ciclo de cobrança aparece para o dono com barra de progresso." />
           <CardBody><OrgAdminForm org={{ id: org.id, slug: org.slug, plan: org.plan, status: org.status, notes: org.notes, billing_cycle_start: bill?.cycle_start ?? null, billing_due_at: bill?.due_at ?? null, billing_status: bill?.status ?? "ok" }} /></CardBody>

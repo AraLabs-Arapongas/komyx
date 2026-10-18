@@ -18,6 +18,10 @@ const KIND_LABEL: Record<string, string> = {
   resend: "Reenvio",
   test: "Teste",
   auth: "Auth",
+  client_summary: "Resumo ao cliente",
+  welcome: "Boas-vindas",
+  admin_password: "Senha provisória",
+  billing: "Cobrança",
 };
 const STATUS = { sent: { label: "enviado", tone: "green" }, failed: { label: "falhou", tone: "red" }, skipped: { label: "ignorado", tone: "zinc" } } as const;
 

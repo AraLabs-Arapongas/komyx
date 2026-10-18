@@ -26,6 +26,7 @@ function Shell() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="entrar" options={{ headerShown: false }} />
+        <Stack.Screen name="pausado" options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name="dev" options={{ title: "Dev tools", headerBackTitle: "Voltar" }} />
         <Stack.Screen name="dev-splash" options={{ headerShown: false, animation: "fade" }} />
         <Stack.Screen name="(app)" options={{ headerShown: false }} />

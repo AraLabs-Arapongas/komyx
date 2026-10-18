@@ -9,6 +9,7 @@ import { requireOwner } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { formToObject, moneySchema, optionalText, phoneSchema, uuid, zodFieldErrors, UUID_RE } from "./helpers";
 import { HERO_STYLES, type HeroStyle } from "@/lib/hero";
+import { maybeAutoEnable } from "@/lib/billing/subscription";
 
 const orgSchema = z.object({
   name: z.string().trim().min(2, "Informe o nome"),
@@ -69,9 +70,12 @@ export async function updateOrganization(_prev: ActionResult | undefined, formDa
   const supabase = await createClient();
   const { error } = await supabase.from("organizations").update(parsed.data).eq("id", profile.organization_id);
   if (error) return fail(translateDbError(error));
+  // CNPJ/CPF + WhatsApp complete during the trial: Komyx billing turns on by itself (docs/assinatura.md §1).
+  const auto = await maybeAutoEnable(createAdminClient(), profile.organization_id);
   revalidatePath("/configuracoes", "layout");
   revalidatePath("/p/[slug]", "page");
-  return { ok: true, message: "Dados salvos." };
+  if (auto.enabled) revalidatePath("/", "layout");
+  return { ok: true, message: auto.enabled ? "Dados salvos. A assinatura do Komyx está pronta: veja em Minha conta." : "Dados salvos." };
 }
 
 export async function updateCoverCaption(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {

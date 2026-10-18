@@ -179,8 +179,12 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
     occasion: d.occasion, celebrant: isBirthday ? d.celebrant_name : null, message: d.message, estimatedTotal: estimated_total,
   };
 
+  // Komyx access paused for a late payment (docs/assinatura.md §4): the page keeps taking requests, but
+  // online Pix reservation pauses, so a "reserve" lands as a plain request.
+  const billingPaused = d.mode === "reserve" && Boolean((await admin.from("organization_billing").select("paused_at").eq("organization_id", org.id).maybeSingle()).data?.paused_at);
+
   // No package means no price, so there is nothing to hold with a Pix deposit: it stays a plain request.
-  if (d.mode !== "reserve" || !pkg) {
+  if (d.mode !== "reserve" || !pkg || billingPaused) {
     if (d.email) { const to = d.email; after(() => sendClientSummary({ ...summary, to })); }
     return { ok: true, data: { estimated_total }, message: estimated_total !== null ? "Recebemos seu orçamento! Em breve confirmamos a disponibilidade da data pelo WhatsApp." : "Recebemos sua solicitação! Em breve entraremos em contato pelo WhatsApp." };
   }

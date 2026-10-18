@@ -1,6 +1,7 @@
 import "server-only";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { toDateKey } from "@/lib/utils";
+import { lateState, PAUSE_DAY } from "./plans";
 
 /** Settling Komyx invoices, shared by the admin buttons (/admin/cobranca) and the Asaas webhook. */
 
@@ -18,18 +19,37 @@ export async function hasOverdueInvoices(admin: Admin, orgId: string) {
  * never pulls due_at back), and billing stays 'overdue' while another open invoice is past due.
  */
 export async function settleInvoicePaid(admin: Admin, id: string, paidAt: string, method: string) {
-  const { data: inv } = await admin.from("billing_invoices").update({ status: "paid", paid_at: paidAt, method }).eq("id", id).eq("status", "open").select("organization_id, period_start, period_end, amount").maybeSingle();
+  const { data: inv } = await admin.from("billing_invoices").update({ status: "paid", paid_at: paidAt, method }).eq("id", id).eq("status", "open").select("organization_id, period_start, period_end, amount, months").maybeSingle();
   if (!inv) return null;
-  const { data: bill } = await admin.from("organization_billing").select("due_at").eq("organization_id", inv.organization_id).maybeSingle();
+  const { data: bill } = await admin.from("organization_billing").select("due_at, pending_period, pending_from").eq("organization_id", inv.organization_id).maybeSingle();
   const forward = !bill?.due_at || inv.period_end >= bill.due_at;
   const status = (await hasOverdueInvoices(admin, inv.organization_id)) ? "overdue" : "ok";
+  // The renewal that starts the scheduled plan was paid: that plan is now the one in force.
+  const promote = bill?.pending_period && bill.pending_from && inv.period_start >= bill.pending_from;
   await admin.from("organization_billing").upsert({
     organization_id: inv.organization_id,
     status,
     ...(forward ? { cycle_start: inv.period_start, due_at: inv.period_end } : {}),
+    ...(promote ? { billing_period: bill.pending_period!, pending_period: null, pending_from: null } : {}),
     updated_at: new Date().toISOString(),
   });
+  await refreshPause(admin, inv.organization_id);
   return inv;
+}
+
+/**
+ * Lifts "acesso pausado" once the buffet is no longer 10+ days late (payment, voided invoice, new dates).
+ * Pausing itself is done by the daily job (src/lib/billing/subscription.ts). Returns true when it lifted.
+ */
+export async function refreshPause(admin: Admin, orgId: string) {
+  const { data: bill } = await admin.from("organization_billing").select("status, due_at, paused_at").eq("organization_id", orgId).maybeSingle();
+  if (!bill?.paused_at) return false;
+  const { data: open } = await admin.from("billing_invoices").select("id, due_at, status, payment_url, amount").eq("organization_id", orgId).eq("status", "open");
+  const late = lateState(bill, open ?? [], toDateKey(new Date()));
+  if (late && late.day >= PAUSE_DAY) return false;
+  await admin.from("organization_billing").update({ paused_at: null, updated_at: new Date().toISOString() }).eq("organization_id", orgId);
+  await admin.from("admin_audit").insert({ admin_id: null, admin_email: "sistema", action: "billing.unpaused", organization_id: orgId, details: {} });
+  return true;
 }
 
 /** Cancels an open invoice. If it was the last overdue one, billing leaves 'overdue'. Null when not open. */
@@ -40,6 +60,7 @@ export async function settleInvoiceVoid(admin: Admin, id: string) {
   if (bill?.status === "overdue" && !(await hasOverdueInvoices(admin, inv.organization_id))) {
     await admin.from("organization_billing").update({ status: "ok", updated_at: new Date().toISOString() }).eq("organization_id", inv.organization_id);
   }
+  await refreshPause(admin, inv.organization_id);
   return inv;
 }
 

@@ -73,3 +73,33 @@ Cláusula em português simples em `/termos` com: teste de 30 dias, planos, reno
 ## Testes
 
 Cada caminho com teste automático (e2e ou simulação dos eventos do Asaas como em `asaas-sync`): teste → assinatura → troca → atraso (dias 1/5/9) → pausa (dia 10) → pagamento → volta; cancelamento com e sem reembolso (7 dias, mensal, 12 meses no 5º mês = R$ 443).
+
+## Implementação (2026-10-19)
+
+**Banco** (`supabase/migrations/20261019100000_subscription_flow.sql`)
+- `organization_billing`: `billing_period` (1/3/6/12, plano em vigor), `pending_period` + `pending_from` (troca agendada; `pending_from` = `due_at` na hora da troca), `paused_at` (acesso pausado pelo atraso, separado de `organizations.status`), `auto_billing_disabled_at` (admin desligou a cobrança automática: salvar Empresa não religa).
+- `billing_invoices.months`: meses que a fatura paga.
+- `billing_notices`: um registro por episódio de atraso (`overdue_since`) e dia (1, 5, 9, 10 = pausa). É o que impede aviso repetido.
+- `billing_refunds`: reembolsos do cancelamento (`requested` → `done` pelo webhook do Asaas; `manual` → `done` quando o admin paga por Pix).
+- Templates `billing_overdue` (dias 1 e 5), `billing_last_warning` (dia 9), `billing_paused` (dia 10) em Admin › E-mails. Variáveis novas: `{{vencimento}}`, `{{prazo}}`, `{{whatsapp}}`.
+- Cron `billing-daily` às 11:00 UTC (08:00 de Brasília): `app.run_billing_daily()` → pg_net → `POST /api/billing/asaas/daily`. Sem segredo novo no Vault: a URL sai do host de `notify_email_url` e o segredo é o `notify_email_secret` (= `NOTIFY_EMAIL_SECRET` no app). A rota fica sob `/api/billing/asaas` porque esse prefixo já é público no proxy.
+
+**Código**
+- Regras puras (preços, meses usados, atraso, opções de cancelamento): `src/lib/billing/plans.ts`.
+- Fluxo (liga sozinho, troca de plano, cancelamento, rotina diária): `src/lib/billing/subscription.ts`. Asaas: `asaas.ts` (`updateSubscription`, `refundPayment`, `getPixQrCode`, `listSubscriptionPayments`) e `asaas-sync.ts` (assinatura com o ciclo do plano; fatura do webhook com os meses do plano; `PAYMENT_REFUNDED` em fatura paga confirma o reembolso).
+- Pagamento confirmado (`settle.ts`): aplica a troca agendada quando a renovação é paga e tira o "pausado" (`refreshPause`).
+- Ações do dono: `src/lib/actions/subscription.ts` (`choosePlan`, `undoPlanChange`, `subscribeNow`, `cancelSubscription`, `reactivateSubscription`, `completeBillingData`). Configurações › Empresa chama `maybeAutoEnable` depois de salvar.
+- Telas: faixa `src/components/shell/billing-banner.tsx` (só dono); Minha conta › Assinatura (`plan-card.tsx`, `cancel-subscription.tsx`); `/pausado`; Admin › Cobrança (plano, troca, situação, card Reembolsos com "Reembolsar R$ X por Pix"); `src/app/admin/cobranca/subscription-panel.tsx` (`<OrgSubscriptionPanel orgId>`) para a aba "Plano e cobrança" do buffet; cláusula em `/termos#assinatura`.
+
+**Decisões do implementador**
+- Atraso conta da fatura aberta mais antiga vencida, ou do fim do teste quando ele acabou sem assinatura (status ainda `trial`). Dia 1 = dia seguinte ao vencimento; "pague até" = vencimento + 9; pausa no dia 10. Se a rotina falhar um dia, ela manda o último aviso alcançado (ex.: dia 6 manda o do dia 5).
+- No dia 10 também sai um e-mail "acesso pausado" (não estava no combinado).
+- No teste (nada pago ainda) a troca de plano vale na hora; depois do primeiro pagamento vale na renovação. "Assinar agora" cria a assinatura já, com a primeira cobrança no fim do teste (pagar antes não perde os dias grátis).
+- Teste acabou sem dados e o dono completa depois: a primeira cobrança vence no dia em que completou; o atraso continua contando desde o fim do teste até pagar.
+- Até 7 dias depois de um pagamento o dono escolhe entre o reembolso integral (acesso termina na hora) e usar até o fim; em 3/6/12 meses também aparece o proporcional (só se for maior que zero). Pagamento adiantado de um período que ainda não começou: o acesso vai até o início dele.
+- Reembolso por boleto (ou recusado pelo Asaas, ou fatura manual) vira "Reembolsar por Pix" no admin.
+- Equipe (staff) vê a tela pausada sem o pagamento ("avise o responsável"). A tela pausada pede CNPJ/CPF e WhatsApp quando ainda não há cobrança.
+- Cancelar: se o Asaas não desligar a assinatura, nada muda e o dono vê o erro.
+- Reativar: tenta religar a assinatura no Asaas (primeira cobrança no fim do que está pago, ou hoje).
+
+**Testes**: `tests/e2e/subscription-flow.spec.ts` (regras + fluxo completo com Asaas simulado no processo, incluindo R$ 443) e `tests/e2e/subscription.spec.ts` (telas, webhook real do app, admin).

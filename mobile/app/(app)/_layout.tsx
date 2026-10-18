@@ -10,6 +10,7 @@ export default function AppLayout() {
   if (!session) return <Redirect href="/entrar" />;
   if (!profile) return <Redirect href="/cliente" />;
   if (org && org.status === "suspended") return <Redirect href="/entrar" />;
+  if (org?.paused && !profile.is_platform_admin) return <Redirect href="/pausado" />;
   return (
     <Stack screenOptions={{ header: (p) => <FestiveNavHeader {...p} />, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

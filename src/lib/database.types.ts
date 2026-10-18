@@ -94,6 +94,7 @@ export type Database = {
           period_start: string
           provider: string
           status: string
+          months: number
         }
         Insert: {
           amount: number
@@ -111,6 +112,7 @@ export type Database = {
           period_start: string
           provider?: string
           status?: string
+          months?: number
         }
         Update: {
           amount?: number
@@ -128,10 +130,103 @@ export type Database = {
           period_start?: string
           provider?: string
           status?: string
+          months?: number
         }
         Relationships: [
           {
             foreignKeyName: "billing_invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_notices: {
+        Row: {
+          created_at: string
+          day: number
+          email_status: string
+          organization_id: string
+          overdue_since: string
+        }
+        Insert: {
+          created_at?: string
+          day: number
+          email_status?: string
+          organization_id: string
+          overdue_since: string
+        }
+        Update: {
+          created_at?: string
+          day?: number
+          email_status?: string
+          organization_id?: string
+          overdue_since?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_notices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_refunds: {
+        Row: {
+          amount: number
+          created_at: string
+          details: Json
+          done_at: string | null
+          done_by: string | null
+          error: string | null
+          id: string
+          invoice_id: string | null
+          method: string | null
+          organization_id: string
+          reason: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          details?: Json
+          done_at?: string | null
+          done_by?: string | null
+          error?: string | null
+          id?: string
+          invoice_id?: string | null
+          method?: string | null
+          organization_id: string
+          reason: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          details?: Json
+          done_at?: string | null
+          done_by?: string | null
+          error?: string | null
+          id?: string
+          invoice_id?: string | null
+          method?: string | null
+          organization_id?: string
+          reason?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_refunds_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "billing_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_refunds_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -977,6 +1072,11 @@ export type Database = {
           provider_subscription_id: string | null
           status: string
           updated_at: string
+          auto_billing_disabled_at: string | null
+          billing_period: number
+          paused_at: string | null
+          pending_from: string | null
+          pending_period: number | null
         }
         Insert: {
           auto_billing?: boolean
@@ -988,6 +1088,11 @@ export type Database = {
           provider_subscription_id?: string | null
           status?: string
           updated_at?: string
+          auto_billing_disabled_at?: string | null
+          billing_period?: number
+          paused_at?: string | null
+          pending_from?: string | null
+          pending_period?: number | null
         }
         Update: {
           auto_billing?: boolean
@@ -999,6 +1104,11 @@ export type Database = {
           provider_subscription_id?: string | null
           status?: string
           updated_at?: string
+          auto_billing_disabled_at?: string | null
+          billing_period?: number
+          paused_at?: string | null
+          pending_from?: string | null
+          pending_period?: number | null
         }
         Relationships: [
           {

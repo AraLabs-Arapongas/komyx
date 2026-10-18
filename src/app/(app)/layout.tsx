@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/shell/sidebar";
 import { NotificationsBell } from "@/components/shell/notifications-bell";
 import { PrivacyToggle } from "@/components/shell/privacy-toggle";
 import { AnnouncementBanner } from "@/components/shell/announcement-banner";
+import { BillingBanner } from "@/components/shell/billing-banner";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
@@ -34,6 +35,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             {profile.role === "owner" ? <Link href="/conta#assinatura" className="font-semibold underline underline-offset-2">Reativar</Link> : null}
           </div>
         ) : null}
+        <BillingBanner profile={profile} org={org} />
         <AnnouncementBanner profileId={profile.id} />
         {children}
       </div>

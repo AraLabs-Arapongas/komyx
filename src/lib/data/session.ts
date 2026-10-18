@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { timed } from "@/lib/data/timing";
 
 export type Profile = {
@@ -46,13 +47,27 @@ export const requireOwner = cache(async (): Promise<Profile> => {
 export const getOrganization = cache(async () => {
   const profile = await requireProfile();
   const supabase = await createClient();
-  const { data } = await supabase.from("organizations").select("*").eq("id", profile.organization_id).single();
+  const [{ data }, paused] = await Promise.all([
+    supabase.from("organizations").select("*").eq("id", profile.organization_id).single(),
+    isAccessPaused(profile.organization_id),
+  ]);
   if (data?.status === "suspended" && !profile.is_platform_admin) redirect("/suspenso");
   if (data?.status === "cancelled" && !profile.is_platform_admin) {
     const today = new Date().toISOString().slice(0, 10);
     if (!data.access_until || data.access_until < today) redirect("/cancelada");
   }
+  // Day 10 of a late Komyx payment (docs/assinatura.md §4): the whole app becomes the paused screen.
+  if (paused && data?.status === "active" && !profile.is_platform_admin) redirect("/pausado");
   return data!;
+});
+
+/**
+ * "Acesso pausado" by the billing job (organization_billing.paused_at). Read with the service role:
+ * staff cannot read organization_billing under RLS, but the pause applies to the whole buffet.
+ */
+export const isAccessPaused = cache(async (orgId: string) => {
+  const { data } = await createAdminClient().from("organization_billing").select("paused_at").eq("organization_id", orgId).maybeSingle();
+  return Boolean(data?.paused_at);
 });
 
 /** Komyx staff only. */
@@ -62,12 +77,16 @@ export const requireAdmin = cache(async (): Promise<Profile> => {
   return profile;
 });
 
-export type BillingRow = { cycle_start: string | null; due_at: string | null; status: string };
+export type BillingRow = {
+  cycle_start: string | null; due_at: string | null; status: string;
+  billing_period: number; pending_period: number | null; pending_from: string | null; paused_at: string | null;
+  monthly_price: number | null; auto_billing: boolean; provider_subscription_id: string | null;
+};
 
-/** Billing cycle of the org. Only owners can read it (RLS); staff get null. */
-export async function getBilling(profile: { organization_id: string; role: string }): Promise<BillingRow | null> {
+/** Billing cycle and plan of the org. Only owners can read it (RLS); staff get null. */
+export const getBilling = cache(async (profile: { organization_id: string; role: string }): Promise<BillingRow | null> => {
   if (profile.role !== "owner") return null;
   const supabase = await createClient();
-  const { data } = await supabase.from("organization_billing").select("cycle_start, due_at, status").eq("organization_id", profile.organization_id).maybeSingle();
+  const { data } = await supabase.from("organization_billing").select("cycle_start, due_at, status, billing_period, pending_period, pending_from, paused_at, monthly_price, auto_billing, provider_subscription_id").eq("organization_id", profile.organization_id).maybeSingle();
   return data ?? null;
-}
+});

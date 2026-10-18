@@ -48,9 +48,34 @@ export async function updateCustomer(id: string, c: { name: string; cpfCnpj: str
   return call<{ id: string }>("POST", `/customers/${id}`, c);
 }
 
-/** Monthly charge until cancelled. billingType UNDEFINED lets the buffet pick Pix, boleto or card. */
-export async function createSubscription(s: { customer: string; value: number; nextDueDate: string; description: string; externalReference: string }) {
-  return call<{ id: string }>("POST", "/subscriptions", { ...s, billingType: "UNDEFINED", cycle: "MONTHLY" });
+export type AsaasCycle = "MONTHLY" | "QUARTERLY" | "SEMIANNUALLY" | "YEARLY";
+
+/** Recurring charge until cancelled. billingType UNDEFINED lets the buffet pick Pix, boleto or card. */
+export async function createSubscription(s: { customer: string; value: number; nextDueDate: string; description: string; externalReference: string; cycle?: AsaasCycle }) {
+  return call<{ id: string }>("POST", "/subscriptions", { ...s, billingType: "UNDEFINED", cycle: s.cycle ?? "MONTHLY" });
+}
+
+/**
+ * Plan change on the next renewal: new cycle/value from nextDueDate on. updatePendingPayments also
+ * rewrites a charge Asaas already generated for that date.
+ */
+export async function updateSubscription(id: string, s: { value: number; cycle: AsaasCycle; nextDueDate: string; description?: string }) {
+  return call<{ id: string }>("POST", `/subscriptions/${id}`, { ...s, updatePendingPayments: true });
+}
+
+/** Charges Asaas generated for a subscription (the first one exists right after creating it). */
+export async function listSubscriptionPayments(id: string) {
+  return call<{ data: AsaasPayment[] }>("GET", `/subscriptions/${id}/payments`);
+}
+
+/** Refund (whole or part) of a received charge. Asaas refunds Pix and card; a boleto needs bank data. */
+export async function refundPayment(id: string, value: number, description: string) {
+  return call<AsaasPayment>("POST", `/payments/${id}/refund`, { value, description });
+}
+
+/** Pix copy-and-paste + QR image of an open charge, when Asaas offers Pix for it. */
+export async function getPixQrCode(id: string) {
+  return call<{ encodedImage: string; payload: string; expirationDate?: string }>("GET", `/payments/${id}/pixQrCode`);
 }
 
 export async function cancelSubscription(id: string) {

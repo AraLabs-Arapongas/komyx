@@ -17,6 +17,10 @@ const KIND_LABELS: Record<string, string> = {
   announcement: "Aviso",
   resend: "Reenvio",
   test: "Teste",
+  client_summary: "Resumo ao cliente",
+  welcome: "Boas-vindas",
+  admin_password: "Senha provisória",
+  billing: "Cobrança",
 };
 
 function Stat({ title, sent, failed }: { title: string; sent: number; failed: number }) {

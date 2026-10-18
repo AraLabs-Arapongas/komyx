@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { adminCreateInvoice, adminMarkInvoicePaid, adminSetAutoBilling, adminUpdateMonthlyPrice } from "@/lib/actions/admin-billing";
+import { adminCreateInvoice, adminMarkInvoicePaid, adminMarkRefundDone, adminSetAutoBilling, adminUpdateMonthlyPrice } from "@/lib/actions/admin-billing";
+import { PendingButton } from "@/components/ui/pending-button";
 import { Field, Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -93,6 +94,16 @@ export function AutoBillingForm({ orgId, on, available }: { orgId: string; on: b
       <input type="hidden" name="on" value={on ? "0" : "1"} />
       <SubmitButton size="sm" variant={on ? "ghost" : "outline"} className="h-8 px-2 text-xs" pendingText={on ? "Desligando..." : "Ligando..."}>{on ? "Ligada · desligar" : "Ligar"}</SubmitButton>
       {state ? <span className={state.ok ? "text-xs text-emerald-700" : "text-xs text-red-600"}>{state.ok ? state.message : state.error}</span> : null}
+    </form>
+  );
+}
+
+/** "Reembolsar R$ X por Pix": the admin confirms the Pix was sent; the row becomes done (audited). */
+export function RefundDoneButton({ id, label }: { id: string; label: string }) {
+  return (
+    <form action={adminMarkRefundDone} onSubmit={(e) => { if (!window.confirm(`${label}: confirme que o Pix já foi enviado ao buffet.`)) e.preventDefault(); }}>
+      <input type="hidden" name="id" value={id} />
+      <PendingButton className="text-xs font-medium text-brand hover:underline whitespace-nowrap">{label}</PendingButton>
     </form>
   );
 }
