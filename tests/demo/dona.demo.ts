@@ -15,7 +15,7 @@ test.describe("Vídeo · Dona do buffet", () => {
     await page.goto("/login");
     await caption(page, "Dona do buffet entra no Komyx com e-mail e senha");
     await page.getByLabel("E-mail").fill(ACCOUNTS.owner.email);
-    await page.getByLabel("Senha").fill(ACCOUNTS.owner.password);
+    await page.getByLabel("Senha", { exact: true }).fill(ACCOUNTS.owner.password);
     await page.getByRole("button", { name: "Entrar" }).click();
     await page.waitForURL(/\/home/);
     await caption(page, "Início: o que exige atenção hoje — reservas online, reservas expirando, orçamentos pendentes, a receber", 3500);

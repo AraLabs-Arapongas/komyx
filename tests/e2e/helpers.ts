@@ -29,7 +29,7 @@ export function uniquePhone() {
 export async function login(page: Page, account: { email: string; password: string }) {
   await page.goto("/login");
   await page.getByLabel("E-mail").fill(account.email);
-  await page.getByLabel("Senha").fill(account.password);
+  await page.getByLabel("Senha", { exact: true }).fill(account.password);
   await page.getByRole("button", { name: "Entrar" }).click();
   await page.waitForURL(/\/(home|admin)/, { timeout: 60_000 });
 }
