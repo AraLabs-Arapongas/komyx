@@ -95,10 +95,19 @@ test.describe("Admin Komyx", () => {
     await expect(page.getByLabel("Endereço público")).toBeDisabled();
   });
 
-  test("pendências: fora de produção aponta para a lista oficial", async ({ page }) => {
+  test("pendências: prioridade ao lado do item e ordem por prioridade ignorando as seções", async ({ page }) => {
+    const title = `Prioridade teste ${Date.now()}`;
     await login(page, ACCOUNTS.admin);
-    await page.goto("/admin/pendencias");
-    await expect(page.getByText("A lista oficial fica em produção")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Abrir a lista oficial" })).toHaveAttribute("href", "https://www.komyx.com.br/admin/pendencias");
+    await page.goto("/admin/pendencias?ordem=prioridade");
+    await page.getByPlaceholder("Nova pendência").fill(title);
+    await page.getByRole("button", { name: "Adicionar" }).click();
+    const row = page.locator("li", { hasText: title });
+    await expect(row).toBeVisible();
+    await row.getByLabel("Prioridade").fill("1");
+    await row.getByLabel("Prioridade").blur();
+    await expect(page.locator("ul.divide-y > li").first()).toContainText(title);
+    await expect(page.locator("ul.divide-y > li").first().getByLabel("Prioridade")).toHaveValue("1");
+    await page.locator("ul.divide-y > li").first().getByRole("button", { name: "Apagar" }).click();
+    await expect(page.locator("li", { hasText: title })).toHaveCount(0);
   });
 });

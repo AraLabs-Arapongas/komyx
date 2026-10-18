@@ -1613,6 +1613,7 @@ export type Database = {
           created_at: string
           done_at: string | null
           id: string
+          priority: number | null
           section: string
           sort_order: number
           title: string
@@ -1621,6 +1622,7 @@ export type Database = {
           created_at?: string
           done_at?: string | null
           id?: string
+          priority?: number | null
           section: string
           sort_order?: number
           title: string
@@ -1629,6 +1631,7 @@ export type Database = {
           created_at?: string
           done_at?: string | null
           id?: string
+          priority?: number | null
           section?: string
           sort_order?: number
           title?: string

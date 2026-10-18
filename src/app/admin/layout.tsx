@@ -14,7 +14,8 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
     { href: "/admin/emails", label: "E-mails", icon: Mail },
     { href: "/admin/avisos", label: "Avisos", icon: Megaphone },
     { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText },
-    { href: "/admin/pendencias", label: "Pendências", icon: ListChecks },
+    // The to-do list lives in staging only.
+    ...(process.env.VERCEL_ENV === "production" ? [] : [{ href: "/admin/pendencias", label: "Pendências", icon: ListChecks }]),
   ];
   return (
     <div className="flex min-h-screen">
