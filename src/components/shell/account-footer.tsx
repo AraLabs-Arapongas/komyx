@@ -3,7 +3,8 @@ import { LogOut, CreditCard } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { PendingButton } from "@/components/ui/pending-button";
 
-export type Billing = { cycleStart: string | null; dueAt: string | null; status: string; plan: string };
+/** lateDays: days since the oldest unpaid Komyx invoice (null = up to date). */
+export type Billing = { cycleStart: string | null; dueAt: string | null; status: string; plan: string; lateDays?: number | null };
 
 function cycleProgress(b: Billing) {
   if (!b.cycleStart || !b.dueAt) return null;
@@ -18,7 +19,8 @@ function cycleProgress(b: Billing) {
 /** Who is logged in, sign out and the billing cycle at a glance. Used in the sidebar and in the mobile menu. */
 export function AccountFooter({ name, email, role, billing, compact = false }: { name: string; email: string; role: string; billing: Billing; compact?: boolean }) {
   const p = cycleProgress(billing);
-  const overdue = billing.status === "overdue" || (p !== null && p.daysLeft < 0);
+  const lateDays = billing.lateDays ?? null;
+  const overdue = (lateDays !== null && lateDays >= 1) || billing.status === "overdue" || (p !== null && p.daysLeft < 0);
   const soon = p !== null && p.daysLeft >= 0 && p.daysLeft <= 7;
   const barColor = billing.status === "trial" ? "bg-brand" : overdue ? "bg-red-500" : soon ? "bg-amber-500" : "bg-emerald-500";
   return (
@@ -28,7 +30,7 @@ export function AccountFooter({ name, email, role, billing, compact = false }: {
           <span className="font-medium inline-flex items-center gap-1.5 min-w-0"><CreditCard className="h-3.5 w-3.5 text-muted shrink-0" /> {billing.plan === "premium" ? "Premium" : "Básico"}</span>
           {p ? (
             <span className={overdue ? "text-red-600 font-medium" : soon ? "text-amber-700 font-medium" : "text-muted"}>
-              {billing.status === "trial" ? (p.daysLeft < 0 ? "Teste encerrado" : p.daysLeft === 0 ? "Teste termina hoje" : `Teste grátis · ${p.daysLeft} dias`) : overdue ? `Vencida há ${Math.abs(p.daysLeft)} dias` : p.daysLeft === 0 ? "Vence hoje" : `Vence em ${p.daysLeft} dias`}
+              {lateDays !== null && lateDays >= 1 ? `Atrasada ${lateDays} dia${lateDays === 1 ? "" : "s"}` : billing.status === "trial" ? (p.daysLeft < 0 ? "Teste encerrado" : p.daysLeft === 0 ? "Teste termina hoje" : `Teste grátis · ${p.daysLeft} dias`) : overdue ? `Vencida há ${Math.abs(p.daysLeft)} dias` : p.daysLeft === 0 ? "Vence hoje" : `Vence em ${p.daysLeft} dias`}
             </span>
           ) : <span className="text-muted">{billing.status === "trial" ? "Período de teste" : "Sem fatura"}</span>}
         </div>

@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { CreditCard, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile, getOrganization, getBilling } from "@/lib/data/session";
 import { PageBody, PageHeader } from "@/components/ui/page";
@@ -38,7 +38,10 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
   const support = (msg: string) => whatsappLink(SUPPORT_WHATSAPP, msg);
   const paid = (faturas ?? []).filter((f) => f.status === "paid" && f.paid_at).sort((a, b) => b.paid_at!.localeCompare(a.paid_at!));
   const neverPaid = paid.length === 0;
-  const late = lateState(bill, (faturas ?? []).filter((f) => f.status === "open"), today);
+  const openInvoices = (faturas ?? []).filter((f) => f.status === "open").sort((a, b) => a.due_at.localeCompare(b.due_at));
+  const late = lateState(bill, openInvoices, today);
+  // The one to pay now: the oldest open invoice (the late one, or the next one already issued).
+  const toPay = openInvoices[0] ?? null;
   const { choices, cancelSummary } = cancelCopy(bill?.due_at ?? null, paid[0] ? { ...paid[0], provider: "", external_id: null } : null, today, neverPaid);
 
   return (
@@ -65,19 +68,34 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
               <CardHeader title="Assinatura" subtitle="Cobrança do Komyx. Nada a ver com os pagamentos das festas." />
               <CardBody className="space-y-4">
                 <dl className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-3 text-sm">
-                  <div><dt className="text-xs text-muted">Plano</dt><dd className="font-medium">{PERIOD_LABEL[period]}{org.plan === "premium" ? <span className="block text-xs text-muted font-normal">Premium pelo preço do Básico, oferta de lançamento.</span> : null}</dd></div>
+                  <div><dt className="text-xs text-muted">Plano</dt><dd className="font-medium">{PERIOD_LABEL[period]}</dd></div>
                   <div><dt className="text-xs text-muted">Valor</dt><dd className="font-medium">{formatCurrency(price)}<span className="text-xs text-muted font-normal">{period === 1 ? " por mês" : ` a cada ${period} meses`}</span></dd></div>
-                  <div><dt className="text-xs text-muted">{neverPaid && bill?.status === "trial" ? "Fim do teste grátis" : "Próxima cobrança"}</dt><dd className="font-medium">{bill?.due_at ? dayDate(bill.due_at) : "—"}</dd></div>
+                  {late && late.day >= 1 ? (
+                    <div><dt className="text-xs text-muted">Vencida em</dt><dd className="font-medium text-red-700">{dayDate(late.since)}</dd></div>
+                  ) : (
+                    <div><dt className="text-xs text-muted">{neverPaid && bill?.status === "trial" ? "Fim do teste grátis" : "Próxima cobrança"}</dt><dd className="font-medium">{toPay ? dayDate(toPay.due_at) : bill?.due_at ? dayDate(bill.due_at) : "—"}</dd></div>
+                  )}
                   <div><dt className="text-xs text-muted">Situação</dt><dd>{org.status === "cancelled" ? <Badge tone="red">Cancelada</Badge> : late && late.day >= 1 ? <Badge tone="red">Atrasada {late.day} dia{late.day === 1 ? "" : "s"}</Badge> : <Badge tone={bill?.status === "trial" ? "brand" : "green"}>{BILLING_STATUS_LABEL[bill?.status === "overdue" ? "ok" : bill?.status ?? "ok"] ?? bill?.status}</Badge>}</dd></div>
                 </dl>
+                {toPay && org.status !== "cancelled" ? (
+                  <div data-testid="pay-invoice" className={late && late.day >= 1 ? "rounded-xl border border-red-200 bg-red-50 p-3.5 flex flex-wrap items-center justify-between gap-3" : "rounded-xl border border-border bg-background p-3.5 flex flex-wrap items-center justify-between gap-3"}>
+                    <p className={late && late.day >= 1 ? "text-sm text-red-800" : "text-sm"}>
+                      {late && late.day >= 1
+                        ? <><b>Mensalidade de {formatCurrency(toPay.amount)} vencida em {dayDate(toPay.due_at)}.</b> {late.day >= 9 ? "Pague hoje para não pausar o acesso amanhã." : `Pague até ${dayDate(late.payBy)} para não pausar o acesso.`}</>
+                        : <><b>Fatura de {formatCurrency(toPay.amount)}</b> vence em {dayDate(toPay.due_at)}. Pix, boleto ou cartão.</>}
+                    </p>
+                    {toPay.payment_url
+                      ? <a href={toPay.payment_url} target="_blank" rel="noopener" className={buttonClass("primary", "md")}><CreditCard className="h-4 w-4" /> Pagar {formatCurrency(toPay.amount)}</a>
+                      : <a href={support(`Olá! Sou do ${org.name} (${org.slug}) e quero pagar a mensalidade de ${formatCurrency(toPay.amount)}.`)} target="_blank" rel="noopener" className={buttonClass("primary", "md")}><MessageCircle className="h-4 w-4" /> Pedir o link de pagamento</a>}
+                  </div>
+                ) : null}
                 {sp.reativada === "1" ? <Alert tone="success">Assinatura reativada. Tudo voltou como estava.</Alert> : null}
                 {refunds.length ? (
                   <div className="text-sm space-y-1">
                     {refunds.map((r) => <p key={r.id}>Reembolso de <b>{formatCurrency(r.amount)}</b>: {r.status === "done" ? "feito" : r.status === "requested" ? "pedido ao banco, cai em alguns dias" : "a Komyx envia por Pix em até 5 dias úteis"}.</p>)}
                   </div>
                 ) : null}
-                <div className="border-t border-border pt-4 space-y-2">
-                  <p className="text-sm font-medium">Seu plano</p>
+                <div>
                   <PlanCard
                     options={planOptions(bill?.monthly_price)}
                     current={period}
@@ -101,7 +119,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
                     <CancelSubscription choices={choices} summary={cancelSummary} />
                   </div>
                 )}
-                <p className="text-xs text-muted">Troca de plano vale na próxima renovação: o que já foi pago segue até o fim. A forma de pagamento (Pix, boleto ou cartão) você escolhe em cada fatura. O ciclo atual vai de {bill?.cycle_start ? dayDate(bill.cycle_start) : "—"} até {bill?.due_at ? dayDate(bill.due_at) : "—"}. <a href="/termos#assinatura" className="underline underline-offset-2">Regras da assinatura</a>.</p>
+                <p className="text-xs text-muted">Ciclo atual: {bill?.cycle_start ? dayDate(bill.cycle_start) : "—"} a {bill?.due_at ? dayDate(bill.due_at) : "—"}. <a href="/termos#assinatura" className="underline underline-offset-2">Regras da assinatura</a>.</p>
               </CardBody>
             </Card>
 

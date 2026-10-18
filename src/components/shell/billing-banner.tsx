@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { AlertTriangle, CreditCard } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
-import { getBilling, type Profile } from "@/lib/data/session";
+import { getLateBilling, type Profile } from "@/lib/data/session";
 import { SUPPORT_WHATSAPP } from "@/lib/billing";
-import { billingDataMissing, brDate, HELP_EMAIL, lateState } from "@/lib/billing/plans";
-import { cn, toDateKey, whatsappLink } from "@/lib/utils";
+import { billingDataMissing, brDate, HELP_EMAIL } from "@/lib/billing/plans";
+import { cn, whatsappLink } from "@/lib/utils";
 
 const TONE = {
   info: "bg-brand-soft border-brand/20 text-foreground",
@@ -19,12 +18,9 @@ const TONE = {
  */
 export async function BillingBanner({ profile, org }: { profile: Profile; org: { status: string; is_demo: boolean; kind: string; document: string | null; whatsapp: string | null } }) {
   if (profile.role !== "owner" || org.status !== "active" || org.is_demo || org.kind !== "buffet") return null;
-  const bill = await getBilling(profile);
-  if (!bill) return null;
-  const today = toDateKey(new Date());
-  const supabase = await createClient();
-  const { data: open } = await supabase.from("billing_invoices").select("id, due_at, status, payment_url, amount").eq("status", "open").order("due_at");
-  const late = lateState(bill, open ?? [], today);
+  const state = await getLateBilling(profile);
+  if (!state) return null;
+  const { bill, late } = state;
   const missing = billingDataMissing(org);
   const help = (
     <span className="block text-xs opacity-80">
@@ -45,7 +41,7 @@ export async function BillingBanner({ profile, org }: { profile: Profile; org: {
             {red ? " Pague hoje para continuar usando." : ` Pague até ${brDate(late.payBy)} para não pausar o acesso.`}
             {missing.length ? <> Complete {missing.join(" e ")} em <Link href="/configuracoes/empresa" className="font-semibold underline underline-offset-2">Configurações › Empresa</Link> para gerar a cobrança.</> : null}
           </p>
-          {payUrl ? <a href={payUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"><CreditCard className="h-3.5 w-3.5" /> Pagar agora</a> : !missing.length ? <Link href="/conta#faturas" className="font-semibold underline underline-offset-2">Ver fatura</Link> : null}
+          {payUrl ? <a href={payUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"><CreditCard className="h-3.5 w-3.5" /> Pagar agora</a> : !missing.length ? <Link href="/conta#assinatura" className="font-semibold underline underline-offset-2">Pagar a mensalidade</Link> : null}
           {help}
         </div>
       </div>

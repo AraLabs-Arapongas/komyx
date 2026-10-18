@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { Users, Inbox, Package, Settings, ExternalLink, ChevronRight, FileText, Cake, ShieldCheck, Bell, UserCircle } from "lucide-react";
 import { AccountFooter } from "@/components/shell/account-footer";
-import { requireProfile, getOrganization, getBilling } from "@/lib/data/session";
+import { requireProfile, getOrganization, getLateBilling } from "@/lib/data/session";
 import { PageBody, PageHeader } from "@/components/ui/page";
 
 export const metadata = { title: "Menu" };
 
 export default async function MenuPage() {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
-  const bill = await getBilling(profile);
+  const billState = await getLateBilling(profile);
+  const bill = billState?.bill ?? null;
   const isOwner = profile.role === "owner";
   const items = [
     { href: "/notificacoes", label: "Notificações", desc: "Pedidos de orçamento, reservas online, contratos aceitos", icon: Bell },
@@ -40,7 +41,7 @@ export default async function MenuPage() {
           ))}
         </ul>
         <div className="rounded-2xl border border-border bg-surface p-3">
-          <AccountFooter compact name={profile.name} email={profile.email} role={profile.role} billing={{ cycleStart: bill?.cycle_start ?? null, dueAt: bill?.due_at ?? null, status: bill?.status ?? "ok", plan: org.plan }} />
+          <AccountFooter compact name={profile.name} email={profile.email} role={profile.role} billing={{ cycleStart: bill?.cycle_start ?? null, dueAt: bill?.due_at ?? null, status: bill?.status ?? "ok", plan: org.plan, lateDays: billState?.late?.day ?? null }} />
         </div>
       </PageBody>
     </>

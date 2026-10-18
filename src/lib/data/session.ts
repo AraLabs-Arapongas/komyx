@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { timed } from "@/lib/data/timing";
+import { lateState } from "@/lib/billing/plans";
+import { toDateKey } from "@/lib/utils";
 
 export type Profile = {
   id: string;
@@ -89,4 +91,13 @@ export const getBilling = cache(async (profile: { organization_id: string; role:
   const supabase = await createClient();
   const { data } = await supabase.from("organization_billing").select("cycle_start, due_at, status, billing_period, pending_period, pending_from, paused_at, monthly_price, auto_billing, provider_subscription_id").eq("organization_id", profile.organization_id).maybeSingle();
   return data ?? null;
+});
+
+/** Open Komyx invoices and how late the buffet is (lateState). Owners only; null for staff or no billing. */
+export const getLateBilling = cache(async (profile: { organization_id: string; role: string }) => {
+  const bill = await getBilling(profile);
+  if (!bill) return null;
+  const supabase = await createClient();
+  const { data: open } = await supabase.from("billing_invoices").select("id, due_at, status, payment_url, amount").eq("status", "open").order("due_at");
+  return { bill, open: open ?? [], late: lateState(bill, open ?? [], toDateKey(new Date())) };
 });

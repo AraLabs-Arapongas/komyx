@@ -12,8 +12,9 @@ import type { ActionResult } from "@/lib/action-result";
 type Option = { months: number; label: string; total: number; perMonth: number; hint: string };
 
 /**
- * "Seu plano": the 4 plans with the current one marked. In the trial a choice applies at once; after a
- * payment it is scheduled for the next renewal ("A partir de DD/MM: plano X" + Desfazer).
+ * Plan change, folded behind "Trocar de plano" (the subscription itself is shown above it): the 4 plans with
+ * the current one marked. In the trial a choice applies at once; after a payment it is scheduled for the
+ * next renewal ("A partir de DD/MM: plano X" + Desfazer).
  */
 export function PlanCard({ options, current, pending, trial, trialEnd, subscribed, missing, cancelled }: {
   options: Option[];
@@ -40,6 +41,12 @@ export function PlanCard({ options, current, pending, trial, trialEnd, subscribe
           <SubmitButton size="sm" variant="outline" pendingText="Desfazendo...">Desfazer</SubmitButton>
         </form>
       ) : null}
+      {cancelled ? null : (
+      <details className="group" data-testid="change-plan" open={Boolean(msg && !msg.ok)}>
+        <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-semibold text-brand hover:underline [&::-webkit-details-marker]:hidden">
+          Trocar de plano <span className="text-xs transition-transform group-open:rotate-180">▾</span>
+        </summary>
+        <p className="mt-2 mb-2 text-xs text-muted">{trial ? "No teste grátis o plano escolhido vale na hora." : "A troca vale na próxima renovação: o que já foi pago segue até o fim."}</p>
       <form action={run} className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {options.map((o) => {
           const isCurrent = o.months === current;
@@ -59,17 +66,17 @@ export function PlanCard({ options, current, pending, trial, trialEnd, subscribe
           );
         })}
       </form>
-      {trial && !cancelled ? (
+      </details>
+      )}
+      {trial && !cancelled && !subscribed ? (
         <div className="flex flex-wrap items-center gap-3 text-sm">
-          {!subscribed ? (
-            <form action={run}>
-              <input type="hidden" name="op" value="subscribe" />
-              <input type="hidden" name="months" value={String(current)} />
-              <SubmitButton size="sm" pendingText="Assinando...">Assinar agora</SubmitButton>
-            </form>
-          ) : null}
+          <form action={run}>
+            <input type="hidden" name="op" value="subscribe" />
+            <input type="hidden" name="months" value={String(current)} />
+            <SubmitButton size="sm" pendingText="Assinando...">Assinar agora</SubmitButton>
+          </form>
           <p className="text-xs text-muted">
-            {subscribed ? `Assinatura feita. A primeira cobrança vence em ${trialEnd ?? "—"}; pague em Faturas quando quiser.` : `Teste grátis até ${trialEnd ?? "—"}. A primeira cobrança vence nesse dia.`}
+            {`Teste grátis até ${trialEnd ?? "—"}. A primeira cobrança vence nesse dia.`}
             {missing.length ? <> Falta {missing.join(" e ")} em <Link href="/configuracoes/empresa" className="text-brand underline underline-offset-2">Configurações › Empresa</Link>.</> : null}
           </p>
         </div>

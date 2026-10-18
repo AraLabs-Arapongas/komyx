@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireProfile, getOrganization, getBilling } from "@/lib/data/session";
+import { requireProfile, getOrganization, getLateBilling } from "@/lib/data/session";
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/shell/bottom-nav";
 import { Sidebar } from "@/components/shell/sidebar";
@@ -14,13 +14,14 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   // The Komyx team's own org is the platform: its members only use /admin.
   if (org.kind === "platform") redirect("/admin");
   const supabase = await createClient();
-  const [{ data: unread }, { count: newRequests }, { count: pendingChanges }, bill] = await Promise.all([
+  const [{ data: unread }, { count: newRequests }, { count: pendingChanges }, billState] = await Promise.all([
     supabase.rpc("unread_notifications_count"),
     supabase.from("public_requests").select("id", { count: "exact", head: true }).eq("status", "NEW"),
     supabase.from("event_change_requests").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
-    getBilling(profile),
+    getLateBilling(profile),
   ]);
-  const billing = { cycleStart: bill?.cycle_start ?? null, dueAt: bill?.due_at ?? null, status: bill?.status ?? "ok", plan: org.plan };
+  const bill = billState?.bill ?? null;
+  const billing = { cycleStart: bill?.cycle_start ?? null, dueAt: bill?.due_at ?? null, status: bill?.status ?? "ok", plan: org.plan, lateDays: billState?.late?.day ?? null };
   return (
     <div className="flex min-h-screen">
       <Sidebar orgName={org.name} userName={profile.name} userEmail={profile.email} role={profile.role} isAdmin={profile.is_platform_admin} billing={billing} newRequests={(newRequests ?? 0) + (pendingChanges ?? 0)} />
