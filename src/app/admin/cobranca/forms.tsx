@@ -8,6 +8,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { SelectMenu } from "@/components/ui/select-menu";
 import { PAYMENT_METHODS } from "@/lib/billing/invoices";
+import { startRouteLoading } from "@/components/ui/route-loader";
 
 /** Inline monthly price. Empty = plan's list price (shown as placeholder). */
 export function PriceForm({ orgId, value, fallback }: { orgId: string; value: string; fallback: string }) {
@@ -78,7 +79,7 @@ export function StatusFilter({ value }: { value: string }) {
   const router = useRouter();
   return (
     <SelectMenu aria-label="Filtrar faturas" value={value} size="sm" className="w-36" options={FILTERS}
-      onChange={(v) => router.push(v === "todas" ? "/admin/cobranca#faturas" : `/admin/cobranca?status=${v}#faturas`, { scroll: false })} />
+      onChange={(v) => { startRouteLoading(); router.push(v === "todas" ? "/admin/cobranca#faturas" : `/admin/cobranca?status=${v}#faturas`, { scroll: false }); }} />
   );
 }
 

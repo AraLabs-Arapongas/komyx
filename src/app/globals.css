@@ -209,3 +209,16 @@ html[data-privacy="on"] .money {
   .public-theme .cinema-slide { animation: none; }
   .public-theme .cinema-img, .public-theme .hero-art { animation: none; }
 }
+
+/* Route loader (src/components/ui/route-loader.tsx): Komyx balloons pop in one by one. */
+.route-loader { animation: route-loader-in 180ms ease-out; }
+.route-loader-balloon { width: 52px; height: 68px; opacity: 0; transform: scale(0) translateY(20px); }
+.route-loader-balloon.is-on { animation: route-loader-pop 450ms cubic-bezier(.34,1.56,.64,1) forwards, route-loader-bob 1.6s ease-in-out 450ms infinite; }
+.route-loader-balloon.is-flying { opacity: 1; animation: route-loader-fly 600ms ease-in forwards; }
+@keyframes route-loader-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes route-loader-pop { to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes route-loader-bob { 0%, 100% { opacity: 1; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-6px); } }
+@keyframes route-loader-fly { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-160px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .route-loader-balloon.is-on, .route-loader-balloon.is-flying { animation: none; opacity: 1; transform: none; }
+}

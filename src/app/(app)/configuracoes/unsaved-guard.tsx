@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { buttonClass } from "@/components/ui/button";
+import { startRouteLoading } from "@/components/ui/route-loader";
 
 /**
  * Wraps a settings page. Tracks edits in any <form data-settings> inside it:
@@ -65,7 +66,7 @@ export function UnsavedGuard({ children }: { children: ReactNode }) {
             <p className="font-semibold">Você tem alterações não salvas.</p>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setLeaveTo(null)} className={buttonClass("outline", "sm")}>Continuar editando</button>
-              <button type="button" onClick={() => { dirty?.reset(); setDirty(null); const to = leaveTo; setLeaveTo(null); router.push(to); }} className={buttonClass("primary", "sm")}>Descartar alterações</button>
+              <button type="button" onClick={() => { dirty?.reset(); setDirty(null); const to = leaveTo; setLeaveTo(null); startRouteLoading(); router.push(to); }} className={buttonClass("primary", "sm")}>Descartar alterações</button>
             </div>
           </div>
         </div>

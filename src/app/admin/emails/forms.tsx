@@ -8,6 +8,7 @@ import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { SelectMenu } from "@/components/ui/select-menu";
+import { startRouteLoading } from "@/components/ui/route-loader";
 
 const FIELDS: { name: keyof TemplateCopy; label: string; long?: boolean }[] = [
   { name: "subject", label: "Assunto" },
@@ -61,6 +62,7 @@ export function LogFilters({ channel, status }: { channel: string; status: strin
     const s = next.status ?? status;
     if (c) p.set("channel", c);
     if (s) p.set("status", s);
+    startRouteLoading();
     router.push(`/admin/emails?${p}`);
   };
   return (
