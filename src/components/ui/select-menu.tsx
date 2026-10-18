@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -53,10 +53,10 @@ export function SelectMenu({ id, name, value, defaultValue = "", onChange, optio
     setOpen(false);
   };
 
-  const openList = () => {
+  // Places the fixed list next to the field: below it, or above when there is no room below.
+  const place = () => {
     const r = rootRef.current?.getBoundingClientRect();
-    if (!r) return;
-    setHost(rootRef.current?.closest("main") ?? document.body);
+    if (!r) return false;
     // ~44px per option, at most 8 visible. The bottom 120px may be covered by a sticky bar.
     const want = Math.min(options.length, 8) * 44 + 12;
     const below = window.innerHeight - r.bottom - 120;
@@ -65,9 +65,23 @@ export function SelectMenu({ id, name, value, defaultValue = "", onChange, optio
     setPos(up
       ? { left: r.left, width: r.width, bottom: window.innerHeight - r.top + 8, maxHeight: Math.min(want, above) }
       : { left: r.left, width: r.width, top: r.bottom + 8, maxHeight: Math.max(160, Math.min(want, window.innerHeight - r.bottom - 24)) });
+    return true;
+  };
+
+  const openList = () => {
+    if (!place()) return;
+    setHost(rootRef.current?.closest("main") ?? document.body);
     setActive(Math.max(0, options.findIndex((o) => o.value === current)));
     setOpen(true);
   };
+
+  // The list is fixed: it follows the field while the page scrolls, and closes once the field is off screen.
+  const follow = useEffectEvent((e: Event) => {
+    if (e.target instanceof Node && listRef.current?.contains(e.target)) return;
+    const r = rootRef.current?.getBoundingClientRect();
+    if (!r || r.bottom < 0 || r.top > window.innerHeight) setOpen(false);
+    else place();
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -75,8 +89,7 @@ export function SelectMenu({ id, name, value, defaultValue = "", onChange, optio
       const t = e.target as Node;
       if (!rootRef.current?.contains(t) && !listRef.current?.contains(t)) setOpen(false);
     };
-    // A fixed list would drift away from the field: close when the page scrolls or resizes.
-    const onMove = (e: Event) => { if (!(e.target instanceof Node && listRef.current?.contains(e.target))) setOpen(false); };
+    const onMove = (e: Event) => follow(e);
     document.addEventListener("pointerdown", onDown);
     window.addEventListener("scroll", onMove, true);
     window.addEventListener("resize", onMove);
@@ -84,7 +97,13 @@ export function SelectMenu({ id, name, value, defaultValue = "", onChange, optio
   }, [open]);
 
   useEffect(() => {
-    if (open) listRef.current?.querySelector<HTMLElement>(`[data-index="${active}"]`)?.scrollIntoView({ block: "nearest" });
+    // Scroll only the list (scrollIntoView could also scroll the page).
+    const list = listRef.current;
+    const item = list?.querySelector<HTMLElement>(`[data-index="${active}"]`);
+    if (open && list && item) {
+      if (item.offsetTop < list.scrollTop) list.scrollTop = item.offsetTop;
+      else if (item.offsetTop + item.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = item.offsetTop + item.offsetHeight - list.clientHeight;
+    }
   }, [open, active]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {

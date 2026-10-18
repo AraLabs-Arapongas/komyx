@@ -83,7 +83,8 @@ test.describe.serial("Admin cobrança", () => {
     await login(page, ACCOUNTS.owner);
     await page.goto("/conta");
     const faturas = page.locator("#faturas");
-    await expect(faturas.getByText("A Komyx envia os dados de pagamento pelo WhatsApp.")).toBeVisible();
+    // Manual billing or Asaas, depending on the env: either instruction is fine.
+    await expect(faturas.getByText(/A Komyx envia os dados de pagamento pelo WhatsApp\.|Pague pelo link da fatura/)).toBeVisible();
     await expect(faturas.getByText(`${brDate(created!.period_start)} a ${brDate(created!.period_end)}`)).toBeVisible();
     await expect(faturas.getByText("Cancelada", { exact: true })).toHaveCount(0);
 
