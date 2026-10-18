@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { formatDate } from "@/lib/utils";
 import { PendingButton } from "@/components/ui/pending-button";
+import { buttonClass } from "@/components/ui/button";
 
 export const metadata = { title: "Pendências · Admin Komyx" };
 export const dynamic = "force-dynamic";
@@ -41,7 +42,25 @@ function TodoRow({ todo }: { todo: Todo }) {
   );
 }
 
+// The official list lives in production; local and staging only have the old copy from the migration.
+const OFFICIAL_URL = "https://www.komyx.com.br/admin/pendencias";
+
 export default async function AdminTodosPage() {
+  if (process.env.VERCEL_ENV !== "production") {
+    return (
+      <>
+        <PageHeader title="Pendências" subtitle="A lista oficial fica em produção" />
+        <PageBody className="max-w-2xl">
+          <Card>
+            <CardBody className="space-y-3 pt-5">
+              <p className="text-sm">Este ambiente ({process.env.VERCEL_ENV === "preview" ? "staging" : "local"}) tem só uma cópia antiga da lista. Para não confundir, ela não aparece aqui: as pendências são atualizadas em produção.</p>
+              <a href={OFFICIAL_URL} target="_blank" rel="noopener" className={buttonClass("primary", "md")}>Abrir a lista oficial</a>
+            </CardBody>
+          </Card>
+        </PageBody>
+      </>
+    );
+  }
   const admin = createAdminClient();
   const { data } = await admin.from("platform_todos").select("id, section, title, sort_order, done_at").order("sort_order").order("created_at");
   const todos = (data ?? []) as Todo[];

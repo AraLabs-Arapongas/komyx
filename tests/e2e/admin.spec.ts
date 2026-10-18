@@ -95,18 +95,10 @@ test.describe("Admin Komyx", () => {
     await expect(page.getByLabel("Endereço público")).toBeDisabled();
   });
 
-  test("pendências: adiciona, marca como feito e apaga", async ({ page }) => {
-    const title = uniq("Pendência E2E");
+  test("pendências: fora de produção aponta para a lista oficial", async ({ page }) => {
     await login(page, ACCOUNTS.admin);
     await page.goto("/admin/pendencias");
-    const produto = page.locator("form").filter({ has: page.locator('input[name=section][value=produto]') });
-    await produto.getByPlaceholder("Nova pendência").fill(title);
-    await produto.getByRole("button", { name: "Adicionar" }).click();
-    const row = page.locator("li").filter({ hasText: title });
-    await expect(row).toBeVisible();
-    await row.getByRole("button", { name: "Marcar como feito" }).click();
-    await expect(page.locator("li").filter({ hasText: title }).getByRole("button", { name: "Reabrir" })).toBeVisible();
-    await page.locator("li").filter({ hasText: title }).getByRole("button", { name: "Apagar" }).click();
-    await expect(page.locator("li").filter({ hasText: title })).toHaveCount(0);
+    await expect(page.getByText("A lista oficial fica em produção")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Abrir a lista oficial" })).toHaveAttribute("href", "https://www.komyx.com.br/admin/pendencias");
   });
 });
