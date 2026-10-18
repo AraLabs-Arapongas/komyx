@@ -12,14 +12,18 @@ import { buttonClass } from "@/components/ui/button";
 import { AccessLinkForm, OrgAdminForm, ResetPasswordForm, SendResetForm } from "./forms";
 import { emailIsLogged } from "@/lib/auth/access-link";
 import { PendingButton } from "@/components/ui/pending-button";
+import { BrowserTabPanel, BrowserTabs } from "@/components/ui/browser-tabs";
 import { IDLE_DAYS, daysAgoIso, isIdle, orgLastActivity } from "../activity";
 
 const SOURCE_LABEL: Record<string, string> = { evento: "evento alterado", pedido: "pedido na página pública", pagamento: "pagamento registrado", login: "login da equipe" };
 
 export const dynamic = "force-dynamic";
 
+const TABS = [["geral", "Visão geral"], ["dados", "Dados"], ["plano", "Plano e cobrança"], ["pessoas", "Pessoas"], ["festas", "Festas"]] as const;
+
 export default async function AdminBuffetPage({ params, searchParams }: PageProps<"/admin/buffets/[id]">) {
   const [{ id }, sp] = await Promise.all([params, searchParams, requireAdmin()]);
+  const tab = typeof sp.aba === "string" && TABS.some(([k]) => k === sp.aba) ? sp.aba : "geral";
   const admin = createAdminClient();
   const [{ data: org }, { data: bill }, { data: stat }, { data: members }, { data: recentEvents }] = await Promise.all([
     admin.from("organizations").select("*").eq("id", id).maybeSingle(),
@@ -55,7 +59,11 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
       <PageBody>
         {sp.created ? <Alert tone="success">Buffet criado. O responsável recebeu o e-mail de boas-vindas para criar a senha.</Alert> : null}
         {org.is_demo ? <Alert tone="info">Buffet de demonstração: recriado toda noite por <code>app.reset_demo_buffet()</code>. Não é cobrado nem suspenso, e fica fora dos números da plataforma.</Alert> : null}
-        <OrgDataCard org={org} ownerEmail={(members ?? []).find((m) => m.role === "owner")?.email ?? null} bill={bill} />
+        <div>
+        <BrowserTabs label="Seções do buffet" active={tab} tabs={TABS.map(([key, label]) => ({ key, label: key === "pessoas" ? `${label} · ${members?.length ?? 0}` : label, href: `/admin/buffets/${org.id}${key === "geral" ? "" : `?aba=${key}`}` }))} />
+        <BrowserTabPanel>
+        {tab === "geral" ? (
+          <>
         <div className={idle ? "rounded-2xl border border-amber-200 bg-amber-50/60 p-4 flex items-center justify-between gap-3" : "rounded-2xl border border-border bg-surface p-4 flex items-center justify-between gap-3"}>
           <div>
             <p className="text-xs text-muted">Última atividade</p>
@@ -81,10 +89,32 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
         </div>
 
         <Card>
+          <CardHeader title="Links úteis" />
+          <CardBody className="text-sm space-y-1 text-muted">
+            <p>Página pública: <a className="text-brand" href={appUrl(`/p/${org.slug}`)} target="_blank" rel="noopener">{appUrl(`/p/${org.slug}`)}</a></p>
+            <p><Link className="text-brand" href={`/admin/buffets/${org.id}/ver`}>Ver como este buffet</Link> (somente leitura)</p>
+            <p>Orçamento self-service: <a className="text-brand" href={appUrl(`/p/${org.slug}/orcamento`)} target="_blank" rel="noopener">{appUrl(`/p/${org.slug}/orcamento`)}</a></p>
+            <p>Criado em {formatDateTime(org.created_at)} · WhatsApp {org.whatsapp ?? "—"} · Pix {org.pix_key ?? "não configurado"}</p>
+          </CardBody>
+        </Card>
+          </>
+        ) : null}
+        {tab === "dados" ? (
+          <>
+        <OrgDataCard org={org} ownerEmail={(members ?? []).find((m) => m.role === "owner")?.email ?? null} bill={bill} />
+          </>
+        ) : null}
+        {tab === "plano" ? (
+          <>
+        <Card>
           <CardHeader title="Plano, status, cobrança e endereço" subtitle="Só o Komyx altera. Suspender bloqueia o app e a página pública; os dados ficam guardados. O ciclo de cobrança aparece para o dono com barra de progresso." />
           <CardBody><OrgAdminForm org={{ id: org.id, slug: org.slug, plan: org.plan, status: org.status, notes: org.notes, billing_cycle_start: bill?.cycle_start ?? null, billing_due_at: bill?.due_at ?? null, billing_status: bill?.status ?? "ok" }} /></CardBody>
         </Card>
 
+          </>
+        ) : null}
+        {tab === "pessoas" ? (
+          <>
         <Card>
           <CardHeader title="Pessoas" subtitle="Responsável (owner) e equipe. O e-mail de senha leva um link para a pessoa criar uma nova." />
           <CardBody className="space-y-4">
@@ -107,6 +137,10 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
           </CardBody>
         </Card>
 
+          </>
+        ) : null}
+        {tab === "festas" ? (
+          <>
         <Card>
           <CardHeader title="Eventos recentes" />
           <CardBody>
@@ -123,15 +157,10 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
           </CardBody>
         </Card>
 
-        <Card>
-          <CardHeader title="Links úteis" />
-          <CardBody className="text-sm space-y-1 text-muted">
-            <p>Página pública: <a className="text-brand" href={appUrl(`/p/${org.slug}`)} target="_blank" rel="noopener">{appUrl(`/p/${org.slug}`)}</a></p>
-            <p><Link className="text-brand" href={`/admin/buffets/${org.id}/ver`}>Ver como este buffet</Link> (somente leitura)</p>
-            <p>Orçamento self-service: <a className="text-brand" href={appUrl(`/p/${org.slug}/orcamento`)} target="_blank" rel="noopener">{appUrl(`/p/${org.slug}/orcamento`)}</a></p>
-            <p>Criado em {formatDateTime(org.created_at)} · WhatsApp {org.whatsapp ?? "—"} · Pix {org.pix_key ?? "não configurado"}</p>
-          </CardBody>
-        </Card>
+          </>
+        ) : null}
+        </BrowserTabPanel>
+        </div>
       </PageBody>
     </>
   );

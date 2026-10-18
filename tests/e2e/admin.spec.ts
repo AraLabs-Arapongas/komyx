@@ -33,9 +33,10 @@ test.describe("Admin Komyx", () => {
     await page.getByRole("button", { name: "Criar buffet e acesso" }).click();
     await page.waitForURL(/\/admin\/buffets\/[0-9a-f-]+\?created=1/);
     await expect(page.getByText("Buffet criado")).toBeVisible();
+    const detailUrl = page.url().split("?")[0];
+    await page.goto(`${detailUrl}?aba=pessoas`);
     await expect(page.getByText("Dono E2E")).toBeVisible();
     await expect(page.getByText("Responsável", { exact: true })).toBeVisible();
-    const detailUrl = page.url().split("?")[0];
 
     // No initial password: the admin sets a temporary one, and the owner must create their own at sign-in
     await page.getByText("Definir senha provisória").click();
@@ -57,7 +58,7 @@ test.describe("Admin Komyx", () => {
     await expect(page).not.toHaveURL(/nova-senha/);
     await logout(page);
     await login(page, ACCOUNTS.admin);
-    await page.goto(detailUrl);
+    await page.goto(`${detailUrl}?aba=plano`);
 
     // Public page is live
     expect((await page.request.get(`/p/${slug}`)).status()).toBe(200);
@@ -79,7 +80,7 @@ test.describe("Admin Komyx", () => {
     // Reactivate as admin; owner now sees the onboarding checklist in their own org
     await logout(page);
     await login(page, ACCOUNTS.admin);
-    await page.goto(detailUrl);
+    await page.goto(`${detailUrl}?aba=plano`);
     await pickOption(page, "Status", "Ativo");
     await page.getByRole("button", { name: "Salvar", exact: true }).first().click();
     await expect(page.getByText("Buffet atualizado.")).toBeVisible();

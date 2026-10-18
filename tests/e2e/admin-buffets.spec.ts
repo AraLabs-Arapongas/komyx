@@ -32,14 +32,16 @@ test.describe("Admin · buffet por dentro e auditoria", () => {
     await expect(page.getByText("Pedidos (30 dias)")).toBeVisible();
     await expect(page.getByText("Festas fechadas")).toBeVisible();
     await expect(page.getByText(/parado · mais de 14 dias/)).toHaveCount(0);
-    await expect(page.getByText(/último acesso nunca/)).toBeVisible();
 
     // Plan change is audited with before/after
+    await page.goto(`/admin/buffets/${orgId}?aba=plano`);
     await pickOption(page, "Plano", "Básico");
     await page.getByRole("button", { name: "Salvar", exact: true }).first().click();
     await expect(page.getByText("Buffet atualizado.")).toBeVisible();
 
     // Password e-mail (provider is "log" locally)
+    await page.goto(`/admin/buffets/${orgId}?aba=pessoas`);
+    await expect(page.getByText(/último acesso nunca/)).toBeVisible();
     await page.getByRole("button", { name: "Reenviar e-mail de senha" }).click();
     // The welcome e-mail just generated a link, and Supabase allows one per minute per person.
     await expect(page.getByText(new RegExp(`E-mail de senha enviado para ${ownerEmail.replace(/[.+]/g, "\\$&")}\\.|Muitos pedidos seguidos`))).toBeVisible();
@@ -82,6 +84,7 @@ test.describe("Admin · buffet por dentro e auditoria", () => {
     await login(page, ACCOUNTS.admin);
     await page.goto(`/admin/buffets/${org!.id}`);
     await expect(page.getByText("Última atividade", { exact: true })).toBeVisible();
+    await page.goto(`/admin/buffets/${org!.id}?aba=pessoas`);
     await expect(page.getByRole("button", { name: "Reenviar e-mail de senha" }).first()).toBeVisible();
     await page.goto(`/admin/buffets/${org!.id}/ver`);
     await expect(page.getByText("Visualização do admin · somente leitura.")).toBeVisible();
