@@ -44,6 +44,10 @@ export async function createCustomer(c: { name: string; cpfCnpj: string; email?:
   return call<{ id: string }>("POST", "/customers", { ...c, notificationDisabled: false });
 }
 
+export async function updateCustomer(id: string, c: { name: string; cpfCnpj: string; email?: string | null; mobilePhone?: string | null }) {
+  return call<{ id: string }>("POST", `/customers/${id}`, c);
+}
+
 /** Monthly charge until cancelled. billingType UNDEFINED lets the buffet pick Pix, boleto or card. */
 export async function createSubscription(s: { customer: string; value: number; nextDueDate: string; description: string; externalReference: string }) {
   return call<{ id: string }>("POST", "/subscriptions", { ...s, billingType: "UNDEFINED", cycle: "MONTHLY" });

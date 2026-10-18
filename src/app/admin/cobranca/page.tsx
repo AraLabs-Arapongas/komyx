@@ -100,7 +100,8 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
                         <td className="px-2 py-2.5"><PriceForm orgId={o.id} value={moneyInput(b?.monthly_price)} fallback={moneyInput(priceOf({ id: "", plan: o.plan }))} /></td>
                         <td className="px-2 py-2.5 whitespace-nowrap">{last ? <>{formatCurrency(last.amount)} <Badge tone={INVOICE_VIEW_TONE[invoiceView(last, today)]}>{INVOICE_VIEW_LABEL[invoiceView(last, today)]}</Badge><p className="text-xs text-muted">vence {day(last.due_at)}</p></> : <span className="text-xs text-muted">nenhuma</span>}</td>
                         <td className="px-2 py-2.5"><AutoBillingForm orgId={o.id} on={Boolean(b?.auto_billing)} available={provider.id === "asaas"} /></td>
-                        <td className="px-2 py-2.5 text-right"><NewInvoiceForm orgId={o.id} start={next.start} end={next.end} due={next.due} amount={moneyInput(priceOf(o))} /></td>
+                        {/* With the Asaas subscription on, it creates each month's invoice: a manual one would charge twice. */}
+                        <td className="px-2 py-2.5 text-right">{b?.auto_billing ? <span className="text-xs text-muted">a assinatura gera as faturas</span> : <NewInvoiceForm orgId={o.id} start={next.start} end={next.end} due={next.due} amount={moneyInput(priceOf(o))} />}</td>
                       </tr>
                     );
                   })}
@@ -128,7 +129,7 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
                         <td className="px-2 py-2.5 whitespace-nowrap text-xs">{day(i.period_start)} a {day(i.period_end)}</td>
                         <td className="px-2 py-2.5 text-right whitespace-nowrap">{formatCurrency(i.amount)}</td>
                         <td className="px-2 py-2.5 whitespace-nowrap">{day(i.due_at)}</td>
-                        <td className="px-2 py-2.5"><Badge tone={INVOICE_VIEW_TONE[v]}>{INVOICE_VIEW_LABEL[v]}</Badge>{i.provider === "asaas" ? <> <Badge tone="slate">Asaas</Badge></> : null}{i.payment_url ? <a href={i.payment_url} target="_blank" rel="noopener" className="block text-xs text-brand hover:underline">ver cobrança</a> : null}{i.status === "paid" && i.paid_at ? <p className="text-xs text-muted whitespace-nowrap">{day(i.paid_at)}{i.method ? ` · ${PAYMENT_METHOD_LABEL[i.method] ?? i.method}` : ""}</p> : null}</td>
+                        <td className="px-2 py-2.5"><Badge tone={INVOICE_VIEW_TONE[v]}>{INVOICE_VIEW_LABEL[v]}</Badge>{i.provider === "asaas" ? <> <Badge tone="slate">Asaas</Badge></> : null}{i.payment_url && i.status === "open" ? <a href={i.payment_url} target="_blank" rel="noopener" className="block text-xs text-brand hover:underline">ver cobrança</a> : null}{i.status === "paid" && i.paid_at ? <p className="text-xs text-muted whitespace-nowrap">{day(i.paid_at)}{i.method ? ` · ${PAYMENT_METHOD_LABEL[i.method] ?? i.method}` : ""}</p> : null}</td>
                         <td className="px-2 py-2.5 text-right">
                           {i.status === "open" ? (
                             <div className="flex flex-col items-end gap-1.5">

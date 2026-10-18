@@ -2,7 +2,7 @@ import "server-only";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { toDateKey } from "@/lib/utils";
 import { addMonths, effectivePrice } from "./invoices";
-import { cancelSubscription, createCustomer, createPayment, createSubscription, deletePayment, methodFromBillingType, type AsaasPayment } from "./asaas";
+import { cancelSubscription, createCustomer, createPayment, createSubscription, deletePayment, methodFromBillingType, updateCustomer, type AsaasPayment } from "./asaas";
 import { flagOverdue, settleInvoicePaid, settleInvoiceVoid } from "./settle";
 
 /** Keeps a buffet's Komyx fee in sync with Asaas (customer, monthly subscription, charges). */
@@ -11,18 +11,27 @@ type Admin = ReturnType<typeof createAdminClient>;
 
 export class BillingSetupError extends Error {}
 
-/** The buffet's Asaas customer, created on first use from its legal data and the owner's e-mail. */
+/**
+ * The buffet's Asaas customer, created on first use (or refreshed) from its legal data, WhatsApp and the
+ * owner's e-mail. Asaas sends the charge reminders to that e-mail and phone, so both are required.
+ */
 export async function ensureCustomer(admin: Admin, orgId: string) {
-  const { data: bill } = await admin.from("organization_billing").select("provider_customer_id").eq("organization_id", orgId).maybeSingle();
-  if (bill?.provider_customer_id) return bill.provider_customer_id;
-  const [{ data: org }, { data: owner }] = await Promise.all([
+  const [{ data: bill }, { data: org }, { data: owner }] = await Promise.all([
+    admin.from("organization_billing").select("provider_customer_id").eq("organization_id", orgId).maybeSingle(),
     admin.from("organizations").select("name, legal_name, document, whatsapp").eq("id", orgId).single(),
     admin.from("profiles").select("email").eq("organization_id", orgId).eq("role", "owner").order("created_at").limit(1).maybeSingle(),
   ]);
   const doc = (org?.document ?? "").replace(/\D/g, "");
   if (doc.length !== 11 && doc.length !== 14) throw new BillingSetupError("Cadastre o CPF ou CNPJ do buffet (Configurações › Empresa) antes de cobrar pelo Asaas.");
   const phone = (org?.whatsapp ?? "").replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, "");
-  const c = await createCustomer({ name: org?.legal_name || org!.name, cpfCnpj: doc, email: owner?.email ?? null, mobilePhone: phone || null, externalReference: orgId });
+  if (phone.length !== 10 && phone.length !== 11) throw new BillingSetupError("Cadastre o WhatsApp do buffet (Configurações › Empresa) antes de cobrar pelo Asaas.");
+  if (!owner?.email) throw new BillingSetupError("O buffet não tem um responsável com e-mail para receber as cobranças.");
+  const data = { name: org?.legal_name || org!.name, cpfCnpj: doc, email: owner.email, mobilePhone: phone };
+  if (bill?.provider_customer_id) {
+    await updateCustomer(bill.provider_customer_id, data);
+    return bill.provider_customer_id;
+  }
+  const c = await createCustomer({ ...data, externalReference: orgId });
   await admin.from("organization_billing").upsert({ organization_id: orgId, provider_customer_id: c.id, updated_at: new Date().toISOString() });
   return c.id;
 }
