@@ -103,10 +103,11 @@ test.describe("Admin Komyx", () => {
     await page.getByRole("button", { name: "Adicionar" }).click();
     const row = page.locator("li", { hasText: title });
     await expect(row).toBeVisible();
+    await row.getByRole("button", { name: "Definir prioridade" }).click();
     await row.getByLabel("Prioridade").fill("1");
-    await row.getByLabel("Prioridade").blur();
+    await row.getByLabel("Prioridade").press("Enter");
     await expect(page.locator("ul.divide-y > li").first()).toContainText(title);
-    await expect(page.locator("ul.divide-y > li").first().getByLabel("Prioridade")).toHaveValue("1");
+    await expect(page.locator("ul.divide-y > li").first().getByRole("button", { name: /^Prioridade 1/ })).toHaveText("P1");
     await page.locator("ul.divide-y > li").first().getByRole("button", { name: "Apagar" }).click();
     await expect(page.locator("li", { hasText: title })).toHaveCount(0);
   });
