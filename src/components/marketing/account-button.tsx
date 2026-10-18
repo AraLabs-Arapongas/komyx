@@ -43,27 +43,33 @@ export function AccountButton() {
     return <Link href="/login" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10">Entrar</Link>;
   }
 
+  const label = me.admin ? "Admin Komyx" : (me.buffet ?? me.name);
   const initial = me.admin ? "A" : (me.buffet ?? me.name).trim().charAt(0).toUpperCase();
   const item = "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-stone-800 hover:bg-stone-100";
   return (
     <div ref={box} className="relative">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} aria-label="Minha conta" className="block h-10 w-10 overflow-hidden rounded-full ring-2 ring-white/40 hover:ring-white/70 focus:outline-none focus-visible:ring-[var(--sun)]">
-        {me.logo && !me.admin ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={me.logo} alt="" className="h-full w-full object-cover bg-white" />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center text-base font-extrabold" style={{ background: me.admin ? "var(--sun)" : "var(--berry)", color: me.admin ? "var(--ink)" : "#fff" }}>{initial}</span>
-        )}
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} aria-label="Minha conta" className="group flex items-center gap-2.5 rounded-full py-1 pl-1 pr-1 sm:pl-4 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sun)]">
+        <span data-testid="account-name" className="hidden max-w-[12rem] truncate text-sm font-bold sm:block">{label}</span>
+        <span className="block h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-white/40 group-hover:ring-white/70">
+          {me.logo && !me.admin ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={me.logo} alt="" className="h-full w-full object-cover bg-white" />
+          ) : (
+            <span className="flex h-full w-full items-center justify-center text-base font-extrabold" style={{ background: me.admin ? "var(--sun)" : "var(--berry)", color: me.admin ? "var(--ink)" : "#fff" }}>{initial}</span>
+          )}
+        </span>
       </button>
       {open ? (
         <div role="menu" className="absolute right-0 top-12 z-50 w-64 rounded-2xl bg-white p-2 text-left shadow-xl ring-1 ring-black/5">
           <div className="px-3 py-2">
-            <p className="truncate text-sm font-bold text-stone-900">{me.admin ? "Admin Komyx" : (me.buffet ?? me.name)}</p>
+            <p className="truncate text-sm font-bold text-stone-900">{label}</p>
             <p className="truncate text-xs text-stone-500">{me.email}</p>
           </div>
           <div className="my-1 h-px bg-stone-100" />
-          {me.admin ? <Link role="menuitem" href="/admin" className={item}><ShieldCheck className="h-4 w-4" /> Abrir o admin</Link> : null}
-          <Link role="menuitem" href="/home" className={item}><LayoutDashboard className="h-4 w-4" /> Abrir o painel</Link>
+          {/* One destination each: admins go to the Komyx admin, everyone else to their buffet's panel. */}
+          {me.admin
+            ? <Link role="menuitem" href="/admin" className={item}><ShieldCheck className="h-4 w-4" /> Abrir o admin</Link>
+            : <Link role="menuitem" href="/home" className={item}><LayoutDashboard className="h-4 w-4" /> Abrir o painel</Link>}
           <form action="/auth/signout" method="post">
             <button role="menuitem" type="submit" className={`${item} w-full text-red-600`}><LogOut className="h-4 w-4" /> Sair</button>
           </form>

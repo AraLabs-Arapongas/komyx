@@ -12,6 +12,7 @@ test.describe("Landing · conta no topo", () => {
   test("dono logado vê o avatar e abre o painel", async ({ page }) => {
     await login(page, ACCOUNTS.owner);
     await page.goto("/");
+    await expect(page.getByTestId("account-name")).not.toBeEmpty();
     await page.getByRole("button", { name: "Minha conta" }).click();
     await expect(page.getByRole("menuitem", { name: "Abrir o admin" })).toHaveCount(0);
     await page.getByRole("menuitem", { name: "Abrir o painel" }).click();
@@ -22,8 +23,9 @@ test.describe("Landing · conta no topo", () => {
     await login(page, ACCOUNTS.admin);
     await page.goto("/");
     const avatar = page.getByRole("button", { name: "Minha conta" });
-    await expect(avatar).toHaveText("A");
+    await expect(avatar).toContainText("Admin Komyx");
     await avatar.click();
+    await expect(page.getByRole("menuitem", { name: "Abrir o painel" })).toHaveCount(0);
     await page.getByRole("menuitem", { name: "Abrir o admin" }).click();
     await page.waitForURL(/\/admin/);
   });
