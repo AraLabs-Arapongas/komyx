@@ -12,6 +12,7 @@ import { Reveal } from "@/components/marketing/reveal";
 import { publicFontClass } from "@/lib/fonts";
 import { LAUNCH_PRICE, LIST_PRICE, MONTHLY_PRICE, SHOW_TABLET_PLAN, TABLET_PLAN_PER_MONTH, SUPPORT_WHATSAPP } from "@/lib/billing";
 import { PriceCard } from "@/components/marketing/price-card";
+import { AccountButton } from "@/components/marketing/account-button";
 import { formatCurrency, whatsappLink } from "@/lib/utils";
 import { homeJsonLd, publicPageMetadata } from "@/lib/seo";
 
@@ -55,9 +56,9 @@ export default function LandingPage() {
               <KomyxMark className="h-9 w-9" />
               <span className="leading-none"><span className="block display font-extrabold tracking-tight text-lg">Komyx</span><span className="block text-[11px] font-semibold mt-0.5" style={{ color: "#cfd2e6" }}>Gestão para buffets</span></span>
             </Link>
-            {/* Only "Entrar" here: the big hero CTA right below is the one "Criar meu buffet". */}
+            {/* Only "Entrar" (or the signed-in avatar) here: the big hero CTA right below is the one "Criar meu buffet". */}
             <nav className="flex items-center gap-2">
-              <Link href="/login" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10">Entrar</Link>
+              <AccountButton />
             </nav>
           </header>
           <div className="relative mx-auto w-full max-w-5xl px-4 pt-8 pb-2 max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center max-md:pb-20">

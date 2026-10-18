@@ -1,0 +1,74 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { LayoutDashboard, LogOut, ShieldCheck } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+type Me = { name: string; email: string; admin: boolean; buffet: string | null; logo: string | null };
+
+/**
+ * Landing header: "Entrar" for visitors; for a signed-in person, an avatar (buffet logo, or "A" for
+ * Komyx admins) with a small menu to the panel. Read in the browser so the landing page stays static.
+ */
+export function AccountButton() {
+  const [me, setMe] = useState<Me | null>(null);
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    let alive = true;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data } = await supabase.from("profiles").select("name, email, is_platform_admin, organizations(name, logo_url)").eq("id", session.user.id).maybeSingle();
+      if (!alive || !data) return;
+      const org = data.organizations as { name: string; logo_url: string | null } | null;
+      setMe({ name: data.name, email: data.email, admin: data.is_platform_admin, buffet: org?.name ?? null, logo: org?.logo_url ?? null });
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
+  }, [open]);
+
+  if (!me) {
+    return <Link href="/login" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10">Entrar</Link>;
+  }
+
+  const initial = me.admin ? "A" : (me.buffet ?? me.name).trim().charAt(0).toUpperCase();
+  const item = "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-stone-800 hover:bg-stone-100";
+  return (
+    <div ref={box} className="relative">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} aria-label="Minha conta" className="block h-10 w-10 overflow-hidden rounded-full ring-2 ring-white/40 hover:ring-white/70 focus:outline-none focus-visible:ring-[var(--sun)]">
+        {me.logo && !me.admin ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={me.logo} alt="" className="h-full w-full object-cover bg-white" />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-base font-extrabold" style={{ background: me.admin ? "var(--sun)" : "var(--berry)", color: me.admin ? "var(--ink)" : "#fff" }}>{initial}</span>
+        )}
+      </button>
+      {open ? (
+        <div role="menu" className="absolute right-0 top-12 z-50 w-64 rounded-2xl bg-white p-2 text-left shadow-xl ring-1 ring-black/5">
+          <div className="px-3 py-2">
+            <p className="truncate text-sm font-bold text-stone-900">{me.admin ? "Admin Komyx" : (me.buffet ?? me.name)}</p>
+            <p className="truncate text-xs text-stone-500">{me.email}</p>
+          </div>
+          <div className="my-1 h-px bg-stone-100" />
+          {me.admin ? <Link role="menuitem" href="/admin" className={item}><ShieldCheck className="h-4 w-4" /> Abrir o admin</Link> : null}
+          <Link role="menuitem" href="/home" className={item}><LayoutDashboard className="h-4 w-4" /> Abrir o painel</Link>
+          <form action="/auth/signout" method="post">
+            <button role="menuitem" type="submit" className={`${item} w-full text-red-600`}><LogOut className="h-4 w-4" /> Sair</button>
+          </form>
+        </div>
+      ) : null}
+    </div>
+  );
+}
