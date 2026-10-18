@@ -8,6 +8,8 @@ import { BuffetHero } from "@/components/public/hero/hero";
 import { PolaroidGallery, type GalleryItem } from "@/components/public/polaroid-gallery";
 import { PublicFooter } from "@/components/public/public-footer";
 import { RequestForm } from "./request-form";
+import { AppSection } from "@/components/public/app-section";
+import { IOS_APP_ID } from "@/lib/app-links";
 import { resolveTheme, themeStyle } from "@/lib/theme";
 import { resolveHeroStyle } from "@/lib/hero";
 import { OG_IMAGE, SITE_NAME, SITE_URL } from "@/lib/seo";
@@ -32,6 +34,8 @@ export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Prom
     alternates: { canonical: path },
     // The buffet's own logo in the browser tab (Komyx icon when it has none).
     ...(org?.logo_url ? { icons: { icon: org.logo_url, apple: org.logo_url } } : {}),
+    // Safari on iPhone shows its "Abrir na App Store" banner for the clients' app.
+    itunes: { appId: IOS_APP_ID },
     ...(hidden ? { robots: { index: false, follow: false } } : {}),
     openGraph: { type: "website", siteName: SITE_NAME, locale: "pt_BR", url: path, title: org ? (title as { absolute: string }).absolute : "Buffet", description, images },
     twitter: { card: "summary_large_image", title: org ? (title as { absolute: string }).absolute : "Buffet", description, images: org?.cover_url ? [org.cover_url] : [OG_IMAGE.url] },
@@ -170,6 +174,8 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
           ))}
         </ol>
       </section>
+
+      <AppSection buffet={org.name} />
 
       {/* TESTIMONIALS */}
       {testimonials.length ? (
