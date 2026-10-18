@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { verifyHookSignature } from "@/lib/auth/hook-signature";
-import { buttonEmail, getEmailProvider } from "@/lib/email";
+import { renderTemplate } from "@/lib/email/templates";
+import { logMessage, sendLoggedEmail } from "@/lib/email/message-log";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { appUrl } from "@/lib/utils";
 
 type Payload = {
@@ -28,23 +30,26 @@ export async function POST(req: Request) {
 
   if (type !== "recovery") {
     console.warn(`[send-email] skipped unsupported action type "${type}" for ${to}`);
+    await logMessage({ channel: "email", kind: "auth", to, subject: `Tipo não suportado: ${type || "?"}`, status: "skipped" });
     return NextResponse.json({});
   }
 
   const url = appUrl(`/auth/confirm?token_hash=${encodeURIComponent(tokenHash)}&type=recovery&next=/nova-senha`);
-  const { html, text } = buttonEmail({
-    title: "Redefinir sua senha",
-    intro: "Recebemos um pedido para criar uma nova senha da sua conta no Komyx. Toque no botão para escolher a nova senha.",
-    button: "Criar nova senha",
-    url,
-    outro: "O link vale por 1 hora. Se não foi você que pediu, ignore este e-mail: sua senha continua a mesma.",
-  });
-
-  try {
-    await getEmailProvider().send({ to, subject: "Redefinir sua senha · Komyx", html, text });
-  } catch (e) {
-    console.error("[send-email]", e);
+  const [{ subject, html, text }, organizationId] = await Promise.all([renderTemplate("password_reset", { link: url }), orgOf(to)]);
+  const sent = await sendLoggedEmail({ to, subject, html, text }, { kind: "password_reset", organizationId });
+  if (!sent.ok) {
+    console.error("[send-email]", sent.error);
     return NextResponse.json({ error: { http_code: 500, message: "Não conseguimos enviar o e-mail agora. Tente de novo em instantes." } }, { status: 500 });
   }
   return NextResponse.json({});
+}
+
+// For the message log only: the buffet of whoever asked (none for unknown addresses).
+async function orgOf(email: string) {
+  try {
+    const { data } = await createAdminClient().from("profiles").select("organization_id").eq("email", email).limit(1).maybeSingle();
+    return data?.organization_id ?? null;
+  } catch {
+    return null;
+  }
 }

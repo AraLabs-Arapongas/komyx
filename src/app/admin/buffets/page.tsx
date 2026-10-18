@@ -5,22 +5,25 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { PendingButton } from "@/components/ui/pending-button";
+import { requireAdmin } from "@/lib/data/session";
+import { isIdle, lastActivityByOrg } from "./activity";
 
 export const metadata = { title: "Buffets · Admin" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminBuffetsPage({ searchParams }: PageProps<"/admin/buffets">) {
-  const sp = await searchParams;
+  const [sp] = await Promise.all([searchParams, requireAdmin()]);
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
   const status = sp.status === "suspended" ? "suspended" : sp.status === "active" ? "active" : sp.status === "cancelled" ? "cancelled" : "all";
   const admin = createAdminClient();
   let query = admin.from("organizations").select("id, name, slug, plan, status, created_at, whatsapp, is_demo").eq("kind", "buffet").order("created_at", { ascending: false }).limit(200);
   if (q) query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%`);
   if (status !== "all") query = query.eq("status", status);
-  const [{ data: orgs }, { data: stats }, { data: owners }] = await Promise.all([
+  const [{ data: orgs }, { data: stats }, { data: owners }, activity] = await Promise.all([
     query,
     admin.from("admin_org_stats").select("*"),
     admin.from("profiles").select("organization_id, email, name").eq("role", "owner"),
+    lastActivityByOrg(admin),
   ]);
   const statById = new Map((stats ?? []).map((s) => [s.organization_id, s]));
   const ownerByOrg = new Map((owners ?? []).map((o) => [o.organization_id, o]));
@@ -42,7 +45,7 @@ export default async function AdminBuffetsPage({ searchParams }: PageProps<"/adm
         {orgs && orgs.length ? (
           <div className="rounded-2xl border border-border bg-surface overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-stone-50 text-xs text-muted text-left"><tr><th className="px-4 py-2">Buffet</th><th className="px-2 py-2">Responsável</th><th className="px-2 py-2">Plano</th><th className="px-2 py-2">Eventos</th><th className="px-2 py-2">Pagamentos</th><th className="px-2 py-2">Último evento</th><th className="px-2 py-2"></th></tr></thead>
+              <thead className="bg-stone-50 text-xs text-muted text-left"><tr><th className="px-4 py-2">Buffet</th><th className="px-2 py-2">Responsável</th><th className="px-2 py-2">Plano</th><th className="px-2 py-2">Eventos</th><th className="px-2 py-2">Pagamentos</th><th className="px-2 py-2">Último evento</th><th className="px-2 py-2">Última atividade</th><th className="px-2 py-2"></th></tr></thead>
               <tbody className="divide-y divide-border">
                 {orgs.map((o) => {
                   const st = statById.get(o.id);
@@ -55,6 +58,7 @@ export default async function AdminBuffetsPage({ searchParams }: PageProps<"/adm
                       <td className="px-2 py-2.5">{st?.events_total ?? 0} <span className="text-xs text-muted">({st?.events_30d ?? 0} em 30d)</span></td>
                       <td className="px-2 py-2.5">{formatCurrency(st?.payments_total ?? 0)}</td>
                       <td className="px-2 py-2.5 text-xs text-muted">{st?.last_event_at ? formatDate(st.last_event_at) : "—"}</td>
+                      <td className="px-2 py-2.5 text-xs text-muted">{activity.get(o.id) ? formatDate(activity.get(o.id)!) : "—"} {!o.is_demo && isIdle(activity.get(o.id) ?? null, o.created_at) ? <Badge tone="amber">parado</Badge> : null}</td>
                       <td className="px-2 py-2.5 text-right"><Link href={`/admin/buffets/${o.id}`} className="text-brand text-xs font-medium">Gerenciar</Link></td>
                     </tr>
                   );

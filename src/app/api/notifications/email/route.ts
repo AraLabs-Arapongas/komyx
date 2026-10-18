@@ -1,18 +1,11 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { buttonEmail, getEmailProvider } from "@/lib/email";
-import { appUrl } from "@/lib/utils";
+import { renderNotificationEmail } from "@/lib/email/templates";
+import { sendLoggedEmail } from "@/lib/email/message-log";
 
 // Same value the migration falls back to when Vault has no `notify_email_secret` (local only).
 const LOCAL_SECRET = "komyx-local-notify-email-secret";
-
-const COPY: Record<string, { subject: string; button: string }> = {
-  request: { subject: "Novo pedido de orçamento", button: "Ver pedido" },
-  reservation: { subject: "Nova reserva online", button: "Ver reserva" },
-  contract_accepted: { subject: "Contrato aceito", button: "Ver contrato" },
-  client_request: { subject: "Novo pedido do cliente", button: "Ver festa" },
-};
 
 function authorized(req: Request) {
   const secret = process.env.NOTIFY_EMAIL_SECRET || (process.env.NODE_ENV === "production" ? "" : LOCAL_SECRET);
@@ -42,19 +35,9 @@ export async function POST(req: Request) {
   ]);
   const recipients = [...new Set((people ?? []).map((p) => p.email).filter(Boolean))];
   const buffet = org?.name ?? "seu buffet";
-  const body = n.body?.replace(/^\s*·\s*/, "").trim();
-  const copy = COPY[n.type] ?? { subject: "Novo aviso", button: "Abrir no Komyx" };
-  const { html, text } = buttonEmail({
-    title: copy.subject,
-    // The DB title repeats the subject for some kinds ("Novo pedido de orçamento: Ana"); keep the who.
-    intro: `${n.title.replace(/^(Novo pedido de orçamento|Reserva online):\s*/, "")}${body ? ` · ${body}` : ""}.`,
-    button: copy.button,
-    url: appUrl(n.href ?? "/notificacoes"),
-    outro: `Você recebe este aviso por fazer parte da equipe do ${buffet}. Para não receber mais, desligue em Minha conta.`,
-  });
+  const { subject, html, text } = await renderNotificationEmail(n, buffet);
 
-  const provider = getEmailProvider();
-  const results = await Promise.allSettled(recipients.map((to) => provider.send({ to, subject: `${copy.subject} · ${buffet}`, html, text })));
-  results.forEach((r, i) => { if (r.status === "rejected") console.error(`[notify-email] ${recipients[i]}`, r.reason); });
-  return NextResponse.json({ sent: results.filter((r) => r.status === "fulfilled").length, failed: results.filter((r) => r.status === "rejected").length });
+  const results = await Promise.all(recipients.map((to) => sendLoggedEmail({ to, subject, html, text }, { kind: "notification", organizationId: n.organization_id, notificationId: id })));
+  results.forEach((r, i) => { if (!r.ok) console.error(`[notify-email] ${recipients[i]}`, r.error); });
+  return NextResponse.json({ sent: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok).length });
 }

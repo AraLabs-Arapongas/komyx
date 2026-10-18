@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyHookSignature } from "@/lib/auth/hook-signature";
-import { getSmsProvider } from "@/lib/sms";
+import { getSmsProvider, maskPhoneForLog } from "@/lib/sms";
+import { errorText, logMessage } from "@/lib/email/message-log";
 
 /**
  * Supabase Auth "send_sms" hook. Supabase POSTs { user: { phone }, sms: { otp } } signed with the
@@ -23,8 +24,10 @@ export async function POST(req: Request) {
     await getSmsProvider().send(phone, `Seu codigo de acesso Komyx: ${otp}\nVale por 10 minutos. Nao compartilhe.`);
   } catch (e) {
     console.error("[send-sms]", e);
+    await logMessage({ channel: "sms", kind: "sms_otp", to: maskPhoneForLog(phone), subject: "Código de acesso", status: "failed", error: errorText(e) });
     // Supabase surfaces this message to the client.
     return NextResponse.json({ error: { http_code: 500, message: "Não conseguimos enviar o SMS agora. Tente de novo em instantes." } }, { status: 500 });
   }
+  await logMessage({ channel: "sms", kind: "sms_otp", to: maskPhoneForLog(phone), subject: "Código de acesso", status: "sent" });
   return NextResponse.json({});
 }

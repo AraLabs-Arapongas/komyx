@@ -39,3 +39,11 @@ export function getSmsProvider(): SmsProvider {
   if (name === "comtele") return comtele;
   return log;
 }
+
+/** Phone as stored in message_log: (43) *****-5445. Never log the full number or the code. */
+export function maskPhoneForLog(phoneDigits: string) {
+  let d = phoneDigits.replace(/\D/g, "");
+  if (d.length > 11 && d.startsWith("55")) d = d.slice(2);
+  if (d.length < 6) return "*****";
+  return `(${d.slice(0, 2)}) *****-${d.slice(-4)}`;
+}

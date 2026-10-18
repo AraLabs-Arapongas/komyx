@@ -1,17 +1,19 @@
-import { MessageCircle, Download } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { requireProfile, getOrganization, getBilling } from "@/lib/data/session";
 import { PageBody, PageHeader } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
-import { formatCurrency, formatDate, whatsappLink } from "@/lib/utils";
-import { PLAN_LABEL, PLAN_PRICES, BILLING_STATUS_LABEL, INVOICE_STATUS_LABEL, INVOICE_STATUS_TONE, SUPPORT_WHATSAPP } from "@/lib/billing";
+import { formatCurrency, formatDate, toDateKey, whatsappLink } from "@/lib/utils";
+import { PLAN_LABEL, PLAN_PRICES, BILLING_STATUS_LABEL, SUPPORT_WHATSAPP } from "@/lib/billing";
 import { NameForm, PasswordForm, EmailNotificationsForm } from "./account-forms";
 import { CancelSubscription } from "./cancel-subscription";
 import { reactivateSubscription } from "@/lib/actions/subscription";
 import { Alert } from "@/components/ui/page";
 import { PendingButton } from "@/components/ui/pending-button";
+import { billingProvider } from "@/lib/billing/provider";
+import { INVOICE_VIEW_LABEL, INVOICE_VIEW_TONE, invoiceView } from "@/lib/billing/invoices";
 
 export const metadata = { title: "Minha conta" };
 
@@ -21,7 +23,9 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
   const bill = await getBilling(profile);
   const supabase = await createClient();
   const { data: prefs } = await supabase.from("profiles").select("email_notifications").eq("id", profile.id).single();
-  const { data: invoices } = isOwner ? await supabase.from("saas_invoices").select("id, description, amount, due_at, paid_at, status, method, receipt_url").order("due_at", { ascending: false }).limit(36) : { data: [] };
+  // Komyx invoices (billing_invoices): RLS returns only this buffet's rows, and only to the owner.
+  const { data: faturas } = isOwner ? await supabase.from("billing_invoices").select("id, period_start, period_end, amount, due_at, status, paid_at").neq("status", "void").order("due_at", { ascending: false }).limit(24) : { data: [] };
+  const today = toDateKey(new Date());
   const price = PLAN_PRICES[org.plan] ?? 0;
   const dayDate = (d: string) => formatDate(`${d}T12:00:00-03:00`);
   const support = (msg: string) => whatsappLink(SUPPORT_WHATSAPP, msg);
@@ -72,31 +76,35 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
               </CardBody>
             </Card>
 
-            <Card id="pagamentos">
-              <CardHeader title="Pagamentos" subtitle="Histórico das mensalidades do Komyx" />
-              <CardBody>
-                {(invoices ?? []).length === 0 ? <p className="text-sm text-muted">Nenhuma cobrança registrada ainda.</p> : (
+            <Card id="faturas">
+              <CardHeader title="Faturas" subtitle="Mensalidades do Komyx" />
+              <CardBody className="space-y-3">
+                {(faturas ?? []).length === 0 ? <p className="text-sm text-muted">Nenhuma fatura ainda.</p> : (
                   <div className="overflow-x-auto -mx-4 px-4">
                     <table className="w-full text-sm">
                       <thead className="text-xs uppercase tracking-wide text-muted border-b border-border">
-                        <tr><th className="text-left py-2 pr-3">Data</th><th className="text-left py-2 pr-3">Descrição</th><th className="text-right py-2 pr-3">Valor</th><th className="text-left py-2 pr-3">Status</th><th className="text-right py-2">Recibo</th></tr>
+                        <tr><th className="text-left py-2 pr-3">Período</th><th className="text-right py-2 pr-3">Valor</th><th className="text-left py-2 pr-3">Vencimento</th><th className="text-left py-2">Status</th></tr>
                       </thead>
                       <tbody className="divide-y divide-border">
-                        {invoices!.map((i) => (
-                          <tr key={i.id}>
-                            <td className="py-2.5 pr-3 whitespace-nowrap">{dayDate(i.paid_at ?? i.due_at)}{!i.paid_at ? <span className="text-xs text-muted"> (vencimento)</span> : null}</td>
-                            <td className="py-2.5 pr-3">{i.description}{i.method ? <span className="text-xs text-muted"> · {i.method}</span> : null}</td>
-                            <td className="py-2.5 pr-3 text-right whitespace-nowrap">{formatCurrency(i.amount)}</td>
-                            <td className="py-2.5 pr-3"><Badge tone={INVOICE_STATUS_TONE[i.status] ?? "zinc"}>{INVOICE_STATUS_LABEL[i.status] ?? i.status}</Badge></td>
-                            <td className="py-2.5 text-right">{i.receipt_url ? <a href={i.receipt_url} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-brand font-medium"><Download className="h-3.5 w-3.5" /> PDF</a> : <span className="text-xs text-muted">—</span>}</td>
-                          </tr>
-                        ))}
+                        {faturas!.map((f) => {
+                          const v = invoiceView(f, today);
+                          return (
+                            <tr key={f.id}>
+                              <td className="py-2.5 pr-3 whitespace-nowrap">{dayDate(f.period_start)} a {dayDate(f.period_end)}</td>
+                              <td className="py-2.5 pr-3 text-right whitespace-nowrap">{formatCurrency(f.amount)}</td>
+                              <td className="py-2.5 pr-3 whitespace-nowrap">{dayDate(f.due_at)}</td>
+                              <td className="py-2.5"><Badge tone={INVOICE_VIEW_TONE[v]}>{INVOICE_VIEW_LABEL[v]}</Badge>{f.paid_at ? <span className="block text-xs text-muted">pago em {dayDate(f.paid_at)}</span> : null}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
                 )}
+                <p className="text-xs text-muted">{billingProvider.ownerInstructions}</p>
               </CardBody>
             </Card>
+
           </>
         ) : null}
       </PageBody>

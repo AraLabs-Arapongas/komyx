@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { adminUpdateOrganization, adminResetPassword } from "@/lib/actions/admin";
+import { adminUpdateOrganization, adminResetPassword, adminSendPasswordReset } from "@/lib/actions/admin";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -45,5 +45,18 @@ export function ResetPasswordForm({ userId, orgId }: { userId: string; orgId: st
         <SubmitButton size="sm" variant="outline">Redefinir</SubmitButton>
       </form>
     </details>
+  );
+}
+
+export function SendResetForm({ userId, orgId }: { userId: string; orgId: string }) {
+  const [state, action] = useActionState(adminSendPasswordReset, undefined);
+  return (
+    <form action={action} className="space-y-2">
+      <input type="hidden" name="user_id" value={userId} />
+      <input type="hidden" name="org_id" value={orgId} />
+      <SubmitButton size="sm" variant="outline" pendingText="Enviando…">Reenviar e-mail de senha</SubmitButton>
+      {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+      {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
+    </form>
   );
 }
