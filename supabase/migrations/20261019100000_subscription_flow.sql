@@ -89,7 +89,8 @@ declare
 begin
   select decrypted_secret into v_url from vault.decrypted_secrets where name = 'notify_email_url';
   select decrypted_secret into v_secret from vault.decrypted_secrets where name = 'notify_email_secret';
-  v_url := coalesce(regexp_replace(v_url, '/api/.*$', ''), 'http://host.docker.internal:3000') || '/api/billing/asaas/daily';
+  -- Swap only the path: staging's URL carries the Vercel protection-bypass query, which must stay.
+  v_url := coalesce(regexp_replace(v_url, '/api/[^?]*', '/api/billing/asaas/daily'), 'http://host.docker.internal:3000/api/billing/asaas/daily');
   perform net.http_post(
     url := v_url,
     body := '{}'::jsonb,
