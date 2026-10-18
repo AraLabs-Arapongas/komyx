@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireOwner } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { asaasConfigured } from "@/lib/billing/asaas";
-import { BillingSetupError, enableAutoBilling, startReactivation } from "@/lib/billing/asaas-sync";
+import { BillingSetupError, chargeInvoice, enableAutoBilling, startReactivation } from "@/lib/billing/asaas-sync";
 import { cancelWithOption, changePlan, logBilling, maybeAutoEnable, subscriptionContext } from "@/lib/billing/subscription";
 import { billingDataMissing, brDate, isPeriodMonths, PERIOD_LABEL } from "@/lib/billing/plans";
 import { INVALID_DOCUMENT, isValidDocument } from "@/lib/document";
@@ -139,6 +139,30 @@ export async function reactivateSubscription(): Promise<ActionResult> {
   }
   await logBilling(admin, profile, "subscription.reactivate_requested", profile.organization_id);
   redirect(url);
+}
+
+/**
+ * "Pagar" on /assinatura: opens the invoice on the Asaas page. An invoice without a link yet (created by
+ * the admin, or Asaas was down) gets its Asaas charge now, so there is always a payment page to open.
+ */
+export async function payInvoice(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const id = z.string().uuid().safeParse(formData.get("id"));
+  if (!id.success) return fail("Fatura inválida.");
+  const profile = await requireOwner();
+  const admin = createAdminClient();
+  const { data: inv } = await admin.from("billing_invoices").select("id, status, payment_url").eq("id", id.data).eq("organization_id", profile.organization_id).maybeSingle();
+  if (!inv || inv.status !== "open") return fail("Esta fatura não está mais em aberto. Recarregue a página.");
+  if (inv.payment_url) redirect(inv.payment_url);
+  if (!asaasConfigured()) return fail("Pagamento online indisponível agora. Fale com a gente pelo WhatsApp.");
+  try {
+    await chargeInvoice(admin, inv.id);
+  } catch (e) {
+    return fail(asaasError(e));
+  }
+  const { data: charged } = await admin.from("billing_invoices").select("payment_url").eq("id", inv.id).single();
+  if (!charged?.payment_url) return fail("Não deu para abrir o pagamento agora. Tente de novo em instantes.");
+  revalidateBilling();
+  redirect(charged.payment_url);
 }
 
 const dataSchema = z.object({

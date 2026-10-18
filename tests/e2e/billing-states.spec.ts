@@ -28,7 +28,10 @@ test.describe("Página Assinatura em cada situação", () => {
     await page.goto("/assinatura");
     await expect(page.getByTestId("subscription")).toContainText("Atrasada 1 dia");
     await expect(page.getByTestId("subscription-status")).toContainText("para não pausar o acesso");
-    await expect(page.getByTestId("subscription").getByRole("link", { name: /Pedir o link de pagamento|Pagar/ })).toBeVisible();
+    await expect(page.getByTestId("subscription-status")).toContainText("Mensalidade de R$ 149,00 vencida em");
+    await expect(page.getByTestId("subscription").getByRole("button", { name: /Pagar R\$\s149,00/ })).toBeVisible();
+    // Late: paying comes first, no plan change.
+    await expect(page.getByText("Trocar de plano")).toHaveCount(0);
   });
 
   test("vencido 9 dias: faixa vermelha", async ({ page }) => {

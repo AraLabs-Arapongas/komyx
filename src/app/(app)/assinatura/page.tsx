@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ExternalLink, MessageCircle } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { getLateBilling, getOrganization, requireProfile } from "@/lib/data/session";
 import { PageBody, PageHeader } from "@/components/ui/page";
 import { Card, CardBody } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { ReactivateButton } from "@/components/billing/reactivate-button";
 import { PlanCard } from "./plan-card";
 import { CancelSubscription } from "./cancel-subscription";
 import { SubscribeButton } from "./subscribe-button";
+import { PayButton } from "./pay-button";
 
 export const metadata = { title: "Assinatura" };
 
@@ -36,10 +37,11 @@ export default async function SubscriptionPage() {
   const trial = bill?.status === "trial" && !bill.provider_subscription_id;
   const missing = billingDataMissing(org);
 
+  // Always "Pagar": with no Asaas link yet, the action creates the charge and opens it.
   const pay = toPay?.payment_url
     ? <a href={toPay.payment_url} target="_blank" rel="noopener" className={buttonClass("primary", "md")}>Pagar {formatCurrency(toPay.amount)} <ExternalLink className="h-4 w-4" /></a>
     : toPay
-      ? <a href={whatsappLink(SUPPORT_WHATSAPP, `Olá! Sou do ${org.name} (${org.slug}) e quero pagar a mensalidade de ${formatCurrency(toPay.amount)}.`)} target="_blank" rel="noopener" className={buttonClass("primary", "md")}><MessageCircle className="h-4 w-4" /> Pedir o link de pagamento</a>
+      ? <PayButton invoiceId={toPay.id} amount={toPay.amount} />
       : null;
 
   let badge: [string, Tone];
@@ -51,7 +53,8 @@ export default async function SubscriptionPage() {
     action = <ReactivateButton amount={price} size="md" />;
   } else if (late) {
     badge = [`Atrasada ${late.day} dia${late.day === 1 ? "" : "s"}`, late.day >= 9 ? "red" : "amber"];
-    text = late.day >= 9 ? "Amanhã seu acesso será pausado. Pague hoje para continuar." : `Venceu em ${day(late.since)}. Pague até ${day(late.payBy)} para não pausar o acesso.`;
+    const what = toPay ? `Mensalidade de ${formatCurrency(toPay.amount)} vencida em ${day(toPay.due_at)}.` : `Mensalidade vencida em ${day(late.since)}.`;
+    text = late.day >= 9 ? `${what} Amanhã seu acesso será pausado.` : `${what} Pague até ${day(late.payBy)} para não pausar o acesso.`;
     action = pay;
   } else if (toPay) {
     badge = trial || bill?.status === "trial" ? ["Teste grátis", "brand"] : ["Fatura aberta", "zinc"];
@@ -82,13 +85,14 @@ export default async function SubscriptionPage() {
             {action}
             {cancelled ? null : (
               <div className="border-t border-border pt-4 space-y-3">
-                <PlanCard
+                {/* While late, paying comes first: no plan change until it is settled. */}
+                {late ? null : <PlanCard
                   options={planOptions(bill?.monthly_price)}
                   current={period}
                   pending={bill?.pending_period && bill.pending_from && isPeriodMonths(bill.pending_period) ? { months: bill.pending_period, label: PERIOD_LABEL[bill.pending_period], from: day(bill.pending_from) } : null}
                   trial={bill?.status === "trial"}
                   cancelled={false}
-                />
+                />}
                 <CancelSubscription accessUntil={bill?.due_at ? day(bill.due_at) : null} />
               </div>
             )}

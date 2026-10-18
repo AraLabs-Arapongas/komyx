@@ -104,7 +104,9 @@ export async function chargeInvoice(admin: Admin, invoiceId: string) {
   const customer = await ensureCustomer(admin, inv.organization_id);
   const { data: org } = await admin.from("organizations").select("name").eq("id", inv.organization_id).single();
   const brDate = (d: string) => d.split("-").reverse().join("/");
-  const p = await createPayment({ customer, value: Number(inv.amount), dueDate: inv.due_at, description: `Komyx · ${org?.name} · ${brDate(inv.period_start)} a ${brDate(inv.period_end)}`, externalReference: inv.id });
+  // Asaas refuses a due date in the past (a late invoice created by hand): charge it for today.
+  const today = toDateKey(new Date());
+  const p = await createPayment({ customer, value: Number(inv.amount), dueDate: inv.due_at < today ? today : inv.due_at, description: `Komyx · ${org?.name} · ${brDate(inv.period_start)} a ${brDate(inv.period_end)}`, externalReference: inv.id });
   await admin.from("billing_invoices").update({ provider: "asaas", external_id: p.id, payment_url: p.invoiceUrl ?? null }).eq("id", inv.id);
 }
 
