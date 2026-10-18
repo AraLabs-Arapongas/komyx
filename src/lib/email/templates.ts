@@ -18,8 +18,8 @@ export async function loadTemplate(key: TemplateKey): Promise<TemplateCopy> {
 }
 
 /** Renders an e-mail from its template: { subject, html, text }. */
-export async function renderTemplate(key: TemplateKey, vars: TemplateVars) {
-  return renderCopy(await loadTemplate(key), vars);
+export async function renderTemplate(key: TemplateKey, vars: TemplateVars, extra?: Parameters<typeof renderCopy>[2]) {
+  return renderCopy(await loadTemplate(key), vars, extra);
 }
 
 const NOTIFICATION_KEYS: Partial<Record<string, TemplateKey>> = {

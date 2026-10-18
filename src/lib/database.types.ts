@@ -1716,6 +1716,7 @@ export type Database = {
           created_at: string
           desired_date: string | null
           desired_time: string | null
+          email: string | null
           estimated_total: number | null
           event_id: string | null
           id: string
@@ -1741,6 +1742,7 @@ export type Database = {
           created_at?: string
           desired_date?: string | null
           desired_time?: string | null
+          email?: string | null
           estimated_total?: number | null
           event_id?: string | null
           id?: string
@@ -1766,6 +1768,7 @@ export type Database = {
           created_at?: string
           desired_date?: string | null
           desired_time?: string | null
+          email?: string | null
           estimated_total?: number | null
           event_id?: string | null
           id?: string

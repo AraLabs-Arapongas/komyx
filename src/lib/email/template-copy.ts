@@ -1,8 +1,8 @@
-import { buttonEmail } from "./layout";
+import { buttonEmail, type EmailAside, type EmailRow } from "./layout";
 
 // No "server-only": shared by the senders and the admin editor's live preview.
 
-export const TEMPLATE_KEYS = ["request", "reservation", "contract_accepted", "client_request", "other", "password_reset", "announcement"] as const;
+export const TEMPLATE_KEYS = ["request", "reservation", "contract_accepted", "client_request", "other", "password_reset", "announcement", "client_summary_request", "client_summary_reservation"] as const;
 export type TemplateKey = (typeof TEMPLATE_KEYS)[number];
 
 export type TemplateCopy = { subject: string; title: string; intro: string; button: string; outro: string };
@@ -18,6 +18,8 @@ export const DEFAULT_TEMPLATES: Record<TemplateKey, TemplateCopy & { name: strin
   client_request: { name: "Pedido do cliente", description: "Para a equipe quando o cliente pede uma mudança ou avisa um pagamento.", subject: "Novo pedido do cliente · {{buffet}}", title: "Novo pedido do cliente", intro: "{{quem}} · {{detalhes}}.", button: "Ver festa", outro: TEAM_OUTRO },
   other: { name: "Outros avisos", description: "Qualquer outro aviso para a equipe.", subject: "Novo aviso · {{buffet}}", title: "Novo aviso", intro: "{{quem}} · {{detalhes}}.", button: "Abrir no Komyx", outro: TEAM_OUTRO },
   password_reset: { name: "Redefinir senha", description: "Quando alguém pede \"Esqueci minha senha\" (ou o admin reenvia).", subject: "Redefinir sua senha · Komyx", title: "Redefinir sua senha", intro: "Recebemos um pedido para criar uma nova senha da sua conta no Komyx. Toque no botão para escolher a nova senha.", button: "Criar nova senha", outro: "O link vale por 1 hora. Se não foi você que pediu, ignore este e-mail: sua senha continua a mesma." },
+  client_summary_request: { name: "Resumo para o cliente (pedido)", description: "Para o cliente que deixou o e-mail ao pedir orçamento. {{quem}} é o primeiro nome. O resumo da festa e o bloco do app entram sozinhos.", subject: "Recebemos seu pedido · {{buffet}}", title: "Recebemos seu pedido", intro: "Oi, {{quem}}! O {{buffet}} recebeu seu pedido de orçamento e responde em breve pelo WhatsApp. Confira o que você escolheu:", button: "Falar com o buffet", outro: "Você recebe este e-mail porque pediu um orçamento na página do {{buffet}}." },
+  client_summary_reservation: { name: "Resumo para o cliente (reserva)", description: "Para o cliente que reservou a data pela página. {{quem}} é o primeiro nome e {{detalhes}} o prazo para pagar o sinal. O resumo e o bloco do app entram sozinhos.", subject: "Data reservada · {{buffet}}", title: "Sua data está reservada", intro: "Oi, {{quem}}! Sua data no {{buffet}} está segura. {{detalhes}} Confira o resumo:", button: "Ver minha reserva", outro: "Guarde este e-mail: o link da reserva tem o Pix, o orçamento e o contrato." },
   announcement: { name: "Aviso da Komyx", description: "Avisos da plataforma enviados por e-mail aos donos dos buffets. {{quem}} é o título do aviso e {{detalhes}} o texto.", subject: "{{quem}} · Komyx", title: "{{quem}}", intro: "{{detalhes}}", button: "Abrir o Komyx", outro: "Você recebe este e-mail por ser responsável pelo {{buffet}} no Komyx." },
 };
 
@@ -39,7 +41,7 @@ export function fill(text: string, vars: TemplateVars) {
 }
 
 /** Subject + branded HTML/text for a template's copy. The button points at vars.link. */
-export function renderCopy(copy: TemplateCopy, vars: TemplateVars) {
-  const { html, text } = buttonEmail({ title: fill(copy.title, vars), intro: fill(copy.intro, vars), button: fill(copy.button, vars), url: vars.link, outro: fill(copy.outro, vars) });
+export function renderCopy(copy: TemplateCopy, vars: TemplateVars, extra: { rows?: EmailRow[]; aside?: EmailAside } = {}) {
+  const { html, text } = buttonEmail({ title: fill(copy.title, vars), intro: fill(copy.intro, vars), button: fill(copy.button, vars), url: vars.link, outro: fill(copy.outro, vars), ...extra });
   return { subject: fill(copy.subject, vars), html, text };
 }

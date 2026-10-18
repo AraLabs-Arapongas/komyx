@@ -9,11 +9,12 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { LEAD_SOURCES } from "@/lib/pricing";
+import { AppCta } from "@/components/public/app-section";
 
 export function RequestForm({ slug, defaultSource }: { slug: string; defaultSource?: string }) {
   const [state, action] = useActionState<ActionResult<PublicSubmitResult> | undefined, FormData>(submitPublicRequest, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
-  if (state?.ok) return <Alert tone="success">{state.message}</Alert>;
+  if (state?.ok) return <div className="space-y-3"><Alert tone="success">{state.message}</Alert><AppCta /></div>;
   const known = LEAD_SOURCES.some((s) => s.value === defaultSource);
   return (
     <form action={action} className="space-y-4">
@@ -22,6 +23,7 @@ export function RequestForm({ slug, defaultSource }: { slug: string; defaultSour
       {defaultSource && !known ? <input type="hidden" name="source" value={defaultSource} /> : null}
       <Field label="Seu nome" htmlFor="req_name" error={fe.name}><Input id="req_name" name="name" autoComplete="name" required /></Field>
       <Field label="WhatsApp" htmlFor="req_whatsapp" error={fe.whatsapp}><PhoneInput id="req_whatsapp" name="whatsapp" autoComplete="tel" required /></Field>
+      <Field label="E-mail (opcional)" htmlFor="req_email" error={fe.email} hint="Mandamos o resumo do pedido e o link do app."><Input id="req_email" name="email" type="email" inputMode="email" autoComplete="email" placeholder="voce@email.com" /></Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Data desejada" htmlFor="req_date" error={fe.desired_date}><Input id="req_date" name="desired_date" type="date" /></Field>
         <Field label="Horário" htmlFor="req_time"><Input id="req_time" name="desired_time" type="time" step={900} /></Field>

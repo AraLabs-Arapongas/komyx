@@ -2,7 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getEmailProvider, type Email } from "./index";
 
-export type MessageKind = "notification" | "password_reset" | "sms_otp" | "announcement" | "resend" | "test" | "auth";
+export type MessageKind = "notification" | "password_reset" | "sms_otp" | "announcement" | "resend" | "test" | "auth" | "client_summary";
 export type MessageMeta = { kind: MessageKind; organizationId?: string | null; notificationId?: string | null };
 
 /** One message_log row (/admin/emails, /admin/saude). Never throws: logging must not break a send. */

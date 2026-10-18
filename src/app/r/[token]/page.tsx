@@ -3,6 +3,7 @@ import { CalendarDays, Download, MessageCircle, FileSignature } from "lucide-rea
 import { loadReservation } from "@/lib/data/reservation";
 import { MenuSummary } from "@/components/menu/menu-summary";
 import { PublicFooter } from "@/components/public/public-footer";
+import { AppCta } from "@/components/public/app-section";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
@@ -127,6 +128,8 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
             <a href={`/c/${r.contract.token}`} className="inline-flex h-10 items-center gap-2 rounded-full px-4 font-extrabold text-white" style={{ background: "var(--ink)" }}><FileSignature className="h-4 w-4" /> {r.contract.status === "ACCEPTED" ? "Ver" : "Ler e aceitar"}</a>
           </section>
         ) : null}
+
+        <AppCta className="bg-white border" />
 
         {waBuffet ? <a href={waBuffet} target="_blank" rel="noopener" className={buttonClass("secondary", "lg", "w-full")}><MessageCircle className="h-5 w-5" /> Falar com o buffet</a> : null}
       </div>

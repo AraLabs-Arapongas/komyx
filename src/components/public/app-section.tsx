@@ -30,3 +30,16 @@ export function AppSection({ buffet }: { buffet: string }) {
     </section>
   );
 }
+
+/** Short version after the client sent the quote or reserved, and on the reservation page. */
+export function AppCta({ className = "" }: { className?: string }) {
+  return (
+    <div className={`rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 ${className}`} style={{ background: "var(--paper-2)" }}>
+      <div className="min-w-0">
+        <p className="display font-bold text-lg inline-flex items-center gap-2"><Smartphone className="h-5 w-5" style={{ color: "var(--berry)" }} /> Acompanhe pelo app Komyx</p>
+        <p className="text-sm" style={{ color: "var(--muted-ink)" }}>Orçamento, contrato, Pix e convidados no celular. Entre com o seu WhatsApp.</p>
+      </div>
+      <a href={APP_STORE_URL} target="_blank" rel="noopener" className="inline-flex h-11 items-center gap-2 rounded-full px-5 font-extrabold text-white shrink-0" style={{ background: "var(--ink)" }}>Baixar na App Store</a>
+    </div>
+  );
+}

@@ -14,6 +14,8 @@ import { localToIso, appUrl } from "@/lib/utils";
 import { occasionLabel } from "@/lib/labels";
 import { buildPixPayload } from "@/lib/pix";
 import QRCode from "qrcode";
+import { after } from "next/server";
+import { sendClientSummary, type ClientSummaryInput } from "@/lib/email/client-summary";
 
 /**
  * Public actions run with the service role on the server. Every query is scoped by
@@ -66,6 +68,7 @@ const requestSchema = z.object({
   slug: z.string().min(1),
   name: z.string().trim().min(2, "Informe seu nome"),
   whatsapp: phoneSchema,
+  email: z.string().trim().max(200).optional().transform((v) => (v ? v.toLowerCase() : null)).refine((v) => v === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "E-mail inválido"),
   desired_date: z.union([dateSchema, z.literal("")]).optional().transform((v) => v || null),
   desired_time: z.string().optional().transform((v) => (v && /^\d{2}:\d{2}$/.test(v) ? v : null)),
   adults: optionalCount,
@@ -124,7 +127,7 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
   const d = parsed.data;
   const isBirthday = !d.occasion || d.occasion === "BIRTHDAY";
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("id, name, legal_name, city, whatsapp, pix_key, self_booking_enabled, one_event_per_day, pre_reservation_validity_hours, default_event_duration_minutes, status").eq("slug", d.slug).neq("kind", "platform").eq("public_page", true).maybeSingle();
+  const { data: org } = await admin.from("organizations").select("id, name, slug, legal_name, city, whatsapp, pix_key, self_booking_enabled, one_event_per_day, pre_reservation_validity_hours, default_event_duration_minutes, status, show_prices_public").eq("slug", d.slug).neq("kind", "platform").eq("public_page", true).maybeSingle();
   if (!org || org.status !== "active") return fail("Buffet não encontrado.");
 
   let estimated_total: number | null = null;
@@ -148,6 +151,7 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
     organization_id: org.id,
     name: d.name,
     whatsapp: d.whatsapp,
+    email: d.email,
     desired_date: d.desired_date,
     desired_time: d.desired_time,
     participants,
@@ -166,8 +170,18 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
   }).select("id").single();
   if (error || !request) return fail(translateDbError(error));
 
+  // The client's copy of everything they chose, sent after the response so the page is not held up.
+  const summary: Omit<ClientSummaryInput, "to"> = {
+    org: { id: org.id, name: org.name, slug: org.slug, whatsapp: org.whatsapp, showPrices: org.show_prices_public },
+    name: d.name, whatsapp: d.whatsapp, pkg: pkg ? { id: pkg.id, name: pkg.name } : null,
+    date: d.desired_date, time: d.desired_time, adults: d.adults, children: d.children, themeId: d.theme_id,
+    picks: pkg ? parsePicks(d.menu) : [], addons: (addonsSnapshot ?? []).map((a) => ({ name: a.name, quantity: a.quantity })),
+    occasion: d.occasion, celebrant: isBirthday ? d.celebrant_name : null, message: d.message, estimatedTotal: estimated_total,
+  };
+
   // No package means no price, so there is nothing to hold with a Pix deposit: it stays a plain request.
   if (d.mode !== "reserve" || !pkg) {
+    if (d.email) { const to = d.email; after(() => sendClientSummary({ ...summary, to })); }
     return { ok: true, data: { estimated_total }, message: estimated_total !== null ? "Recebemos seu orçamento! Em breve confirmamos a disponibilidade da data pelo WhatsApp." : "Recebemos sua solicitação! Em breve entraremos em contato pelo WhatsApp." };
   }
 
@@ -186,7 +200,7 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
   const { data: existing } = await admin.from("customers").select("id").eq("organization_id", org.id).eq("whatsapp", d.whatsapp).maybeSingle();
   let customerId = existing?.id ?? null;
   if (!customerId) {
-    const { data: c, error: cErr } = await admin.from("customers").insert({ organization_id: org.id, name: d.name, whatsapp: d.whatsapp, source: d.source }).select("id").single();
+    const { data: c, error: cErr } = await admin.from("customers").insert({ organization_id: org.id, name: d.name, whatsapp: d.whatsapp, email: d.email, source: d.source }).select("id").single();
     if (cErr || !c) return fail(translateDbError(cErr));
     customerId = c.id;
   }
@@ -267,6 +281,11 @@ export async function submitPublicRequest(_prev: ActionResult<PublicSubmitResult
     } catch {
       pixQr = null;
     }
+  }
+
+  if (d.email) {
+    const to = d.email;
+    after(() => sendClientSummary({ ...summary, to, reservation: { url: reservationUrl, expiresAt: expires_at, deposit: deposit?.amount ?? null } }));
   }
 
   return {

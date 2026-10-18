@@ -17,6 +17,7 @@ import type { ActionResult } from "@/lib/action-result";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { AppCta } from "@/components/public/app-section";
 import { Alert } from "@/components/ui/page";
 import { cn, formatCurrency } from "@/lib/utils";
 import { buildQuoteLines, sumLines, LEAD_SOURCES, type PackagePricing, type AddonPricing } from "@/lib/pricing";
@@ -68,7 +69,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
   const [date, setDate] = useState<string>("");
   const [time, setTime] = useState("15:00");
   const [busy, setBusy] = useState<Record<string, string[]>>({});
-  const [contact, setContact] = useState({ name: "", whatsapp: "", occasion: "BIRTHDAY", celebrant_name: "", celebrant_birth_date: "", source: known_source_default(defaultSource), message: "" });
+  const [contact, setContact] = useState({ name: "", whatsapp: "", email: "", occasion: "BIRTHDAY", celebrant_name: "", celebrant_birth_date: "", source: known_source_default(defaultSource), message: "" });
   const loadingMonth = !busy[month];
 
   const pkg = packages.find((p) => p.id === packageId) ?? null;
@@ -111,7 +112,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
       <dt style={muted}>Adicionais</dt><dd className="font-bold">{addonLines.length ? addonLines.map((l) => `${l.description} × ${l.quantity}`).join(", ") : "Nenhum"}</dd>
       <dt style={muted}>Ocasião</dt><dd className="font-bold">{OCCASIONS.find((o) => o.value === contact.occasion)?.label ?? contact.occasion}</dd>
       {contact.celebrant_name ? <><dt style={muted}>Aniversariante</dt><dd className="font-bold">{contact.celebrant_name}{contact.celebrant_birth_date ? <span className="font-normal" style={muted}> · nasceu em {fmtDate(contact.celebrant_birth_date)}</span> : null}</dd></> : null}
-      <dt style={muted}>Contato</dt><dd className="font-bold">{contact.name} · {contact.whatsapp}</dd>
+      <dt style={muted}>Contato</dt><dd className="font-bold">{contact.name} · {contact.whatsapp}{contact.email.trim() ? <span className="block font-normal break-all">{contact.email.trim()}</span> : null}</dd>
       {contact.message.trim() ? <><dt style={muted}>Observações</dt><dd className="whitespace-pre-line">{contact.message.trim()}</dd></> : null}
       {showPrices ? <><dt style={muted}>Total estimado</dt><dd className="display font-extrabold text-xl" style={{ color: "var(--berry)" }}>{priced ? formatCurrency(state?.ok && state.data?.estimated_total != null ? state.data.estimated_total : total) : "A combinar"}</dd></> : null}
     </dl>
@@ -164,6 +165,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
             {quoteUrl ? <p className="mt-2 text-xs break-all" style={{ color: "var(--muted-ink)" }}>Seu orçamento: <a href={quoteUrl} className="underline">{quoteUrl}</a></p> : null}
           </li>
         </ol>
+        <AppCta />
         <h3 className="display font-bold text-lg pt-2">Resumo da reserva</h3>
         {summary}
       </div>
@@ -174,7 +176,8 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
     return (
       <div className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8 space-y-3">
         <p className="display font-extrabold text-2xl">Recebemos seu pedido 🎉</p>
-        <Alert tone="success">{state.message}</Alert>
+        <Alert tone="success">{state.message}{contact.email.trim() ? ` Mandamos o resumo para ${contact.email.trim()}.` : ""}</Alert>
+        <AppCta />
         <h3 className="display font-bold text-lg pt-2">Resumo do pedido</h3>
         {summary}
       </div>
@@ -182,7 +185,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
   }
 
   const busyDays = new Set(busy[month] ?? []);
-  const canNext = step === 0 ? packageChosen : step === 1 ? Boolean(date) : step === 2 ? adults + children > 0 : step === 3 ? contact.name.trim().length >= 2 && isValidPhone(contact.whatsapp) : true;
+  const canNext = step === 0 ? packageChosen : step === 1 ? Boolean(date) : step === 2 ? adults + children > 0 : step === 3 ? contact.name.trim().length >= 2 && isValidPhone(contact.whatsapp) && (!contact.email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) : true;
   const depositAmount = depositPercent != null && priced ? Math.round(total * depositPercent) / 100 : null;
   const canReserve = selfBooking && Boolean(date) && priced;
   const upd = (k: keyof typeof contact) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setContact((c) => ({ ...c, [k]: e.target.value }));
@@ -202,6 +205,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
       {defaultSource && !known ? <input type="hidden" name="source" value={defaultSource} /> : <input type="hidden" name="source" value={contact.source} />}
       <input type="hidden" name="name" value={contact.name} />
       <input type="hidden" name="whatsapp" value={contact.whatsapp} />
+      <input type="hidden" name="email" value={contact.email.trim()} />
       <input type="hidden" name="occasion" value={contact.occasion} />
       <input type="hidden" name="celebrant_name" value={contact.celebrant_name} />
       <input type="hidden" name="celebrant_birth_date" value={contact.celebrant_birth_date} />
@@ -313,6 +317,7 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
 
             <Field label="Seu nome" htmlFor="name" error={fe.name}><Input id="name" value={contact.name} onChange={upd("name")} autoComplete="name" required /></Field>
             <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp}><PhoneInput id="whatsapp" value={contact.whatsapp} onValue={(v) => setContact((c) => ({ ...c, whatsapp: v }))} autoComplete="tel" required /></Field>
+            <Field label="E-mail (opcional)" htmlFor="email" error={fe.email} hint="Mandamos o resumo do pedido e o link do app."><Input id="email" type="email" inputMode="email" autoComplete="email" value={contact.email} onChange={upd("email")} placeholder="voce@email.com" /></Field>
             <Field label="Ocasião" htmlFor="occasion">
               <FestaSelect id="occasion" value={contact.occasion} onChange={(v) => setContact((c) => ({ ...c, occasion: v }))} options={OCCASIONS} />
             </Field>
