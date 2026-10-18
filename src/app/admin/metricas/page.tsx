@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { cn, formatDate, formatDateTime, toDateKey } from "@/lib/utils";
 import { getFunnel, isStale, STALE_DAYS, type FunnelRow } from "./data";
+import { Tooltip } from "@/components/ui/tooltip";
 
 export const metadata = { title: "Métricas · Admin Komyx" };
 export const dynamic = "force-dynamic";
@@ -27,11 +28,11 @@ function pct(part: number, total: number) {
 }
 
 const MILESTONES = [
-  { key: "created", label: "Conta criada", icon: UserPlus, reached: () => true },
-  { key: "package", label: "Criou pacote", icon: Package, reached: (r: FunnelRow) => Boolean(r.first_package_at) },
-  { key: "page", label: "Página pública ligada", icon: Globe, reached: (r: FunnelRow) => r.public_page },
-  { key: "request", label: "Primeiro pedido recebido", icon: Inbox, reached: (r: FunnelRow) => Boolean(r.first_request_at) },
-  { key: "confirmed", label: "Primeira festa confirmada", icon: PartyPopper, reached: (r: FunnelRow) => Boolean(r.first_confirmed_at) },
+  { key: "created", label: "Conta criada", icon: UserPlus, reached: () => true, at: (r: FunnelRow) => r.created_at as string | null },
+  { key: "package", label: "Criou pacote", icon: Package, reached: (r: FunnelRow) => Boolean(r.first_package_at), at: (r: FunnelRow) => r.first_package_at },
+  { key: "page", label: "Página pública ligada", icon: Globe, reached: (r: FunnelRow) => r.public_page, at: () => null },
+  { key: "request", label: "Primeiro pedido recebido", icon: Inbox, reached: (r: FunnelRow) => Boolean(r.first_request_at), at: (r: FunnelRow) => r.first_request_at },
+  { key: "confirmed", label: "Primeira festa confirmada", icon: PartyPopper, reached: (r: FunnelRow) => Boolean(r.first_confirmed_at), at: (r: FunnelRow) => r.first_confirmed_at },
 ] as const;
 
 async function salesFunnel(admin: ReturnType<typeof createAdminClient>, orgIds: string[], days: number) {
@@ -98,10 +99,10 @@ export default async function AdminMetricsPage() {
                 {weeks.map((w) => {
                   const n = perWeek.get(w) ?? 0;
                   return (
-                    <div key={w} className="flex-1 h-full flex flex-col justify-end items-center gap-1" title={`Semana de ${formatDate(`${w}T12:00:00Z`, { year: undefined })}: ${n}`}>
+                    <Tooltip key={w} className="flex-1 h-full flex flex-col justify-end items-center gap-1 outline-none" content={<><span className="font-medium">Semana de {formatDate(`${w}T12:00:00Z`, { year: undefined })}</span><br /><span className="text-stone-300">{n} {n === 1 ? "buffet novo" : "buffets novos"}</span></>}>
                       <span className={cn("text-xs", n ? "font-medium" : "text-stone-300")}>{n}</span>
-                      <div className={cn("w-full rounded-t-md", n ? "bg-brand" : "bg-stone-100")} style={{ height: `${n ? Math.max((n / weekMax) * 100, 6) : 3}%` }} />
-                    </div>
+                      <span className={cn("block w-full rounded-t-md", n ? "bg-brand" : "bg-stone-100")} style={{ height: `${n ? Math.max((n / weekMax) * 100, 6) : 3}%` }} />
+                    </Tooltip>
                   );
                 })}
               </div>
@@ -190,12 +191,15 @@ export default async function AdminMetricsPage() {
                         <td className="py-2 pr-3 whitespace-nowrap">{formatDate(r.created_at)}</td>
                         <td className="py-2 pr-3">
                           <span className="inline-flex gap-1">
-                            {MILESTONES.slice(1).map(({ key, label, icon: Icon, reached }) => {
+                            {MILESTONES.slice(1).map(({ key, label, icon: Icon, reached, at }) => {
                               const ok = reached(r);
+                              const when = ok ? at(r) : null;
                               return (
-                                <span key={key} title={`${label}: ${ok ? "sim" : "ainda não"}`} aria-label={`${label}: ${ok ? "sim" : "ainda não"}`} className={cn("inline-flex h-6 w-6 items-center justify-center rounded-full", ok ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-300")}>
-                                  <Icon className="h-3.5 w-3.5" />
-                                </span>
+                                <Tooltip key={key} className="outline-none focus-visible:ring-2 focus-visible:ring-brand/40 rounded-full" content={<><span className="font-medium">{label}</span><br /><span className="text-stone-300">{ok ? (when ? `em ${formatDate(when)}` : "sim") : "ainda não"}</span></>}>
+                                  <span aria-label={`${label}: ${ok ? "sim" : "ainda não"}`} className={cn("inline-flex h-6 w-6 items-center justify-center rounded-full cursor-default", ok ? "bg-emerald-100 text-emerald-700" : "bg-stone-100 text-stone-300")}>
+                                    <Icon className="h-3.5 w-3.5" />
+                                  </span>
+                                </Tooltip>
                               );
                             })}
                           </span>
