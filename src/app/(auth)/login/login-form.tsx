@@ -8,6 +8,7 @@ import { Field, Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { SelectMenu } from "@/components/ui/select-menu";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export type DevAccount = { label: string; email: string; password: string };
 
@@ -31,7 +32,7 @@ export function LoginForm({ next, initialError, devAccounts = [] }: { next?: str
             <Input id="email" name="email" type="email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </Field>
           <Field label="Senha" htmlFor="password" error={fe.password}>
-            <Input id="password" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <PasswordInput id="password" name="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </Field>
           <p className="-mt-2 text-right text-sm"><Link href="/esqueci-senha" className="text-brand font-medium">Esqueci minha senha</Link></p>
           <SubmitButton className="w-full" size="lg" pendingText="Entrando...">Entrar</SubmitButton>

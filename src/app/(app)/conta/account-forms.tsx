@@ -5,6 +5,7 @@ import { updateMyName, changeMyPassword, setEmailNotifications } from "@/lib/act
 import { Field, Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function NameForm({ name, email }: { name: string; email: string }) {
   const [state, action] = useActionState(updateMyName, undefined);
@@ -32,9 +33,9 @@ export function PasswordForm() {
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
       <div className="grid gap-3 md:grid-cols-3">
-        <Field label="Senha atual" htmlFor="current_password" error={fe.current_password}><Input id="current_password" name="current_password" type="password" autoComplete="current-password" required /></Field>
-        <Field label="Nova senha" htmlFor="new_password" error={fe.new_password} hint="Mínimo de 8 caracteres"><Input id="new_password" name="new_password" type="password" autoComplete="new-password" required minLength={8} /></Field>
-        <Field label="Confirmar nova senha" htmlFor="confirm_password" error={fe.confirm_password}><Input id="confirm_password" name="confirm_password" type="password" autoComplete="new-password" required /></Field>
+        <Field label="Senha atual" htmlFor="current_password" error={fe.current_password}><PasswordInput id="current_password" name="current_password" autoComplete="current-password" required /></Field>
+        <Field label="Nova senha" htmlFor="new_password" error={fe.new_password} hint="Mínimo de 8 caracteres"><PasswordInput id="new_password" name="new_password" autoComplete="new-password" required minLength={8} /></Field>
+        <Field label="Confirmar nova senha" htmlFor="confirm_password" error={fe.confirm_password}><PasswordInput id="confirm_password" name="confirm_password" autoComplete="new-password" required /></Field>
       </div>
       <SubmitButton size="sm" variant="outline" pendingText="Alterando...">Alterar senha</SubmitButton>
     </form>
