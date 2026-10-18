@@ -211,7 +211,7 @@ create table public.contracts (
   number int not null,
   content text not null,
   status public.contract_status not null default 'DRAFT',
-  token text not null unique default encode(gen_random_bytes(24), 'hex'),
+  token text not null unique default encode(extensions.gen_random_bytes(24), 'hex'),
   sent_at timestamptz,
   accepted_at timestamptz,
   accepted_name text,

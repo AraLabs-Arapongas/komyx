@@ -7,7 +7,7 @@
 insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change)
 values
   ('00000000-0000-0000-0000-000000000000', '11111111-1111-1111-1111-111111111111', 'authenticated', 'authenticated', 'dona@festabuffet.test',
-   crypt('senha12345', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"name":"Dona Maria","org_name":"Festa & Cia Buffet"}', now(), now(), '', '', '', '');
+   extensions.crypt('senha12345', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"name":"Dona Maria","org_name":"Festa & Cia Buffet"}', now(), now(), '', '', '', '');
 
 insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
 values (gen_random_uuid(), '11111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111',
@@ -21,7 +21,7 @@ begin
 
   insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change)
   values ('00000000-0000-0000-0000-000000000000', '22222222-2222-2222-2222-222222222222', 'authenticated', 'authenticated', 'ana@festabuffet.test',
-    crypt('senha12345', gen_salt('bf')), now(),
+    extensions.crypt('senha12345', extensions.gen_salt('bf')), now(),
     jsonb_build_object('provider','email','providers',array['email'],'organization_id',v_org,'role','staff'),
     '{"name":"Ana Atendimento"}', now(), now(), '', '', '', '');
 
@@ -157,7 +157,7 @@ begin
   -- Komyx platform admin (lives in its own org so the app shell works; flag grants /admin)
   insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change)
   values ('00000000-0000-0000-0000-000000000000', '33333333-3333-3333-3333-333333333333', 'authenticated', 'authenticated', 'admin@komyx.test',
-    crypt('senha12345', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"name":"Admin Komyx","org_name":"Komyx"}', now(), now(), '', '', '', '');
+    extensions.crypt('senha12345', extensions.gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"name":"Admin Komyx","org_name":"Komyx"}', now(), now(), '', '', '', '');
   insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
   values (gen_random_uuid(), '33333333-3333-3333-3333-333333333333', '33333333-3333-3333-3333-333333333333',
     '{"sub":"33333333-3333-3333-3333-333333333333","email":"admin@komyx.test","email_verified":true}', 'email', now(), now(), now());
@@ -167,7 +167,7 @@ begin
   -- A second buffet (basic plan) so the admin list has variety
   insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change)
   values ('00000000-0000-0000-0000-000000000000', '44444444-4444-4444-4444-444444444444', 'authenticated', 'authenticated', 'joao@alegriakids.test',
-    crypt('senha12345', gen_salt('bf')), now() - interval '20 days', '{"provider":"email","providers":["email"]}', '{"name":"João Alegria","org_name":"Alegria Kids Buffet"}', now() - interval '20 days', now(), '', '', '', '');
+    extensions.crypt('senha12345', extensions.gen_salt('bf')), now() - interval '20 days', '{"provider":"email","providers":["email"]}', '{"name":"João Alegria","org_name":"Alegria Kids Buffet"}', now() - interval '20 days', now(), '', '', '', '');
   insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
   values (gen_random_uuid(), '44444444-4444-4444-4444-444444444444', '44444444-4444-4444-4444-444444444444',
     '{"sub":"44444444-4444-4444-4444-444444444444","email":"joao@alegriakids.test","email_verified":true}', 'email', now(), now(), now());

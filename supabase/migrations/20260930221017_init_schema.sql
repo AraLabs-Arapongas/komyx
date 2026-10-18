@@ -204,7 +204,7 @@ create table public.public_links (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   event_id uuid not null references public.events(id) on delete cascade,
-  token text not null unique default encode(gen_random_bytes(24), 'hex'),
+  token text not null unique default encode(extensions.gen_random_bytes(24), 'hex'),
   type public.public_link_type not null default 'GUEST_CONFIRM',
   active boolean not null default true,
   expires_at timestamptz,
