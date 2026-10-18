@@ -1,34 +1,41 @@
 import { test, expect } from "@playwright/test";
 import { login } from "./helpers";
 
-/** The seed buffets of supabase/seeds/billing-states.sql: one per subscription state. */
+/** The seed buffets of supabase/seeds/billing-states.sql: one per subscription state, on /assinatura. */
 const as = (login: string) => ({ email: `${login}@komyx.test`, password: "senha12345" });
 
-test.describe("Buffets de teste por situação da assinatura", () => {
-  test("em dia: sem faixa; assinatura sem bloco de pagamento", async ({ page }) => {
+test.describe("Página Assinatura em cada situação", () => {
+  test("em dia: sem faixa, sem botão de pagar", async ({ page }) => {
     await login(page, as("emdia"));
     await expect(page.getByTestId("billing-banner")).toHaveCount(0);
-    await page.goto("/conta");
-    await expect(page.getByTestId("pay-invoice")).toHaveCount(0);
-    await expect(page.getByTestId("change-plan")).not.toHaveAttribute("open", "");
+    await page.goto("/assinatura");
+    await expect(page.getByTestId("subscription")).toContainText("Em dia");
+    await expect(page.getByTestId("subscription-status")).toContainText("Próxima cobrança");
+    await expect(page.getByRole("link", { name: /^Pagar/ })).toHaveCount(0);
   });
 
-  test("teste grátis: faixa pede os dados", async ({ page }) => {
+  test("teste grátis sem CNPJ: pede os dados para assinar", async ({ page }) => {
     await login(page, as("teste"));
-    await expect(page.getByTestId("billing-banner")).toHaveAttribute("data-tone", "trial");
+    await page.goto("/assinatura");
+    await expect(page.getByTestId("subscription")).toContainText("Teste grátis");
+    await expect(page.getByTestId("subscription")).toContainText("Para assinar, complete CNPJ/CPF");
   });
 
-  test("vencido 1 dia: faixa amarela e Pagar em Minha conta; barra lateral atrasada", async ({ page }) => {
+  test("vencido 1 dia: faixa amarela, ponto no menu, botão para pagar", async ({ page }) => {
     await login(page, as("vencido"));
     await expect(page.getByTestId("billing-banner")).toHaveAttribute("data-tone", "yellow");
-    await expect(page.getByText("Atrasada 1 dia").first()).toBeVisible();
-    await page.goto("/conta");
-    await expect(page.getByTestId("pay-invoice")).toContainText("vencida em");
+    await expect(page.getByTestId("billing-dot")).toBeVisible();
+    await page.goto("/assinatura");
+    await expect(page.getByTestId("subscription")).toContainText("Atrasada 1 dia");
+    await expect(page.getByTestId("subscription-status")).toContainText("para não pausar o acesso");
+    await expect(page.getByTestId("subscription").getByRole("link", { name: /Pedir o link de pagamento|Pagar/ })).toBeVisible();
   });
 
   test("vencido 9 dias: faixa vermelha", async ({ page }) => {
     await login(page, as("vencido9"));
     await expect(page.getByTestId("billing-banner")).toHaveAttribute("data-tone", "red");
+    await page.goto("/assinatura");
+    await expect(page.getByTestId("subscription-status")).toContainText("Amanhã seu acesso será pausado");
   });
 
   test("pausado: tela de acesso pausado", async ({ page }) => {
@@ -37,9 +44,28 @@ test.describe("Buffets de teste por situação da assinatura", () => {
     await expect(page).toHaveURL(/\/pausado/);
   });
 
-  test("troca agendada: aviso com Desfazer", async ({ page }) => {
+  test("troca agendada: aviso com Desfazer; planos recolhidos", async ({ page }) => {
     await login(page, as("troca"));
-    await page.goto("/conta");
+    await page.goto("/assinatura");
     await expect(page.getByTestId("pending-plan")).toContainText("12 meses");
+    await expect(page.locator('[data-plan="12"]')).toBeHidden();
+    await page.getByText("Trocar de plano").click();
+    await expect(page.locator('[data-plan="12"]')).toBeVisible();
+  });
+
+  test("cancelado: botão Pagar e reativar, sem trocar de plano", async ({ page }) => {
+    await login(page, as("cancelado"));
+    await page.goto("/assinatura");
+    await expect(page.getByTestId("subscription")).toContainText("Cancelada");
+    await expect(page.getByRole("button", { name: /Pagar R\$ 149,00 e reativar/ })).toBeVisible();
+    await expect(page.getByText("Trocar de plano")).toHaveCount(0);
+  });
+
+  test("Minha conta: só o perfil e o atalho para Assinatura", async ({ page }) => {
+    await login(page, as("emdia"));
+    await page.goto("/conta");
+    await expect(page.getByTestId("subscription")).toHaveCount(0);
+    await page.getByRole("link", { name: /Assinatura/ }).last().click();
+    await expect(page).toHaveURL(/\/assinatura/);
   });
 });

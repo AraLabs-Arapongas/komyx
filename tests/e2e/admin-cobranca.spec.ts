@@ -78,15 +78,12 @@ test.describe.serial("Admin cobrança", () => {
     await expect(page.locator("tr[data-invoice]").filter({ hasText: `${marker} cancelar` })).toHaveCount(0);
     await expect(page.locator("tr[data-invoice]").filter({ hasText: `${marker} vencida` })).toBeVisible();
 
-    // Owner sees the paid invoice (not the cancelled one) in Minha conta
+    // The owner's subscription page shows the state, not an invoice list (the history lives in Asaas).
     await logout(page);
     await login(page, ACCOUNTS.owner);
-    await page.goto("/conta");
-    const faturas = page.locator("#faturas");
-    // Manual billing or Asaas, depending on the env: either instruction is fine.
-    await expect(faturas.getByText(/A Komyx envia os dados de pagamento pelo WhatsApp\.|Pague pelo link da fatura/)).toBeVisible();
-    await expect(faturas.getByText(`${brDate(created!.period_start)} a ${brDate(created!.period_end)}`)).toBeVisible();
-    await expect(faturas.getByText("Cancelada", { exact: true })).toHaveCount(0);
+    await page.goto("/assinatura");
+    await expect(page.getByTestId("subscription")).toBeVisible();
+    expect(created?.period_start).toBeTruthy();
 
     // Staff does not
     await logout(page);

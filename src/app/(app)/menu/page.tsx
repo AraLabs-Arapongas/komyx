@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users, Inbox, Package, Settings, ExternalLink, ChevronRight, FileText, Cake, ShieldCheck, Bell, UserCircle } from "lucide-react";
+import { Users, Inbox, Package, Settings, ExternalLink, ChevronRight, FileText, Cake, ShieldCheck, Bell, UserCircle, CreditCard } from "lucide-react";
 import { AccountFooter } from "@/components/shell/account-footer";
 import { requireProfile, getOrganization, getLateBilling } from "@/lib/data/session";
 import { PageBody, PageHeader } from "@/components/ui/page";
@@ -19,7 +19,8 @@ export default async function MenuPage() {
     { href: "/solicitacoes", label: "Solicitações", desc: "Pedidos da página pública", icon: Inbox },
     ...(isOwner ? [
       { href: "/pacotes", label: "Pacotes e adicionais", desc: "Catálogo para orçamentos", icon: Package },
-      { href: "/conta", label: "Minha conta", desc: "Seu perfil, senha e assinatura do Komyx", icon: UserCircle },
+      { href: "/assinatura", label: "Assinatura", desc: "Seu plano do Komyx e pagamento", icon: CreditCard },
+      { href: "/conta", label: "Minha conta", desc: "Seu perfil e senha", icon: UserCircle },
   { href: "/configuracoes", label: "Configurações", desc: "Dados do buffet, equipe, prazos", icon: Settings },
     ] : []),
     { href: `/p/${org.slug}`, label: "Página pública", desc: "Como o cliente vê seu buffet", icon: ExternalLink, external: true },

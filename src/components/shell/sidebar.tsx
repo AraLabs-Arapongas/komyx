@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarDays, PartyPopper, Users, Inbox, Settings, Package, FileText, Cake, ShieldCheck } from "lucide-react";
+import { Home, CalendarDays, PartyPopper, Users, Inbox, Settings, Package, FileText, Cake, ShieldCheck, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewMenu } from "@/components/shell/new-menu";
 import { AccountFooter, type Billing } from "@/components/shell/account-footer";
@@ -17,6 +17,7 @@ const links = [
   { href: "/solicitacoes", label: "Solicitações", icon: Inbox },
   { href: "/pacotes", label: "Pacotes", icon: Package, ownerOnly: true },
   { href: "/configuracoes", label: "Configurações", icon: Settings, ownerOnly: true },
+  { href: "/assinatura", label: "Assinatura", icon: CreditCard, ownerOnly: true },
 ];
 
 export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, billing, newRequests = 0 }: { orgName: string; userName: string; userEmail: string; role: string; isAdmin?: boolean; billing: Billing; newRequests?: number }) {
@@ -36,6 +37,7 @@ export function Sidebar({ orgName, userName, userEmail, role, isAdmin = false, b
           return (
             <Link key={href} href={href} className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium", active ? "bg-brand-soft text-brand" : "text-foreground hover:bg-stone-100")}>
               <Icon className="h-4.5 w-4.5" /> <span className="flex-1">{label}</span>
+              {href === "/assinatura" && (billing.lateDays ?? 0) >= 1 ? <span className="h-2 w-2 rounded-full bg-red-500" data-testid="billing-dot" title="Mensalidade em atraso" /> : null}
               {href === "/solicitacoes" && newRequests > 0 ? <span className="min-w-5 h-5 px-1.5 rounded-full bg-brand text-brand-fg text-[11px] font-semibold grid place-items-center" title="Novas solicitações">{newRequests > 99 ? "99+" : newRequests}</span> : null}
             </Link>
           );

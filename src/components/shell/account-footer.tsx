@@ -25,7 +25,7 @@ export function AccountFooter({ name, email, role, billing, compact = false }: {
   const barColor = billing.status === "trial" ? "bg-brand" : overdue ? "bg-red-500" : soon ? "bg-amber-500" : "bg-emerald-500";
   return (
     <div className={compact ? "space-y-3" : "space-y-3 border-t border-border p-3"}>
-      {role === "owner" ? <Link href="/conta#assinatura" className="block px-1" title="Minha conta · assinatura">
+      {role === "owner" ? <Link href="/assinatura" className="block px-1" title="Assinatura">
         <div className="flex items-center justify-between gap-2 text-[11px] whitespace-nowrap">
           <span className="font-medium inline-flex items-center gap-1.5 min-w-0"><CreditCard className="h-3.5 w-3.5 text-muted shrink-0" /> {billing.plan === "premium" ? "Premium" : "Básico"}</span>
           {p ? (

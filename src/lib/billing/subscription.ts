@@ -159,7 +159,7 @@ async function sendNotice(admin: Admin, orgId: string, buffet: string, day: 1 | 
   const { data: owners } = await admin.from("profiles").select("email").eq("organization_id", orgId).eq("role", "owner");
   const to = [...new Set((owners ?? []).map((o) => o.email).filter(Boolean))];
   if (!to.length) return "skipped" as const;
-  const link = day === 10 ? appUrl("/pausado") : late.invoice?.payment_url ?? appUrl("/conta#assinatura");
+  const link = day === 10 ? appUrl("/pausado") : late.invoice?.payment_url ?? appUrl("/assinatura");
   const { subject, html, text } = await renderTemplate(NOTICE_TEMPLATE[day], { buffet, link, vencimento: brDate(late.since), prazo: brDate(late.payBy), whatsapp: formatPhone(SUPPORT_WHATSAPP) });
   const results = await Promise.all(to.map((email) => sendLoggedEmail({ to: email, subject, html, text }, { kind: "billing", organizationId: orgId })));
   return results.every((r) => r.ok) ? ("sent" as const) : ("failed" as const);
@@ -168,8 +168,8 @@ async function sendNotice(admin: Admin, orgId: string, buffet: string, day: 1 | 
 export type DailySummary = { checked: number; autoEnabled: number; notices: number; paused: number; unpaused: number; errors: string[] };
 
 /**
- * The daily billing job (pg_cron → /api/billing/asaas/daily): safety-net auto billing, late notices on days
- * 1/5/9 (once each: billing_notices), pause on day 10, unpause when no longer late. `orgIds` limits the run
+ * The daily billing job (pg_cron → /api/billing/asaas/daily): safety-net auto billing, pause on day 10 with
+ * its e-mail (once: billing_notices), unpause when no longer late. Reminders are sent by Asaas. `orgIds` limits the run
  * (tests). Each buffet is independent: an error is reported and the run goes on.
  */
 export async function runBillingDaily(admin: Admin, opts: { orgIds?: string[] } = {}): Promise<DailySummary> {
@@ -194,7 +194,9 @@ export async function runBillingDaily(admin: Admin, opts: { orgIds?: string[] } 
         await logBilling(admin, null, "billing.paused", org.id, { overdue_since: late.since, day: late.day });
         sum.paused++;
       }
-      if (!day) continue;
+      // Payment reminders (before and after the due date) are Asaas' own notifications. Komyx only tells
+      // the owner about what Asaas can't know: the access pause on day 10.
+      if (day !== 10) continue;
       // Claim the notice first: a second run (or a retry) finds the row and sends nothing.
       const { data: claimed } = await admin.from("billing_notices").upsert({ organization_id: org.id, overdue_since: late.since, day }, { onConflict: "organization_id,overdue_since,day", ignoreDuplicates: true }).select("day");
       if (!claimed?.length) continue;

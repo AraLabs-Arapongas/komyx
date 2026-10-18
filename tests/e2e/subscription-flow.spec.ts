@@ -151,7 +151,7 @@ test.describe.serial("Assinatura Komyx (regras + Asaas simulado)", () => {
     expect(b).toEqual({ billing_period: 1, pending_period: null });
   });
 
-  test("atraso: avisos nos dias 1, 5 e 9 (sem repetir), pausa no dia 10, pagamento volta sozinho", async () => {
+  test("atraso: lembretes ficam com o Asaas; pausa no dia 10 com e-mail (uma vez), pagamento volta sozinho", async () => {
     const { sub, sync, plans, inv, admin } = await mods();
     const today = todayKey();
     const shift = async (days: number) => {
@@ -164,15 +164,14 @@ test.describe.serial("Assinatura Komyx (regras + Asaas simulado)", () => {
     const before = new Date().toISOString();
 
     const d1 = await shift(1);
-    expect(await sub.runBillingDaily(admin, { orgIds: [orgId] })).toMatchObject({ checked: 1, notices: 1, paused: 0, errors: [] });
+    // Days 1, 5 and 9: Asaas sends the reminders; Komyx sends nothing.
+    expect(await sub.runBillingDaily(admin, { orgIds: [orgId] })).toMatchObject({ checked: 1, notices: 0, paused: 0, errors: [] });
+    expect(d1).toBeTruthy();
+    await shift(5);
     expect((await sub.runBillingDaily(admin, { orgIds: [orgId] })).notices).toBe(0);
-    expect(await notices()).toEqual([{ day: 1, overdue_since: d1, email_status: "sent" }]);
-
-    const d5 = await shift(5);
-    expect((await sub.runBillingDaily(admin, { orgIds: [orgId] })).notices).toBe(1);
-    const d9 = await shift(9);
-    expect((await sub.runBillingDaily(admin, { orgIds: [orgId] })).notices).toBe(1);
+    await shift(9);
     expect((await sub.runBillingDaily(admin, { orgIds: [orgId] })).notices).toBe(0);
+    expect(await notices()).toEqual([]);
     const { data: notPaused } = await admin.from("organization_billing").select("paused_at").eq("organization_id", orgId).single();
     expect(notPaused?.paused_at).toBeNull();
 
@@ -180,14 +179,10 @@ test.describe.serial("Assinatura Komyx (regras + Asaas simulado)", () => {
     expect(await sub.runBillingDaily(admin, { orgIds: [orgId] })).toMatchObject({ notices: 1, paused: 1 });
     const { data: paused } = await admin.from("organization_billing").select("paused_at").eq("organization_id", orgId).single();
     expect(paused?.paused_at).not.toBeNull();
-    expect((await notices()).map((n) => [n.day, n.overdue_since])).toEqual([[1, d1], [5, d5], [9, d9], [10, d10]]);
+    expect((await notices()).map((n) => [n.day, n.overdue_since])).toEqual([[10, d10]]);
+    expect((await sub.runBillingDaily(admin, { orgIds: [orgId] })).notices).toBe(0);
     const { data: mails } = await admin.from("message_log").select("subject, to_address").eq("organization_id", orgId).eq("kind", "billing").gte("created_at", before).order("created_at");
-    expect(mails?.map((m) => m.subject)).toEqual([
-      "Sua mensalidade do Komyx venceu · Buffet Assinatura Unit",
-      "Sua mensalidade do Komyx venceu · Buffet Assinatura Unit",
-      "Amanhã seu acesso ao Komyx será pausado · Buffet Assinatura Unit",
-      "Seu acesso ao Komyx está pausado · Buffet Assinatura Unit",
-    ]);
+    expect(mails?.map((m) => m.subject)).toEqual(["Seu acesso ao Komyx está pausado · Buffet Assinatura Unit"]);
     expect(new Set(mails?.map((m) => m.to_address))).toEqual(new Set([email]));
 
     // Webhook confirms the payment: invoice paid, cycle moves on, access back.

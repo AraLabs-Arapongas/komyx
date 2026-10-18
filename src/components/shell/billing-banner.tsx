@@ -41,7 +41,7 @@ export async function BillingBanner({ profile, org }: { profile: Profile; org: {
             {red ? " Pague hoje para continuar usando." : ` Pague até ${brDate(late.payBy)} para não pausar o acesso.`}
             {missing.length ? <> Complete {missing.join(" e ")} em <Link href="/configuracoes/empresa" className="font-semibold underline underline-offset-2">Configurações › Empresa</Link> para gerar a cobrança.</> : null}
           </p>
-          {payUrl ? <a href={payUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"><CreditCard className="h-3.5 w-3.5" /> Pagar agora</a> : !missing.length ? <Link href="/conta#assinatura" className="font-semibold underline underline-offset-2">Pagar a mensalidade</Link> : null}
+          {payUrl ? <a href={payUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"><CreditCard className="h-3.5 w-3.5" /> Pagar agora</a> : !missing.length ? <Link href="/assinatura" className="font-semibold underline underline-offset-2">Pagar a mensalidade</Link> : null}
           {help}
         </div>
       </div>

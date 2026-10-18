@@ -48,12 +48,12 @@ test.describe.serial("Assinatura no app", () => {
     await expect(banner).toContainText("Complete CNPJ/CPF e WhatsApp do buffet para continuar usando depois do teste");
     await expect(banner.getByRole("link", { name: "Completar dados" })).toHaveAttribute("href", "/configuracoes/empresa");
 
-    await page.goto("/conta");
+    await page.goto("/assinatura");
+    await expect(page.getByTestId("subscription-status")).toContainText("Seu teste grátis vai até");
     const card = page.getByTestId("plan-card");
     await card.getByText("Trocar de plano").click();
     for (const [m, v] of [["1", "R$ 149,00"], ["3", "R$ 402,00"], ["6", "R$ 714,00"], ["12", "R$ 1.188,00"]]) await expect(card.locator(`[data-plan="${m}"]`)).toContainText(v);
     await expect(card.locator('[data-plan="1"]')).toContainText("Seu plano");
-    await expect(card.getByText(/Teste grátis até/)).toBeVisible();
     await card.locator('[data-plan="12"]').getByRole("button", { name: "Escolher" }).click();
     await expect(card.getByText("Plano 12 meses escolhido.")).toBeVisible();
     await expect(card.locator('[data-plan="12"]')).toContainText("Seu plano");
@@ -70,10 +70,10 @@ test.describe.serial("Assinatura no app", () => {
 
     await login(page, owner);
     await expect(page.getByTestId("billing-banner")).toHaveCount(0);
-    await page.goto("/conta");
+    await page.goto("/assinatura");
     const card = page.getByTestId("plan-card");
     await card.getByText("Trocar de plano").click();
-    await card.locator('[data-plan="3"]').getByRole("button", { name: "Trocar na renovação" }).click();
+    await card.locator('[data-plan="3"]').getByRole("button", { name: "Escolher" }).click();
     await expect(card.getByTestId("pending-plan")).toContainText(`A partir de ${shortDay(end)}: plano 3 meses`);
     await expect(card.locator('[data-plan="1"]')).toContainText("Seu plano");
     await expect(card.locator('[data-plan="3"]')).toContainText("Agendado");
@@ -125,7 +125,7 @@ test.describe.serial("Assinatura no app", () => {
     await expect(page.getByTestId("paused-events")).toContainText("Aniversário da Nina");
     await expect(page.getByTestId("paused-events")).toContainText("70 convidados");
     await expect(page.getByTestId("paused-payment").getByRole("link", { name: /Pagar agora/ })).toHaveAttribute("href", "https://sandbox.asaas.com/i/e2e");
-    await page.goto("/conta");
+    await page.goto("/assinatura");
     await page.waitForURL(/\/pausado/);
 
     // Public page still up; a reservation lands as a plain request (no event, no Pix).
@@ -173,7 +173,7 @@ test.describe.serial("Assinatura no app", () => {
     await expect(page.getByTestId("billing-banner")).toHaveCount(0);
   });
 
-  test("cancelamento no 5º mês do plano de 12: devolve R$ 443; admin paga por Pix", async ({ page }) => {
+  test("cancelar: sem reembolso pelo app, acesso até o fim do pago; depois só Pagar e reativar", async ({ page }) => {
     const db = adminDb();
     await db.from("billing_invoices").delete().eq("organization_id", orgId);
     const start = addMonths(day(-3), -4);
@@ -182,31 +182,16 @@ test.describe.serial("Assinatura no app", () => {
     await db.from("organization_billing").update({ status: "ok", cycle_start: start, due_at: end, billing_period: 12, pending_period: null, pending_from: null }).eq("organization_id", orgId);
 
     await login(page, owner);
-    await page.goto("/conta");
-    await page.getByRole("button", { name: "Cancelar assinatura" }).click();
+    await page.goto("/assinatura");
+    await page.getByRole("button", { name: "Cancelar" }).click();
     const dialog = page.getByRole("dialog", { name: "Cancelar assinatura" });
-    await expect(dialog.getByTestId("cancel-summary")).toHaveText(`Você está no 5º mês. Se cancelar agora, devolvemos R$ 443,00 e você usa o Komyx até ${brDate(addMonths(start, 5))}. Ou continue até ${brDate(end)} sem reembolso.`);
-    await expect(dialog.getByLabel(/Receber R\$\s443,00 de volta/)).toBeChecked();
+    await expect(dialog.getByTestId("cancel-summary")).toHaveText(`Nada mais é cobrado. Você usa o Komyx até ${brDate(end)}.`);
     await dialog.getByLabel("Digite CANCELAR para confirmar").fill("CANCELAR");
     await dialog.getByRole("button", { name: "Cancelar assinatura" }).click();
-    // The page re-renders as cancelled, with the refund on its way.
-    await expect(page.getByText(/Assinatura cancelada em/)).toBeVisible();
-    await expect(page.getByText(/Reembolso de R\$\s443,00: a Komyx envia por Pix/)).toBeVisible();
-    const { data: refund } = await db.from("billing_refunds").select("id, amount, status, reason").eq("organization_id", orgId).single();
-    expect(refund).toMatchObject({ amount: 443, status: "manual", reason: "prorata" });
-    expect((await db.from("organizations").select("status, access_until").eq("id", orgId).single()).data).toEqual({ status: "cancelled", access_until: addMonths(start, 5) });
-
-    await logout(page);
-    await login(page, ACCOUNTS.admin);
-    await page.goto("/admin/cobranca");
-    const row = page.locator(`tr[data-refund="${refund!.id}"]`);
-    await expect(row).toContainText("Buffet Assinatura E2E");
-    await expect(row).toContainText("Pagar por Pix");
-    page.once("dialog", (d) => d.accept());
-    await row.getByRole("button", { name: /Reembolsar R\$\s443,00 por Pix/ }).click();
-    await expect(page.locator(`tr[data-refund="${refund!.id}"]`)).toContainText("Feito");
-    expect((await db.from("billing_refunds").select("status, method").eq("id", refund!.id).single()).data).toEqual({ status: "done", method: "pix" });
-    const { data: audit } = await db.from("admin_audit").select("action").eq("organization_id", orgId).in("action", ["subscription.cancel", "refund.pix"]).order("created_at");
-    expect(audit?.map((a) => a.action)).toEqual(["subscription.cancel", "refund.pix"]);
+    await expect(page.getByTestId("subscription")).toContainText("Cancelada");
+    await expect(page.getByRole("button", { name: /Pagar R\$\s1\.188,00 e reativar/ })).toBeVisible();
+    expect((await db.from("billing_refunds").select("id").eq("organization_id", orgId)).data).toEqual([]);
+    expect((await db.from("organizations").select("status, access_until").eq("id", orgId).single()).data).toEqual({ status: "cancelled", access_until: end });
+    await db.from("organizations").update({ status: "active", cancelled_at: null, access_until: null }).eq("id", orgId);
   });
 });

@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireOwner } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { asaasConfigured } from "@/lib/billing/asaas";
-import { BillingSetupError, enableAutoBilling } from "@/lib/billing/asaas-sync";
+import { BillingSetupError, enableAutoBilling, startReactivation } from "@/lib/billing/asaas-sync";
 import { cancelWithOption, changePlan, logBilling, maybeAutoEnable, subscriptionContext } from "@/lib/billing/subscription";
 import { billingDataMissing, brDate, isPeriodMonths, PERIOD_LABEL } from "@/lib/billing/plans";
 import { INVALID_DOCUMENT, isValidDocument } from "@/lib/document";
@@ -18,7 +18,7 @@ const DATA_RETENTION_DAYS = 90;
 
 function revalidateBilling() {
   revalidatePath("/", "layout");
-  revalidatePath("/conta");
+  revalidatePath("/assinatura");
   revalidatePath("/admin/cobranca");
 }
 
@@ -64,8 +64,9 @@ export async function undoPlanChange(): Promise<ActionResult> {
 }
 
 /**
- * "Assinar agora" during the trial: the subscription starts now with the chosen plan, so the first charge
- * (due on the last day of the trial) can be paid right away. Paying early keeps the remaining free days.
+ * "Assinar" (trial, or no subscription yet): the Asaas subscription starts with the plan in force and the
+ * owner goes straight to the first charge on the Asaas page (Pix, boleto or card). Paying early keeps the
+ * remaining free days: the charge is due on the last day of the trial.
  */
 export async function subscribeNow(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
   const months = Number(formData.get("months"));
@@ -79,12 +80,14 @@ export async function subscribeNow(_prev: ActionResult | undefined, formData: Fo
   try {
     if (isPeriodMonths(months) && months !== bill.billing_period) await changePlan(admin, org.id, months, profile);
     const r = await enableAutoBilling(admin, org.id);
-    await logBilling(admin, profile, "billing.auto_on", org.id, { ...r, source: "assinar agora" });
-    revalidateBilling();
-    return { ok: true, message: "Assinatura feita! A fatura aparece em instantes em Faturas, com o link para pagar." };
+    await logBilling(admin, profile, "billing.auto_on", org.id, { ...r, source: "assinar" });
   } catch (e) {
     return fail(asaasError(e));
   }
+  revalidateBilling();
+  const { data: first } = await admin.from("billing_invoices").select("payment_url").eq("organization_id", profile.organization_id).eq("status", "open").not("payment_url", "is", null).order("due_at").limit(1).maybeSingle();
+  if (first?.payment_url) redirect(first.payment_url);
+  return { ok: true, message: "Assinatura feita. A fatura aparece aqui em instantes, com o botão para pagar." };
 }
 
 const cancelSchema = z.object({
@@ -116,27 +119,26 @@ export async function cancelSubscription(_prev: ActionResult | undefined, formDa
 }
 
 /** Owner reactivates: same data, same page, same links. The subscription starts again when it can. */
-export async function reactivateSubscription() {
+/**
+ * Cancelled buffet: "Pagar e reativar". Opens the Asaas payment page for one plan period; the Asaas
+ * webhook reactivates the buffet when the payment is confirmed (settleInvoicePaid). Nothing changes before.
+ */
+export async function reactivateSubscription(): Promise<ActionResult> {
   const profile = await requireOwner();
   const admin = createAdminClient();
-  const { data: org } = await admin.from("organizations").select("status").eq("id", profile.organization_id).single();
+  const { data: org } = await admin.from("organizations").select("status, document, whatsapp").eq("id", profile.organization_id).single();
   if (org?.status !== "cancelled") redirect("/home");
-  const { error } = await admin.from("organizations").update({ status: "active", cancelled_at: null, cancel_reason: null, access_until: null }).eq("id", profile.organization_id);
-  if (error) throw new Error(translateDbError(error));
-  await logBilling(admin, profile, "subscription.reactivate", profile.organization_id);
-  // Back on the Asaas subscription (first charge at the end of what is paid, or today). Best effort:
-  // without the data the trial banner / late notices ask for it.
-  if (asaasConfigured()) {
-    const auto = await maybeAutoEnable(admin, profile.organization_id);
-    if (!auto.enabled) {
-      const { org: o, bill } = await subscriptionContext(admin, profile.organization_id);
-      if (o && bill && !bill.provider_subscription_id && !billingDataMissing(o).length) {
-        await enableAutoBilling(admin, profile.organization_id).catch((e) => console.error("[billing] reactivate", e));
-      }
-    }
+  const missing = billingDataMissing(org);
+  if (missing.length) return fail(`Para pagar, complete ${missing.join(" e ")} em Configurações › Empresa.`);
+  if (!asaasConfigured()) return fail("Pagamento online indisponível agora. Fale com a gente pelo WhatsApp.");
+  let url: string;
+  try {
+    url = await startReactivation(admin, profile.organization_id);
+  } catch (e) {
+    return fail(asaasError(e));
   }
-  revalidatePath("/", "layout");
-  redirect("/conta?reativada=1#assinatura");
+  await logBilling(admin, profile, "subscription.reactivate_requested", profile.organization_id);
+  redirect(url);
 }
 
 const dataSchema = z.object({

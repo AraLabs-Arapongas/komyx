@@ -108,6 +108,39 @@ export async function chargeInvoice(admin: Admin, invoiceId: string) {
   await admin.from("billing_invoices").update({ provider: "asaas", external_id: p.id, payment_url: p.invoiceUrl ?? null }).eq("id", inv.id);
 }
 
+/**
+ * "Pagar e reativar" for a cancelled buffet: one charge for its plan, paid on the Asaas page. The buffet
+ * comes back only when the payment is confirmed (settleInvoicePaid). The period starts when the access
+ * still paid for ends (or today), so no paid day is lost. Reuses the open reactivation charge if any.
+ * Returns the Asaas payment page.
+ */
+export async function startReactivation(admin: Admin, orgId: string) {
+  const { data: pending } = await admin.from("billing_invoices").select("id, payment_url").eq("organization_id", orgId).eq("status", "open").eq("notes", REACTIVATION_NOTE).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  if (pending?.payment_url) return pending.payment_url;
+  const [{ data: org }, { data: bill }] = await Promise.all([
+    admin.from("organizations").select("access_until").eq("id", orgId).single(),
+    admin.from("organization_billing").select("monthly_price, billing_period").eq("organization_id", orgId).maybeSingle(),
+  ]);
+  const today = toDateKey(new Date());
+  const months: PeriodMonths = isPeriodMonths(bill?.billing_period) ? bill.billing_period : 1;
+  const start = org?.access_until && org.access_until > today ? org.access_until : today;
+  let id = pending?.id;
+  if (!id) {
+    const { data: inv, error } = await admin.from("billing_invoices").insert({
+      organization_id: orgId, period_start: start, period_end: addMonths(start, months), amount: periodPrice(months, bill?.monthly_price),
+      due_at: today, status: "open", months, notes: REACTIVATION_NOTE,
+    }).select("id").single();
+    if (error || !inv) throw new Error(error?.message ?? "invoice");
+    id = inv.id;
+  }
+  await chargeInvoice(admin, id);
+  const { data: charged } = await admin.from("billing_invoices").select("payment_url").eq("id", id).single();
+  if (!charged?.payment_url) throw new Error("Asaas não devolveu o link de pagamento.");
+  return charged.payment_url;
+}
+
+const REACTIVATION_NOTE = "Reativação da assinatura";
+
 /** Cancels the Asaas charge behind an invoice the admin voided. */
 export async function cancelCharge(externalId: string) {
   await deletePayment(externalId);
@@ -164,7 +197,8 @@ export async function applyAsaasEvent(admin: Admin, event: string, p: AsaasPayme
     case "PAYMENT_RECEIVED_IN_CASH": {
       const paidAt = p.clientPaymentDate || p.paymentDate || toDateKey(new Date());
       const done = await settleInvoicePaid(admin, inv.id, paidAt, methodFromBillingType(p.billingType));
-      return done ? "paga" : "já estava paga";
+      if (done?.reactivated) await enableAutoBilling(admin, inv.organization_id).catch((e) => console.error("[asaas] reactivate", e));
+      return done ? (done.reactivated ? "paga · reativada" : "paga") : "já estava paga";
     }
     case "PAYMENT_OVERDUE":
       await flagOverdue(admin, inv.organization_id);

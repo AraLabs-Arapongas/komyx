@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
-import { choosePlan, subscribeNow, undoPlanChange } from "@/lib/actions/subscription";
+import { choosePlan, undoPlanChange } from "@/lib/actions/subscription";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { Badge } from "@/components/ui/badge";
@@ -16,20 +15,17 @@ type Option = { months: number; label: string; total: number; perMonth: number; 
  * the current one marked. In the trial a choice applies at once; after a payment it is scheduled for the
  * next renewal ("A partir de DD/MM: plano X" + Desfazer).
  */
-export function PlanCard({ options, current, pending, trial, trialEnd, subscribed, missing, cancelled }: {
+export function PlanCard({ options, current, pending, trial, cancelled }: {
   options: Option[];
   current: number;
   pending: { months: number; label: string; from: string } | null;
   trial: boolean;
-  trialEnd: string | null;
-  subscribed: boolean;
-  missing: string[];
   cancelled: boolean;
 }) {
   // One state for the three forms, so the message shown is always the last answer.
   const [msg, run] = useActionState(async (_prev: ActionResult | undefined, fd: FormData) => {
     const op = fd.get("op");
-    return op === "undo" ? undoPlanChange() : op === "subscribe" ? subscribeNow(undefined, fd) : choosePlan(undefined, fd);
+    return op === "undo" ? undoPlanChange() : choosePlan(undefined, fd);
   }, undefined);
   return (
     <div className="space-y-3" data-testid="plan-card">
@@ -46,7 +42,7 @@ export function PlanCard({ options, current, pending, trial, trialEnd, subscribe
         <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-semibold text-brand hover:underline [&::-webkit-details-marker]:hidden">
           Trocar de plano <span className="text-xs transition-transform group-open:rotate-180">▾</span>
         </summary>
-        <p className="mt-2 mb-2 text-xs text-muted">{trial ? "No teste grátis o plano escolhido vale na hora." : "A troca vale na próxima renovação: o que já foi pago segue até o fim."}</p>
+        <p className="mt-2 mb-2 text-xs text-muted">{trial ? "No teste grátis o plano escolhido vale na hora." : "Vale a partir da próxima cobrança."}</p>
       <form action={run} className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {options.map((o) => {
           const isCurrent = o.months === current;
@@ -60,7 +56,7 @@ export function PlanCard({ options, current, pending, trial, trialEnd, subscribe
               <p className="text-lg font-semibold leading-tight">{formatCurrency(o.total)}</p>
               <p className="text-xs text-muted">{o.hint}{o.months > 1 ? ` · ${formatCurrency(o.perMonth)}/mês` : ""}</p>
               {!isCurrent && !isPending && !cancelled ? (
-                <SubmitButton name="months" value={String(o.months)} size="sm" variant="outline" className="mt-1 h-8 text-xs" pendingText="Trocando...">{trial ? "Escolher" : "Trocar na renovação"}</SubmitButton>
+                <SubmitButton name="months" value={String(o.months)} size="sm" variant="outline" className="mt-1 h-8 text-xs" pendingText="Trocando...">Escolher</SubmitButton>
               ) : null}
             </div>
           );
@@ -68,19 +64,6 @@ export function PlanCard({ options, current, pending, trial, trialEnd, subscribe
       </form>
       </details>
       )}
-      {trial && !cancelled && !subscribed ? (
-        <div className="flex flex-wrap items-center gap-3 text-sm">
-          <form action={run}>
-            <input type="hidden" name="op" value="subscribe" />
-            <input type="hidden" name="months" value={String(current)} />
-            <SubmitButton size="sm" pendingText="Assinando...">Assinar agora</SubmitButton>
-          </form>
-          <p className="text-xs text-muted">
-            {`Teste grátis até ${trialEnd ?? "—"}. A primeira cobrança vence nesse dia.`}
-            {missing.length ? <> Falta {missing.join(" e ")} em <Link href="/configuracoes/empresa" className="text-brand underline underline-offset-2">Configurações › Empresa</Link>.</> : null}
-          </p>
-        </div>
-      ) : null}
     </div>
   );
 }

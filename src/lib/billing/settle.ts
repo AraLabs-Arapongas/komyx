@@ -34,7 +34,13 @@ export async function settleInvoicePaid(admin: Admin, id: string, paidAt: string
     updated_at: new Date().toISOString(),
   });
   await refreshPause(admin, inv.organization_id);
-  return inv;
+  // Paying brings a cancelled buffet back (the "Pagar e reativar" charge, or any invoice paid after
+  // cancelling): active again, cancellation cleared. The caller turns the Asaas subscription back on.
+  const { data: back } = await admin.from("organizations").update({ status: "active", cancelled_at: null, cancel_reason: null, access_until: null })
+    .eq("id", inv.organization_id).eq("status", "cancelled").select("id");
+  const reactivated = Boolean(back?.length);
+  if (reactivated) await admin.from("admin_audit").insert({ admin_id: null, admin_email: "sistema", action: "subscription.reactivate", organization_id: inv.organization_id, details: { invoice_id: id, paid: true } });
+  return { ...inv, reactivated };
 }
 
 /**
