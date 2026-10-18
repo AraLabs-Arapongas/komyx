@@ -47,8 +47,11 @@ export function RouteLoader() {
       // A navigation that never lands (offline, error) must not lock the screen.
       safety.current = window.setTimeout(() => { pending.current = false; setShown(false); }, 15000);
     };
+    // Not checking e.defaultPrevented: next/link always prevents the native click (it navigates itself), so
+    // that flag says nothing here. Blockers that cancel a navigation (the unsaved-changes guard) stop the
+    // event in the capture phase, so it never reaches this bubbling listener.
     const onClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const a = (e.target as Element | null)?.closest?.("a");
       if (!a || !a.href || a.target === "_blank" || a.hasAttribute("download")) return;
       const url = new URL(a.href, window.location.href);
