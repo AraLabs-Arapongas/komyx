@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldCheck, Building2, LayoutDashboard, ArrowLeft, ListChecks } from "lucide-react";
+import { ShieldCheck, Building2, LayoutDashboard, ListChecks, LineChart, HeartPulse, Receipt, Mail, Megaphone, ScrollText } from "lucide-react";
 import { requireAdmin } from "@/lib/data/session";
 import { PendingButton } from "@/components/ui/pending-button";
 
@@ -8,6 +8,12 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const links = [
     { href: "/admin", label: "Visão geral", icon: LayoutDashboard },
     { href: "/admin/buffets", label: "Buffets", icon: Building2 },
+    { href: "/admin/metricas", label: "Métricas", icon: LineChart },
+    { href: "/admin/saude", label: "Saúde", icon: HeartPulse },
+    { href: "/admin/cobranca", label: "Cobrança", icon: Receipt },
+    { href: "/admin/emails", label: "E-mails", icon: Mail },
+    { href: "/admin/avisos", label: "Avisos", icon: Megaphone },
+    { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText },
     { href: "/admin/pendencias", label: "Pendências", icon: ListChecks },
   ];
   return (
@@ -17,22 +23,19 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <p className="font-semibold inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-amber-400" /> Komyx Admin</p>
           <p className="text-xs text-stone-400 truncate">{profile.email}</p>
         </div>
-        <nav className="p-3 space-y-0.5">
+        <nav className="p-3 space-y-0.5 overflow-y-auto">
           {links.map(({ href, label, icon: Icon }) => (
             <Link key={href} href={href} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-stone-200 hover:bg-stone-800"><Icon className="h-4.5 w-4.5" /> {label}</Link>
           ))}
         </nav>
         <div className="mt-auto p-3 space-y-1">
-          <Link href="/home" className="flex items-center gap-2 px-3 py-2 text-sm text-stone-400 hover:text-white"><ArrowLeft className="h-4 w-4" /> Voltar ao app</Link>
           <form action="/auth/signout" method="post"><PendingButton className="w-full text-left text-sm text-stone-400 hover:text-white px-3 py-2">Sair</PendingButton></form>
         </div>
       </aside>
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="md:hidden sticky top-0 z-20 bg-stone-900 text-stone-100 px-4 h-12 flex items-center gap-4 text-sm">
+        <div className="md:hidden sticky top-0 z-20 bg-stone-900 text-stone-100 px-4 h-12 flex items-center gap-4 text-sm overflow-x-auto whitespace-nowrap">
           <Link href="/admin" className="font-semibold inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-amber-400" /> Admin</Link>
-          <Link href="/admin/buffets">Buffets</Link>
-          <Link href="/admin/pendencias">Pendências</Link>
-          <Link href="/home" className="ml-auto text-stone-400">App</Link>
+          {links.slice(1).map(({ href, label }) => <Link key={href} href={href}>{label}</Link>)}
         </div>
         {children}
       </div>

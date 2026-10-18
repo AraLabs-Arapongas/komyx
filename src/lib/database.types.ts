@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit: {
+        Row: {
+          action: string
+          admin_email: string | null
+          admin_id: string | null
+          created_at: string
+          details: Json
+          id: string
+          organization_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_email?: string | null
+          admin_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          organization_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_email?: string | null
+          admin_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          organization_id?: string | null
+        }
+        Relationships: []
+      }
+      announcement_dismissals: {
+        Row: {
+          announcement_id: string
+          dismissed_at: string
+          profile_id: string
+        }
+        Insert: {
+          announcement_id: string
+          dismissed_at?: string
+          profile_id: string
+        }
+        Update: {
+          announcement_id?: string
+          dismissed_at?: string
+          profile_id?: string
+        }
+        Relationships: []
+      }
+      billing_invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          due_at: string
+          id: string
+          method: string | null
+          notes: string | null
+          organization_id: string
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          due_at: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          organization_id: string
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          due_at?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          organization_id?: string
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string
+        }
+        Relationships: []
+      }
       celebrants: {
         Row: {
           birth_date: string
@@ -239,6 +332,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      email_templates: {
+        Row: {
+          button: string
+          description: string | null
+          intro: string
+          key: string
+          name: string
+          outro: string
+          subject: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          button: string
+          description?: string | null
+          intro: string
+          key: string
+          name: string
+          outro: string
+          subject: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          button?: string
+          description?: string | null
+          intro?: string
+          key?: string
+          name?: string
+          outro?: string
+          subject?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       event_change_requests: {
         Row: {
@@ -667,6 +799,45 @@ export type Database = {
           },
         ]
       }
+      message_log: {
+        Row: {
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          notification_id: string | null
+          organization_id: string | null
+          status: string
+          subject: string | null
+          to_address: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          notification_id?: string | null
+          organization_id?: string | null
+          status: string
+          subject?: string | null
+          to_address: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          notification_id?: string | null
+          organization_id?: string | null
+          status?: string
+          subject?: string | null
+          to_address?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -722,6 +893,7 @@ export type Database = {
         Row: {
           cycle_start: string | null
           due_at: string | null
+          monthly_price: number | null
           organization_id: string
           status: string
           updated_at: string
@@ -729,6 +901,7 @@ export type Database = {
         Insert: {
           cycle_start?: string | null
           due_at?: string | null
+          monthly_price?: number | null
           organization_id: string
           status?: string
           updated_at?: string
@@ -736,6 +909,7 @@ export type Database = {
         Update: {
           cycle_start?: string | null
           due_at?: string | null
+          monthly_price?: number | null
           organization_id?: string
           status?: string
           updated_at?: string
@@ -1302,6 +1476,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_announcements: {
+        Row: {
+          audience: string
+          body: string
+          created_at: string
+          created_by: string | null
+          emailed_at: string | null
+          ends_at: string | null
+          id: string
+          link_label: string | null
+          link_url: string | null
+          starts_at: string
+          title: string
+          tone: string
+        }
+        Insert: {
+          audience?: string
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          emailed_at?: string | null
+          ends_at?: string | null
+          id?: string
+          link_label?: string | null
+          link_url?: string | null
+          starts_at?: string
+          title: string
+          tone?: string
+        }
+        Update: {
+          audience?: string
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          emailed_at?: string | null
+          ends_at?: string | null
+          id?: string
+          link_label?: string | null
+          link_url?: string | null
+          starts_at?: string
+          title?: string
+          tone?: string
+        }
+        Relationships: []
       }
       platform_todos: {
         Row: {
@@ -2021,6 +2240,39 @@ export type Database = {
       }
     }
     Functions: {
+      admin_cron_status: {
+        Args: never
+        Returns: {
+          active: boolean
+          failures_7d: number
+          jobname: string
+          last_end: string | null
+          last_message: string | null
+          last_start: string | null
+          last_status: string | null
+          schedule: string
+        }[]
+      }
+      admin_funnel: {
+        Args: never
+        Returns: {
+          confirmed: number
+          created_at: string
+          events: number
+          first_confirmed_at: string | null
+          first_package_at: string | null
+          first_request_at: string | null
+          last_activity_at: string | null
+          name: string
+          organization_id: string
+          plan: string
+          public_page: boolean
+          quotes: number
+          requests: number
+          slug: string
+          status: string
+        }[]
+      }
       busy_days: {
         Args: { p_from: string; p_slug: string; p_to: string }
         Returns: string[]
