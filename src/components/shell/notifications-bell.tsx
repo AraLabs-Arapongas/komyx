@@ -1,28 +1,37 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Bell, Inbox, CalendarCheck, FileSignature} from "lucide-react";
 import { cn, formatDateTime } from "@/lib/utils";
+import { AutoRefresh, softRefresh } from "./auto-refresh";
 
 type Item = { id: string; type: string; title: string; body: string | null; href: string | null; read_at: string | null; created_at: string };
 
 const ICONS: Record<string, typeof Bell> = { request: Inbox, reservation: CalendarCheck, contract_accepted: FileSignature };
 
-/** Bell with unread badge. Polls /api/notifications; opening marks everything read. */
+/** Bell with unread badge. Polls /api/notifications; opening marks everything read. A new notification refreshes the page. */
 export function NotificationsBell({ initialUnread }: { initialUnread: number }) {
   const [unread, setUnread] = useState(initialUnread);
   const [items, setItems] = useState<Item[]>([]);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const lastUnread = useRef(initialUnread);
+  const pendingRefresh = useRef(false);
 
   async function load() {
     try {
       const r = await fetch("/api/notifications", { cache: "no-store" });
       if (!r.ok) return;
       const d = await r.json();
+      const next = d.unread ?? 0;
+      // New notification arrived (or a skipped refresh is still owed): re-render the page
+      if (next > lastUnread.current || pendingRefresh.current) pendingRefresh.current = !softRefresh(router);
+      lastUnread.current = next;
       setItems(d.items ?? []);
-      setUnread(d.unread ?? 0);
+      setUnread(next);
     } catch {}
   }
 
@@ -45,6 +54,7 @@ export function NotificationsBell({ initialUnread }: { initialUnread: number }) 
       await load();
       if (unread > 0) {
         await fetch("/api/notifications", { method: "POST" }).catch(() => null);
+        lastUnread.current = 0;
         setUnread(0);
       }
     }
@@ -52,6 +62,7 @@ export function NotificationsBell({ initialUnread }: { initialUnread: number }) 
 
   return (
     <div ref={ref} className="relative">
+      <AutoRefresh />
       <button type="button" onClick={toggle} className="relative h-10 w-10 grid place-items-center rounded-lg text-muted hover:text-foreground hover:bg-stone-100" aria-label={unread ? `${unread} notificações não lidas` : "Notificações"} aria-expanded={open}>
         <Bell className="h-5 w-5" />
         {unread > 0 ? <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-brand text-brand-fg text-[11px] font-bold grid place-items-center">{unread > 99 ? "99+" : unread}</span> : null}

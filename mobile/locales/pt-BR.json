@@ -1,0 +1,8 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Komyx",
+    "NSPhotoLibraryUsageDescription": "O Komyx usa suas fotos para a arte do convite da festa.",
+    "NSCameraUsageDescription": "O Komyx usa a câmera para tirar a foto da arte do convite da festa.",
+    "NSMicrophoneUsageDescription": "O Komyx usa o microfone ao gravar vídeos para o convite da festa."
+  }
+}

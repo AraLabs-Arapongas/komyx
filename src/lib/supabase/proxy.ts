@@ -3,9 +3,18 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_PREFIXES = ["/login", "/signup", "/esqueci-senha", "/p/", "/g/", "/q/", "/c/", "/i/", "/d/", "/r/", "/suspenso", "/cancelada", "/manifest.webmanifest", "/icons/", "/auth/", "/api/auth/", "/api/notifications/email", "/api/billing/asaas", "/api/invite/", "/api/events/", "/api/change-requests/", "/o/", "/privacidade", "/termos", "/suporte"];
 
+// Signed-in areas: (app) routes, /admin, the password reset form and the private API. Anything
+// else passes through, so an unknown path renders the 404 instead of bouncing to /login.
+const PRIVATE_PREFIXES = ["/home", "/eventos", "/agenda", "/aniversariantes", "/clientes", "/configuracoes", "/conta", "/menu", "/notificacoes", "/orcamentos", "/pacotes", "/solicitacoes", "/admin", "/nova-senha", "/api"];
+
 function isPublicPath(pathname: string) {
   if (pathname === "/") return true;
   return PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p));
+}
+
+function isPrivatePath(pathname: string) {
+  if (isPublicPath(pathname)) return false;
+  return PRIVATE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 export async function updateSession(request: NextRequest) {
@@ -37,7 +46,7 @@ export async function updateSession(request: NextRequest) {
   const isAuthenticated = Boolean(data?.claims);
   const { pathname } = request.nextUrl;
 
-  if (!isAuthenticated && !isPublicPath(pathname)) {
+  if (!isAuthenticated && isPrivatePath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);

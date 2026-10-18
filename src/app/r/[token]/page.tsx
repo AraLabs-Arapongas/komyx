@@ -10,6 +10,8 @@ import { buttonClass } from "@/components/ui/button";
 import { appUrl, formatCurrency, formatDateLong, formatDateTime, formatTime, whatsappLink } from "@/lib/utils";
 import { installmentDueLabel } from "@/lib/contract";
 import { allocateInstallments } from "@/lib/installments";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { PixPay } from "./pix-pay";
 
 export const metadata = { title: "Minha reserva" };
 export const dynamic = "force-dynamic";
@@ -25,6 +27,10 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
   const statusLabel = ev.status === "CONFIRMED" ? "Confirmada" : ev.status === "CANCELLED" ? "Cancelada" : expired ? "Prazo expirado" : ev.status === "DONE" ? "Realizada" : "Reservada";
   const selfUrl = appUrl(`/r/${token}`);
   const waBuffet = org.whatsapp ? whatsappLink(org.whatsapp, `Olá! Sobre minha reserva ${ev.pix_txid ?? ""} de ${formatDateLong(ev.starts_at)}: ${selfUrl}`) : null;
+  const { count: pendingNotices } = await createAdminClient().from("event_change_requests").select("id", { count: "exact", head: true }).eq("event_id", ev.id).eq("kind", "PAYMENT_NOTICE").eq("status", "PENDING");
+  const balanceTxid = ev.pix_txid ?? `FESTA${ev.id.replace(/-/g, "").slice(0, 10).toUpperCase()}`;
+  const pixBase = { key: org.pix_key ?? "", merchantName: org.legal_name || org.name, merchantCity: (org.city || "SAO PAULO").split("/")[0] };
+  const pixProps = { token, orgName: org.name, max: r.balance, showPrices: org.show_prices_public, noticePending: Boolean(pendingNotices), waBuffet };
 
   return (
     <main className="public-theme flex-1 flex flex-col">
@@ -61,19 +67,7 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
         {r.pixQr || r.pixPayload ? (
           <section className="rounded-3xl p-5 space-y-3" style={{ background: "var(--paper-2)" }}>
             <p className="display font-bold text-xl">Pagar o sinal{r.deposit != null && org.show_prices_public ? <> · <span style={{ color: "var(--berry)" }}>{formatCurrency(r.deposit)}</span></> : null}</p>
-            <div className="grid gap-3 sm:grid-cols-[150px_1fr] sm:items-start">
-              {r.pixQr ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={r.pixQr} alt="QR Code Pix" className="h-[150px] w-[150px] rounded-xl bg-white p-1 border" style={{ borderColor: "#ece7dc" }} />
-              ) : null}
-              <div className="space-y-2 text-sm">
-                <p>Pix para <b>{org.name}</b></p>
-                <p className="flex flex-wrap items-center gap-2">Chave: <code className="rounded bg-white px-1.5 py-0.5">{org.pix_key}</code> <CopyButton text={org.pix_key!} label="Copiar chave" /></p>
-                {r.pixPayload ? <p className="flex flex-wrap items-center gap-2">Pix copia e cola <CopyButton text={r.pixPayload} label="Copiar código" /></p> : null}
-                <p className="text-xs rounded-lg px-2.5 py-1.5 bg-white">Código da reserva: <b>{ev.pix_txid}</b>. Vai no identificador do Pix; se pagar manualmente, escreva na descrição.</p>
-                {waBuffet ? <a href={waBuffet} target="_blank" rel="noopener" className="inline-flex h-10 items-center gap-2 rounded-full px-4 font-extrabold text-white" style={{ background: "var(--berry)" }}><MessageCircle className="h-4 w-4" /> Enviar comprovante</a> : null}
-              </div>
-            </div>
+            <PixPay {...pixProps} label="Pix" pix={{ ...pixBase, txid: ev.pix_txid!, description: `${ev.pix_txid} sinal festa` }} suggested={r.deposit} payload={r.pixPayload!} qr={r.pixQr} />
           </section>
         ) : null}
 
@@ -86,18 +80,7 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
               </ul>
             ) : null}
             {r.balancePayload ? (
-              <div className="grid gap-3 sm:grid-cols-[150px_1fr] sm:items-start">
-                {r.balanceQr ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.balanceQr} alt="QR Code Pix do saldo" className="h-[150px] w-[150px] rounded-xl bg-white p-1 border" style={{ borderColor: "#ece7dc" }} />
-                ) : null}
-                <div className="space-y-2 text-sm">
-                  <p>Pix do saldo para <b>{org.name}</b></p>
-                  <p className="flex flex-wrap items-center gap-2">Chave: <code className="rounded bg-white px-1.5 py-0.5">{org.pix_key}</code> <CopyButton text={org.pix_key!} label="Copiar chave" /></p>
-                  <p className="flex flex-wrap items-center gap-2">Pix copia e cola <CopyButton text={r.balancePayload} label="Copiar código" /></p>
-                  {waBuffet ? <a href={waBuffet} target="_blank" rel="noopener" className="inline-flex h-10 items-center gap-2 rounded-full px-4 font-extrabold text-white" style={{ background: "var(--berry)" }}><MessageCircle className="h-4 w-4" /> Enviar comprovante</a> : null}
-                </div>
-              </div>
+              <PixPay {...pixProps} label="Pix do saldo" pix={{ ...pixBase, txid: balanceTxid, description: `${ev.pix_txid ?? "FESTA"} saldo festa` }} suggested={r.balance} payload={r.balancePayload} qr={r.balanceQr} />
             ) : <p className="text-sm" style={{ color: "var(--muted-ink)" }}>Combine o pagamento com o buffet pelo WhatsApp.</p>}
           </section>
         ) : null}

@@ -27,7 +27,9 @@ function derive(r: Reservation, token: string) {
   const needsDeposit = status === "PRE_RESERVED" && r.paid <= 0;
   const txid = ev.pix_txid ?? `FESTA${ev.id.replace(/-/g, "").slice(0, 10).toUpperCase()}`;
   const pixAmount = needsDeposit ? deposit : balance > 0 && status !== "CANCELLED" && status !== "EXPIRED" ? balance : null;
-  const pix = org.pix_key && pixAmount ? buildPixPayload({ key: org.pix_key, merchantName: org.legal_name || org.name, merchantCity: (org.city || "SAO PAULO").split("/")[0], amount: pixAmount, txid, description: `${txid} ${needsDeposit ? "sinal" : "saldo"} festa` }) : null;
+  /** Same key and txid as the reservation's Pix, any amount (the client can split a payment). */
+  const pixFor = (amount: number) => org.pix_key ? buildPixPayload({ key: org.pix_key, merchantName: org.legal_name || org.name, merchantCity: (org.city || "SAO PAULO").split("/")[0], amount, txid, description: `${txid} ${needsDeposit ? "sinal" : "saldo"} festa` }) : null;
+  const pix = pixAmount ? pixFor(pixAmount) : null;
   const pageUrl = `${WEB_URL}/r/${token}`;
   const guestUrl = r.guest_token ? `${WEB_URL}/g/${r.guest_token}` : null;
   const inviteEditUrl = r.invite_token ? `${WEB_URL}/i/${r.invite_token}` : null;
@@ -49,8 +51,16 @@ function derive(r: Reservation, token: string) {
   const priceA = Number(r.package?.extra_adult_price ?? 0), priceC = Number(r.package?.extra_child_price ?? 0);
   const capacity = { contractedA, contractedC, confA, confC, overA, overC, leftA, leftC, priceA, priceC, overCost: overA * priceA + overC * priceC };
 
-  return { r, ev, org, quote, status, showPrices, installments, extrasTotal, total, balance, deposit, needsDeposit, txid, pixAmount, pix, pageUrl, guestUrl, inviteEditUrl, daysLeft, guestsPeople, address, mapsUrl, pending, first, title, locked, wa, capacity, balanceLabel: balance > 0 ? `Falta ${formatCurrency(balance)}` : "Tudo pago" };
+  return { r, ev, org, quote, status, showPrices, installments, extrasTotal, total, balance, deposit, needsDeposit, txid, pixAmount, pix, pixFor, pageUrl, guestUrl, inviteEditUrl, daysLeft, guestsPeople, address, mapsUrl, pending, first, title, locked, wa, capacity, balanceLabel: balance > 0 ? `Falta ${formatCurrency(balance)}` : "Tudo pago" };
 }
+
+/** pt-BR money mask: typed digits fill from the cents ("50000" → "500,00"). */
+export function maskMoney(v: string) {
+  const d = v.replace(/\D/g, "").replace(/^0+/, "").slice(0, 9);
+  return d ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(d) / 100) : "";
+}
+export const parseMoney = (v: string) => Number(v.replace(/\./g, "").replace(",", ".")) || 0;
+export const moneyInput = (n: number | null | undefined) => (n && n > 0 ? maskMoney(n.toFixed(2)) : "");
 
 export type AskInput = { kind: ChangeRequest["kind"]; message: string; payload?: Record<string, unknown> };
 

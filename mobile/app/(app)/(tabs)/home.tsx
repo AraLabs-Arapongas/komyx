@@ -12,6 +12,7 @@ import { supabase, WEB_URL } from "@/lib/supabase";
 import { Badge, Button, Card, CardTitle, Loading, Muted, Row, Screen, styles } from "@/ui/components";
 import { party } from "@/ui/party";
 import { FestiveHeader } from "@/ui/festive-header";
+import { AnnouncementBanner } from "@/ui/announcement-banner";
 import { colors } from "@/ui/theme";
 
 /**
@@ -70,7 +71,7 @@ export default function Home() {
 
   return (
     <>
-      <Screen refreshing={q.isFetching} onRefresh={() => { q.refetch(); unread.refetch(); pending.refetch(); }}>
+      <Screen refreshing={q.isFetching} onRefresh={() => { q.refetch(); unread.refetch(); pending.refetch(); qc.invalidateQueries({ queryKey: ["announcements"] }); }}>
         <FestiveHeader
           animated
           eyebrow={formatDateLong(new Date())}
@@ -83,6 +84,7 @@ export default function Home() {
             </Pressable>
           }
         />
+        <AnnouncementBanner />
         {!d ? <Loading /> : (
           <>
             {/* PEDIDOS DOS CLIENTES */}

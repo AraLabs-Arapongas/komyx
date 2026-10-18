@@ -38,7 +38,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     supabase.from("events").select(EVENT_SELECT).gt("starts_at", endOfToday).lte("starts_at", in7d).in("status", ["CONFIRMED", "PRE_RESERVED"]).order("starts_at"),
     supabase.from("events").select(EVENT_SELECT).eq("status", "PRE_RESERVED").lte("expires_at", in48h).order("expires_at").limit(5),
     supabase.from("events").select(EVENT_SELECT).eq("origin", "SELF_SERVICE").eq("status", "PRE_RESERVED").order("created_at", { ascending: false }).limit(5),
-    supabase.from("public_requests").select("id, name, whatsapp, desired_date, desired_time, adults, children, participants, source, estimated_total, message, created_at").eq("status", "NEW").order("created_at", { ascending: false }).limit(4),
+    supabase.from("public_requests").select("id, name, whatsapp, desired_date, desired_time, adults, children, participants, source, estimated_total, created_at", { count: "exact" }).eq("status", "NEW").order("created_at", { ascending: false }).limit(3),
     supabase.from("packages").select("id", { count: "exact", head: true }),
     supabase.from("events").select("id", { count: "exact", head: true }),
     supabase.from("event_financials").select("event_id, balance").eq("organization_id", profile.organization_id).gt("balance", 0),
@@ -49,6 +49,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const expiring = (expiringRes.data ?? []).filter((e) => !(onlineRes.data ?? []).some((o) => o.id === e.id));
   const online = onlineRes.data ?? [];
   const requests = requestsRes.data ?? [];
+  const requestCount = requestsRes.count ?? requests.length;
   const finMap = await loadFinancials(supabase, [...today, ...week].map((e) => e.id));
 
   // Receivables: overdue = past events still owing; week = events in the next 7 days; total
@@ -71,12 +72,12 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
 
         {/* HOJE: one line */}
         <p className="text-sm text-muted">
-          <b className="text-foreground">Hoje:</b> {today.length} evento{today.length === 1 ? "" : "s"} · <Money value={todayBalance} /> a receber · {urgentCount} {urgentCount === 1 ? "ação urgente" : "ações urgentes"} · {requests.length} {requests.length === 1 ? "nova solicitação" : "novas solicitações"}
+          <b className="text-foreground">Hoje:</b> {today.length} evento{today.length === 1 ? "" : "s"} · <Money value={todayBalance} /> a receber · {urgentCount} {urgentCount === 1 ? "ação urgente" : "ações urgentes"} · {requestCount} {requestCount === 1 ? "nova solicitação" : "novas solicitações"}
         </p>
 
         {/* AÇÕES URGENTES */}
         {expiring.length || online.length ? (
-          <Card className="border-amber-200 bg-amber-50/60">
+          <Card className="border-amber-200 bg-amber-50/60" data-testid="home-urgent">
             <CardHeader title="Ação urgente" subtitle="Reservas aguardando confirmação: confirme ou libere a data" />
             <CardBody className="space-y-2">
               {online.map((e) => (
@@ -101,32 +102,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           </Card>
         ) : null}
 
-        {/* NOVAS SOLICITAÇÕES */}
-        {requests.length ? (
-          <Card>
-            <CardHeader title="Novas solicitações" subtitle="Pedidos de orçamento da página pública" action={<Link href="/solicitacoes" className="text-sm text-brand font-medium">Ver todas</Link>} />
-            <CardBody className="divide-y divide-border">
-              {requests.map((r) => (
-                <div key={r.id} className="py-2.5 flex flex-wrap items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    <Link href={`/solicitacoes?id=${r.id}`} className="font-medium truncate block text-brand hover:underline underline-offset-4"><Inbox className="inline h-4 w-4 mr-1.5" />{r.name}</Link>
-                    {r.message ? <p className="text-sm truncate" title={r.message}>“{r.message}”</p> : null}
-                    <p className="text-xs text-muted">
-                      {r.desired_date ? `${r.desired_date.split("-").reverse().join("/")}${r.desired_time ? ` ${r.desired_time.slice(0, 5)}` : ""}` : "sem data"} · {r.adults != null || r.children != null ? `${r.adults ?? 0}A ${r.children ?? 0}C` : `${r.participants ?? "?"} pessoas`} · {leadSourceLabel(r.source)}{r.estimated_total != null ? <> · <Money value={r.estimated_total} /></> : null} · {formatPhone(r.whatsapp)}
-                    </p>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <a href={whatsappLink(r.whatsapp, `Olá ${r.name.split(" ")[0]}! Recebemos seu pedido de orçamento no ${org.name}.`)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> Responder</a>
-                    <Link href={`/eventos/novo?request=${r.id}`} className={buttonClass("outline", "sm")}>Criar orçamento</Link>
-                  </div>
-                </div>
-              ))}
-            </CardBody>
-          </Card>
-        ) : null}
-
         {/* EVENTO DE HOJE */}
-        <section className="space-y-2">
+        <section className="space-y-2" data-testid="home-today">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">{today.length === 1 ? "Evento de hoje" : "Eventos de hoje"}</h2>
             <Link href="/agenda" className="text-sm text-brand font-medium inline-flex items-center gap-1"><CalendarDays className="h-4 w-4" /> Agenda</Link>
@@ -149,8 +126,29 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           }) : <p className="text-sm text-muted rounded-2xl border border-dashed border-border px-4 py-5">Nenhum evento hoje.</p>}
         </section>
 
+        {/* NOVAS SOLICITAÇÕES: up to 3, one line each */}
+        {requests.length ? (
+          <Card data-testid="home-requests">
+            <CardHeader title="Novas solicitações" subtitle="Pedidos de orçamento da página pública" action={<Link href="/solicitacoes" className="text-sm text-brand font-medium">Ver todas ({requestCount})</Link>} />
+            <CardBody className="divide-y divide-border">
+              {requests.map((r) => (
+                <div key={r.id} data-testid="home-request" className="py-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                  <p className="min-w-0 flex-1 truncate text-sm">
+                    <Link href={`/solicitacoes?id=${r.id}`} className="font-medium text-brand hover:underline underline-offset-4"><Inbox className="inline h-4 w-4 mr-1.5" />{r.name}</Link>
+                    <span className="text-muted"> · {r.desired_date ? `${r.desired_date.split("-").reverse().join("/")}${r.desired_time ? ` ${r.desired_time.slice(0, 5)}` : ""}` : "sem data"} · {r.adults != null || r.children != null ? `${r.adults ?? 0}A ${r.children ?? 0}C` : `${r.participants ?? "?"} pessoas`} · {leadSourceLabel(r.source)}{r.estimated_total != null ? <> · <Money value={r.estimated_total} /></> : null} · {formatPhone(r.whatsapp)}</span>
+                  </p>
+                  <div className="flex gap-1.5">
+                    <a href={whatsappLink(r.whatsapp, `Olá ${r.name.split(" ")[0]}! Recebemos seu pedido de orçamento no ${org.name}.`)} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}><MessageCircle className="h-4 w-4" /> Responder</a>
+                    <Link href={`/eventos/novo?request=${r.id}`} className={buttonClass("outline", "sm")}>Criar orçamento</Link>
+                  </div>
+                </div>
+              ))}
+            </CardBody>
+          </Card>
+        ) : null}
+
         {/* PRÓXIMOS 7 DIAS */}
-        <section className="space-y-2">
+        <section className="space-y-2" data-testid="home-week">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Próximos 7 dias <span className="text-muted font-normal text-sm">· {week.length} evento{week.length === 1 ? "" : "s"} · <Money value={dueWeek} /> a receber</span></h2>
             <Link href="/agenda?view=week" className="text-sm text-brand font-medium">Ver agenda</Link>
@@ -176,7 +174,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
         </section>
 
         {/* A RECEBER */}
-        <section className="grid grid-cols-3 gap-2">
+        <section className="grid grid-cols-3 gap-2" data-testid="home-money">
           <Link href="/eventos?status=DONE" className="rounded-2xl border border-border bg-surface p-3"><p className="text-xs text-muted">Atrasado</p><p className={`text-lg font-semibold ${overdue > 0 ? "text-red-700" : ""}`}><Money value={overdue} /></p><p className="text-[11px] text-muted">festas já realizadas</p></Link>
           <Link href="/agenda?view=week" className="rounded-2xl border border-border bg-surface p-3"><p className="text-xs text-muted">Próximos 7 dias</p><p className="text-lg font-semibold"><Money value={dueWeek} /></p><p className="text-[11px] text-muted">cobrar antes da festa</p></Link>
           <Link href="/eventos?status=CONFIRMED" className="rounded-2xl border border-border bg-surface p-3"><p className="text-xs text-muted">Total a receber</p><p className="text-lg font-semibold"><Money value={receivableTotal} /></p><p className="text-[11px] text-muted">{owingEvents?.length ?? 0} evento(s)</p></Link>

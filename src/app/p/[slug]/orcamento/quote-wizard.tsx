@@ -248,10 +248,17 @@ export function QuoteWizard({ slug, packages, addons, themes, menuGroups = [], d
             {themes.length ? (
               <div className="pt-2">
                 <h3 className="display font-extrabold text-xl">Tem um tema em mente? <span className="text-sm font-normal" style={{ color: "var(--muted-ink)" }}>(opcional)</span></h3>
+                {theme ? <p className="mt-1 text-sm" style={{ color: "var(--muted-ink)" }}>Tema escolhido: <span className="font-bold" style={{ color: "var(--berry)" }}>{theme.name}</span></p> : null}
                 <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {/* Clears the choice; tapping a selected theme keeps it selected. */}
+                  <button type="button" onClick={() => setThemeId(null)} aria-pressed={themeId === null} className={cn("relative grid min-h-24 place-items-center rounded-2xl border-2 border-dashed bg-white p-3 text-center transition", themeId === null ? "border-[var(--berry)]" : "border-[#ece7dc] hover:border-[var(--berry)]/40")}>
+                    {themeId === null ? <span className="absolute left-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full text-white" style={{ background: "var(--berry)" }}><Check className="h-3.5 w-3.5" /></span> : null}
+                    <span><span className="block font-bold text-sm">Sem tema</span><span className="block text-xs" style={{ color: "var(--muted-ink)" }}>Decidimos depois</span></span>
+                  </button>
                   {themes.map((t) => (
-                    <div key={t.id} className={cn("relative rounded-2xl border-2 overflow-hidden bg-white transition", themeId === t.id ? "border-[var(--berry)]" : "border-[#ece7dc] hover:border-[var(--berry)]/40")}>
-                      <button type="button" onClick={() => setThemeId(themeId === t.id ? null : t.id)} aria-pressed={themeId === t.id} className="block w-full text-left">
+                    <div key={t.id} className={cn("relative rounded-2xl border-2 overflow-hidden bg-white transition", themeId === t.id ? "border-[var(--berry)] ring-2 ring-[var(--berry)]/25" : "border-[#ece7dc] hover:border-[var(--berry)]/40")}>
+                      {themeId === t.id ? <span className="pointer-events-none absolute left-1.5 top-1.5 z-10 grid h-6 w-6 place-items-center rounded-full text-white shadow" style={{ background: "var(--berry)" }}><Check className="h-3.5 w-3.5" /></span> : null}
+                      <button type="button" onClick={() => setThemeId(t.id)} aria-pressed={themeId === t.id} className="block w-full text-left">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         {t.photo_url ? <img src={t.photo_url} alt="" className="h-24 w-full object-cover" /> : <div className="h-24 w-full" style={{ background: "var(--paper-2)" }} />}
                         <div className="p-2"><p className="font-bold text-sm">{t.name}</p>{t.description ? <p className="text-xs line-clamp-2" style={{ color: "var(--muted-ink)" }}>{t.description}</p> : null}</div>

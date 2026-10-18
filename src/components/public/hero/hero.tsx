@@ -47,9 +47,12 @@ export function BuffetHero({ style, org, gallery, packages, waUrl, q }: Props) {
       <section className="relative overflow-hidden" style={{ background: "var(--ink)", color: "var(--paper)" }}>
         <SoftBlobs />
         <div className="absolute inset-x-0 top-0"><Bunting /></div>
-        <div className="relative mx-auto max-w-6xl px-4 pt-24 sm:pt-32 pb-14 sm:pb-20 grid gap-12 md:gap-8 md:grid-cols-[1.05fr_0.95fr] md:items-center">
+        <div className="relative mx-auto max-w-6xl px-4 pt-24 sm:pt-32 pb-14 sm:pb-20 grid gap-8 md:grid-cols-[1.05fr_0.95fr] md:items-center">
           {copy}
-          {style === "bolha" ? <BolhaArt photo={photos[0] ?? null} alt={alt} /> : style === "colagem" ? <ColagemArt photos={photos} alt={alt} /> : <ConfeteArt photo={photos[0] ?? null} alt={alt} />}
+          {/* Photo first on phones (above the invitation), beside it from md up. */}
+          <div className="max-md:order-first max-md:mx-auto max-md:w-full max-md:max-w-[19rem]">
+            {style === "bolha" ? <BolhaArt photo={photos[0] ?? null} alt={alt} /> : style === "colagem" ? <ColagemArt photos={photos} alt={alt} /> : <ConfeteArt photo={photos[0] ?? null} alt={alt} />}
+          </div>
         </div>
       </section>
     </>

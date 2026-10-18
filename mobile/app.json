@@ -2,7 +2,10 @@
   "expo": {
     "name": "Komyx",
     "slug": "komyx",
-    "version": "1.0.0",
+    "version": "1.1.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "default",
     "icon": "./assets/icon.png",
     "scheme": "komyx",
@@ -15,6 +18,13 @@
       ],
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "pt-BR",
+        "CFBundleLocalizations": [
+          "pt-BR"
+        ],
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "android": {
@@ -75,7 +85,9 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "O Komyx usa suas fotos para a arte do convite da festa."
+          "photosPermission": "O Komyx usa suas fotos para a arte do convite da festa.",
+          "cameraPermission": "O Komyx usa a câmera para tirar a foto da arte do convite da festa.",
+          "microphonePermission": "O Komyx usa o microfone ao gravar vídeos para o convite da festa."
         }
       ]
     ],
@@ -88,6 +100,12 @@
         "projectId": "12809420-94c7-4b3e-934b-6196405d909a"
       }
     },
-    "owner": "thiagodevtavares"
+    "owner": "thiagodevtavares",
+    "updates": {
+      "url": "https://u.expo.dev/12809420-94c7-4b3e-934b-6196405d909a"
+    },
+    "locales": {
+      "pt-BR": "./locales/pt-BR.json"
+    }
   }
 }
