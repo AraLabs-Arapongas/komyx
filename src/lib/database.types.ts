@@ -83,13 +83,16 @@ export type Database = {
           created_at: string
           created_by: string | null
           due_at: string
+          external_id: string | null
           id: string
           method: string | null
           notes: string | null
           organization_id: string
           paid_at: string | null
+          payment_url: string | null
           period_end: string
           period_start: string
+          provider: string
           status: string
         }
         Insert: {
@@ -97,13 +100,16 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           due_at: string
+          external_id?: string | null
           id?: string
           method?: string | null
           notes?: string | null
           organization_id: string
           paid_at?: string | null
+          payment_url?: string | null
           period_end: string
           period_start: string
+          provider?: string
           status?: string
         }
         Update: {
@@ -111,13 +117,16 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           due_at?: string
+          external_id?: string | null
           id?: string
           method?: string | null
           notes?: string | null
           organization_id?: string
           paid_at?: string | null
+          payment_url?: string | null
           period_end?: string
           period_start?: string
+          provider?: string
           status?: string
         }
         Relationships: [
@@ -129,6 +138,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      billing_webhook_events: {
+        Row: {
+          error: string | null
+          event: string
+          id: string
+          payload: Json
+          processed_at: string | null
+          provider: string
+          received_at: string
+        }
+        Insert: {
+          error?: string | null
+          event: string
+          id: string
+          payload: Json
+          processed_at?: string | null
+          provider: string
+          received_at?: string
+        }
+        Update: {
+          error?: string | null
+          event?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider?: string
+          received_at?: string
+        }
+        Relationships: []
       }
       celebrants: {
         Row: {
@@ -929,26 +968,35 @@ export type Database = {
       }
       organization_billing: {
         Row: {
+          auto_billing: boolean
           cycle_start: string | null
           due_at: string | null
           monthly_price: number | null
           organization_id: string
+          provider_customer_id: string | null
+          provider_subscription_id: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          auto_billing?: boolean
           cycle_start?: string | null
           due_at?: string | null
           monthly_price?: number | null
           organization_id: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          auto_billing?: boolean
           cycle_start?: string | null
           due_at?: string | null
           monthly_price?: number | null
           organization_id?: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
           status?: string
           updated_at?: string
         }

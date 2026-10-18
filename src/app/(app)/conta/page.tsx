@@ -12,7 +12,7 @@ import { CancelSubscription } from "./cancel-subscription";
 import { reactivateSubscription } from "@/lib/actions/subscription";
 import { Alert } from "@/components/ui/page";
 import { PendingButton } from "@/components/ui/pending-button";
-import { billingProvider } from "@/lib/billing/provider";
+import { billingProviderInfo } from "@/lib/billing/provider";
 import { INVOICE_VIEW_LABEL, INVOICE_VIEW_TONE, invoiceView } from "@/lib/billing/invoices";
 
 export const metadata = { title: "Minha conta" };
@@ -24,7 +24,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
   const supabase = await createClient();
   const { data: prefs } = await supabase.from("profiles").select("email_notifications").eq("id", profile.id).single();
   // Komyx invoices (billing_invoices): RLS returns only this buffet's rows, and only to the owner.
-  const { data: faturas } = isOwner ? await supabase.from("billing_invoices").select("id, period_start, period_end, amount, due_at, status, paid_at").neq("status", "void").order("due_at", { ascending: false }).limit(24) : { data: [] };
+  const { data: faturas } = isOwner ? await supabase.from("billing_invoices").select("id, period_start, period_end, amount, due_at, status, paid_at, payment_url").neq("status", "void").order("due_at", { ascending: false }).limit(24) : { data: [] };
   const today = toDateKey(new Date());
   const price = PLAN_PRICES[org.plan] ?? 0;
   const dayDate = (d: string) => formatDate(`${d}T12:00:00-03:00`);
@@ -93,7 +93,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
                               <td className="py-2.5 pr-3 whitespace-nowrap">{dayDate(f.period_start)} a {dayDate(f.period_end)}</td>
                               <td className="py-2.5 pr-3 text-right whitespace-nowrap">{formatCurrency(f.amount)}</td>
                               <td className="py-2.5 pr-3 whitespace-nowrap">{dayDate(f.due_at)}</td>
-                              <td className="py-2.5"><Badge tone={INVOICE_VIEW_TONE[v]}>{INVOICE_VIEW_LABEL[v]}</Badge>{f.paid_at ? <span className="block text-xs text-muted">pago em {dayDate(f.paid_at)}</span> : null}</td>
+                              <td className="py-2.5"><Badge tone={INVOICE_VIEW_TONE[v]}>{INVOICE_VIEW_LABEL[v]}</Badge>{f.paid_at ? <span className="block text-xs text-muted">pago em {dayDate(f.paid_at)}</span> : null}{f.status === "open" && f.payment_url ? <a href={f.payment_url} target="_blank" rel="noopener" className="ml-2 text-sm font-semibold text-brand hover:underline">Pagar</a> : null}</td>
                             </tr>
                           );
                         })}
@@ -101,7 +101,7 @@ export default async function AccountPage({ searchParams }: PageProps<"/conta">)
                     </table>
                   </div>
                 )}
-                <p className="text-xs text-muted">{billingProvider.ownerInstructions}</p>
+                <p className="text-xs text-muted">{billingProviderInfo().ownerInstructions}</p>
               </CardBody>
             </Card>
 

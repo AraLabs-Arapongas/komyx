@@ -8,7 +8,8 @@ import { PendingButton } from "@/components/ui/pending-button";
 import { BILLING_STATUS_LABEL, PLAN_LABEL } from "@/lib/billing";
 import { INVOICE_VIEW_LABEL, INVOICE_VIEW_TONE, PAYMENT_METHOD_LABEL, effectivePrice, invoiceView, moneyInput, nextPeriod, type InvoiceView } from "@/lib/billing/invoices";
 import { formatCurrency, formatDate, toDateKey } from "@/lib/utils";
-import { MarkPaidForm, NewInvoiceForm, PriceForm, StatusFilter } from "./forms";
+import { AutoBillingForm, MarkPaidForm, NewInvoiceForm, PriceForm, StatusFilter } from "./forms";
+import { billingProviderInfo } from "@/lib/billing/provider";
 
 export const metadata = { title: "Cobrança · Admin Komyx" };
 export const dynamic = "force-dynamic";
@@ -27,9 +28,9 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
   const admin = createAdminClient();
   const [{ data: orgRows }, { data: billRows }, { data: invRows }] = await Promise.all([
     admin.from("organizations").select("id, name, slug, plan, status, is_demo").eq("kind", "buffet").order("name"),
-    admin.from("organization_billing").select("organization_id, cycle_start, due_at, status, monthly_price"),
+    admin.from("organization_billing").select("organization_id, cycle_start, due_at, status, monthly_price, auto_billing"),
     // Small table (one row per buffet per month): read it whole for the cards and "last invoice".
-    admin.from("billing_invoices").select("id, organization_id, period_start, period_end, amount, due_at, status, paid_at, method, notes").order("due_at", { ascending: false }).order("created_at", { ascending: false }).limit(5000),
+    admin.from("billing_invoices").select("id, organization_id, period_start, period_end, amount, due_at, status, paid_at, method, notes, provider, payment_url").order("due_at", { ascending: false }).order("created_at", { ascending: false }).limit(5000),
   ]);
   const orgs = (orgRows ?? []).filter((o) => !o.is_demo);
   const demos = (orgRows ?? []).length - orgs.length;
@@ -45,6 +46,7 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
     for (const id of toFlip) { const b = billByOrg.get(id); if (b) b.status = "overdue"; }
   }
 
+  const provider = billingProviderInfo();
   const priceOf = (o: { id: string; plan: string }) => effectivePrice(billByOrg.get(o.id)?.monthly_price, o.plan);
   const mrr = orgs.filter((o) => o.status === "active" && billByOrg.get(o.id)?.status !== "trial").reduce((a, o) => a + priceOf(o), 0);
   const sum = (list: { amount: number }[]) => list.reduce((a, i) => a + Number(i.amount), 0);
@@ -62,7 +64,7 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
 
   return (
     <>
-      <PageHeader title="Cobrança" subtitle="Faturas manuais: a Komyx envia o Pix pelo WhatsApp e marca aqui quando recebe" />
+      <PageHeader title="Cobrança" subtitle={provider.id === "asaas" ? `Provedor: ${provider.label}. Com a cobrança automática ligada, o Asaas cobra todo mês e a baixa é sozinha` : "Faturas manuais: a Komyx envia o Pix pelo WhatsApp e marca aqui quando recebe. Configure o Asaas para cobrar sozinho"} />
       <PageBody>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
@@ -81,7 +83,7 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
             {orgs.length ? (
               <table className="w-full text-sm">
                 <thead className="text-xs text-muted text-left border-b border-border">
-                  <tr><th className="py-2 pr-2">Buffet</th><th className="px-2 py-2">Plano</th><th className="px-2 py-2">Cobrança</th><th className="px-2 py-2">Vencimento</th><th className="px-2 py-2">Mensalidade</th><th className="px-2 py-2">Última fatura</th><th className="px-2 py-2"></th></tr>
+                  <tr><th className="py-2 pr-2">Buffet</th><th className="px-2 py-2">Plano</th><th className="px-2 py-2">Cobrança</th><th className="px-2 py-2">Vencimento</th><th className="px-2 py-2">Mensalidade</th><th className="px-2 py-2">Última fatura</th><th className="px-2 py-2">Automática</th><th className="px-2 py-2"></th></tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {orgs.map((o) => {
@@ -97,6 +99,7 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
                         <td className="px-2 py-2.5 whitespace-nowrap">{b?.due_at ? day(b.due_at) : "—"}{b?.status === "trial" ? <p className="text-xs text-muted">fim do teste</p> : null}</td>
                         <td className="px-2 py-2.5"><PriceForm orgId={o.id} value={moneyInput(b?.monthly_price)} fallback={moneyInput(priceOf({ id: "", plan: o.plan }))} /></td>
                         <td className="px-2 py-2.5 whitespace-nowrap">{last ? <>{formatCurrency(last.amount)} <Badge tone={INVOICE_VIEW_TONE[invoiceView(last, today)]}>{INVOICE_VIEW_LABEL[invoiceView(last, today)]}</Badge><p className="text-xs text-muted">vence {day(last.due_at)}</p></> : <span className="text-xs text-muted">nenhuma</span>}</td>
+                        <td className="px-2 py-2.5"><AutoBillingForm orgId={o.id} on={Boolean(b?.auto_billing)} available={provider.id === "asaas"} /></td>
                         <td className="px-2 py-2.5 text-right"><NewInvoiceForm orgId={o.id} start={next.start} end={next.end} due={next.due} amount={moneyInput(priceOf(o))} /></td>
                       </tr>
                     );
@@ -125,7 +128,7 @@ export default async function AdminBillingPage({ searchParams }: { searchParams:
                         <td className="px-2 py-2.5 whitespace-nowrap text-xs">{day(i.period_start)} a {day(i.period_end)}</td>
                         <td className="px-2 py-2.5 text-right whitespace-nowrap">{formatCurrency(i.amount)}</td>
                         <td className="px-2 py-2.5 whitespace-nowrap">{day(i.due_at)}</td>
-                        <td className="px-2 py-2.5"><Badge tone={INVOICE_VIEW_TONE[v]}>{INVOICE_VIEW_LABEL[v]}</Badge>{i.status === "paid" && i.paid_at ? <p className="text-xs text-muted whitespace-nowrap">{day(i.paid_at)}{i.method ? ` · ${PAYMENT_METHOD_LABEL[i.method] ?? i.method}` : ""}</p> : null}</td>
+                        <td className="px-2 py-2.5"><Badge tone={INVOICE_VIEW_TONE[v]}>{INVOICE_VIEW_LABEL[v]}</Badge>{i.provider === "asaas" ? <> <Badge tone="slate">Asaas</Badge></> : null}{i.payment_url ? <a href={i.payment_url} target="_blank" rel="noopener" className="block text-xs text-brand hover:underline">ver cobrança</a> : null}{i.status === "paid" && i.paid_at ? <p className="text-xs text-muted whitespace-nowrap">{day(i.paid_at)}{i.method ? ` · ${PAYMENT_METHOD_LABEL[i.method] ?? i.method}` : ""}</p> : null}</td>
                         <td className="px-2 py-2.5 text-right">
                           {i.status === "open" ? (
                             <div className="flex flex-col items-end gap-1.5">

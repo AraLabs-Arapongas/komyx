@@ -132,6 +132,8 @@ export function getConfigSanity() {
       { name: "NOTIFY_EMAIL_SECRET", set: set("NOTIFY_EMAIL_SECRET"), hint: "webhook de e-mail das notificações" },
       { name: "SEND_EMAIL_HOOK_SECRET", set: set("SEND_EMAIL_HOOK_SECRET"), hint: "hook de e-mail do Supabase Auth" },
       { name: "SEND_SMS_HOOK_SECRET", set: set("SEND_SMS_HOOK_SECRET"), hint: "hook de SMS do Supabase Auth" },
+      { name: "ASAAS_API_KEY", set: set("ASAAS_API_KEY"), hint: `cobrança das mensalidades (${process.env.ASAAS_ENV === "production" ? "produção" : "sandbox"})` },
+      { name: "ASAAS_WEBHOOK_TOKEN", set: set("ASAAS_WEBHOOK_TOKEN"), hint: "webhook do Asaas (baixa automática)" },
     ],
   };
 }

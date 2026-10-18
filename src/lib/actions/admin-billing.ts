@@ -6,12 +6,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/data/session";
 import { logAdminAction } from "@/lib/admin/audit";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
-import { billingProvider } from "@/lib/billing/provider";
+import { asaasConfigured } from "@/lib/billing/asaas";
+import { BillingSetupError, cancelCharge, chargeInvoice, disableAutoBilling, enableAutoBilling } from "@/lib/billing/asaas-sync";
+import { settleInvoicePaid, settleInvoiceVoid } from "@/lib/billing/settle";
 import { PAYMENT_METHODS } from "@/lib/billing/invoices";
-import { toDateKey } from "@/lib/utils";
 import { dateSchema, formToObject, moneySchema, optionalText, uuid, zodFieldErrors } from "./helpers";
 
-/** Komyx invoices, charged by hand until a payment provider is chosen (/admin/cobranca). */
+/** Komyx invoices (/admin/cobranca): by hand, or through Asaas when ASAAS_API_KEY is set. */
 
 type Admin = ReturnType<typeof createAdminClient>;
 
@@ -25,11 +26,6 @@ function revalidate(orgId: string) {
 async function billableOrg(admin: Admin, id: string) {
   const { data } = await admin.from("organizations").select("id, name, kind, is_demo").eq("id", id).maybeSingle();
   return data && data.kind === "buffet" && !data.is_demo ? data : null;
-}
-
-async function hasOverdueInvoices(admin: Admin, orgId: string) {
-  const { count } = await admin.from("billing_invoices").select("id", { count: "exact", head: true }).eq("organization_id", orgId).eq("status", "open").lt("due_at", toDateKey(new Date()));
-  return (count ?? 0) > 0;
 }
 
 const createSchema = z.object({
@@ -51,10 +47,15 @@ export async function adminCreateInvoice(_prev: ActionResult | undefined, formDa
   if (!org) return fail("Este buffet não é cobrado (demo ou plataforma).");
   const { data: inv, error } = await admin.from("billing_invoices").insert({ ...d, status: "open", created_by: profile.id }).select("id").single();
   if (error || !inv) return fail(translateDbError(error));
-  await billingProvider.createCharge({ invoiceId: inv.id, organizationId: org.id, amount: d.amount, dueAt: d.due_at, description: `Komyx · ${org.name}` });
+  // With Asaas the invoice also becomes a charge with a payment link; if that fails it stays manual.
+  let charged = "";
+  if (asaasConfigured()) {
+    try { await chargeInvoice(admin, inv.id); charged = " Cobrança criada no Asaas."; }
+    catch (e) { charged = ` Não deu para criar no Asaas: ${e instanceof Error ? e.message : String(e)}`; }
+  }
   await logAdminAction(profile, "invoice.create", { organizationId: org.id, details: { invoice_id: inv.id, amount: d.amount, period_start: d.period_start, period_end: d.period_end, due_at: d.due_at } });
   revalidate(org.id);
-  return { ok: true, message: "Fatura gerada." };
+  return { ok: true, message: `Fatura gerada.${charged}` };
 }
 
 const paidSchema = z.object({ id: uuid, paid_at: dateSchema, method: z.enum(PAYMENT_METHODS.map((m) => m.value) as [string, ...string[]]) });
@@ -66,22 +67,8 @@ export async function adminMarkInvoicePaid(_prev: ActionResult | undefined, form
   const { id, paid_at, method } = parsed.data;
   const admin = createAdminClient();
   // Only an open invoice flips to paid: a second click (or a stale page) changes nothing.
-  const { data: inv, error } = await admin.from("billing_invoices").update({ status: "paid", paid_at, method }).eq("id", id).eq("status", "open").select("organization_id, period_start, period_end, amount").maybeSingle();
-  if (error) return fail(translateDbError(error));
+  const inv = await settleInvoicePaid(admin, id, paid_at, method);
   if (!inv) return fail("Esta fatura não está mais em aberto.");
-
-  // Rule: a paid invoice pays its period. The buffet's cycle becomes period_start → period_end (due_at is
-  // the next charge) and billing goes back to 'ok'. The cycle only moves forward (paying an old invoice
-  // never pulls due_at back), and billing stays 'overdue' while another open invoice is past due.
-  const { data: bill } = await admin.from("organization_billing").select("due_at").eq("organization_id", inv.organization_id).maybeSingle();
-  const forward = !bill?.due_at || inv.period_end >= bill.due_at;
-  const status = (await hasOverdueInvoices(admin, inv.organization_id)) ? "overdue" : "ok";
-  await admin.from("organization_billing").upsert({
-    organization_id: inv.organization_id,
-    status,
-    ...(forward ? { cycle_start: inv.period_start, due_at: inv.period_end } : {}),
-    updated_at: new Date().toISOString(),
-  });
   await logAdminAction(profile, "invoice.paid", { organizationId: inv.organization_id, details: { invoice_id: id, amount: inv.amount, paid_at, method } });
   revalidate(inv.organization_id);
   return { ok: true, message: "Pagamento registrado." };
@@ -93,13 +80,9 @@ export async function adminVoidInvoice(formData: FormData) {
   const id = uuid.safeParse(formData.get("id"));
   if (!id.success) return;
   const admin = createAdminClient();
-  const { data: inv } = await admin.from("billing_invoices").update({ status: "void" }).eq("id", id.data).eq("status", "open").select("organization_id, amount, due_at").maybeSingle();
+  const inv = await settleInvoiceVoid(admin, id.data);
   if (!inv) return;
-  await billingProvider.cancelCharge(null);
-  const { data: bill } = await admin.from("organization_billing").select("status").eq("organization_id", inv.organization_id).maybeSingle();
-  if (bill?.status === "overdue" && !(await hasOverdueInvoices(admin, inv.organization_id))) {
-    await admin.from("organization_billing").update({ status: "ok", updated_at: new Date().toISOString() }).eq("organization_id", inv.organization_id);
-  }
+  if (inv.provider === "asaas" && inv.external_id) await cancelCharge(inv.external_id).catch((e) => console.error("[asaas] cancel", e));
   await logAdminAction(profile, "invoice.void", { organizationId: inv.organization_id, details: { invoice_id: id.data, amount: inv.amount, due_at: inv.due_at } });
   revalidate(inv.organization_id);
 }
@@ -123,4 +106,29 @@ export async function adminUpdateMonthlyPrice(_prev: ActionResult | undefined, f
   await logAdminAction(profile, "billing.price", { organizationId: organization_id, details: { from: before?.monthly_price ?? null, to: monthly_price } });
   revalidate(organization_id);
   return { ok: true, message: "Salvo." };
+}
+
+/** Turns the Asaas monthly subscription on or off for a buffet. */
+export async function adminSetAutoBilling(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const profile = await requireAdmin();
+  const orgId = uuid.safeParse(formData.get("organization_id"));
+  if (!orgId.success) return fail("Buffet inválido.");
+  const on = formData.get("on") === "1";
+  if (!asaasConfigured()) return fail("Configure o Asaas (ASAAS_API_KEY) primeiro.");
+  const admin = createAdminClient();
+  if (!(await billableOrg(admin, orgId.data))) return fail("Este buffet não é cobrado.");
+  try {
+    if (on) {
+      const r = await enableAutoBilling(admin, orgId.data);
+      await logAdminAction(profile, "billing.auto_on", { organizationId: orgId.data, details: r });
+      revalidate(orgId.data);
+      return { ok: true, message: `Cobrança automática ligada. Primeira cobrança em ${r.nextDueDate?.split("-").reverse().join("/") ?? "—"}.` };
+    }
+    await disableAutoBilling(admin, orgId.data);
+    await logAdminAction(profile, "billing.auto_off", { organizationId: orgId.data });
+    revalidate(orgId.data);
+    return { ok: true, message: "Cobrança automática desligada." };
+  } catch (e) {
+    return fail(e instanceof BillingSetupError ? e.message : `Asaas: ${e instanceof Error ? e.message : String(e)}`);
+  }
 }

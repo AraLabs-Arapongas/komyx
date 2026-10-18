@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { adminCreateInvoice, adminMarkInvoicePaid, adminUpdateMonthlyPrice } from "@/lib/actions/admin-billing";
+import { adminCreateInvoice, adminMarkInvoicePaid, adminSetAutoBilling, adminUpdateMonthlyPrice } from "@/lib/actions/admin-billing";
 import { Field, Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -79,5 +79,19 @@ export function StatusFilter({ value }: { value: string }) {
   return (
     <SelectMenu aria-label="Filtrar faturas" value={value} size="sm" className="w-36" options={FILTERS}
       onChange={(v) => router.push(v === "todas" ? "/admin/cobranca#faturas" : `/admin/cobranca?status=${v}#faturas`, { scroll: false })} />
+  );
+}
+
+/** Asaas monthly subscription on/off for one buffet. Turning it off asks first. */
+export function AutoBillingForm({ orgId, on, available }: { orgId: string; on: boolean; available: boolean }) {
+  const [state, action] = useActionState(adminSetAutoBilling, undefined);
+  if (!available) return <span className="text-xs text-muted">—</span>;
+  return (
+    <form action={action} className="flex flex-col items-start gap-1" onSubmit={(e) => { if (on && !window.confirm("Desligar a cobrança automática? O Asaas cancela as próximas cobranças deste buffet.")) e.preventDefault(); }}>
+      <input type="hidden" name="organization_id" value={orgId} />
+      <input type="hidden" name="on" value={on ? "0" : "1"} />
+      <SubmitButton size="sm" variant={on ? "ghost" : "outline"} className="h-8 px-2 text-xs" pendingText={on ? "Desligando..." : "Ligando..."}>{on ? "Ligada · desligar" : "Ligar"}</SubmitButton>
+      {state ? <span className={state.ok ? "text-xs text-emerald-700" : "text-xs text-red-600"}>{state.ok ? state.message : state.error}</span> : null}
+    </form>
   );
 }
