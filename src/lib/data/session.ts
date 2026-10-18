@@ -22,6 +22,8 @@ export const requireProfile = cache(async (): Promise<Profile> => {
   const { data: claims } = await timed("auth.getClaims", supabase.auth.getClaims());
   const userId = claims?.claims.sub;
   if (!userId) redirect("/login");
+  // A temporary password set by the admin: the person creates their own before using the app.
+  if ((claims?.claims.app_metadata as { must_change_password?: boolean } | undefined)?.must_change_password) redirect("/nova-senha?obrigatoria=1");
 
   const { data: profile } = await timed(
     "profiles.select",

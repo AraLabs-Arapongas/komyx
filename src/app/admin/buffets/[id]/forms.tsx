@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { adminUpdateOrganization, adminResetPassword, adminSendPasswordReset } from "@/lib/actions/admin";
+import { adminUpdateOrganization, adminResetPassword, adminSendPasswordReset, adminAccessLink } from "@/lib/actions/admin";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -35,16 +35,37 @@ export function ResetPasswordForm({ userId, orgId }: { userId: string; orgId: st
   const [state, action] = useActionState(adminResetPassword, undefined);
   return (
     <details className="text-sm">
-      <summary className="cursor-pointer text-muted">Redefinir senha</summary>
-      <form action={action} className="mt-2 flex flex-wrap items-end gap-2">
-        {state && !state.ok ? <Alert>{state.error}</Alert> : null}
-        {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
+      <summary className="cursor-pointer text-muted">Definir senha provisória</summary>
+      <form action={action} className="mt-2 space-y-2">
+        <p className="text-xs text-muted">Para quando a pessoa não consegue usar o e-mail. Ela recebe um aviso (sem a senha) e cria a dela no próximo acesso. Passe a provisória por telefone.</p>
         <input type="hidden" name="user_id" value={userId} />
         <input type="hidden" name="org_id" value={orgId} />
-        <Field label="Nova senha" htmlFor={`pw_${userId}`}><Input id={`pw_${userId}`} name="password" type="text" autoComplete="off" minLength={8} className="w-56" required /></Field>
-        <SubmitButton size="sm" variant="outline">Redefinir</SubmitButton>
+        <div className="flex flex-wrap items-end gap-2">
+          <Field label="Senha provisória" htmlFor={`pw_${userId}`}><Input id={`pw_${userId}`} name="password" type="text" autoComplete="off" minLength={8} className="w-56" required /></Field>
+          <SubmitButton size="sm" variant="outline" pendingText="Definindo...">Definir</SubmitButton>
+        </div>
+        {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+        {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
       </form>
     </details>
+  );
+}
+
+/** Local/staging only: shows a "create your password" link, since e-mail is not delivered there. */
+export function AccessLinkForm({ userId }: { userId: string }) {
+  const [state, action] = useActionState(adminAccessLink, undefined);
+  return (
+    <form action={action} className="space-y-2 text-sm">
+      <input type="hidden" name="user_id" value={userId} />
+      <SubmitButton size="sm" variant="outline" pendingText="Gerando...">Gerar link de acesso (teste)</SubmitButton>
+      {state && !state.ok ? <Alert>{state.error}</Alert> : null}
+      {state?.ok && state.data?.link ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs space-y-1">
+          <p>Fora de produção o e-mail não sai. Abra este link numa janela anônima para criar a senha (vale 1 hora, uma vez):</p>
+          <a href={state.data.link} target="_blank" rel="noopener" className="break-all text-brand underline">{state.data.link}</a>
+        </div>
+      ) : null}
+    </form>
   );
 }
 

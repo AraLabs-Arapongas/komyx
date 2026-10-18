@@ -26,7 +26,6 @@ test.describe("Vídeo · Admin Komyx", () => {
     await pickOption(page, "Plano", "Premium");
     await page.getByLabel("Nome", { exact: true }).fill("Patrícia Demo");
     await page.getByLabel("E-mail").fill(ownerEmail);
-    await page.getByLabel("Senha inicial").fill("senha12345");
     await page.getByRole("button", { name: "Criar buffet e acesso" }).click();
     await page.waitForURL(/\/admin\/buffets\/[0-9a-f-]+\?created=1/);
     const detailUrl = page.url().split("?")[0];

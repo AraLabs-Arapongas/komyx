@@ -8,15 +8,15 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
 import { PasswordInput } from "@/components/ui/password-input";
 
-export function NewPasswordForm() {
+export function NewPasswordForm({ required = false }: { required?: boolean }) {
   const [state, action] = useActionState(setNewPassword, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
   return (
     <Card>
       <CardBody className="pt-5 space-y-4">
         <div>
-          <h2 className="text-lg font-semibold">Criar nova senha</h2>
-          <p className="text-sm text-muted">Escolha a nova senha da sua conta. Depois você já entra no Komyx.</p>
+          <h2 className="text-lg font-semibold">{required ? "Crie sua senha" : "Criar nova senha"}</h2>
+          <p className="text-sm text-muted">{required ? "Você entrou com uma senha provisória do suporte. Escolha a sua para continuar." : "Escolha a nova senha da sua conta. Depois você já entra no Komyx."}</p>
         </div>
         <form action={action} className="space-y-4">
           {state && !state.ok ? <Alert>{state.error}</Alert> : null}

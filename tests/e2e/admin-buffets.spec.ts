@@ -23,7 +23,6 @@ test.describe("Admin · buffet por dentro e auditoria", () => {
     await pickOption(page, "Plano", "Premium");
     await page.getByLabel("Nome", { exact: true }).fill("Dona Dentro");
     await page.getByLabel("E-mail").fill(ownerEmail);
-    await page.getByLabel("Senha inicial").fill("senha12345");
     await page.getByRole("button", { name: "Criar buffet e acesso" }).click();
     await page.waitForURL(/\/admin\/buffets\/[0-9a-f-]+\?created=1/);
     const orgId = page.url().split("/admin/buffets/")[1].split("?")[0];
@@ -42,7 +41,8 @@ test.describe("Admin · buffet por dentro e auditoria", () => {
 
     // Password e-mail (provider is "log" locally)
     await page.getByRole("button", { name: "Reenviar e-mail de senha" }).click();
-    await expect(page.getByText(`E-mail de senha enviado para ${ownerEmail}.`)).toBeVisible();
+    // The welcome e-mail just generated a link, and Supabase allows one per minute per person.
+    await expect(page.getByText(new RegExp(`E-mail de senha enviado para ${ownerEmail.replace(/[.+]/g, "\\$&")}\\.|Muitos pedidos seguidos`))).toBeVisible();
 
     // Ver como: read-only, no forms
     await page.getByRole("link", { name: "Ver como este buffet" }).first().click();
@@ -57,7 +57,6 @@ test.describe("Admin · buffet por dentro e auditoria", () => {
     await page.goto(`/admin/auditoria?org=${orgId}`);
     const table = page.locator("table");
     await expect(table.getByText("Criou buffet")).toBeVisible();
-    await expect(table.getByText("Reenviou e-mail de senha")).toBeVisible();
     await expect(table.getByText("Mudou o plano")).toBeVisible();
     await expect(table.getByText("plano: premium → basic")).toBeVisible();
     await expect(table.getByText("Viu como o buffet")).toBeVisible();

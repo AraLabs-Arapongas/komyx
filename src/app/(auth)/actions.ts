@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { fail, type ActionResult } from "@/lib/action-result";
 
 const loginSchema = z.object({
@@ -20,6 +21,9 @@ export async function login(_prev: ActionResult | undefined, formData: FormData)
   if (error) {
     // Only a real credential mismatch is "wrong password"; anything else (server down, wrong
     // Supabase URL in .env.local) should not send people hunting for a typo.
+    // Checked first: an unconfirmed account also answers 400, and "wrong password" would be a lie.
+    if (error.code === "email_not_confirmed") return fail("Seu e-mail ainda não foi confirmado. Abra o link que enviamos no cadastro, ou use \"Esqueci minha senha\" para receber um novo.");
+    if (error.code === "user_banned") return fail("Este acesso está bloqueado. Fale com o suporte da Komyx.");
     if (error.code === "invalid_credentials" || error.status === 400) return fail("E-mail ou senha incorretos.");
     return fail("Não foi possível falar com o servidor de login. Tente de novo em instantes.");
   }
@@ -87,6 +91,13 @@ export async function setNewPassword(_prev: ActionResult | undefined, formData: 
     if (error.code === "same_password") return fail("Escolha uma senha diferente da anterior.", { password: "Igual à senha anterior" });
     if (error.code === "weak_password") return fail("Senha fraca. Use pelo menos 8 caracteres.", { password: "Senha fraca" });
     return fail("Não foi possível salvar a nova senha. Peça um novo link e tente de novo.");
+  }
+  // The temporary password is gone: clear the flag (app_metadata is replaced, so keep the rest) and
+  // refresh the session so the new token no longer carries it.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user?.app_metadata?.must_change_password) {
+    await createAdminClient().auth.admin.updateUserById(user.id, { app_metadata: { ...user.app_metadata, must_change_password: false } });
+    await supabase.auth.refreshSession();
   }
   redirect("/home");
 }

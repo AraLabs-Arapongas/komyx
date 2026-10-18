@@ -9,7 +9,8 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { appUrl, formatCurrency, formatDate, formatDateTime, formatPhone, whatsappLink } from "@/lib/utils";
 import { buttonClass } from "@/components/ui/button";
-import { OrgAdminForm, ResetPasswordForm, SendResetForm } from "./forms";
+import { AccessLinkForm, OrgAdminForm, ResetPasswordForm, SendResetForm } from "./forms";
+import { emailIsLogged } from "@/lib/auth/access-link";
 import { PendingButton } from "@/components/ui/pending-button";
 import { IDLE_DAYS, daysAgoIso, isIdle, orgLastActivity } from "../activity";
 
@@ -52,7 +53,7 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
         </div>
       } />
       <PageBody>
-        {sp.created ? <Alert tone="success">Buffet criado. Envie e-mail e senha ao responsável.</Alert> : null}
+        {sp.created ? <Alert tone="success">Buffet criado. O responsável recebeu o e-mail de boas-vindas para criar a senha.</Alert> : null}
         {org.is_demo ? <Alert tone="info">Buffet de demonstração: recriado toda noite por <code>app.reset_demo_buffet()</code>. Não é cobrado nem suspenso, e fica fora dos números da plataforma.</Alert> : null}
         <OrgDataCard org={org} ownerEmail={(members ?? []).find((m) => m.role === "owner")?.email ?? null} bill={bill} />
         <div className={idle ? "rounded-2xl border border-amber-200 bg-amber-50/60 p-4 flex items-center justify-between gap-3" : "rounded-2xl border border-border bg-surface p-4 flex items-center justify-between gap-3"}>
@@ -98,6 +99,7 @@ export default async function AdminBuffetPage({ params, searchParams }: PageProp
                     </div>
                   </div>
                   <SendResetForm userId={m.id} orgId={org.id} />
+                  {emailIsLogged() ? <AccessLinkForm userId={m.id} /> : null}
                   <ResetPasswordForm userId={m.id} orgId={org.id} />
                 </li>
               ))}

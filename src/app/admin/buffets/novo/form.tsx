@@ -26,7 +26,7 @@ export function NewBuffetForm() {
         <Field label="Nome" htmlFor="owner_name" error={fe.owner_name}><Input id="owner_name" name="owner_name" required /></Field>
         <Field label="E-mail" htmlFor="owner_email" error={fe.owner_email}><Input id="owner_email" name="owner_email" type="email" required /></Field>
       </div>
-      <Field label="Senha inicial" htmlFor="owner_password" error={fe.owner_password} hint="Mínimo 8 caracteres. Envie ao responsável; ele pode trocar depois."><Input id="owner_password" name="owner_password" type="text" autoComplete="off" minLength={8} required /></Field>
+      <p className="text-sm text-muted">O responsável recebe um e-mail de boas-vindas com o link para criar a própria senha. Ninguém, nem o admin, fica sabendo a senha dele.</p>
       <SubmitButton pendingText="Criando...">Criar buffet e acesso</SubmitButton>
     </form>
   );

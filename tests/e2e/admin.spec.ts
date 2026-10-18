@@ -30,13 +30,34 @@ test.describe("Admin Komyx", () => {
     await pickOption(page, "Plano", "Premium");
     await page.getByLabel("Nome", { exact: true }).fill("Dono E2E");
     await page.getByLabel("E-mail").fill(ownerEmail);
-    await page.getByLabel("Senha inicial").fill("senha12345");
     await page.getByRole("button", { name: "Criar buffet e acesso" }).click();
     await page.waitForURL(/\/admin\/buffets\/[0-9a-f-]+\?created=1/);
     await expect(page.getByText("Buffet criado")).toBeVisible();
     await expect(page.getByText("Dono E2E")).toBeVisible();
     await expect(page.getByText("Responsável", { exact: true })).toBeVisible();
     const detailUrl = page.url().split("?")[0];
+
+    // No initial password: the admin sets a temporary one, and the owner must create their own at sign-in
+    await page.getByText("Definir senha provisória").click();
+    await page.getByLabel("Senha provisória").fill("provisoria123");
+    await page.getByRole("button", { name: "Definir", exact: true }).click();
+    await expect(page.getByText(/Senha provisória definida/)).toBeVisible();
+    await logout(page);
+    await page.goto("/login");
+    await page.getByLabel("E-mail").fill(ownerEmail);
+    await page.getByLabel("Senha", { exact: true }).fill("provisoria123");
+    await page.getByRole("button", { name: "Entrar" }).click();
+    await page.waitForURL(/\/nova-senha\?obrigatoria=1/);
+    await expect(page.getByText("Crie sua senha")).toBeVisible();
+    await page.getByLabel("Nova senha", { exact: true }).fill("senha12345");
+    await page.getByLabel("Repita a nova senha", { exact: true }).fill("senha12345");
+    await page.getByRole("button", { name: "Salvar e entrar" }).click();
+    await page.waitForURL(/\/home/);
+    await page.goto("/configuracoes");
+    await expect(page).not.toHaveURL(/nova-senha/);
+    await logout(page);
+    await login(page, ACCOUNTS.admin);
+    await page.goto(detailUrl);
 
     // Public page is live
     expect((await page.request.get(`/p/${slug}`)).status()).toBe(200);
