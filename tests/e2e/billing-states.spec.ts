@@ -47,12 +47,10 @@ test.describe("Página Assinatura em cada situação", () => {
     await expect(page).toHaveURL(/\/pausado/);
   });
 
-  test("troca agendada: aviso com Desfazer; planos recolhidos", async ({ page }) => {
+  test("troca agendada: aviso com Desfazer; planos sempre abertos", async ({ page }) => {
     await login(page, as("troca"));
     await page.goto("/assinatura");
     await expect(page.getByTestId("pending-plan")).toContainText("12 meses");
-    await expect(page.locator('[data-plan="12"]')).toBeHidden();
-    await page.getByText("Trocar de plano").click();
     await expect(page.locator('[data-plan="12"]')).toBeVisible();
   });
 

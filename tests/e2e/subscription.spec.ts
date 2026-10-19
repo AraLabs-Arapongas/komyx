@@ -51,7 +51,6 @@ test.describe.serial("Assinatura no app", () => {
     await page.goto("/assinatura");
     await expect(page.getByTestId("subscription-status")).toContainText("Seu teste grátis vai até");
     const card = page.getByTestId("plan-card");
-    await card.getByText("Trocar de plano").click();
     for (const [m, v] of [["1", "R$ 149,00"], ["3", "R$ 402,00"], ["6", "R$ 714,00"], ["12", "R$ 1.188,00"]]) await expect(card.locator(`[data-plan="${m}"]`)).toContainText(v);
     await expect(card.locator('[data-plan="1"]')).toContainText("Seu plano");
     await card.locator('[data-plan="12"]').getByRole("button", { name: "Escolher" }).click();
@@ -72,7 +71,6 @@ test.describe.serial("Assinatura no app", () => {
     await expect(page.getByTestId("billing-banner")).toHaveCount(0);
     await page.goto("/assinatura");
     const card = page.getByTestId("plan-card");
-    await card.getByText("Trocar de plano").click();
     await card.locator('[data-plan="3"]').getByRole("button", { name: "Escolher" }).click();
     await expect(card.getByTestId("pending-plan")).toContainText(`A partir de ${shortDay(end)}: plano 3 meses`);
     await expect(card.locator('[data-plan="1"]')).toContainText("Seu plano");
