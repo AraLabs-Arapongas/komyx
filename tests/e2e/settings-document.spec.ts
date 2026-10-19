@@ -22,3 +22,18 @@ test("CPF/CNPJ: máscara, erro no campo e o valor digitado continua lá", async 
   // Nothing saved: same digits as before.
   expect((data?.document ?? "").replace(/\D/g, "")).toBe(before.replace(/\D/g, ""));
 });
+
+test("Descartar volta o CPF/CNPJ e o WhatsApp ao valor salvo", async ({ page }) => {
+  await login(page, ACCOUNTS.owner);
+  await page.goto("/configuracoes/empresa");
+  const doc = page.getByLabel("CNPJ / CPF");
+  const phone = page.getByLabel("WhatsApp");
+  const [docBefore, phoneBefore] = [await doc.inputValue(), await phone.inputValue()];
+  await doc.fill("");
+  await doc.pressSequentially("12345678000190");
+  await phone.fill("");
+  await phone.pressSequentially("11911112222");
+  await page.getByRole("button", { name: "Descartar", exact: true }).click();
+  await expect(doc).toHaveValue(docBefore);
+  await expect(phone).toHaveValue(phoneBefore);
+});

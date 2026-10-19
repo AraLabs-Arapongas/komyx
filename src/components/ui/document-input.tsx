@@ -22,13 +22,22 @@ export function DocumentInput({ defaultValue, kind = "any", className, ...props 
 }) {
   const [shown, setShown] = React.useState(() => maskDocument(defaultValue ?? "", kind));
   const [touched, setTouched] = React.useState(false);
+  const input = React.useRef<HTMLInputElement | null>(null);
+  // form.reset() ("Descartar") only resets uncontrolled fields: put the saved value back here too.
+  React.useEffect(() => {
+    const form = input.current?.form;
+    if (!form) return;
+    const onReset = () => { setShown(maskDocument(defaultValue ?? "", kind)); setTouched(false); };
+    form.addEventListener("reset", onReset);
+    return () => form.removeEventListener("reset", onReset);
+  }, [defaultValue, kind]);
   const message = kind === "cpf" ? "CPF inválido: confira os números." : "CPF ou CNPJ inválido: confira os números.";
   const invalid = shown !== "" && !(kind === "cpf" ? shown.replace(/\D/g, "").length === 11 && isValidDocument(shown) : isValidDocument(shown));
   return (
     <>
       <input type="text" inputMode="numeric" autoComplete="off" placeholder={kind === "cpf" ? "000.000.000-00" : "00.000.000/0000-00 ou 000.000.000-00"} maxLength={kind === "cpf" ? 14 : 18} {...props} value={shown}
         aria-invalid={touched && invalid ? true : undefined}
-        ref={(el) => el?.setCustomValidity(invalid ? message : "")}
+        ref={(el) => { input.current = el; el?.setCustomValidity(invalid ? message : ""); }}
         onChange={(e) => setShown(maskDocument(e.target.value, kind))}
         onBlur={(e) => { setTouched(true); props.onBlur?.(e); }}
         className={cn(inputBase, "h-11 tabular-nums", touched && invalid && "border-red-500 focus:ring-red-500/30 focus:border-red-500", className)} />
