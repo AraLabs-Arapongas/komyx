@@ -32,7 +32,7 @@ export async function BillingBanner({ profile, org }: { profile: Profile; org: {
     const red = late.day >= 9;
     const payUrl = late.invoice?.payment_url ?? null;
     return (
-      <div role="status" data-testid="billing-banner" data-tone={red ? "red" : "yellow"} className={cn("border-b px-4 py-2.5 pr-28 md:pr-32 text-sm flex items-start gap-3", red ? TONE.danger : TONE.warning)}>
+      <div role="status" data-testid="billing-banner" data-tone={red ? "red" : "yellow"} className={cn("border-b px-4 py-2.5 text-sm flex items-start gap-3", red ? TONE.danger : TONE.warning)}>
         <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
         <div className="min-w-0 flex-1 space-y-0.5">
           <p>
@@ -50,7 +50,7 @@ export async function BillingBanner({ profile, org }: { profile: Profile; org: {
 
   if (bill.status === "trial" && missing.length) {
     return (
-      <div role="status" data-testid="billing-banner" data-tone="trial" className={cn("border-b px-4 py-2.5 pr-28 md:pr-32 text-sm flex items-start gap-3", TONE.info)}>
+      <div role="status" data-testid="billing-banner" data-tone="trial" className={cn("border-b px-4 py-2.5 text-sm flex items-start gap-3", TONE.info)}>
         <CreditCard className="h-4 w-4 mt-0.5 shrink-0 text-brand" />
         <p className="min-w-0 flex-1">
           Complete CNPJ/CPF e WhatsApp do buffet para continuar usando depois do teste{bill.due_at ? ` (até ${brDate(bill.due_at)})` : ""}.{" "}

@@ -26,10 +26,6 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <div className="flex min-h-screen">
       <Sidebar orgName={org.name} userName={profile.name} userEmail={profile.email} role={profile.role} isAdmin={profile.is_platform_admin} billing={billing} newRequests={(newRequests ?? 0) + (pendingChanges ?? 0)} />
       <div className="flex-1 flex flex-col min-w-0 pb-24 md:pb-0">
-        <div className="fixed top-2 right-3 z-30 flex items-center gap-1 rounded-xl bg-background/80 backdrop-blur px-1">
-          <PrivacyToggle />
-          <NotificationsBell initialUnread={unread ?? 0} />
-        </div>
         {org.status === "cancelled" ? (
           <div className="bg-red-50 border-b border-red-200 text-red-700 text-sm px-4 py-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
             <span>Assinatura cancelada{org.access_until ? ` · acesso até ${org.access_until.split("-").reverse().join("/")}` : ""} · página pública fora do ar.</span>
@@ -38,6 +34,13 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         ) : null}
         <BillingBanner profile={profile} org={org} />
         <AnnouncementBanner profileId={profile.id} />
+        {/* Eye and bell below the banners (never on top of them), stuck to the top while scrolling. */}
+        <div className="sticky top-0 z-30 h-0">
+          <div className="absolute top-2 right-3 flex items-center gap-1 rounded-xl bg-background/80 backdrop-blur px-1">
+            <PrivacyToggle />
+            <NotificationsBell initialUnread={unread ?? 0} />
+          </div>
+        </div>
         {children}
       </div>
       <BottomNav />

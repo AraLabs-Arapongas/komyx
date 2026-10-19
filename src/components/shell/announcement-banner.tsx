@@ -30,7 +30,7 @@ export async function AnnouncementBanner({ profileId }: { profileId: string }) {
         const t = TONES[a.tone] ?? TONES.info;
         const external = Boolean(a.link_url && !a.link_url.startsWith("/"));
         return (
-          <div key={a.id} role="status" data-testid="announcement" className={cn("border-b px-4 py-2.5 pr-28 md:pr-32 text-sm flex items-start gap-3", t.box)}>
+          <div key={a.id} role="status" data-testid="announcement" className={cn("border-b px-4 py-2.5 text-sm flex items-start gap-3", t.box)}>
             <Megaphone className={cn("h-4 w-4 mt-0.5 shrink-0", t.link)} />
             <div className="min-w-0 flex-1">
               <p><span className="font-semibold">{a.title}</span>{a.body ? <span className="whitespace-pre-line"> · {a.body}</span> : null}</p>
