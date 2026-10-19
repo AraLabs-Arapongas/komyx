@@ -3,7 +3,9 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 
 export type Profile = { id: string; organization_id: string; name: string; email: string; role: "owner" | "staff"; is_platform_admin: boolean };
-export type Org = { id: string; name: string; slug: string; whatsapp: string | null; pix_key: string | null; pre_reservation_validity_hours: number; status: string; plan: string; default_event_duration_minutes: number; one_event_per_day: boolean; billing_due_at?: string | null; paused?: boolean };
+export type Org = { id: string; name: string; slug: string; whatsapp: string | null; pix_key: string | null; pre_reservation_validity_hours: number; status: string; plan: string; default_event_duration_minutes: number; one_event_per_day: boolean; billing_due_at?: string | null; paused?: boolean; access_until?: string | null;
+  /** Owner only (staff can't read billing): trial, the oldest late Komyx invoice, or up to date. */
+  billing?: { trial: boolean; dueAt: string | null; lateSince: string | null } | null };
 
 type AuthState = { session: Session | null; profile: Profile | null; org: Org | null; loading: boolean; refresh: () => Promise<void>; signOut: () => Promise<void> };
 
@@ -22,15 +24,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (p) {
       // my_access_paused: day 10 of a late Komyx payment pauses the whole buffet (staff can't read billing).
       const [{ data: o }, { data: paused }] = await Promise.all([
-        supabase.from("organizations").select("id, name, slug, whatsapp, pix_key, pre_reservation_validity_hours, status, plan, one_event_per_day, default_event_duration_minutes").eq("id", p.organization_id).maybeSingle(),
+        supabase.from("organizations").select("id, name, slug, whatsapp, pix_key, pre_reservation_validity_hours, status, plan, one_event_per_day, default_event_duration_minutes, access_until").eq("id", p.organization_id).maybeSingle(),
         supabase.rpc("my_access_paused"),
       ]);
       let billingDue: string | null = null;
+      let billing: Org["billing"] = null;
       if (o && p.role === "owner") {
-        const { data: b } = await supabase.from("organization_billing").select("due_at").eq("organization_id", p.organization_id).maybeSingle();
+        const today = new Date().toISOString().slice(0, 10);
+        const [{ data: b }, { data: late }] = await Promise.all([
+          supabase.from("organization_billing").select("due_at, status").eq("organization_id", p.organization_id).maybeSingle(),
+          supabase.from("billing_invoices").select("due_at").eq("status", "open").lt("due_at", today).order("due_at").limit(1).maybeSingle(),
+        ]);
         billingDue = b?.due_at ?? null;
+        billing = { trial: b?.status === "trial", dueAt: b?.due_at ?? null, lateSince: o.status === "cancelled" ? null : late?.due_at ?? null };
       }
-      setOrg(o ? ({ ...(o as Org), billing_due_at: billingDue, paused: paused === true } as Org) : null);
+      setOrg(o ? ({ ...(o as Org), billing_due_at: billingDue, paused: paused === true, billing } as Org) : null);
     }
   }
 

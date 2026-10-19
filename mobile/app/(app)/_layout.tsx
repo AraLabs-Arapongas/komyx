@@ -11,6 +11,8 @@ export default function AppLayout() {
   if (!profile) return <Redirect href="/cliente" />;
   if (org && org.status === "suspended") return <Redirect href="/entrar" />;
   if (org?.paused && !profile.is_platform_admin) return <Redirect href="/pausado" />;
+  // Cancelled and past the paid access: closed, as on the web (/cancelada).
+  if (org?.status === "cancelled" && (!org.access_until || org.access_until < new Date().toISOString().slice(0, 10)) && !profile.is_platform_admin) return <Redirect href="/cancelada" />;
   return (
     <Stack screenOptions={{ header: (p) => <FestiveNavHeader {...p} />, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

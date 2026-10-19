@@ -13,6 +13,7 @@ import { Badge, Button, Card, CardTitle, Loading, Muted, Row, Screen, styles } f
 import { party } from "@/ui/party";
 import { FestiveHeader } from "@/ui/festive-header";
 import { AnnouncementBanner } from "@/ui/announcement-banner";
+import { BillingNotice } from "@/ui/billing-notice";
 import { colors } from "@/ui/theme";
 
 /**
@@ -84,6 +85,7 @@ export default function Home() {
             </Pressable>
           }
         />
+        <BillingNotice />
         <AnnouncementBanner />
         {!d ? <Loading /> : (
           <>

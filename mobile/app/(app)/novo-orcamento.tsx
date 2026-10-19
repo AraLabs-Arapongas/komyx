@@ -300,8 +300,9 @@ export default function NovoOrcamento() {
                   <View style={{ gap: 6 }}>
                     <Text style={styles.label}>Tema (opcional)</Text>
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                      {catalog.data.themes.map((t) => (
-                        <Pressable key={t.id} onPress={() => setThemeId(themeId === t.id ? null : t.id)} style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: themeId === t.id ? colors.brand : colors.border, backgroundColor: themeId === t.id ? colors.brandSoft : colors.surface }}>
+                      {/* "Sem tema" clears it; tapping a theme always selects it (a second tap no longer unselects), as on the web. */}
+                      {[{ id: null as string | null, name: "Sem tema" }, ...catalog.data.themes].map((t) => (
+                        <Pressable key={t.id ?? "none"} accessibilityRole="button" accessibilityState={{ selected: themeId === t.id }} onPress={() => setThemeId(t.id)} style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderStyle: t.id ? "solid" : "dashed", borderColor: themeId === t.id ? colors.brand : colors.border, backgroundColor: themeId === t.id ? colors.brandSoft : colors.surface }}>
                           <Text style={{ fontSize: 13, fontWeight: "600", color: themeId === t.id ? colors.brand : colors.foreground }}>{t.name}</Text>
                         </Pressable>
                       ))}

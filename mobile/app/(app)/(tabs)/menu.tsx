@@ -1,10 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useState } from "react";
 import { Linking, Pressable, Share, Text, View } from "react-native";
 import { useAuth } from "@/lib/auth";
-import { formatDate } from "@/lib/format";
 import { WEB_URL } from "@/lib/supabase";
+import { billingLine } from "@/ui/billing-notice";
 import { useKioskSettings } from "@/lib/kiosk";
 import { Badge, Button, Card, Muted, Screen, styles } from "@/ui/components";
 import { colors } from "@/ui/theme";
@@ -24,9 +23,8 @@ function Item({ icon, label, onPress, href }: { icon: keyof typeof Ionicons.glyp
 export default function Menu() {
   const { profile, org, signOut } = useAuth();
   const { settings: kiosk } = useKioskSettings();
-  const [now] = useState(() => Date.now());
   const publicUrl = org ? `${WEB_URL}/p/${org.slug}` : null;
-  const daysLeft = org?.billing_due_at ? Math.ceil((new Date(org.billing_due_at).getTime() - now) / 86_400_000) : null;
+  const billing = billingLine(org);
 
   return (
     <Screen padded={false}>
@@ -34,7 +32,7 @@ export default function Menu() {
         <FestiveHeader compact eyebrow={profile?.role === "owner" ? "Proprietária" : "Equipe"} title={org?.name ?? "Komyx"} subtitle={`${profile?.name} · ${profile?.email}`} />
         <View style={{ flexDirection: "row", gap: 8, alignItems: "center", paddingTop: 12, paddingBottom: 4 }}>
           <Badge tone={org?.plan === "premium" ? "brand" : "zinc"}>{org?.plan === "premium" ? "Premium" : "Básico"}</Badge>
-          {daysLeft != null ? <Muted>Fatura vence em {daysLeft} d ({formatDate(org!.billing_due_at!)})</Muted> : null}
+          {billing ? <Text testID="billing-line" style={{ fontSize: 13, color: billing.tone === "red" ? "#b91c1c" : colors.muted, fontWeight: billing.tone === "red" ? "700" : "400" }}>{billing.text}</Text> : null}
         </View>
       </View>
       <View style={{ borderTopWidth: 1, borderTopColor: colors.border }}>
