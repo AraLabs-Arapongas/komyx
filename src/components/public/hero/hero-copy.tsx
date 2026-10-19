@@ -21,12 +21,13 @@ export function HeroCopy({ org, waUrl, q, stats, variant = "band" }: Props) {
   const cinema = variant === "cinema";
   return (
     <div className={cinema ? "max-w-3xl" : ""}>
-      <div className="flex items-center gap-3 mb-5">
+      {/* The buffet's own name is the brand here: big logo and the name in display type above the headline. */}
+      <div className="flex items-center gap-4 mb-6">
         {org.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={org.logo_url} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-[var(--sun)]" />
-        ) : <span className="h-12 w-12 rounded-full grid place-items-center font-bold display text-xl" style={{ background: "var(--sun)", color: "var(--ink)" }}>{org.name[0]}</span>}
-        <span className="font-extrabold text-base" style={{ color: "var(--sun)" }}>{org.name}</span>
+          <img src={org.logo_url} alt="" className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-full object-cover ring-[3px] ring-[var(--sun)] bg-white" />
+        ) : <span className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-full grid place-items-center font-black display text-3xl sm:text-4xl" style={{ background: "var(--sun)", color: "var(--ink)" }}>{org.name[0]}</span>}
+        <span className="display font-black leading-[1.05] text-2xl sm:text-4xl text-balance" style={{ color: "var(--sun)" }}>{org.name}</span>
       </div>
       <h1 className={`display font-extrabold leading-[0.98] text-balance ${cinema ? "text-[2.75rem] sm:text-6xl lg:text-7xl" : "text-[2.6rem] sm:text-5xl lg:text-6xl"}`}>
         {titleSegments(title).map((s, i) => <span key={i} style={s.tone === "sun" ? { color: "var(--sun)" } : undefined}>{s.text}</span>)}
