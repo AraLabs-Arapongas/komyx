@@ -1,6 +1,6 @@
 import "server-only";
 import React from "react";
-import { Document, Page, Text, View, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import { formatCurrency, formatDate, formatTime } from "@/lib/utils";
 import { installmentDueLabel } from "@/lib/contract";
 
@@ -32,6 +32,8 @@ export type QuotePdfData = {
     installments: { label: string; percent: number | string; amount: number | string; rule: string; days_before: number | null; due_date: string | null }[];
     menu?: { name: string; text: string; pending: boolean }[];
   };
+  /** Pix QR for the first payment (the deposit, or the total without a payment plan). */
+  pix?: { qr: string; payload: string; amount: number; label: string; txid: string } | null;
 };
 
 const STATUS: Record<string, string> = { DRAFT: "Rascunho", SENT: "Aguardando confirmação", ACCEPTED: "Aceito", REJECTED: "Recusado" };
@@ -95,8 +97,21 @@ export function QuotePdf({ data }: { data: QuotePdfData }) {
                 <Text style={{ width: "40%", textAlign: "right" }}>{formatCurrency(i.amount)}</Text>
               </View>
             ))}
-            {org.pix_key ? <Text style={[styles.muted, { marginTop: 6 }]}>Chave Pix: {org.pix_key}</Text> : null}
+            {org.pix_key && !data.pix ? <Text style={[styles.muted, { marginTop: 6 }]}>Chave Pix: {org.pix_key}</Text> : null}
           </>
+        ) : null}
+        {data.pix ? (
+          <View wrap={false} style={{ marginTop: 14, flexDirection: "row", gap: 14, alignItems: "center", borderWidth: 1, borderColor: "#e7e5e4", borderRadius: 8, padding: 10 }}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt */}
+            <Image src={data.pix.qr} style={{ width: 110, height: 110 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.bold}>Pague com Pix · {data.pix.label} · {formatCurrency(data.pix.amount)}</Text>
+              <Text style={[styles.muted, { marginTop: 3 }]}>Abra o app do banco, escolha Pix › QR Code e aponte a câmera.</Text>
+              {org.pix_key ? <Text style={{ marginTop: 6 }}>Chave Pix: {org.pix_key}</Text> : null}
+              <Text style={[styles.muted, { marginTop: 2 }]}>Código da reserva: {data.pix.txid}</Text>
+              <Text style={{ marginTop: 6, fontSize: 7, color: "#78716c" }}>Pix copia e cola: {data.pix.payload}</Text>
+            </View>
+          </View>
         ) : null}
         {quote.notes ? (<><Text style={styles.h2}>Observações</Text><Text style={styles.body}>{quote.notes}</Text></>) : null}
         <Text style={styles.footer}>Gerado por Komyx · {org.name}</Text>

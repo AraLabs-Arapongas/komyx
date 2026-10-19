@@ -1,6 +1,8 @@
 import "server-only";
 import { loadQuoteMenu } from "@/lib/data/menu";
 import { menuSummaryLines } from "@/lib/menu";
+import QRCode from "qrcode";
+import { balancePix, eventTxid } from "@/lib/charge";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { eventTitle } from "@/components/events/event-card";
@@ -8,7 +10,7 @@ import type { QuotePdfData, ContractPdfData } from "./documents";
 
 type Client = SupabaseClient<Database>;
 
-const ORG_COLS = "name, legal_name, document, address, whatsapp, pix_key";
+const ORG_COLS = "name, legal_name, document, address, whatsapp, pix_key, city";
 
 /** Loads everything the quote PDF needs; works with the user client (RLS) or the admin client. */
 export async function loadQuotePdfData(supabase: Client, quoteId: string): Promise<QuotePdfData | null> {
@@ -17,12 +19,19 @@ export async function loadQuotePdfData(supabase: Client, quoteId: string): Promi
     .select(`id, status, subtotal, discount_total, total, notes, created_at, adults, children, package_id,
       quote_items(description, quantity, unit_price, total, sort_order),
       quote_installments(label, percent, amount, rule, days_before, due_date, sequence),
-      events(title, starts_at, ends_at, customers(name, whatsapp)),
+      events(id, pix_txid, title, starts_at, ends_at, customers(name, whatsapp)),
       organizations(${ORG_COLS})`)
     .eq("id", quoteId)
     .maybeSingle();
   if (!q || !q.events || !q.organizations || !q.events.customers) return null;
   const menu = menuSummaryLines(await loadQuoteMenu(supabase, q.id, q.package_id));
+  const installments = [...q.quote_installments].sort((a, b) => a.sequence - b.sequence);
+  // QR for the first payment: the deposit of the plan, or the whole total.
+  const first = installments[0];
+  const amount = Number(first ? first.amount : q.total);
+  const payload = balancePix(q.organizations, q.events, amount, first ? first.label.toLowerCase() : "festa");
+  const txid = eventTxid(q.events);
+  const pix = payload ? { payload, qr: await QRCode.toDataURL(payload, { margin: 1, width: 360 }), amount, label: first ? first.label : "Total", txid } : null;
   return {
     org: q.organizations,
     customer: q.events.customers,
@@ -31,8 +40,9 @@ export async function loadQuotePdfData(supabase: Client, quoteId: string): Promi
       id: q.id, status: q.status, subtotal: q.subtotal, discount_total: q.discount_total, total: q.total, notes: q.notes, created_at: q.created_at,
       menu,
       items: [...q.quote_items].sort((a, b) => a.sort_order - b.sort_order),
-      installments: [...q.quote_installments].sort((a, b) => a.sequence - b.sequence),
+      installments,
     },
+    pix,
   };
 }
 

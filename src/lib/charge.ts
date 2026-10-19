@@ -9,9 +9,9 @@ export function eventTxid(event: { id: string; pix_txid?: string | null }) {
 export type OpenItem = { label: string; amount: number };
 
 /** Pix "copia e cola" for an outstanding amount, or null when the buffet has no Pix key. */
-export function balancePix(org: { pix_key: string | null; legal_name?: string | null; name: string; city?: string | null }, event: { id: string; pix_txid?: string | null }, amount: number) {
+export function balancePix(org: { pix_key: string | null; legal_name?: string | null; name: string; city?: string | null }, event: { id: string; pix_txid?: string | null }, amount: number, what = "saldo festa") {
   if (!org.pix_key || !(amount > 0)) return null;
-  return buildPixPayload({ key: org.pix_key, merchantName: org.legal_name || org.name, merchantCity: (org.city || "SAO PAULO").split("/")[0], amount: Math.round(amount * 100) / 100, txid: eventTxid(event), description: `${eventTxid(event)} saldo festa` });
+  return buildPixPayload({ key: org.pix_key, merchantName: org.legal_name || org.name, merchantCity: (org.city || "SAO PAULO").split("/")[0], amount: Math.round(amount * 100) / 100, txid: eventTxid(event), description: `${eventTxid(event)} ${what}` });
 }
 
 /** WhatsApp text to collect what is still open after (or before) the party. */
