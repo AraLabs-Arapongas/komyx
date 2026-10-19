@@ -28,7 +28,7 @@ export default function NotFound() {
           </div>
         </div>
       </div>
-      <PublicFooter variant="light" cta={false} />
+      <PublicFooter cta={false} />
     </main>
   );
 }

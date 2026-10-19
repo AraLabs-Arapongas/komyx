@@ -24,7 +24,8 @@ test.describe("Cliente", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText(/festa/i);
     await expect(page.getByText("Mais escolhido")).toBeVisible();
     await expect(page.getByRole("link", { name: /Monte seu orçamento/ })).toBeVisible();
-    await expect(page.getByText("Desenvolvido por")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Feito por AraLabs" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Legal" })).toContainText("Termos de uso");
     await expect(page.getByRole("img", { name: "AraLabs" })).toBeVisible();
   });
 
