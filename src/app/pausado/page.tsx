@@ -4,13 +4,12 @@ import { requireProfile } from "@/lib/data/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buttonClass } from "@/components/ui/button";
 import { PendingButton } from "@/components/ui/pending-button";
-import { CopyButton } from "@/components/ui/copy-button";
 import { SUPPORT_WHATSAPP } from "@/lib/billing";
-import { asaasConfigured, getPixQrCode } from "@/lib/billing/asaas";
 import { billingDataMissing, brDate, HELP_EMAIL, lateState } from "@/lib/billing/plans";
 import { formatCurrency, formatDate, formatTime, toDateKey, whatsappLink } from "@/lib/utils";
 import { BillingDataForm } from "./data-form";
 import { PayButton } from "@/components/billing/pay-button";
+import { InvoicePix } from "@/components/billing/invoice-pix";
 
 export const metadata = { title: "Acesso pausado" };
 export const dynamic = "force-dynamic";
@@ -48,7 +47,6 @@ export default async function PausedPage() {
   const missing = org ? billingDataMissing(org) : [];
   const waiting = (requests ?? []).reduce((a, r) => a + Number(r.estimated_total ?? 0), 0);
   // Pix of the open charge when Asaas offers it; the payment page has every method anyway.
-  const pix = isOwner && invoice?.provider === "asaas" && invoice.external_id && asaasConfigured() ? await getPixQrCode(invoice.external_id).catch(() => null) : null;
   const people = (r: { participants?: number | null; estimated_participants?: number | null; adults: number | null; children: number | null }) => r.participants ?? r.estimated_participants ?? ((r.adults ?? 0) + (r.children ?? 0) || null);
 
   return (
@@ -73,17 +71,7 @@ export default async function PausedPage() {
               {/* Same button as /assinatura: opens the Asaas page (creating the charge if needed); the webhook lifts the pause. */}
               {invoice.payment_url ? <a href={invoice.payment_url} target="_blank" rel="noopener" className={buttonClass("primary", "lg")}>Pagar {formatCurrency(invoice.amount)} e voltar</a> : <PayButton invoiceId={invoice.id} amount={invoice.amount} label="Pagar" />}
               <p className="text-xs text-muted">Pix, boleto ou cartão. Assim que o pagamento for confirmado, o acesso volta sozinho.</p>
-              {pix?.payload ? (
-                <div className="rounded-xl bg-stone-50 border border-border p-3 flex flex-col sm:flex-row gap-3 items-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- inline base64 QR from Asaas */}
-                  {pix.encodedImage ? <img src={`data:image/png;base64,${pix.encodedImage}`} alt="QR Code Pix da fatura" className="h-36 w-36" /> : null}
-                  <div className="min-w-0 space-y-2 text-sm">
-                    <p className="font-medium">Pix copia e cola</p>
-                    <p className="text-xs text-muted break-all line-clamp-3">{pix.payload}</p>
-                    <CopyButton text={pix.payload} label="Copiar código Pix" />
-                  </div>
-                </div>
-              ) : null}
+              {invoice.provider === "asaas" ? <InvoicePix externalId={invoice.external_id} /> : null}
             </div>
           ) : missing.length ? (
             <div className="space-y-3">

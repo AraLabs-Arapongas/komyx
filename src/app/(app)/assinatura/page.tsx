@@ -14,6 +14,7 @@ import { PlanCard } from "./plan-card";
 import { CancelSubscription } from "./cancel-subscription";
 import { SubscribeButton } from "./subscribe-button";
 import { PayButton } from "@/components/billing/pay-button";
+import { InvoicePix } from "@/components/billing/invoice-pix";
 
 export const metadata = { title: "Assinatura" };
 
@@ -57,8 +58,9 @@ export default async function SubscriptionPage() {
     text = late.day >= 9 ? `${what} Amanhã seu acesso será pausado.` : `${what} Pague até ${day(late.payBy)} para não pausar o acesso.`;
     action = pay;
   } else if (toPay) {
-    badge = trial || bill?.status === "trial" ? ["Teste grátis", "brand"] : ["Fatura aberta", "zinc"];
-    text = `Fatura de ${formatCurrency(toPay.amount)} vence em ${day(toPay.due_at)}.`;
+    // Not late: the next invoice is already issued and can be paid early (Pix right below).
+    badge = trial || bill?.status === "trial" ? ["Teste grátis", "brand"] : ["Em dia", "green"];
+    text = `Próxima fatura: ${formatCurrency(toPay.amount)}, vence em ${day(toPay.due_at)}. Pode pagar agora, se quiser.`;
     action = pay;
   } else if (trial) {
     badge = ["Teste grátis", "brand"];
@@ -68,7 +70,7 @@ export default async function SubscriptionPage() {
       : <SubscribeButton months={period} />;
   } else {
     badge = ["Em dia", "green"];
-    text = `Próxima cobrança em ${day(bill?.due_at)}. O Asaas te avisa antes, com o link para pagar.`;
+    text = `Próxima cobrança em ${day(bill?.due_at)}. A fatura aparece aqui, com Pix, assim que for gerada, e o Asaas te avisa antes do vencimento.`;
   }
 
   return (
@@ -83,6 +85,8 @@ export default async function SubscriptionPage() {
             </div>
             <p className="text-sm text-muted" data-testid="subscription-status">{text}</p>
             {action}
+            {/* Pix right here for the invoice to pay (late or open), as on the paused screen. */}
+            {!cancelled && toPay?.provider === "asaas" ? <InvoicePix externalId={toPay.external_id} /> : null}
             {cancelled ? null : (
               <div className="border-t border-border pt-4 space-y-3">
                 {/* While late, paying comes first: no plan change until it is settled. */}
