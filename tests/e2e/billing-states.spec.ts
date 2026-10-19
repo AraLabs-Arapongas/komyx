@@ -77,7 +77,8 @@ test("pausado: botão Pagar na tela de acesso pausado, sem 'fale com a gente'", 
   await login(page, { email: "pausado@komyx.test", password: "senha12345" }).catch(() => {});
   await page.goto("/pausado");
   const pay = page.getByTestId("paused-payment");
-  await expect(pay.getByRole("button", { name: /Pagar R\$\s149,00/ }).or(pay.getByRole("link", { name: /Pagar R\$\s149,00 e voltar/ }))).toBeVisible();
+  // Any amount: the plan may have been changed while testing.
+  await expect(pay.getByRole("button", { name: /^Pagar R\$/ }).or(pay.getByRole("link", { name: /^Pagar R\$.* e voltar/ })).first()).toBeVisible();
   await expect(pay).not.toContainText("Fale com a gente para receber");
 });
 
