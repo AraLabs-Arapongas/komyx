@@ -46,7 +46,11 @@ The first build with expo-updates may ask to link the channels. If it does, acce
 - Novos textos nas mensagens de confirmação.
 - Os botões ficam travados enquanto as informações são salvas, evitando envios duplicados.
 - Avisos da Komyx direto no app.
-- Pagamento com outro valor.
+- Pague outro valor por Pix e avise o buffet de quanto pagou.
+- Início se atualiza sozinho com novos pedidos.
+- Botão para ver a senha e mensagens de login mais claras.
+- Links de reserva e de convite abrem direto no app.
+- Aviso de mensalidade e da situação da assinatura no menu.
 ```
 
 5. Send it for review.
