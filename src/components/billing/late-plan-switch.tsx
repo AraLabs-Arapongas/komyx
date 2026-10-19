@@ -8,15 +8,13 @@ import { formatCurrency } from "@/lib/utils";
 
 type Option = { months: number; label: string; total: number; perMonth: number };
 
-/** Late: "Alterar o plano" next to Pagar. Picking a plan replaces the late charge and opens the payment. */
+/** Late: the other plans, always open below Pagar. Picking a plan replaces the late charge and opens the payment. */
 export function LatePlanSwitch({ options, current }: { options: Option[]; current: number }) {
   const [state, run] = useActionState(switchPlanAndPay, undefined);
   return (
-    <details className="group" data-testid="late-plan-switch" open={Boolean(state && !state.ok)}>
-      <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-semibold text-brand hover:underline [&::-webkit-details-marker]:hidden">
-        Alterar o plano <span className="text-xs transition-transform group-open:rotate-180">▾</span>
-      </summary>
-      <form action={run} className="mt-3 space-y-2">
+    <div data-testid="late-plan-switch" className="space-y-2">
+      <p className="text-sm font-semibold">Ou mude o plano</p>
+      <form action={run} className="space-y-2">
         {state && !state.ok ? <Alert>{state.error}</Alert> : null}
         <p className="text-xs text-muted">Escolha o plano e pague por ele no lugar da fatura atrasada.</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -28,6 +26,6 @@ export function LatePlanSwitch({ options, current }: { options: Option[]; curren
           ))}
         </div>
       </form>
-    </details>
+    </div>
   );
 }
