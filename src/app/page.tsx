@@ -4,7 +4,6 @@ import { PartyScene } from "@/components/marketing/party-scene";
 import { PublicFooter } from "@/components/public/public-footer";
 import { HeroSlides } from "@/components/marketing/hero-slides";
 import { HeroStickers } from "@/components/marketing/hero-stickers";
-import { KomyxMark } from "@/components/brand/komyx-logo";
 import { AppMocks } from "@/components/marketing/app-mocks";
 import { PolaroidMocks } from "@/components/marketing/polaroid-mocks";
 import { ScrollCue } from "@/components/marketing/scroll-cue";
@@ -12,7 +11,7 @@ import { Reveal } from "@/components/marketing/reveal";
 import { publicFontClass } from "@/lib/fonts";
 import { LAUNCH_PRICE, LIST_PRICE, MONTHLY_PRICE, SHOW_TABLET_PLAN, TABLET_PLAN_PER_MONTH, SUPPORT_WHATSAPP } from "@/lib/billing";
 import { PriceCard } from "@/components/marketing/price-card";
-import { AccountButton } from "@/components/marketing/account-button";
+import { SiteHeader } from "@/components/marketing/site-header";
 import { formatCurrency, whatsappLink } from "@/lib/utils";
 import { homeJsonLd, publicPageMetadata } from "@/lib/seo";
 
@@ -51,16 +50,7 @@ export default function LandingPage() {
       <section className="relative" style={{ background: "var(--ink)", color: "var(--paper)" }}>
         <PartyScene />
         <div className="snap-page relative flex flex-col">
-          <header className="mx-auto w-full max-w-5xl px-4 pt-6 flex items-center justify-between gap-3">
-            <Link href="/" className="flex items-center gap-2.5" style={{ color: "var(--sun)" }}>
-              <KomyxMark className="h-9 w-9" />
-              <span className="leading-none"><span className="block display font-extrabold tracking-tight text-lg">Komyx</span><span className="block text-[11px] font-semibold mt-0.5" style={{ color: "#cfd2e6" }}>Gestão para buffets</span></span>
-            </Link>
-            {/* Only "Entrar" (or the signed-in avatar) here: the big hero CTA right below is the one "Criar meu buffet". */}
-            <nav className="flex items-center gap-2">
-              <AccountButton />
-            </nav>
-          </header>
+          <SiteHeader />
           <div className="relative mx-auto w-full max-w-5xl px-4 pt-8 pb-2 max-md:flex-1 max-md:flex max-md:flex-col max-md:justify-center max-md:pb-20">
             <HeroStickers />
             <h1 className="display font-extrabold text-4xl sm:text-5xl md:text-[3.25rem] leading-[1.02] max-w-3xl lg:max-w-2xl"><span className="block text-base sm:text-lg leading-tight tracking-wide mb-3" style={{ color: "var(--sun)" }}>Sistema para buffet infantil</span>{" "}A festa se vende sozinha. Você só confirma.</h1>

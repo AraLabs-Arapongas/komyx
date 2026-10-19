@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { publicFontClass } from "@/lib/fonts";
 import { PublicFooter } from "@/components/public/public-footer";
-import { KomyxLogo } from "@/components/brand/komyx-logo";
+import { SiteHeader } from "@/components/marketing/site-header";
+import { PartyScene } from "@/components/marketing/party-scene";
 
 export const metadata = { title: "Página não encontrada", robots: { index: false } };
 
@@ -12,9 +13,10 @@ export const metadata = { title: "Página não encontrada", robots: { index: fal
 export default function NotFound() {
   return (
     <main className={`${publicFontClass} public-theme font-festa flex-1 flex flex-col`}>
-      <div className="flex-1 flex flex-col" style={{ background: "var(--ink)", color: "#fff" }}>
-        <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-12 flex-1 flex flex-col">
-          <Link href="/" className="inline-flex self-start" aria-label="Komyx"><KomyxLogo markClassName="h-9 w-9" wordClassName="text-lg text-white" /></Link>
+      <div className="relative flex-1 flex flex-col overflow-hidden" style={{ background: "var(--ink)", color: "#fff" }}>
+        <PartyScene />
+        <SiteHeader />
+        <div className="relative mx-auto w-full max-w-5xl px-4 pb-8 sm:pb-12 flex-1 flex flex-col">
           <div className="flex-1 flex flex-col justify-center py-12">
             <p className="display font-black leading-none text-[5.5rem] sm:text-[8rem]" style={{ color: "var(--sun)" }}>404</p>
             <h1 className="display mt-4 text-3xl sm:text-4xl font-black leading-tight max-w-xl">Essa página não existe, ou a festa já acabou.</h1>
