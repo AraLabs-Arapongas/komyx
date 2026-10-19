@@ -27,7 +27,8 @@
       "ios": {
         "resourceClass": "m-medium"
       },
-      "channel": "production"
+      "channel": "production",
+      "node": "24.11.0"
     }
   },
   "submit": {
