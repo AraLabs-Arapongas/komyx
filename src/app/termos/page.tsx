@@ -1,6 +1,6 @@
 import { LegalPage, Section } from "@/components/legal/legal-page";
 import { publicPageMetadata } from "@/lib/seo";
-import { MONTHLY_PRICE, TRIAL_DAYS } from "@/lib/billing";
+import { TRIAL_DAYS } from "@/lib/billing";
 import { FULL_REFUND_DAYS, periodPrice } from "@/lib/billing/plans";
 import { formatCurrency } from "@/lib/utils";
 
@@ -23,19 +23,13 @@ export default function TermsPage() {
       {/* Billing clause of docs/assinatura.md, in plain words. To be reviewed by Thiago (or a lawyer). */}
       <div id="assinatura" className="scroll-mt-20">
       <Section title="3. Assinatura, pagamento e cancelamento">
-        <p><b>Teste grátis.</b> Todo buffet começa com {TRIAL_DAYS} dias de teste gratuito, sem cartão. Para continuar depois do teste, cadastre o CNPJ ou CPF e o WhatsApp do buffet; com esses dados a assinatura é criada sozinha e a primeira cobrança vence no último dia do teste.</p>
-        <p><b>Planos.</b> Mensal ({formatCurrency(periodPrice(1))} todo mês), 3 meses ({formatCurrency(periodPrice(3))} de uma vez), 6 meses ({formatCurrency(periodPrice(6))} de uma vez) ou 12 meses ({formatCurrency(periodPrice(12))} de uma vez). Você escolhe o plano em Minha conta e paga por Pix, boleto ou cartão na página da fatura. Valores podem ser atualizados com aviso prévio de 30 dias.</p>
-        <p><b>Renovação automática.</b> Ao fim de cada período a assinatura se renova pelo mesmo plano, com uma nova cobrança, até ser cancelada.</p>
-        <p><b>Troca de plano.</b> A troca vale na próxima renovação: o que já foi pago segue até o fim e o plano novo começa no dia seguinte, sem reembolso nem cobrança de diferença. Até lá é possível desfazer a troca.</p>
-        <p><b>Atraso.</b> Se a fatura não for paga no vencimento, avisamos no aplicativo e por e-mail no 1º, no 5º e no 9º dia de atraso. No 10º dia o acesso ao aplicativo fica pausado: os dados continuam guardados, a página pública continua no ar recebendo pedidos de orçamento, mas a reserva online com Pix fica suspensa. O acesso volta sozinho assim que o pagamento é confirmado.</p>
-        <p><b>Cancelamento.</b> Você cancela quando quiser em Minha conta. A página pública sai do ar no cancelamento e os dados ficam guardados por 90 dias depois do fim do acesso.</p>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>Até {FULL_REFUND_DAYS} dias depois de um pagamento: devolvemos aquele pagamento inteiro e o acesso termina no cancelamento.</li>
-          <li>Plano mensal: sem reembolso; você usa até o fim do mês pago.</li>
-          <li>Planos de 3, 6 ou 12 meses: você escolhe usar até o fim do período, sem reembolso, ou receber de volta o valor pago menos os meses usados × {formatCurrency(MONTHLY_PRICE)} (o mês começado conta como usado; o resultado nunca é negativo). Nesse caso o acesso vai até o fim do último mês contado.</li>
-        </ul>
-        <p>Exemplo: no plano de 12 meses ({formatCurrency(periodPrice(12))}), quem cancela no 5º mês recebe {formatCurrency(periodPrice(12) - 5 * MONTHLY_PRICE)} ({formatCurrency(periodPrice(12))} − 5 × {formatCurrency(MONTHLY_PRICE)}) e usa o Komyx até o fim do 5º mês.</p>
-        <p>O reembolso é feito pelo mesmo meio do pagamento quando possível; pagamentos por boleto são devolvidos por Pix.</p>
+        <p><b>Teste grátis.</b> Todo buffet começa com {TRIAL_DAYS} dias de teste gratuito, sem cartão. Para continuar depois do teste, cadastre o CNPJ ou CPF e o WhatsApp do buffet; com esses dados a assinatura é criada e a primeira cobrança vence no último dia do teste. Também é possível assinar antes, na página Assinatura.</p>
+        <p><b>Planos e pagamento.</b> Mensal ({formatCurrency(periodPrice(1))} todo mês), 3 meses ({formatCurrency(periodPrice(3))} de uma vez), 6 meses ({formatCurrency(periodPrice(6))} de uma vez) ou 12 meses ({formatCurrency(periodPrice(12))} de uma vez). A cobrança é feita pelo Asaas, nosso parceiro de pagamentos: você paga por Pix, boleto ou cartão na página de pagamento do Asaas, aberta pelo botão Pagar no Komyx. Valores podem ser atualizados com aviso prévio de 30 dias.</p>
+        <p><b>Renovação automática.</b> Ao fim de cada período a assinatura se renova pelo mesmo plano, com uma nova cobrança, até ser cancelada. A fatura seguinte aparece na página Assinatura e pode ser paga antes do vencimento.</p>
+        <p><b>Troca de plano.</b> A troca vale na próxima renovação: o que já foi pago segue até o fim e o plano novo começa no dia seguinte, sem reembolso nem cobrança de diferença; até lá é possível desfazer. Antes do primeiro pagamento, o plano escolhido vale na hora. Com uma mensalidade em atraso, você pode trocar de plano e pagar o novo no lugar da fatura atrasada.</p>
+        <p><b>Lembretes e atraso.</b> Os lembretes de cobrança, antes e depois do vencimento, são enviados pelo Asaas. Com a fatura em atraso, o Komyx mostra um aviso no aplicativo. No 10º dia de atraso o acesso ao aplicativo fica pausado e avisamos por e-mail: os dados continuam guardados e a página pública continua no ar recebendo pedidos de orçamento, mas a reserva online com Pix fica suspensa. O acesso volta sozinho assim que o pagamento é confirmado.</p>
+        <p><b>Cancelamento.</b> Você cancela quando quiser na página Assinatura. Nada mais é cobrado e você usa o Komyx até o fim do período já pago; depois disso a página pública sai do ar e os dados ficam guardados por 90 dias. Não há reembolso proporcional de períodos já pagos. Para voltar, basta pagar a mensalidade do plano escolhido: tudo volta como estava, sem perder os dias que ainda estavam pagos.</p>
+        <p><b>Arrependimento.</b> Até {FULL_REFUND_DAYS} dias depois do primeiro pagamento, você pode desistir e receber o valor pago de volta, inteiro: peça pelo <a href="/suporte" className="underline underline-offset-4">suporte</a> ou por <a href="mailto:contato@komyx.com.br" className="underline underline-offset-4">contato@komyx.com.br</a>. O reembolso é feito pelo mesmo meio do pagamento quando possível; pagamentos por boleto são devolvidos por Pix.</p>
         <p>O aplicativo do cliente é gratuito.</p>
       </Section>
       </div>
