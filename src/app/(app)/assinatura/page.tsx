@@ -52,7 +52,7 @@ export default async function SubscriptionPage() {
   if (cancelled) {
     badge = ["Cancelada", "red"];
     text = org.access_until ? `Assinatura cancelada. Acesso até ${day(org.access_until)}.` : "Assinatura cancelada.";
-    action = <ReactivateButton amount={price} size="md" />;
+    action = <ReactivateButton options={planOptions(bill?.monthly_price)} current={toPay?.months ?? period} />;
   } else if (late) {
     badge = [`Atrasada ${late.day} dia${late.day === 1 ? "" : "s"}`, late.day >= 9 ? "red" : "amber"];
     const what = toPay ? `Mensalidade de ${formatCurrency(toPay.amount)} vencida em ${day(toPay.due_at)}.` : `Mensalidade vencida em ${day(late.since)}.`;
@@ -87,7 +87,7 @@ export default async function SubscriptionPage() {
             <p className="text-sm text-muted" data-testid="subscription-status">{text}</p>
             {action}
             {/* Pix right here for the invoice to pay (late or open), as on the paused screen. */}
-            {!cancelled && toPay?.provider === "asaas" ? <InvoicePix externalId={toPay.external_id} /> : null}
+            {toPay?.provider === "asaas" ? <InvoicePix externalId={toPay.external_id} /> : null}
             {cancelled ? null : (
               <div className="border-t border-border pt-4 space-y-3">
                 {/* While late, paying comes first: no plan change until it is settled. */}

@@ -123,7 +123,8 @@ export async function cancelSubscription(_prev: ActionResult | undefined, formDa
  * Cancelled buffet: "Pagar e reativar". Opens the Asaas payment page for one plan period; the Asaas
  * webhook reactivates the buffet when the payment is confirmed (settleInvoicePaid). Nothing changes before.
  */
-export async function reactivateSubscription(): Promise<ActionResult> {
+export async function reactivateSubscription(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const months = Number(formData.get("months"));
   const profile = await requireOwner();
   const admin = createAdminClient();
   const { data: org } = await admin.from("organizations").select("status, document, whatsapp").eq("id", profile.organization_id).single();
@@ -133,7 +134,7 @@ export async function reactivateSubscription(): Promise<ActionResult> {
   if (!asaasConfigured()) return fail("Pagamento online indisponível agora. Fale com a gente pelo WhatsApp.");
   let url: string;
   try {
-    url = await startReactivation(admin, profile.organization_id);
+    url = await startReactivation(admin, profile.organization_id, isPeriodMonths(months) ? months : undefined);
   } catch (e) {
     return fail(asaasError(e));
   }

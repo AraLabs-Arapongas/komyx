@@ -62,6 +62,10 @@ test.describe("Página Assinatura em cada situação", () => {
     await expect(page.getByTestId("subscription")).toContainText("Cancelada");
     await expect(page.getByRole("button", { name: /Pagar R\$ 149,00 e reativar/ })).toBeVisible();
     await expect(page.getByText("Trocar de plano")).toHaveCount(0);
+    await expect(page.getByText("Ou volte em outro plano")).toBeVisible();
+    // Cancelled is never "late", even with a reactivation charge past its date.
+    await expect(page.getByTestId("billing-dot")).toHaveCount(0);
+    await expect(page.getByTestId("billing-banner")).toHaveCount(0);
   });
 
   test("Minha conta: só o perfil e o atalho para Assinatura", async ({ page }) => {

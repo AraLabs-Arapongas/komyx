@@ -116,15 +116,24 @@ export async function chargeInvoice(admin: Admin, invoiceId: string) {
  * still paid for ends (or today), so no paid day is lost. Reuses the open reactivation charge if any.
  * Returns the Asaas payment page.
  */
-export async function startReactivation(admin: Admin, orgId: string) {
-  const { data: pending } = await admin.from("billing_invoices").select("id, payment_url").eq("organization_id", orgId).eq("status", "open").eq("notes", REACTIVATION_NOTE).order("created_at", { ascending: false }).limit(1).maybeSingle();
-  if (pending?.payment_url) return pending.payment_url;
-  const [{ data: org }, { data: bill }] = await Promise.all([
+export async function startReactivation(admin: Admin, orgId: string, chosen?: PeriodMonths) {
+  const [{ data: org }, { data: bill }, { data: pendingRow }] = await Promise.all([
     admin.from("organizations").select("access_until").eq("id", orgId).single(),
     admin.from("organization_billing").select("monthly_price, billing_period").eq("organization_id", orgId).maybeSingle(),
+    admin.from("billing_invoices").select("id, payment_url, months, provider, external_id").eq("organization_id", orgId).eq("status", "open").eq("notes", REACTIVATION_NOTE).order("created_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
+  const months: PeriodMonths = chosen ?? (isPeriodMonths(bill?.billing_period) ? bill.billing_period : 1);
+  let pending = pendingRow;
+  // Another plan was chosen: the old reactivation charge goes away.
+  if (pending && pending.months !== months) {
+    if (pending.provider === "asaas" && pending.external_id) await deletePayment(pending.external_id).catch((e) => console.error("[asaas] delete reactivation", e));
+    await admin.from("billing_invoices").update({ status: "void" }).eq("id", pending.id).eq("status", "open");
+    pending = null;
+  }
+  // The plan of the reactivation is the one the subscription restarts with once paid.
+  await admin.from("organization_billing").update({ billing_period: months, pending_period: null, pending_from: null }).eq("organization_id", orgId);
+  if (pending?.payment_url) return pending.payment_url;
   const today = toDateKey(new Date());
-  const months: PeriodMonths = isPeriodMonths(bill?.billing_period) ? bill.billing_period : 1;
   const start = org?.access_until && org.access_until > today ? org.access_until : today;
   let id = pending?.id;
   if (!id) {

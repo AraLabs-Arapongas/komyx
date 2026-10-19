@@ -98,6 +98,11 @@ export const getLateBilling = cache(async (profile: { organization_id: string; r
   const bill = await getBilling(profile);
   if (!bill) return null;
   const supabase = await createClient();
-  const { data: open } = await supabase.from("billing_invoices").select("id, due_at, status, payment_url, amount, provider, external_id, months").eq("status", "open").order("due_at");
-  return { bill, open: open ?? [], late: lateState(bill, open ?? [], toDateKey(new Date())) };
+  const [{ data: open }, { data: org }] = await Promise.all([
+    supabase.from("billing_invoices").select("id, due_at, status, payment_url, amount, provider, external_id, months").eq("status", "open").order("due_at"),
+    supabase.from("organizations").select("status").eq("id", profile.organization_id).single(),
+  ]);
+  // A cancelled buffet is never "late": its open charge is the optional "Pagar e reativar".
+  const late = org?.status === "cancelled" ? null : lateState(bill, open ?? [], toDateKey(new Date()));
+  return { bill, open: open ?? [], late };
 });
