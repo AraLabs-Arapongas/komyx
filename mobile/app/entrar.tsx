@@ -10,6 +10,7 @@ import { supabase, WEB_URL } from "@/lib/supabase";
 import { KomyxLogo } from "@/ui/brand";
 import { Button, Field, Input, Muted, styles } from "@/ui/components";
 import { PartyBackdrop, party } from "@/ui/party";
+import { PasswordInput } from "@/ui/password-input";
 import { colors } from "@/ui/theme";
 
 // Dev-only shortcuts for seeded accounts. Seed phones use the fixed code 123456 (supabase/config.toml test_otp).
@@ -30,6 +31,15 @@ function detect(input: string): { kind: Kind; token?: string; tokenKind?: "r" | 
   const digits = normalizePhone(v);
   if (digits.length >= 10 && digits.length <= 13 && /^[\d\s()+-]+$/.test(v)) return { kind: "phone" };
   return { kind: "unknown" };
+}
+
+/** Same wording as the web login action (src/app/(auth)/actions.ts). */
+function loginError(error: { code?: string; status?: number }) {
+  // Checked first: an unconfirmed account also answers 400, and "wrong password" would be a lie.
+  if (error.code === "email_not_confirmed") return "Seu e-mail ainda não foi confirmado. Abra o link que enviamos no cadastro, ou use \"Esqueci minha senha\" para receber um novo.";
+  if (error.code === "user_banned") return "Este acesso está bloqueado. Fale com o suporte da Komyx.";
+  if (error.code === "invalid_credentials" || error.status === 400) return "E-mail ou senha incorretos.";
+  return "Não deu para entrar agora. Confira a internet e tente de novo.";
 }
 
 function toE164(input: string) {
@@ -70,7 +80,7 @@ export default function Entrar() {
       setBusy(true);
       const { error } = await supabase.auth.signInWithPassword({ email: id.trim().toLowerCase(), password });
       setBusy(false);
-      if (error) { setError("E-mail ou senha incorretos."); return; }
+      if (error) { setError(loginError(error)); return; }
       router.replace("/(app)/(tabs)/home");
       return;
     }
@@ -133,7 +143,7 @@ export default function Entrar() {
             <Input value={id} onChangeText={(v: string) => { setId(maskPhoneInput(v)); setError(null); setCodeSent(false); }} autoCapitalize="none" autoCorrect={false} autoFocus={Boolean(modo)} keyboardType={modo === "cliente" ? "phone-pad" : "email-address"} placeholder={modo === "cliente" ? "(11) 99999-0000" : modo === "buffet" ? "voce@buffet.com" : "voce@buffet.com ou (11) 99999-0000"} returnKeyType="next" editable={!codeSent} />
           </Field>
           {d.kind === "email" ? (
-            <Field label="Senha"><Input value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" onSubmitEditing={() => go()} returnKeyType="go" /></Field>
+            <Field label="Senha"><PasswordInput value={password} onChangeText={(v) => { setPassword(v); setError(null); }} textContentType="password" autoComplete="current-password" placeholder="••••••••" onSubmitEditing={() => go()} returnKeyType="go" /></Field>
           ) : null}
           {d.kind === "email" ? (
             <Pressable onPress={() => WebBrowser.openBrowserAsync(`${WEB_URL}/esqueci-senha`)} hitSlop={8} style={{ alignSelf: "flex-end", marginTop: -6 }}>

@@ -65,3 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
+/** The admin set a temporary password (web: requireProfile → /nova-senha?obrigatoria=1): the person must create their own. */
+export function mustChangePassword(session: Session | null) {
+  return Boolean((session?.user.app_metadata as { must_change_password?: boolean } | undefined)?.must_change_password);
+}

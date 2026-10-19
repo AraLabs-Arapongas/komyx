@@ -95,7 +95,9 @@ export default function EventDetail() {
     ]);
   }
   // One action at a time: a second tap while saving would record the same payment twice.
-  const busy = setStatus.isPending || addPayment.isPending;
+  // "Recebi o sinal" chains payment → quote → status; this covers the gaps between those steps.
+  const [confirmingDeposit, setConfirmingDeposit] = useState(false);
+  const busy = setStatus.isPending || addPayment.isPending || confirmingDeposit;
   const checkIn = useMutation({
     mutationFn: async (g: Guest) => {
       const arrived = Boolean(g.checked_in_at);
@@ -177,10 +179,17 @@ export default function EventDetail() {
           {ev.pix_txid && (status === "PRE_RESERVED" || status === "EXPIRED") ? (
             <View style={{ backgroundColor: colors.greenSoft, borderRadius: 12, padding: 12, gap: 8 }}>
               <Text style={styles.text}><Text style={{ fontWeight: "700" }}>Reserva online.</Text> Procure no extrato um Pix com identificador <Text style={{ fontFamily: "Courier", fontWeight: "700" }}>{ev.pix_txid}</Text>{deposit ? ` de ${formatCurrency(deposit)}` : ""}.</Text>
-              <Button disabled={busy} loading={addPayment.isPending} title="Recebi o sinal · confirmar" variant="success" size="sm" onPress={async () => {
-                await addPayment.mutateAsync({ amount: deposit ?? 0, method: "PIX", notes: "Sinal da reserva online (Pix conferido no extrato)" });
-                if (quote && quote.status !== "ACCEPTED") await supabase.from("quotes").update({ status: "ACCEPTED" }).eq("id", quote.id);
-                setStatus.mutate("CONFIRMED");
+              <Button disabled={busy} loading={confirmingDeposit || addPayment.isPending} title="Recebi o sinal · confirmar" variant="success" size="sm" onPress={async () => {
+                setConfirmingDeposit(true);
+                try {
+                  await addPayment.mutateAsync({ amount: deposit ?? 0, method: "PIX", notes: "Sinal da reserva online (Pix conferido no extrato)" });
+                  if (quote && quote.status !== "ACCEPTED") await supabase.from("quotes").update({ status: "ACCEPTED" }).eq("id", quote.id);
+                  await setStatus.mutateAsync("CONFIRMED");
+                } catch {
+                  // addPayment / setStatus already alert on error
+                } finally {
+                  setConfirmingDeposit(false);
+                }
               }} />
             </View>
           ) : null}
@@ -267,7 +276,7 @@ export default function EventDetail() {
                   <Text style={styles.text} numberOfLines={1}>{arrived ? "✓ " : ""}{g.name} <Muted>· {g.adults}A {g.children}C</Muted></Text>
                   <Muted style={{ fontSize: 11 }}>{g.source === "PUBLIC" ? "pelo link" : g.source === "DOOR" ? "na portaria" : "manual"}{g.notes ? ` · ${g.notes}` : ""}</Muted>
                 </View>
-                <Button title={arrived ? "Desfazer" : "Chegou"} size="sm" variant={arrived ? "ghost" : "outline"} onPress={() => checkIn.mutate(g)} />
+                <Button title={arrived ? "Desfazer" : "Chegou"} size="sm" variant={arrived ? "ghost" : "outline"} loading={checkIn.isPending && checkIn.variables?.id === g.id} disabled={checkIn.isPending} onPress={() => checkIn.mutate(g)} />
                 <Pressable onPress={() => removeGuest.mutate(g.id)} style={{ padding: 6 }}><Ionicons name="trash-outline" size={18} color={colors.muted} /></Pressable>
               </Row>
             );

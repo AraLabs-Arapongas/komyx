@@ -36,7 +36,7 @@ export async function loadHome() {
     supabase.from("events").select(EVENT_SELECT).gt("starts_at", endOfToday).lte("starts_at", in7d).in("status", ["CONFIRMED", "PRE_RESERVED"]).order("starts_at"),
     supabase.from("events").select(EVENT_SELECT).eq("status", "PRE_RESERVED").lte("expires_at", in48h).order("expires_at").limit(5),
     supabase.from("events").select(EVENT_SELECT).eq("origin", "SELF_SERVICE").eq("status", "PRE_RESERVED").order("created_at", { ascending: false }).limit(5),
-    supabase.from("public_requests").select("id, name, whatsapp, desired_date, desired_time, adults, children, participants, message, created_at").eq("status", "NEW").order("created_at", { ascending: false }).limit(5),
+    supabase.from("public_requests").select("id, name, whatsapp, desired_date, desired_time, adults, children, participants, message, created_at", { count: "exact" }).eq("status", "NEW").order("created_at", { ascending: false }).limit(5),
     supabase.from("event_financials").select("event_id, balance").gt("balance", 0),
   ]);
   const today = (todayRes.data ?? []) as unknown as EventRow[];
@@ -53,7 +53,7 @@ export async function loadHome() {
   const dueWeek = (owingEvents ?? []).filter((e) => e.starts_at >= nowIso && e.starts_at <= in7d).reduce((a, e) => a + (balanceOf.get(e.id) ?? 0), 0);
   const total = (owingEvents ?? []).reduce((a, e) => a + (balanceOf.get(e.id) ?? 0), 0);
 
-  return { today, week, expiring, online, requests: requestsRes.data ?? [], fin, receivables: { overdue, dueWeek, total } };
+  return { today, week, expiring, online, requests: requestsRes.data ?? [], requestsTotal: requestsRes.count ?? (requestsRes.data ?? []).length, fin, receivables: { overdue, dueWeek, total } };
 }
 
 export async function unreadNotifications() {

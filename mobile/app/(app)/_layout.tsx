@@ -1,5 +1,5 @@
 import { Redirect, Stack } from "expo-router";
-import { useAuth } from "@/lib/auth";
+import { mustChangePassword, useAuth } from "@/lib/auth";
 import { Loading } from "@/ui/components";
 import { FestiveNavHeader } from "@/ui/festive-nav-header";
 import { colors } from "@/ui/theme";
@@ -8,6 +8,8 @@ export default function AppLayout() {
   const { session, profile, loading, org } = useAuth();
   if (loading) return <Loading />;
   if (!session) return <Redirect href="/entrar" />;
+  // Temporary password set by the admin: create your own first, like the web.
+  if (mustChangePassword(session)) return <Redirect href="/nova-senha" />;
   if (!profile) return <Redirect href="/cliente" />;
   if (org && org.status === "suspended") return <Redirect href="/entrar" />;
   if (org?.paused && !profile.is_platform_admin) return <Redirect href="/pausado" />;

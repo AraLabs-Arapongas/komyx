@@ -50,7 +50,7 @@ export default function Solicitacoes() {
           {r.message ? <View style={{ backgroundColor: colors.stone50, borderRadius: 10, padding: 10 }}><Text style={styles.text}>“{r.message}”</Text></View> : null}
           <Row style={{ flexWrap: "wrap" }}>
             <Button title="Responder no WhatsApp" size="sm" variant="secondary" onPress={() => Linking.openURL(whatsappUrl(r.whatsapp, `Olá ${r.name.split(" ")[0]}! Aqui é do ${org?.name}. Recebemos seu pedido de orçamento${r.desired_date ? ` para ${r.desired_date.split("-").reverse().join("/")}` : ""}.`))} />
-            {r.status === "NEW" ? <Button title="Arquivar" size="sm" variant="ghost" onPress={() => archive.mutate(r.id)} /> : null}
+            {r.status === "NEW" ? <Button title="Arquivar" size="sm" variant="ghost" loading={archive.isPending && archive.variables === r.id} disabled={archive.isPending} onPress={() => archive.mutate(r.id)} /> : null}
           </Row>
           {r.status === "NEW" ? <Muted style={{ fontSize: 11 }}>Para transformar em orçamento com data reservada, use o Komyx na web (Solicitações → Criar orçamento).</Muted> : null}
         </Card>

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
+import { useEffect, useRef } from "react";
 import { Alert, Linking, Pressable, Text, View } from "react-native";
 import { useAuth } from "@/lib/auth";
 import { formatCurrency, formatDate, formatDateLong, formatTime, hoursLeft, toDateKey, whatsappUrl } from "@/lib/format";
@@ -40,6 +41,18 @@ export default function Home() {
   const pending = useQuery({ queryKey: ["pending-requests"], queryFn: pendingRequestsCount });
   const unread = useQuery({ queryKey: ["unread"], queryFn: unreadNotifications, refetchInterval: 60_000 });
   const d = q.data;
+
+  // Like the web bell: when the unread count goes up, something new happened, so refresh Início.
+  const lastUnread = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    const n = unread.data;
+    if (n === undefined) return;
+    if (lastUnread.current !== undefined && n > lastUnread.current) {
+      qc.invalidateQueries({ queryKey: ["home"] });
+      qc.invalidateQueries({ queryKey: ["pending-requests"] });
+    }
+    lastUnread.current = n;
+  }, [unread.data, qc]);
 
   async function act(e: EventRow, status: "CONFIRMED" | "QUOTE") {
     try {
@@ -126,7 +139,7 @@ export default function Home() {
             {/* NOVAS SOLICITAÇÕES */}
             {d.requests.length > 0 ? (
               <Card>
-                <CardTitle title="Novas solicitações" right={<Pressable onPress={() => router.push("/(app)/(tabs)/solicitacoes")}><Text style={{ color: colors.brand, fontWeight: "600" }}>Ver todas</Text></Pressable>} />
+                <CardTitle title="Novas solicitações" right={<Pressable onPress={() => router.push("/(app)/(tabs)/solicitacoes")}><Text style={{ color: colors.brand, fontWeight: "600" }}>Ver todas ({d.requestsTotal})</Text></Pressable>} />
                 {d.requests.slice(0, 3).map((r) => {
                   const people = (r.adults ?? 0) + (r.children ?? 0) || r.participants;
                   const when = r.desired_date ? new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(new Date(`${r.desired_date}T12:00:00-03:00`)) : null;

@@ -1,7 +1,8 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useState } from "react";
+import { AppState, Platform } from "react-native";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { AnimatedSplash } from "@/ui/animated-splash";
 import { applyAppFont, useAppFonts } from "@/ui/fonts";
@@ -13,6 +14,15 @@ import { colors } from "@/ui/theme";
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 15_000, retry: 1 } } });
+
+// TanStack Query's React Native recipe: treat "app came back to the foreground" as window focus,
+// so stale queries (Início included) refetch on return. On web the default visibility listener works.
+if (Platform.OS !== "web") {
+  focusManager.setEventListener((handleFocus) => {
+    const sub = AppState.addEventListener("change", (status) => handleFocus(status === "active"));
+    return () => sub.remove();
+  });
+}
 
 function Shell() {
   const { loading } = useAuth();
