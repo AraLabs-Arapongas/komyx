@@ -12,7 +12,8 @@ type Me = { name: string; email: string; admin: boolean; buffet: string | null; 
  * Komyx admins) with a small menu to the panel. Read in the browser so the landing page stays static.
  */
 export function AccountButton() {
-  const [me, setMe] = useState<Me | null>(null);
+  // undefined = still checking: render a blank of the button's size, so "Entrar" never flashes before the avatar.
+  const [me, setMe] = useState<Me | null | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
 
@@ -21,9 +22,10 @@ export function AccountButton() {
     let alive = true;
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) { if (alive) setMe(null); return; }
       const { data } = await supabase.from("profiles").select("name, email, is_platform_admin, organizations(name, logo_url)").eq("id", session.user.id).maybeSingle();
-      if (!alive || !data) return;
+      if (!alive) return;
+      if (!data) { setMe(null); return; }
       const org = data.organizations as { name: string; logo_url: string | null } | null;
       setMe({ name: data.name, email: data.email, admin: data.is_platform_admin, buffet: org?.name ?? null, logo: org?.logo_url ?? null });
     })();
@@ -39,6 +41,7 @@ export function AccountButton() {
     return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", esc); };
   }, [open]);
 
+  if (me === undefined) return <span aria-hidden className="inline-block h-10 w-24" />;
   if (!me) {
     return <Link href="/login" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10">Entrar</Link>;
   }

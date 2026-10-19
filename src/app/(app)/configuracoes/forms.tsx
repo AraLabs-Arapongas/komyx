@@ -1,5 +1,6 @@
 "use client";
 
+import { useKeepValuesOnError } from "@/components/ui/keep-values";
 import { ImageInput } from "@/components/ui/image-input";
 
 import { useActionState } from "react";
@@ -24,8 +25,9 @@ type Org = {
 export function OrganizationForm({ org }: { org: Org }) {
   const [state, action] = useActionState(updateOrganization, undefined);
   const fe = state && !state.ok ? state.fieldErrors ?? {} : {};
+  const keep = useKeepValuesOnError(state);
   return (
-    <form data-settings action={action} className="space-y-4">
+    <form data-settings action={action} {...keep} className="space-y-4">
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {state?.ok && state.message ? <Alert tone="success">{state.message}</Alert> : null}
       <Field label="Nome do buffet" htmlFor="org_name" error={fe.name}><Input id="org_name" name="name" defaultValue={org.name} required /></Field>
@@ -37,7 +39,7 @@ export function OrganizationForm({ org }: { org: Org }) {
       <Field label="Endereço" htmlFor="address"><Input id="address" name="address" defaultValue={org.address ?? ""} /></Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Razão social" htmlFor="legal_name"><Input id="legal_name" name="legal_name" defaultValue={org.legal_name ?? ""} /></Field>
-        <Field label="CNPJ / CPF" htmlFor="document"><Input id="document" name="document" defaultValue={org.document ?? ""} placeholder="CNPJ 00.000.000/0001-00" /></Field>
+        <Field label="CNPJ / CPF" htmlFor="document" error={fe.document}><Input id="document" name="document" defaultValue={org.document ?? ""} placeholder="CNPJ 00.000.000/0001-00" /></Field>
         <Field label="Cidade / UF (foro)" htmlFor="city"><Input id="city" name="city" defaultValue={org.city ?? ""} placeholder="São Paulo/SP" /></Field>
         <Field label="Chave Pix" htmlFor="pix_key"><Input id="pix_key" name="pix_key" defaultValue={org.pix_key ?? ""} /></Field>
       </div>
