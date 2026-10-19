@@ -42,7 +42,7 @@ export function PlanCard({ options, current, pending, trial, cancelled }: {
         <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-sm font-semibold text-brand hover:underline [&::-webkit-details-marker]:hidden">
           Trocar de plano <span className="text-xs transition-transform group-open:rotate-180">▾</span>
         </summary>
-        <p className="mt-2 mb-2 text-xs text-muted">{trial ? "No teste grátis o plano escolhido vale na hora." : "Vale a partir da próxima cobrança."}</p>
+        <p className="mt-2 mb-2 text-xs text-muted">{trial ? "Antes do primeiro pagamento, o plano escolhido vale na hora." : "Vale a partir da próxima cobrança."}</p>
       <form action={run} className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {options.map((o) => {
           const isCurrent = o.months === current;

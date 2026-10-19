@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { getLateBilling, getOrganization, requireProfile } from "@/lib/data/session";
+import { createClient } from "@/lib/supabase/server";
 import { PageBody, PageHeader } from "@/components/ui/page";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +29,11 @@ type Tone = "brand" | "green" | "amber" | "red" | "zinc";
 export default async function SubscriptionPage() {
   const [profile, org] = await Promise.all([requireProfile(), getOrganization()]);
   if (profile.role !== "owner") redirect("/home");
-  const state = await getLateBilling(profile);
+  const supabase = await createClient();
+  const [state, { count: paidCount }] = await Promise.all([
+    getLateBilling(profile),
+    supabase.from("billing_invoices").select("id", { count: "exact", head: true }).eq("status", "paid"),
+  ]);
   const bill = state?.bill ?? null;
   const late = state?.late && state.late.day >= 1 ? state.late : null;
   const toPay = state?.open[0] ?? null;
@@ -95,7 +100,8 @@ export default async function SubscriptionPage() {
                   options={planOptions(bill?.monthly_price)}
                   current={period}
                   pending={bill?.pending_period && bill.pending_from && isPeriodMonths(bill.pending_period) ? { months: bill.pending_period, label: PERIOD_LABEL[bill.pending_period], from: day(bill.pending_from) } : null}
-                  trial={bill?.status === "trial"}
+                  // Same rule as changePlan: before any paid invoice the new plan applies at once.
+                  trial={(paidCount ?? 0) === 0}
                   cancelled={false}
                 />}
                 <CancelSubscription accessUntil={bill?.due_at ? day(bill.due_at) : null} />
