@@ -49,7 +49,7 @@ export function UnsavedGuard({ children }: { children: ReactNode }) {
   }, [dirty]);
 
   return (
-    <div ref={ref} className="contents">
+    <div ref={ref} className="space-y-4">
       {children}
       {dirty ? (
         <div className="fixed inset-x-0 bottom-20 md:bottom-4 z-30 flex justify-center px-4 pointer-events-none">
