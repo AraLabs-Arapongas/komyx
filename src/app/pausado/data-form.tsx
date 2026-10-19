@@ -1,8 +1,9 @@
 "use client";
 
+import { DocumentInput } from "@/components/ui/document-input";
 import { useActionState } from "react";
 import { completeBillingData } from "@/lib/actions/subscription";
-import { Field, Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Alert } from "@/components/ui/page";
@@ -16,7 +17,7 @@ export function BillingDataForm({ document, whatsapp }: { document: string | nul
       {state && !state.ok ? <Alert>{state.error}</Alert> : null}
       {state?.ok ? <Alert tone="success">{state.message}</Alert> : null}
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="CNPJ / CPF do buffet" htmlFor="bd_document" error={fe.document}><Input id="bd_document" name="document" defaultValue={document ?? ""} inputMode="numeric" required /></Field>
+        <Field label="CNPJ / CPF do buffet" htmlFor="bd_document" error={fe.document}><DocumentInput id="bd_document" name="document" defaultValue={document ?? ""} required /></Field>
         <Field label="WhatsApp do buffet" htmlFor="bd_whatsapp" error={fe.whatsapp}><PhoneInput id="bd_whatsapp" name="whatsapp" defaultValue={whatsapp} required /></Field>
       </div>
       <SubmitButton size="sm" pendingText="Salvando...">Salvar e gerar a cobrança</SubmitButton>

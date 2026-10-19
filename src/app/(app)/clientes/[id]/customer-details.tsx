@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentInput } from "@/components/ui/document-input";
 import { useActionState, useEffect, useState } from "react";
 import { Pencil } from "lucide-react";
 import { updateCustomer } from "@/lib/actions/customers";
@@ -58,7 +59,7 @@ export function CustomerDetails({ customer, startEditing = false }: { customer: 
             <Field label="Origem" htmlFor="source">
               <SelectMenu id="source" name="source" defaultValue={customer.source ?? ""} options={[{ value: "", label: "Não informado" }, ...LEAD_SOURCES]} />
             </Field>
-            <Field label="CPF (só para o contrato)" htmlFor="document"><Input id="document" name="document" defaultValue={customer.document ?? ""} placeholder="000.000.000-00" /></Field>
+            <Field label="CPF (só para o contrato)" htmlFor="document"><DocumentInput kind="cpf" id="document" name="document" defaultValue={customer.document ?? ""} /></Field>
           </div>
           <input type="hidden" name="marketing_opt_in" value="false" />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="marketing_opt_in" value="true" defaultChecked={customer.marketing_opt_in} className="h-4 w-4 accent-[var(--brand)]" /> Autoriza comunicações promocionais (lembrete de aniversário, promoções)</label>

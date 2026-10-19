@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentInput } from "@/components/ui/document-input";
 import { useActionState } from "react";
 import { createCustomer, updateCustomer } from "@/lib/actions/customers";
 import { Card, CardBody } from "@/components/ui/card";
@@ -32,7 +33,7 @@ export function CustomerForm({ customer, returnTo }: { customer?: Customer; retu
           <Field label="WhatsApp" htmlFor="whatsapp" error={fe.whatsapp} hint="DDD + número"><PhoneInput id="whatsapp" name="whatsapp" defaultValue={customer?.whatsapp ?? ""} required /></Field>
           <Field label="E-mail (opcional)" htmlFor="email" error={fe.email}><Input id="email" name="email" type="email" defaultValue={customer?.email ?? ""} /></Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="CPF (para contrato)" htmlFor="document"><Input id="document" name="document" defaultValue={customer?.document ?? ""} placeholder="CPF 000.000.000-00" /></Field>
+            <Field label="CPF (para contrato)" htmlFor="document"><DocumentInput kind="cpf" id="document" name="document" defaultValue={customer?.document ?? ""} /></Field>
             <Field label="Origem" htmlFor="source">
               <SelectMenu id="source" name="source" defaultValue={customer?.source ?? ""} options={[{ value: "", label: "Não informado" }, ...LEAD_SOURCES]} />
             </Field>
