@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ExternalLink, Lock } from "lucide-react";
 import { requireOwner, getOrganization } from "@/lib/data/session";
-import { PageBody, PageHeader } from "@/components/ui/page";
+import { PageBody } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { CopyButton } from "@/components/ui/copy-button";
 import { buttonClass } from "@/components/ui/button";
@@ -24,13 +24,11 @@ export default async function PublicPageSettings({ searchParams }: PageProps<"/c
 
   return (
     <>
-      <PageHeader title="Página pública" back="/configuracoes" action={
-        <div className="flex items-center gap-2">
+      <PageBody>
+        <div className="flex items-center justify-end gap-2">
           <Link href={`/p/${org.slug}`} target="_blank" className={buttonClass("outline", "sm")}>Abrir página <ExternalLink className="h-3.5 w-3.5" /></Link>
           <CopyButton text={publicUrl} />
         </div>
-      } />
-      <PageBody>
         <UnsavedGuard>
           <Card>
             <CardHeader title="Links" subtitle="Use na bio do Instagram e em anúncios. O ?src= diz de onde veio o lead." />

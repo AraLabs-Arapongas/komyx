@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireOwner } from "@/lib/data/session";
 import { removeStaff } from "@/lib/actions/settings";
-import { PageBody, PageHeader } from "@/components/ui/page";
+import { PageBody } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StaffForm } from "../forms";
@@ -15,7 +15,6 @@ export default async function TeamSettings() {
   const { data: team } = await supabase.from("profiles").select("id, name, email, role").order("role").order("name");
   return (
     <>
-      <PageHeader title="Equipe" back="/configuracoes" />
       <PageBody>
         <Card>
           <CardHeader title="Quem tem acesso" subtitle="Equipe cria e edita eventos, clientes, orçamentos e pagamentos. Não altera configurações." />

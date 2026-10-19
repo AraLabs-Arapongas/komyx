@@ -1,5 +1,5 @@
 import { requireOwner, getOrganization } from "@/lib/data/session";
-import { PageBody, PageHeader } from "@/components/ui/page";
+import { PageBody } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PaymentPlanForm } from "../forms";
 import { UnsavedGuard } from "../unsaved-guard";
@@ -14,7 +14,6 @@ export default async function CommercialSettings() {
   const plan = (Array.isArray(org.payment_plan) ? org.payment_plan : []) as PlanItem[];
   return (
     <>
-      <PageHeader title="Comercial" back="/configuracoes" />
       <PageBody>
         <UnsavedGuard>
           <Card>

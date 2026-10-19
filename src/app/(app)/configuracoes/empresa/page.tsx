@@ -1,5 +1,5 @@
 import { requireOwner, getOrganization } from "@/lib/data/session";
-import { PageBody, PageHeader } from "@/components/ui/page";
+import { PageBody } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { OrganizationForm } from "../forms";
 import { UnsavedGuard } from "../unsaved-guard";
@@ -11,7 +11,6 @@ export default async function CompanySettings() {
   const org = await getOrganization();
   return (
     <>
-      <PageHeader title="Empresa" back="/configuracoes" />
       <PageBody>
         <UnsavedGuard>
           <Card>

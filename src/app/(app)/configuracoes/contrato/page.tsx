@@ -1,5 +1,5 @@
 import { requireOwner, getOrganization } from "@/lib/data/session";
-import { PageBody, PageHeader } from "@/components/ui/page";
+import { PageBody } from "@/components/ui/page";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { CONTRACT_PLACEHOLDERS } from "@/lib/contract";
 import { ContractTemplateForm } from "../forms";
@@ -12,7 +12,6 @@ export default async function ContractSettings() {
   const org = await getOrganization();
   return (
     <>
-      <PageHeader title="Contrato" back="/configuracoes" />
       <PageBody>
         <UnsavedGuard>
           <Card>
