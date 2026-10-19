@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { BadgeCheck, MessageCircle } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
+import { WhatsAppIcon } from "@/components/brand/social-icons";
 import { buildPixPayload } from "@/lib/pix";
 import { formatCurrency } from "@/lib/utils";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -68,7 +69,7 @@ export function PixPay({ token, orgName, pix, label, suggested, payload, qr, max
           <p className="flex flex-wrap items-center gap-2">Chave: <code className="rounded bg-white px-1.5 py-0.5">{pix.key}</code> <CopyButton text={pix.key} label="Copiar chave" /></p>
           <p className="flex flex-wrap items-center gap-2">Pix copia e cola <CopyButton text={code} label="Copiar código" /></p>
           <p className="text-xs rounded-lg px-2.5 py-1.5 bg-white">Código da reserva: <b>{pix.txid}</b>. Vai no identificador do Pix; se pagar manualmente, escreva na descrição.</p>
-          {waBuffet ? <a href={waBuffet} target="_blank" rel="noopener" className="inline-flex h-10 items-center gap-2 rounded-full px-4 font-extrabold text-white" style={{ background: "var(--berry)" }}><MessageCircle className="h-4 w-4" /> Enviar comprovante</a> : null}
+          {waBuffet ? <a href={waBuffet} target="_blank" rel="noopener" className="inline-flex h-10 items-center gap-2 rounded-full px-4 font-extrabold text-white" style={{ background: "var(--berry)" }}><WhatsAppIcon className="h-4 w-4" /> Enviar comprovante</a> : null}
         </div>
       </div>
 

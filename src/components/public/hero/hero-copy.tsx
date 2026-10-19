@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Calculator, MessageCircle, type LucideIcon } from "lucide-react";
+import { Calculator, type LucideIcon } from "lucide-react";
+import { WhatsAppIcon } from "@/components/brand/social-icons";
 import { titleSegments } from "@/lib/hero";
 
 export type HeroStat = { icon: LucideIcon; value: string | number; label: string };
@@ -39,7 +40,7 @@ export function HeroCopy({ org, waUrl, q, stats, variant = "band" }: Props) {
         </Link>
         {waUrl ? (
           <a href={waUrl} target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold text-base ring-2 ring-inset ring-white/35 bg-white/5 hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sun)]">
-            <MessageCircle className="h-5 w-5" /> Falar no WhatsApp
+            <WhatsAppIcon className="h-5 w-5" /> Falar no WhatsApp
           </a>
         ) : null}
       </div>

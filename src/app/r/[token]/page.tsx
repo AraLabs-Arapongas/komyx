@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { CalendarDays, Download, MessageCircle, FileSignature } from "lucide-react";
+import { CalendarDays, Download, FileSignature } from "lucide-react";
+import { WhatsAppIcon } from "@/components/brand/social-icons";
 import { loadReservation } from "@/lib/data/reservation";
 import { MenuSummary } from "@/components/menu/menu-summary";
 import { PublicFooter } from "@/components/public/public-footer";
@@ -60,7 +61,7 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
           {ev.status === "CONFIRMED" ? <p className="text-sm text-emerald-700">Sinal recebido. Sua festa está confirmada!</p> : null}
           <div className="flex flex-wrap gap-2 pt-1 text-xs items-center" style={{ color: "var(--muted-ink)" }}>
             <span>Link desta página:</span><span className="break-all">{selfUrl}</span><CopyButton text={selfUrl} label="Copiar" />
-            <a href={`https://wa.me/?text=${encodeURIComponent(`Minha reserva no ${org.name}: ${selfUrl}`)}`} target="_blank" rel="noopener" className={buttonClass("outline", "sm")}><MessageCircle className="h-4 w-4" /> Enviar pra mim</a>
+            <a href={`https://wa.me/?text=${encodeURIComponent(`Minha reserva no ${org.name}: ${selfUrl}`)}`} target="_blank" rel="noopener" className={buttonClass("outline", "sm")}><WhatsAppIcon className="h-4 w-4" /> Enviar pra mim</a>
           </div>
         </section>
 
@@ -114,7 +115,7 @@ export default async function ReservationPage({ params }: PageProps<"/r/[token]"
 
         <AppCta className="bg-white border" />
 
-        {waBuffet ? <a href={waBuffet} target="_blank" rel="noopener" className={buttonClass("secondary", "lg", "w-full")}><MessageCircle className="h-5 w-5" /> Falar com o buffet</a> : null}
+        {waBuffet ? <a href={waBuffet} target="_blank" rel="noopener" className={buttonClass("secondary", "lg", "w-full")}><WhatsAppIcon className="h-5 w-5" /> Falar com o buffet</a> : null}
       </div>
       <PublicFooter variant="light" orgName={org.name} />
     </main>

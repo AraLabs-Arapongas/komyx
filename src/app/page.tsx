@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Check, MessageCircle, Sparkles, Tablet } from "lucide-react";
+import { Check, Sparkles, Tablet } from "lucide-react";
+import { WhatsAppIcon } from "@/components/brand/social-icons";
 import { PartyScene } from "@/components/marketing/party-scene";
 import { PublicFooter } from "@/components/public/public-footer";
 import { HeroSlides } from "@/components/marketing/hero-slides";
@@ -151,7 +152,7 @@ export default function LandingPage() {
             <p className="max-md:text-sm" style={{ color: "#cfd2e6" }}>Crie o buffet, cadastre dois pacotes e mande o link para o próximo cliente que perguntar o preço.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
               <Link href="/signup" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-extrabold" style={{ background: "var(--berry)", color: "#fff" }}>Criar meu buffet</Link>
-              <a href={whatsappLink(SUPPORT_WHATSAPP, "Oi! Quero conhecer o Komyx.")} target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10"><MessageCircle className="h-5 w-5" /> Falar com a gente</a>
+              <a href={whatsappLink(SUPPORT_WHATSAPP, "Oi! Quero conhecer o Komyx.")} target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 h-14 px-6 rounded-full font-bold ring-2 ring-inset ring-white/30 hover:bg-white/10"><WhatsAppIcon className="h-5 w-5" /> Falar com a gente</a>
             </div>
           </Reveal>
         </section>

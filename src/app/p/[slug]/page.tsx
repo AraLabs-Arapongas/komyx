@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { MapPin, Camera, MessageCircle, Check, Star, Navigation } from "lucide-react";
+import { MapPin, Check, Star, Navigation } from "lucide-react";
+import { WhatsAppIcon, InstagramIcon } from "@/components/brand/social-icons";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatCurrency, whatsappLink } from "@/lib/utils";
 import { BuffetHero } from "@/components/public/hero/hero";
@@ -98,7 +99,7 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
 
       {waUrl ? (
         <a href={waUrl} target="_blank" rel="noopener" aria-label="Falar no WhatsApp" className="md:hidden fixed bottom-4 right-4 z-30 h-14 w-14 rounded-full grid place-items-center shadow-lg" style={{ background: "#25D366", color: "#fff" }}>
-          <MessageCircle className="h-7 w-7" />
+          <WhatsAppIcon className="h-7 w-7" />
         </a>
       ) : null}
 
@@ -220,8 +221,8 @@ export default async function PublicBuffetPage({ params, searchParams }: PagePro
             <p className="mt-3" style={{ color: "#cfd2e6" }}>Deixe seu contato e respondemos pelo WhatsApp com datas livres e valores.</p>
             <ul className="mt-6 space-y-3 text-sm">
               {mapsUrl ? <li><a href={mapsUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-2 underline-offset-4 hover:underline"><MapPin className="h-4 w-4" style={{ color: "var(--sun)" }} /> {org.address}</a></li> : null}
-              {org.instagram ? <li><a href={`https://instagram.com/${org.instagram}`} target="_blank" rel="noopener" className="inline-flex items-center gap-2 underline-offset-4 hover:underline"><Camera className="h-4 w-4" style={{ color: "var(--sun)" }} /> @{org.instagram}</a></li> : null}
-              {waUrl ? <li><a href={waUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-2 underline-offset-4 hover:underline"><MessageCircle className="h-4 w-4" style={{ color: "var(--sun)" }} /> WhatsApp</a></li> : null}
+              {org.instagram ? <li><a href={`https://instagram.com/${org.instagram}`} target="_blank" rel="noopener" className="inline-flex items-center gap-2 underline-offset-4 hover:underline"><InstagramIcon className="h-4 w-4" style={{ color: "var(--sun)" }} /> @{org.instagram}</a></li> : null}
+              {waUrl ? <li><a href={waUrl} target="_blank" rel="noopener" className="inline-flex items-center gap-2 underline-offset-4 hover:underline"><WhatsAppIcon className="h-4 w-4" style={{ color: "var(--sun)" }} /> WhatsApp</a></li> : null}
             </ul>
           </div>
           <div className="scallop rounded-b-3xl pt-8 px-5 pb-6 sm:px-8">
