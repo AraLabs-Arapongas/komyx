@@ -13,7 +13,7 @@ import { ReactivateButton } from "@/components/billing/reactivate-button";
 import { PlanCard } from "./plan-card";
 import { CancelSubscription } from "./cancel-subscription";
 import { SubscribeButton } from "./subscribe-button";
-import { PayButton } from "./pay-button";
+import { PayButton } from "@/components/billing/pay-button";
 
 export const metadata = { title: "Assinatura" };
 

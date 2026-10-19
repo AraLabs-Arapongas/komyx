@@ -10,6 +10,7 @@ import { asaasConfigured, getPixQrCode } from "@/lib/billing/asaas";
 import { billingDataMissing, brDate, HELP_EMAIL, lateState } from "@/lib/billing/plans";
 import { formatCurrency, formatDate, formatTime, toDateKey, whatsappLink } from "@/lib/utils";
 import { BillingDataForm } from "./data-form";
+import { PayButton } from "@/components/billing/pay-button";
 
 export const metadata = { title: "Acesso pausado" };
 export const dynamic = "force-dynamic";
@@ -69,7 +70,9 @@ export default async function PausedPage() {
           ) : invoice ? (
             <div className="space-y-3">
               <p className="text-sm">Fatura de <span className="font-semibold">{formatCurrency(invoice.amount)}</span>, vencida em {brDate(invoice.due_at)}.</p>
-              {invoice.payment_url ? <a href={invoice.payment_url} target="_blank" rel="noopener" className={buttonClass("primary", "lg")}>Pagar agora · Pix, boleto ou cartão</a> : <p className="text-sm text-muted">Fale com a gente para receber os dados de pagamento.</p>}
+              {/* Same button as /assinatura: opens the Asaas page (creating the charge if needed); the webhook lifts the pause. */}
+              {invoice.payment_url ? <a href={invoice.payment_url} target="_blank" rel="noopener" className={buttonClass("primary", "lg")}>Pagar {formatCurrency(invoice.amount)} e voltar</a> : <PayButton invoiceId={invoice.id} amount={invoice.amount} label="Pagar" />}
+              <p className="text-xs text-muted">Pix, boleto ou cartão. Assim que o pagamento for confirmado, o acesso volta sozinho.</p>
               {pix?.payload ? (
                 <div className="rounded-xl bg-stone-50 border border-border p-3 flex flex-col sm:flex-row gap-3 items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element -- inline base64 QR from Asaas */}

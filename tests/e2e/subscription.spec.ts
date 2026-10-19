@@ -124,7 +124,7 @@ test.describe.serial("Assinatura no app", () => {
     await expect(page.getByTestId("paused-requests")).toContainText("R$ 3.500,00");
     await expect(page.getByTestId("paused-events")).toContainText("Aniversário da Nina");
     await expect(page.getByTestId("paused-events")).toContainText("70 convidados");
-    await expect(page.getByTestId("paused-payment").getByRole("link", { name: /Pagar agora/ })).toHaveAttribute("href", "https://sandbox.asaas.com/i/e2e");
+    await expect(page.getByTestId("paused-payment").getByRole("link", { name: /Pagar R\$\s149,00 e voltar/ })).toHaveAttribute("href", "https://sandbox.asaas.com/i/e2e");
     await page.goto("/assinatura");
     await page.waitForURL(/\/pausado/);
 

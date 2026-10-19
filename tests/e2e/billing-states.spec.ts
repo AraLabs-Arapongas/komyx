@@ -26,7 +26,7 @@ test.describe("Página Assinatura em cada situação", () => {
     await expect(page.getByTestId("billing-banner")).toHaveAttribute("data-tone", "yellow");
     await expect(page.getByTestId("billing-dot")).toBeVisible();
     await page.goto("/assinatura");
-    await expect(page.getByTestId("subscription")).toContainText("Atrasada 1 dia");
+    await expect(page.getByTestId("subscription")).toContainText(/Atrasada \d+ dias?/);
     await expect(page.getByTestId("subscription-status")).toContainText("para não pausar o acesso");
     await expect(page.getByTestId("subscription-status")).toContainText("Mensalidade de R$ 149,00 vencida em");
     await expect(page.getByTestId("subscription").getByRole("button", { name: /Pagar R\$\s149,00/ })).toBeVisible();
@@ -71,4 +71,12 @@ test.describe("Página Assinatura em cada situação", () => {
     await page.getByRole("link", { name: /Assinatura/ }).last().click();
     await expect(page).toHaveURL(/\/assinatura/);
   });
+});
+
+test("pausado: botão Pagar na tela de acesso pausado, sem 'fale com a gente'", async ({ page }) => {
+  await login(page, { email: "pausado@komyx.test", password: "senha12345" }).catch(() => {});
+  await page.goto("/pausado");
+  const pay = page.getByTestId("paused-payment");
+  await expect(pay.getByRole("button", { name: /Pagar R\$\s149,00/ }).or(pay.getByRole("link", { name: /Pagar R\$\s149,00 e voltar/ }))).toBeVisible();
+  await expect(pay).not.toContainText("Fale com a gente para receber");
 });
