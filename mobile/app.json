@@ -14,7 +14,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.aralabs.komyx",
       "associatedDomains": [
-        "applinks:komyx.com.br"
+        "applinks:komyx.com.br",
+        "applinks:www.komyx.com.br"
       ],
       "config": {
         "usesNonExemptEncryption": false
