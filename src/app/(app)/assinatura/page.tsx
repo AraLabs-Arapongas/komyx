@@ -15,6 +15,7 @@ import { CancelSubscription } from "./cancel-subscription";
 import { SubscribeButton } from "./subscribe-button";
 import { PayButton } from "@/components/billing/pay-button";
 import { InvoicePix } from "@/components/billing/invoice-pix";
+import { LatePlanSwitch } from "@/components/billing/late-plan-switch";
 
 export const metadata = { title: "Assinatura" };
 
@@ -56,7 +57,7 @@ export default async function SubscriptionPage() {
     badge = [`Atrasada ${late.day} dia${late.day === 1 ? "" : "s"}`, late.day >= 9 ? "red" : "amber"];
     const what = toPay ? `Mensalidade de ${formatCurrency(toPay.amount)} vencida em ${day(toPay.due_at)}.` : `Mensalidade vencida em ${day(late.since)}.`;
     text = late.day >= 9 ? `${what} Amanhã seu acesso será pausado.` : `${what} Pague até ${day(late.payBy)} para não pausar o acesso.`;
-    action = pay;
+    action = <div className="space-y-3">{pay}<LatePlanSwitch options={planOptions(bill?.monthly_price)} current={toPay?.months ?? period} /></div>;
   } else if (toPay) {
     // Not late: the next invoice is already issued and can be paid early (Pix right below).
     badge = trial || bill?.status === "trial" ? ["Teste grátis", "brand"] : ["Em dia", "green"];

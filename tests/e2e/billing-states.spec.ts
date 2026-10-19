@@ -80,3 +80,12 @@ test("pausado: botão Pagar na tela de acesso pausado, sem 'fale com a gente'", 
   await expect(pay.getByRole("button", { name: /Pagar R\$\s149,00/ }).or(pay.getByRole("link", { name: /Pagar R\$\s149,00 e voltar/ }))).toBeVisible();
   await expect(pay).not.toContainText("Fale com a gente para receber");
 });
+
+test("atrasado: Alterar o plano mostra os outros planos", async ({ page }) => {
+  await login(page, { email: "vencido@komyx.test", password: "senha12345" });
+  await page.goto("/assinatura");
+  await page.getByText("Alterar o plano").click();
+  const sw = page.getByTestId("late-plan-switch");
+  for (const t of ["3 meses · R$ 402,00", "6 meses · R$ 714,00", "12 meses · R$ 1.188,00"]) await expect(sw.getByRole("button", { name: new RegExp(t.replace(/[.$]/g, "\\$&")) })).toBeVisible();
+  await expect(sw.getByRole("button", { name: /Mensal/ })).toHaveCount(0);
+});

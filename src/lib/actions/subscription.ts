@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireOwner } from "@/lib/data/session";
 import { fail, translateDbError, type ActionResult } from "@/lib/action-result";
 import { asaasConfigured } from "@/lib/billing/asaas";
-import { BillingSetupError, chargeInvoice, enableAutoBilling, startReactivation } from "@/lib/billing/asaas-sync";
+import { BillingSetupError, chargeInvoice, enableAutoBilling, startReactivation, switchLatePlan } from "@/lib/billing/asaas-sync";
 import { cancelWithOption, changePlan, logBilling, maybeAutoEnable, subscriptionContext } from "@/lib/billing/subscription";
 import { billingDataMissing, brDate, isPeriodMonths, PERIOD_LABEL } from "@/lib/billing/plans";
 import { INVALID_DOCUMENT, isValidDocument } from "@/lib/document";
@@ -163,6 +163,25 @@ export async function payInvoice(_prev: ActionResult | undefined, formData: Form
   if (!charged?.payment_url) return fail("Não deu para abrir o pagamento agora. Tente de novo em instantes.");
   revalidateBilling();
   redirect(charged.payment_url);
+}
+
+/** Late buffet: "Alterar o plano" → the chosen plan replaces the late charge and the Asaas page opens. */
+export async function switchPlanAndPay(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  const months = Number(formData.get("months"));
+  if (!isPeriodMonths(months)) return fail("Plano inválido.");
+  const profile = await requireOwner();
+  if (!asaasConfigured()) return fail("Pagamento online indisponível agora. Fale com a gente pelo WhatsApp.");
+  const admin = createAdminClient();
+  let url: string | null;
+  try {
+    url = await switchLatePlan(admin, profile.organization_id, months);
+  } catch (e) {
+    return fail(asaasError(e));
+  }
+  await logBilling(admin, profile, "subscription.late_plan_change", profile.organization_id, { months });
+  revalidateBilling();
+  if (!url) return fail("Não deu para abrir o pagamento agora. Tente de novo em instantes.");
+  redirect(url);
 }
 
 const dataSchema = z.object({

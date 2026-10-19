@@ -5,11 +5,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { buttonClass } from "@/components/ui/button";
 import { PendingButton } from "@/components/ui/pending-button";
 import { SUPPORT_WHATSAPP } from "@/lib/billing";
-import { billingDataMissing, brDate, HELP_EMAIL, lateState } from "@/lib/billing/plans";
+import { billingDataMissing, brDate, HELP_EMAIL, lateState, planOptions } from "@/lib/billing/plans";
 import { formatCurrency, formatDate, formatTime, toDateKey, whatsappLink } from "@/lib/utils";
 import { BillingDataForm } from "./data-form";
 import { PayButton } from "@/components/billing/pay-button";
 import { InvoicePix } from "@/components/billing/invoice-pix";
+import { LatePlanSwitch } from "@/components/billing/late-plan-switch";
 
 export const metadata = { title: "Acesso pausado" };
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ export default async function PausedPage() {
   const orgId = profile.organization_id;
   const [{ data: org }, { data: bill }] = await Promise.all([
     admin.from("organizations").select("name, status, document, whatsapp").eq("id", orgId).single(),
-    admin.from("organization_billing").select("status, due_at, paused_at").eq("organization_id", orgId).maybeSingle(),
+    admin.from("organization_billing").select("status, due_at, paused_at, monthly_price").eq("organization_id", orgId).maybeSingle(),
   ]);
   if (!bill?.paused_at || org?.status !== "active") redirect("/home");
 
@@ -39,7 +40,7 @@ export default async function PausedPage() {
   const [{ data: requests }, { data: events }, { data: open }] = await Promise.all([
     admin.from("public_requests").select("id, name, desired_date, participants, adults, children, estimated_total, created_at").eq("organization_id", orgId).eq("status", "NEW").order("created_at", { ascending: false }).limit(50),
     admin.from("events").select("id, starts_at, title, celebrant_name, adults, children, estimated_participants, customers(name)").eq("organization_id", orgId).in("status", ["CONFIRMED", "PRE_RESERVED"]).gte("starts_at", new Date().toISOString()).order("starts_at").limit(30),
-    admin.from("billing_invoices").select("id, due_at, status, payment_url, amount, provider, external_id").eq("organization_id", orgId).eq("status", "open").order("due_at"),
+    admin.from("billing_invoices").select("id, due_at, status, payment_url, amount, provider, external_id, months").eq("organization_id", orgId).eq("status", "open").order("due_at"),
   ]);
   const late = lateState(bill, open ?? [], today);
   const invoice = late?.invoice ? (open ?? []).find((i) => i.id === late.invoice!.id) ?? null : null;
@@ -71,6 +72,7 @@ export default async function PausedPage() {
               {/* Same button as /assinatura: opens the Asaas page (creating the charge if needed); the webhook lifts the pause. */}
               {invoice.payment_url ? <a href={invoice.payment_url} target="_blank" rel="noopener" className={buttonClass("primary", "lg")}>Pagar {formatCurrency(invoice.amount)} e voltar</a> : <PayButton invoiceId={invoice.id} amount={invoice.amount} label="Pagar" />}
               <p className="text-xs text-muted">Pix, boleto ou cartão. Assim que o pagamento for confirmado, o acesso volta sozinho.</p>
+              <LatePlanSwitch options={planOptions(bill?.monthly_price)} current={invoice.months ?? 1} />
               {invoice.provider === "asaas" ? <InvoicePix externalId={invoice.external_id} /> : null}
             </div>
           ) : missing.length ? (

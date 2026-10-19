@@ -143,6 +143,39 @@ export async function startReactivation(admin: Admin, orgId: string) {
 
 const REACTIVATION_NOTE = "Reativação da assinatura";
 
+/**
+ * Late buffet changes plan to pay ("Alterar o plano" next to "Pagar"): the unpaid charge is replaced by
+ * one for the new plan, covering the same unpaid period from its start. It keeps the old due date, so the
+ * buffet stays late (and paused, if it was) until this one is paid. The Asaas subscription moves to the new
+ * plan from the end of that period. Returns the Asaas payment page of the new charge.
+ */
+export async function switchLatePlan(admin: Admin, orgId: string, months: PeriodMonths) {
+  const today = toDateKey(new Date());
+  const { data: late } = await admin.from("billing_invoices").select("id, period_start, due_at, months, provider, external_id, payment_url")
+    .eq("organization_id", orgId).eq("status", "open").lt("due_at", today).order("due_at").limit(1).maybeSingle();
+  if (!late) throw new BillingSetupError("Não há mensalidade atrasada para trocar. Recarregue a página.");
+  if (late.months === months) {
+    if (!late.payment_url) await chargeInvoice(admin, late.id);
+    const { data } = await admin.from("billing_invoices").select("payment_url").eq("id", late.id).single();
+    return data?.payment_url ?? null;
+  }
+  const { data: bill } = await admin.from("organization_billing").select("monthly_price").eq("organization_id", orgId).maybeSingle();
+  // Drop the old charge at Asaas first; its PAYMENT_DELETED webhook then finds the invoice already void.
+  if (late.provider === "asaas" && late.external_id) await deletePayment(late.external_id).catch((e) => console.error("[asaas] delete late charge", e));
+  await admin.from("billing_invoices").update({ status: "void", notes: "Trocada por outro plano no atraso" }).eq("id", late.id).eq("status", "open");
+  const periodEnd = addMonths(late.period_start, months);
+  const { data: inv, error } = await admin.from("billing_invoices").insert({
+    organization_id: orgId, period_start: late.period_start, period_end: periodEnd, amount: periodPrice(months, bill?.monthly_price),
+    due_at: late.due_at, status: "open", months, notes: `Plano ${PERIOD_LABEL[months]} no lugar da fatura atrasada`,
+  }).select("id").single();
+  if (error || !inv) throw new Error(error?.message ?? "invoice");
+  await admin.from("organization_billing").update({ billing_period: months, pending_period: null, pending_from: null, updated_at: new Date().toISOString() }).eq("organization_id", orgId);
+  await updateSubscriptionPlan(admin, orgId, months, periodEnd).catch((e) => console.error("[asaas] late plan subscription", e));
+  await chargeInvoice(admin, inv.id);
+  const { data: charged } = await admin.from("billing_invoices").select("payment_url").eq("id", inv.id).single();
+  return charged?.payment_url ?? null;
+}
+
 /** Cancels the Asaas charge behind an invoice the admin voided. */
 export async function cancelCharge(externalId: string) {
   await deletePayment(externalId);
